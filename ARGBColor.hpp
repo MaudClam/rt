@@ -20,8 +20,7 @@ enum colorFormat {
 
 std::string colorFormat(int bpp);
 
-class ARGBColor {
-protected:
+struct ARGBColor {
 	union {
 		struct {
 			unsigned char b, g, r, a;
@@ -30,8 +29,6 @@ protected:
 		unsigned int	val;
 	};
 	int bytespp;
-
-public:
 	ARGBColor(void);
 	~ARGBColor(void);
 	ARGBColor(unsigned char R, unsigned char G, unsigned char B, unsigned char A = 0);

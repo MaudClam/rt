@@ -5,7 +5,7 @@
 //  Created by uru on 02/07/2024.
 //
 
-#include "../color/ARGBColor.hpp"
+#include "ARGBColor.hpp"
 
 int main(void) {
 	ARGBColor c(255,254,253);

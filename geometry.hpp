@@ -65,7 +65,7 @@ template <class t> std::ostream& operator<<(std::ostream& s, Vec3<t>& v) {
 
 template <class t> std::istringstream& operator>>(std::istringstream& is, Vec3<t>& v) {
 	char trash;
-	v.x = 0; v.y = 0; s.z = 0;
+	v.x = 0; v.y = 0; v.z = 0;
 	is >> v.x >> trash >> v.y >> trash >> v.z;
 	return is;
 }
