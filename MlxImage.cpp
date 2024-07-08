@@ -130,8 +130,14 @@ void	MlxImage::init(const std::string& header, int w, int h) {
 	pointers.push(ptrShowImg);
 
 	dataShow = mlx_get_data_addr(ptrShowImg, &bitsPerPixel, &lineLen, &endian);
+	if (bitsPerPixel % 8 != 0) {
+		std::cerr	<< "Error mlx_get_data_addr(): gives the invalid bits_per_pixel parameter '"
+					<< bitsPerPixel << "'" << std::endl;
+	}
+	bytespp = bitsPerPixel / 8;
+
 	clear(white, BOTH);
-	swap();
+	mlx_put_image_to_window(mlx, win, ptrShowImg, 0, 0);
 }
 
 void	MlxImage::freePointers(void) {
