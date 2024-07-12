@@ -10,7 +10,9 @@
 
 # include <iostream>
 # include <sstream>
+# include <iomanip>
 # include <cmath>
+# include <numbers>
 
 template <class t> struct Vec2 {
 	union {
@@ -23,6 +25,8 @@ template <class t> struct Vec2 {
 	inline Vec2<t> operator+(const Vec2<t>& V) const { return Vec2<t>(u + V.u, v + V.v); }
 	inline Vec2<t> operator-(const Vec2<t>& V) const { return Vec2<t>(u - V.u, v - V.v); }
 	inline Vec2<t> operator*(float f)          const { return Vec2<t>(u * f, v * f); }
+	inline Vec2<t>& toMonitor(int width, int height) { x += width / 2; y = height / 2 - y - 1; return *this; }
+	inline Vec2<t>& toRt(int width, int height) { x -= width / 2; y = height / 2 - y - 1; return *this; }
 	template <class > friend std::ostream& operator<<(std::ostream& o, Vec2<t>& v);
 	template <class > friend std::istringstream& operator>>(std::istringstream& is, Vec2<t>& v);
 };

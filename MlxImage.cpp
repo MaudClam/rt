@@ -52,12 +52,24 @@ int		MlxImage::get_lineLen(void) const { return lineLen; }
 
 int		MlxImage::get_endian(void) const { return endian; }
 
-char*	MlxImage::get_pixelAddr(char* data, int x, int y, Y_direction yd) const {
-	if (!data || x < 0 || y < 0 || x >= width || y >= height)
+void*	MlxImage::get_pixelAddr(char* data, const Vec2i& v) const {
+	if (!data || v.x < 0 || v.y < 0 || v.x >= width || v.y >= height)
 		return NULL;
-	if (yd == DOWN)
-		return data + y * width * bytespp + x * bytespp;
-	return data + (x + (height - y - 1) * width) * bytespp;
+	return data + v.y * width * bytespp + v.x * bytespp;
+}
+
+void*	MlxImage::get_pixelAddr(char* data, int x, int y) const {
+	Vec2i v(x,y);
+	return get_pixelAddr(data, v);
+}
+
+Vec2i	MlxImage::get_XY(char* data, char* addr) const {
+	Vec2i	v;
+	size_t	pos = addr - data;
+	
+	v.y = (int)(pos / lineLen);
+	v.x = (int)( (pos - v.y * lineLen) / bytespp );
+	return v;
 }
 
 void	MlxImage::swap(void){
@@ -66,11 +78,10 @@ void	MlxImage::swap(void){
 }
 
 void	MlxImage::fill(char* data, const ARGBColor& color) {
-	char* addr = NULL;
-	for (int y = 0; y < height; ++y) {
-		for (int x = 0; x < width; ++x) {
-			addr = get_pixelAddr(data, x, y);
-			memcpy(addr, color.raw, bytespp);
+	if (data) {
+		char* dataEnd = data + width * height * bytespp;
+		for (; data < dataEnd; data += bytespp) {
+			memcpy(data, color.raw, bytespp);
 		}
 	}
 }
@@ -150,6 +161,18 @@ void	MlxImage::freePointers(void) {
 	}
 }
 
+bool	MlxImage::isInWinMlxXY(const Vec2i& v) const {
+	return v.x >= 0 && v.y >= 0 && v.x < width && v.y < height;
+}
+
+void	MlxImage::rtToMlxXY(Vec2i& v) const {
+	v.toMonitor(width, height);
+}
+
+void	MlxImage::mlxToRtXY(Vec2i& v) const {
+	v.toRt(width, height);
+}
+
 
 // Non-member functions
 
@@ -215,16 +238,16 @@ int		mouseKeyUp(int button, void* param) {
 
 int		mouseMove(int button, void* param) {
 	(void)param;
-	static int x = 0, y = 0;
 	(void)button;
-	mlx_mouse_get_pos(var.img->get_win(), &x, &y);
-	if (DEBUG_MODE && 
-		x >= 0 &&
-		y >= 0 &&
-		x < var.img->get_width() &&
-		y < var.img->get_height()) {
-		std::cout << "(" << x << "," << var.img->get_height() - y - 1 << ")\n";
+	Vec2i	v;
+	mlx_mouse_get_pos(var.img->get_win(), &v.x, &v.y);
+	if (DEBUG_MOUSE && var.img->isInWinMlxXY(v)) {
+//		char* pixelAddr = var.img->get_pixelAddr(var.img->get_dataDraw(), v);
+//		Vec2i v1 = var.img->get_XY(var.img->get_dataDraw(), pixelAddr);
+//		var.img->mlxToRtXY(v1);
+//		var.img->rtToMlxXY(v1);
+		v.toRt(var.img->get_width(), var.img->get_height());
+		std::cout << "(" << v << ")\n";
 	}
 	return 0;
 }
-

@@ -12,8 +12,15 @@
 # include "geometry.hpp"
 # include "ARGBColor.hpp"
 # include "MlxImage.hpp"
+# include "Ray.hpp"
+# include "Sphere.hpp"
 
-struct ARGBColor;
+#define DEBUG_MODE	true
+#define DEBUG_MOUSE	false
+
+#define SUCCESS		0
+#define ERROR		-1
+
 class MlxImage;
 
 struct Var {

@@ -8,18 +8,33 @@
 #ifndef RAY_HPP
 # define RAY_HPP
 
-# include "Header.h"
+# include "geometry.hpp"
+# include "ARGBColor.hpp"
 
-struct Ray {
-	Vec3f		pov;
-	Vec3f		normal;
-	ARGBColor	color;
-	int			generation;
+class Ray {
+protected:
+	void*		addr;		// image memory pixel address
+	int			bytespp;	// bytes per image pixel
+	Vec2f		pos;		// relative xy-coordinate on RT canvas of width 1
+	float		d;			// distance from pov to imaginary canvas
+public:
+	Vec3f		pov;		// POV (point of view)
+	Vec3f		dir;		// ray direction vector (normalized)
+	float		dist;		// variable to record distance from pov to object
+	ARGBColor	color;		// variable to record pixel color
+	int			generation;	// number of reflections, refractions, absorptions
 	Ray(void);
 	~Ray(void);
-	Ray(const Vec3f& p, const Vec3f& n, const ARGBColor& c, int g = 0);
+	Ray(void* addr, int bytespp, const Vec2f& pos, float d = 1);
 	Ray(const Ray& other);
 	Ray& operator=(const Ray& other);
+	void reset(void);
+	void set_d(float d);
+	void drawPixel(void);
 };
+
+// Non member functions
+
+float d_calculate(int fov); // fov - horizontal field of view in degrees in range [0,180]
 
 #endif /* RAY_HPP */

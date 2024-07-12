@@ -1,0 +1,91 @@
+//
+//  Sphere.cpp
+//  rt
+//
+//  Created by uru on 08/07/2024.
+//
+
+#include "Sphere.hpp"
+
+Sphere::Sphere(void) : radius() {
+	name = "sphere";
+	nick = "sp";
+}
+
+Sphere::~Sphere(void) {}
+
+Sphere::Sphere(const Vec3f& center, float radius, const ARGBColor& color) {
+	this->center = center;
+	this->radius = radius;
+	this->color = color;
+}
+
+Sphere::Sphere(const Sphere& other) { *this = other; }
+
+Sphere& Sphere::operator=(const Sphere& other) {
+	if (this != &other) {
+		center = other.center;
+		color = other.color;
+		radius = other.radius;
+	}
+	return *this;
+}
+
+bool Sphere::intersection(Ray& ray) const {
+	Vec3f C = center;
+	Vec3f k = ray.pov - center;
+	float b = ray.dir * k;
+	float c = k * k - radius * radius;
+	float d = b * b -  c;
+	std::cout << " ray.pov=" << ray.pov;
+	std::cout << " center=" << C;
+	std::cout << " k=" << k;
+	std::cout << " ray.dir=" << ray.dir;
+	std::cout << " b=" << b;
+	std::cout << " radius=" << radius;
+	std::cout << " c=" << c;
+	std::cout << " d=" << d;
+	std::cout << std::endl;
+	if (d >= 0) {
+		float sqrt_d = std::sqrt(d);
+		float t1 = -b + sqrt_d;
+		float t2 = -b - sqrt_d;
+		float min_t = std::min(t1,t2);
+		float max_t = std::max(t1,t2);
+		float t = min_t >= 0 ? min_t : max_t;
+		std::cout << "=2";
+		if (t > 0) {
+			if (t < ray.dist) {
+				ray.dist = t;
+				ray.color = color;
+				std::cout << "=3";
+//				ray.drawPixel();
+//				ray.generation++;
+			}
+			return true;
+		}
+	}
+	return false;
+}
+
+std::ostream& operator<<(std::ostream& o, Sphere& sp) {
+	o	<< sp.nick
+		<< " " << sp.center
+		<< " " << sp.radius * 2
+		<< " " << sp.color.rrggbb()
+		<< "\t#" << sp.name;
+	return o;
+}
+
+std::istringstream& operator>>(std::istringstream& is, Sphere& sp) {
+	if (!is.str().compare(0, sp.nick.size(), sp.nick)) {
+		char trash;
+		for (size_t i = 0; i < sp.nick.size(); ++i) {
+			is >> trash;
+		}
+		is >> sp.center >> sp.radius;
+		is >> sp.color;
+		sp.radius /= 2;
+	}
+	return is;
+}

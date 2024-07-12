@@ -13,11 +13,7 @@
 # include <stack>
 # include "Header.h"
 
-#define DEBUG_MODE true
-
 enum {
-	SUCCESS				= 0,
-	ERROR				= -1,
 	ON_KEYDOWN			= 2,
 	ON_KEYUP			= 3,
 	ON_MOUSEDOWN		= 4,
@@ -74,7 +70,6 @@ private:
 public:
 	int					holdKey;
 	int					mouseHoldKey;
-	enum Y_direction { UP, DOWN };
 	enum ClearWhat { BOTH, DRAW_IMG, SHOW_IMG };
 	MlxImage(void);
 	~MlxImage();
@@ -89,12 +84,17 @@ public:
 	int		get_bytespp(void) const;
 	int		get_lineLen(void) const;
 	int		get_endian(void) const;
-	char*	get_pixelAddr(char* data, int x, int y, Y_direction yd = UP) const;
+	void*	get_pixelAddr(char* data, const Vec2i& v) const;
+	void*	get_pixelAddr(char* data, int x, int y) const;
+	Vec2i	get_XY(char* data, char* addr) const;
 	void	swap(void);
 	void	fill(char* data, const ARGBColor& color);
 	void	clear(const ARGBColor& color, ClearWhat target);
 	void	init(const std::string& header, int w, int h);
 	void	freePointers(void);
+	bool	isInWinMlxXY(const Vec2i& v) const;
+	void	rtToMlxXY(Vec2i& v) const;
+	void	mlxToRtXY(Vec2i& v) const;
 };
 
 int destroyNotify(int button, void* param);
