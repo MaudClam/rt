@@ -11,25 +11,30 @@ Ray::Ray(void) :
 addr(NULL),
 bytespp(0),
 pos(),
-d(1),
+tan(1.),
 pov(),
-dir(0,0,d),
+dir(0,0,1.),
 dist(INFINITY),
 color(),
-generation(0) {}
+generation(0)
+{}
 
 Ray::~Ray(void) {}
 
-Ray::Ray(void* addr, int bytespp, const Vec2f& pos, float d) :
+Ray::Ray(void* addr, int bytespp, const Vec2f& pos, float tan) :
 addr(addr),
 bytespp(bytespp),
 pos(pos),
-d(d),
+tan(tan),
 pov(),
-dir(pos.x,pos.y,d),
+dir(pos.x,pos.y,1.),
 dist(INFINITY),
 color(),
 generation(0) {
+	if (tan != 1.) {
+		dir.x *= tan;
+		dir.y *= tan;;
+	}
 	dir.normalize();
 }
 
@@ -37,7 +42,7 @@ Ray::Ray(const Ray& other) :
 addr(other.addr),
 bytespp(other.bytespp),
 pos(other.pos),
-d(other.d),
+tan(other.tan),
 pov(other.pov),
 dir(other.dir),
 dist(other.dist),
@@ -49,7 +54,7 @@ Ray& Ray::operator=(const Ray& other) {
 		addr = other.addr;
 		bytespp = other.bytespp;
 		pos = other.pos;
-		d = other.d;
+		tan = other.tan;
 		pov = other.pov;
 		dir = other.dir;
 		dist = other.dist;
@@ -61,14 +66,14 @@ Ray& Ray::operator=(const Ray& other) {
 
 void Ray::reset(void) {
 	pov.x = pov.y = pov.z = 0;
-	dir.x = pos.x; dir.y = pos.y; dir.z = d;
+	dir.x = pos.x * tan; dir.y = pos.y * tan; dir.z = 1.;
 	dir.normalize();
 	dist = INFINITY;
 	color.val = 0; color.bytespp = RGB;
 }
 
-void Ray::set_d(float d) {
-	this->d = d;
+void Ray::set_tan(float tan) {
+	this->tan = tan;
 	reset();
 }
 

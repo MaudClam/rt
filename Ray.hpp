@@ -16,7 +16,7 @@ protected:
 	void*		addr;		// image memory pixel address
 	int			bytespp;	// bytes per image pixel
 	Vec2f		pos;		// relative xy-coordinate on RT canvas of width 1
-	float		d;			// distance from pov to imaginary canvas
+	float		tan;
 public:
 	Vec3f		pov;		// POV (point of view)
 	Vec3f		dir;		// ray direction vector (normalized)
@@ -25,11 +25,11 @@ public:
 	int			generation;	// number of reflections, refractions, absorptions
 	Ray(void);
 	~Ray(void);
-	Ray(void* addr, int bytespp, const Vec2f& pos, float d = 1);
+	Ray(void* addr, int bytespp, const Vec2f& pos, float tan = 1);
 	Ray(const Ray& other);
 	Ray& operator=(const Ray& other);
 	void reset(void);
-	void set_d(float d);
+	void set_tan(float tan);
 	void drawPixel(void);
 };
 

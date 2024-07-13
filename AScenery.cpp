@@ -13,6 +13,7 @@ nick(),
 light(false),
 brightness(1),
 center(),
+normal(),
 color()
 {}
 
@@ -23,6 +24,8 @@ name(other.name),
 nick(other.nick),
 light(other.light),
 brightness(other.brightness),
+center(other.center),
+normal(other.normal),
 color(other.color)
 {}
 
@@ -32,7 +35,13 @@ AScenery& AScenery::operator=(const AScenery& other) {
 		nick = other.nick;
 		light = other.light;
 		brightness = other.brightness;
+		center = other.center;
+		normal = other.normal;
 		color = other.color;
 	}
 	return *this;
+}
+
+bool AScenery::get_light(void) {
+	return light;
 }

@@ -27,6 +27,7 @@ mouseHoldKey(0)
 {}
 
 MlxImage::~MlxImage(void) {
+	freePointers();
 	if (DEBUG_MODE) { std::cout << "~MlxImage() destructor was done.\n"; }
 }
 
@@ -52,13 +53,13 @@ int		MlxImage::get_lineLen(void) const { return lineLen; }
 
 int		MlxImage::get_endian(void) const { return endian; }
 
-void*	MlxImage::get_pixelAddr(char* data, const Vec2i& v) const {
+char*	MlxImage::get_pixelAddr(char* data, const Vec2i& v) const {
 	if (!data || v.x < 0 || v.y < 0 || v.x >= width || v.y >= height)
 		return NULL;
 	return data + v.y * width * bytespp + v.x * bytespp;
 }
 
-void*	MlxImage::get_pixelAddr(char* data, int x, int y) const {
+char*	MlxImage::get_pixelAddr(char* data, int x, int y) const {
 	Vec2i v(x,y);
 	return get_pixelAddr(data, v);
 }
@@ -147,8 +148,8 @@ void	MlxImage::init(const std::string& header, int w, int h) {
 	}
 	bytespp = bitsPerPixel / 8;
 
-	clear(white, BOTH);
-	mlx_put_image_to_window(mlx, win, ptrShowImg, 0, 0);
+//	clear(white, BOTH);
+//	mlx_put_image_to_window(mlx, win, ptrShowImg, 0, 0);
 }
 
 void	MlxImage::freePointers(void) {
@@ -179,9 +180,9 @@ void	MlxImage::mlxToRtXY(Vec2i& v) const {
 int		destroyNotify(int button, void* param) {
 	(void)button;
 	(void)param;
-	if (DEBUG_MODE) { std::cout << "destroyNotify\n"; }
+	var.img->~MlxImage();
+	var.scene->~Scene();
 	exit(SUCCESS);
-	return 0;
 }
 
 int		keyDown(int key, void* param) {
@@ -194,8 +195,8 @@ int		keyDown(int key, void* param) {
 	{
 		var.img->holdKey = key;
 	} else if (key == KEY_ESCAPE) {
-		var.img->freePointers();
 		var.img->~MlxImage();
+		var.scene->~Scene();
 		exit(SUCCESS);
 	}
 	return 0;

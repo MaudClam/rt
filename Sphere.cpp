@@ -32,20 +32,10 @@ Sphere& Sphere::operator=(const Sphere& other) {
 }
 
 bool Sphere::intersection(Ray& ray) const {
-	Vec3f C = center;
 	Vec3f k = ray.pov - center;
 	float b = ray.dir * k;
 	float c = k * k - radius * radius;
-	float d = b * b -  c;
-	std::cout << " ray.pov=" << ray.pov;
-	std::cout << " center=" << C;
-	std::cout << " k=" << k;
-	std::cout << " ray.dir=" << ray.dir;
-	std::cout << " b=" << b;
-	std::cout << " radius=" << radius;
-	std::cout << " c=" << c;
-	std::cout << " d=" << d;
-	std::cout << std::endl;
+	float d = b * b - c;
 	if (d >= 0) {
 		float sqrt_d = std::sqrt(d);
 		float t1 = -b + sqrt_d;
@@ -53,14 +43,10 @@ bool Sphere::intersection(Ray& ray) const {
 		float min_t = std::min(t1,t2);
 		float max_t = std::max(t1,t2);
 		float t = min_t >= 0 ? min_t : max_t;
-		std::cout << "=2";
 		if (t > 0) {
 			if (t < ray.dist) {
 				ray.dist = t;
 				ray.color = color;
-				std::cout << "=3";
-//				ray.drawPixel();
-//				ray.generation++;
 			}
 			return true;
 		}

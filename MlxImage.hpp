@@ -84,8 +84,8 @@ public:
 	int		get_bytespp(void) const;
 	int		get_lineLen(void) const;
 	int		get_endian(void) const;
-	void*	get_pixelAddr(char* data, const Vec2i& v) const;
-	void*	get_pixelAddr(char* data, int x, int y) const;
+	char*	get_pixelAddr(char* data, const Vec2i& v) const;
+	char*	get_pixelAddr(char* data, int x, int y) const;
 	Vec2i	get_XY(char* data, char* addr) const;
 	void	swap(void);
 	void	fill(char* data, const ARGBColor& color);

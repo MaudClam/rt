@@ -13,7 +13,9 @@
 # include "ARGBColor.hpp"
 # include "MlxImage.hpp"
 # include "Ray.hpp"
+# include "AScenery.hpp"
 # include "Sphere.hpp"
+# include "Scene.hpp"
 
 #define DEBUG_MODE	true
 #define DEBUG_MOUSE	false
@@ -22,9 +24,11 @@
 #define ERROR		-1
 
 class MlxImage;
+struct Scene;
 
 struct Var {
 	MlxImage*	img;
+	Scene*		scene;
 	
 	Var(void) : img(NULL) {}
 	~Var(void) {}
