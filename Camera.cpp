@@ -8,7 +8,7 @@
 #include "Camera.hpp"
 
 Camera::Camera(const MlxImage& img) :
-data(img.get_dataShow()),
+data(img.get_data()),
 width(img.get_width()),
 height(img.get_height()),
 bytespp(img.get_bytespp()),
@@ -21,7 +21,7 @@ pixels()
 Camera::~Camera(void) {}
 
 Camera::Camera(const MlxImage& img, const Position& pos, float fov) :
-data(img.get_dataShow()),
+data(img.get_data()),
 width(img.get_width()),
 height(img.get_height()),
 bytespp(img.get_bytespp()),

@@ -12,10 +12,8 @@ extern Var var;
 MlxImage::MlxImage() :
 mlx(),
 win(),
-ptrDrawImg(NULL),
-ptrShowImg(NULL),
-dataDraw(NULL),
-dataShow(NULL),
+image(NULL),
+data(NULL),
 pointers(),
 width(0),
 height(0),
@@ -35,13 +33,9 @@ void*	MlxImage::get_mlx(void) const { return mlx; }
 
 void*	MlxImage::get_win(void) const { return win; }
 
-void*	MlxImage::get_ptrDrawImg(void) const { return ptrDrawImg; }
+void*	MlxImage::get_image(void) const { return image; }
 
-void*	MlxImage::get_ptrShowImg(void) const { return ptrShowImg; }
-
-char*	MlxImage::get_dataDraw(void) const { return dataDraw; }
-
-char*	MlxImage::get_dataShow(void) const { return dataShow; }
+char*	MlxImage::get_data(void) const { return data; }
 
 int		MlxImage::get_width(void) const { return width; }
 
@@ -73,28 +67,12 @@ Vec2i	MlxImage::get_XY(char* data, char* addr) const {
 	return v;
 }
 
-void	MlxImage::swap(void){
-	std::swap(ptrDrawImg, ptrShowImg);
-	std::swap(dataDraw, dataShow);
-}
-
 void	MlxImage::fill(char* data, const ARGBColor& color) {
 	if (data) {
 		char* dataEnd = data + width * height * bytespp;
 		for (; data < dataEnd; data += bytespp) {
 			memcpy(data, color.raw, bytespp);
 		}
-	}
-}
-
-void	MlxImage::clear(const ARGBColor& color, ClearWhat target) {
-	if (target == BOTH) {
-		fill(dataDraw, color);
-		fill(dataShow, color);
-	} else if (target == DRAW_IMG) {
-		fill(dataDraw, color);
-	} else if (target == SHOW_IMG) {
-		fill(dataShow, color);
 	}
 }
 
@@ -117,31 +95,16 @@ void	MlxImage::init(const std::string& header, int w, int h) {
 	}
 	pointers.push(win);
 
-	if ( !(ptrDrawImg = mlx_new_image(mlx, width, height)) ) {
+	if ( !(image = mlx_new_image(mlx, width, height)) ) {
 		int _errno = errno;
 		freePointers();
 		std::cerr << "Error mlx_new_image(): " << strerror(_errno) << std::endl;
 		exit(_errno) ;
 	}
-	pointers.push(ptrDrawImg);
+	pointers.push(image);
 
 	int bitsPerPixel = 0;
-	dataDraw = mlx_get_data_addr(ptrDrawImg, &bitsPerPixel, &lineLen, &endian);
-	if (bitsPerPixel % 8 != 0) {
-		std::cerr	<< "Error mlx_get_data_addr(): gives the invalid bits_per_pixel parameter '"
-					<< bitsPerPixel << "'" << std::endl;
-	}
-	bytespp = bitsPerPixel / 8;
-
-	if ( !(ptrShowImg = mlx_new_image(mlx, width, height)) ) {
-		int _errno = errno;
-		freePointers();
-		std::cerr << "Error mlx_new_image(): " << strerror(_errno) << std::endl;
-		exit(_errno) ;
-	}
-	pointers.push(ptrShowImg);
-
-	dataShow = mlx_get_data_addr(ptrShowImg, &bitsPerPixel, &lineLen, &endian);
+	data = mlx_get_data_addr(image, &bitsPerPixel, &lineLen, &endian);
 	if (bitsPerPixel % 8 != 0) {
 		std::cerr	<< "Error mlx_get_data_addr(): gives the invalid bits_per_pixel parameter '"
 					<< bitsPerPixel << "'" << std::endl;
@@ -168,7 +131,7 @@ void	MlxImage::freePointers(void) {
 	}
 }
 
-bool	MlxImage::isInWinMlxXY(const Vec2i& v) const {
+bool	MlxImage::isInWinowXY(const Vec2i& v) const {
 	return v.x >= 0 && v.y >= 0 && v.x < width && v.y < height;
 }
 
@@ -256,7 +219,7 @@ int		mouseMove(int button, void* param) {
 	(void)button;
 	Vec2i	v;
 	mlx_mouse_get_pos(var.img->get_win(), &v.x, &v.y);
-	if (DEBUG_MOUSE && var.img->isInWinMlxXY(v)) {
+	if (DEBUG_MOUSE && var.img->isInWinowXY(v)) {
 //		char* pixelAddr = var.img->get_pixelAddr(var.img->get_dataDraw(), v);
 //		Vec2i v1 = var.img->get_XY(var.img->get_dataDraw(), pixelAddr);
 //		var.img->mlxToRtXY(v1);

@@ -73,10 +73,8 @@ class MlxImage : public ImageOptions {
 private:
 	void*				mlx;
 	void*				win;
-	void*				ptrDrawImg;
-	void*				ptrShowImg;
-	char*				dataDraw;
-	char*				dataShow;
+	void*				image;
+	char*				data;
 	std::stack<void*>	pointers;
 	int					width;
 	int					height;
@@ -91,10 +89,8 @@ public:
 	~MlxImage();
 	void*	get_mlx(void) const;
 	void*	get_win(void) const;
-	void*	get_ptrDrawImg(void) const;
-	void*	get_ptrShowImg(void) const;
-	char*	get_dataDraw(void) const;
-	char*	get_dataShow(void) const;
+	void*	get_image(void) const;
+	char*	get_data(void) const;
 	int		get_width(void) const;
 	int		get_height(void) const;
 	int		get_bytespp(void) const;
@@ -103,12 +99,10 @@ public:
 	char*	get_pixelAddr(char* data, const Vec2i& v) const;
 	char*	get_pixelAddr(char* data, int x, int y) const;
 	Vec2i	get_XY(char* data, char* addr) const;
-	void	swap(void);
 	void	fill(char* data, const ARGBColor& color);
-	void	clear(const ARGBColor& color, ClearWhat target);
 	void	init(const std::string& header, int w, int h);
 	void	freePointers(void);
-	bool	isInWinMlxXY(const Vec2i& v) const;
+	bool	isInWinowXY(const Vec2i& v) const;
 	void	rtToMlxXY(Vec2i& v) const;
 	void	mlxToRtXY(Vec2i& v) const;
 };

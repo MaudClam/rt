@@ -10,7 +10,7 @@
 Var	var;
 
 void rt(MlxImage& img, Scene& scene) {
-	char* 				data = img.get_dataShow();
+	char* 				data = img.get_data();
 	int					bytespp = img.get_bytespp();
 	int					width = img.get_width();
 	int					height = img.get_height();
@@ -54,7 +54,7 @@ int main() {
 	scene.putPixelsToImg();
 	
 //	rt(img, scene);
-	mlx_put_image_to_window(img.get_mlx(), img.get_win(), img.get_ptrShowImg(), 0, 0);
+	mlx_put_image_to_window(img.get_mlx(), img.get_win(), img.get_image(), 0, 0);
 	mlx_loop(img.get_mlx());
 	
 	return 0;
