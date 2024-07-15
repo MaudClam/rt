@@ -19,6 +19,7 @@
 # include "Camera.hpp"
 
 #define DEBUG_MODE	true
+#define DEBUG_KEYS	false
 #define DEBUG_MOUSE	false
 
 #define SUCCESS		0

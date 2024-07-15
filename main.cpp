@@ -9,18 +9,16 @@
 
 Var	var;
 
-int main(void) {
+int main(int ac, char** av) {
 	MlxImage	img;
-	
-	var.img = &img;
-	img.init("Hello!", 800, 600);
-	mlx_hook(img.get_win(), ON_DESTROY, 0, destroyNotify, NULL);
-	mlx_hook(img.get_win(), ON_KEYDOWN, 0, keyDown, NULL);
-	mlx_hook(img.get_win(), ON_KEYUP, 0, keyUp, NULL);
-	mlx_hook(img.get_win(), ON_MOUSEDOWN, 0, mouseKeyDown, NULL);
-	mlx_hook(img.get_win(), ON_MOUSEUP, 0, mouseKeyUp, NULL);
-	mlx_hook(img.get_win(), ON_MOUSEMOVE, 0, mouseMove, NULL);
+	Scene		scene(img);
+	var.img		= &img;
+	var.scene	= &scene;
+	int error	= scene.parsing(ac, av);
+	if (error != SUCCESS) {
+		return error;
+	}
+	scene.rt();
 	mlx_loop(img.get_mlx());
-
-	return 0;
+	return SUCCESS;
 }

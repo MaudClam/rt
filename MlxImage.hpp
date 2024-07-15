@@ -14,6 +14,7 @@
 # include "Header.h"
 
 struct Var;
+struct Scene;
 
 enum {
 	UNHOLD				= -1,
@@ -75,6 +76,7 @@ private:
 	void*				win;
 	void*				image;
 	char*				data;
+	Scene*				scene;
 	std::stack<void*>	pointers;
 	int					width;
 	int					height;
@@ -91,6 +93,7 @@ public:
 	void*	get_win(void) const;
 	void*	get_image(void) const;
 	char*	get_data(void) const;
+	Scene*	get_scene(void) const;
 	int		get_width(void) const;
 	int		get_height(void) const;
 	int		get_bytespp(void) const;
@@ -99,6 +102,7 @@ public:
 	char*	get_pixelAddr(char* data, const Vec2i& v) const;
 	char*	get_pixelAddr(char* data, int x, int y) const;
 	Vec2i	get_XY(char* data, char* addr) const;
+	void	set_scene(Scene* scene);
 	void	fill(char* data, const ARGBColor& color);
 	void	init(const std::string& header, int w, int h);
 	void	freePointers(void);

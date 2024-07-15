@@ -42,20 +42,16 @@ void rt(MlxImage& img, Scene& scene) {
 	}
 }
 
-int main() {
-	MlxImage img;
-	var.img = &img;
-	img.init("Hello!", 800, 600);
-	Scene scene(img);
-	var.scene = &scene;
-//	scene.init(ac, av);
-	
+int main(int ac, char** av) {
+	MlxImage	img;
+	Scene		scene(img);
+	var.img		= &img;
+	var.scene	= &scene;
+
+	if (scene.parsing(ac, av) != SUCCESS) {
+		return ERROR;
+	}
 	scene.rt();
-	scene.putPixelsToImg();
-	
-//	rt(img, scene);
-	mlx_put_image_to_window(img.get_mlx(), img.get_win(), img.get_image(), 0, 0);
 	mlx_loop(img.get_mlx());
-	
-	return 0;
+	return SUCCESS;
 }

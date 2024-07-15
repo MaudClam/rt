@@ -10,10 +10,11 @@
 extern Var var;
 
 MlxImage::MlxImage() :
-mlx(),
-win(),
+mlx(NULL),
+win(NULL),
 image(NULL),
 data(NULL),
+scene(NULL),
 pointers(),
 width(0),
 height(0),
@@ -36,6 +37,8 @@ void*	MlxImage::get_win(void) const { return win; }
 void*	MlxImage::get_image(void) const { return image; }
 
 char*	MlxImage::get_data(void) const { return data; }
+
+Scene*	MlxImage::get_scene(void) const { return scene; }
 
 int		MlxImage::get_width(void) const { return width; }
 
@@ -67,6 +70,8 @@ Vec2i	MlxImage::get_XY(char* data, char* addr) const {
 	return v;
 }
 
+void	MlxImage::set_scene(Scene* scene) { this->scene = scene; }
+
 void	MlxImage::fill(char* data, const ARGBColor& color) {
 	if (data) {
 		char* dataEnd = data + width * height * bytespp;
@@ -83,29 +88,27 @@ void	MlxImage::init(const std::string& header, int w, int h) {
 	if ( !(mlx = mlx_init()) ) {
 		int _errno = errno;
 		std::cerr << "Error mlx_init(): " << strerror(_errno) << std::endl;
-		exit(_errno) ;
+		_exit(var, _errno) ;
 	}
 	pointers.push(mlx);
 
 	if ( !(win = mlx_new_window(mlx, width, height, (char*)header.c_str())) ) {
 		int _errno = errno;
-		freePointers();
 		std::cerr << "Error mlx_new_window(): " << strerror(_errno) << std::endl;
-		exit(_errno) ;
+		_exit(var, _errno) ;
 	}
 	pointers.push(win);
 
 	if ( !(image = mlx_new_image(mlx, width, height)) ) {
 		int _errno = errno;
-		freePointers();
 		std::cerr << "Error mlx_new_image(): " << strerror(_errno) << std::endl;
-		exit(_errno) ;
+		_exit(var, _errno) ;
 	}
 	pointers.push(image);
 
 	int bitsPerPixel = 0;
 	data = mlx_get_data_addr(image, &bitsPerPixel, &lineLen, &endian);
-	if (bitsPerPixel % 8 != 0) {
+	if (DEBUG_MODE && (bitsPerPixel % 8 != 0) ) {
 		std::cerr	<< "Error mlx_get_data_addr(): gives the invalid bits_per_pixel parameter '"
 					<< bitsPerPixel << "'" << std::endl;
 	}
@@ -179,7 +182,7 @@ int		keyDown(int key, void* param) {
 			}
 		}
 	}
-	if (DEBUG_MODE) { std::cout << "keyDown: " << key << " holdKey: " << var.img->holdKey << "\n"; }
+	if (DEBUG_KEYS) { std::cout << "keyDown: " << key << " holdKey: " << var.img->holdKey << "\n"; }
 	return 0;
 }
 
@@ -188,13 +191,13 @@ int		keyUp(int key, void* param) {
 	if (var.img->holdKey == key) {
 		var.img->holdKey = UNHOLD;
 	}
-	if (DEBUG_MODE) { std::cout << "keyUp: " << key << " holdKey: " << var.img->holdKey  << "\n"; }
+	if (DEBUG_KEYS) { std::cout << "keyUp: " << key << " holdKey: " << var.img->holdKey  << "\n"; }
 	return 0;
 }
 
 int		mouseKeyDown(int button, void* param) {
 	(void)param;
-	if (DEBUG_MODE) { std::cout << "mouseKeyDown: " << button << "\n"; }
+	if (DEBUG_MOUSE) { std::cout << "mouseKeyDown: " << button << "\n"; }
 	if (button == MOUSE_LEFT_CLICK || button == MOUSE_RIGHT_CLICK ||
 		button == MOUSE_MIDDLE_CLICK)
 	{
@@ -205,7 +208,7 @@ int		mouseKeyDown(int button, void* param) {
 
 int		mouseKeyUp(int button, void* param) {
 	(void)param;
-	if (DEBUG_MODE) { std::cout << "mouseKeyUp: " << button << "\n"; }
+	if (DEBUG_MOUSE) { std::cout << "mouseKeyUp: " << button << "\n"; }
 	if (button == MOUSE_LEFT_CLICK || button == MOUSE_RIGHT_CLICK ||
 		button == MOUSE_MIDDLE_CLICK)
 	{

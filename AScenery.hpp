@@ -31,7 +31,7 @@ public:
 	bool get_light(void);
 	virtual bool intersection(Ray& ray) const = 0;
 	virtual bool intersection(Ray& ray, int currentCamera) const = 0;
-	virtual void makeLookatsPositions(const Position& camera) = 0;
+	virtual void calculateLookatForCamera(const Position& cameraPosition) = 0;
 };
 
 #endif /* ASCENERY_HPP */

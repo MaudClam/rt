@@ -52,32 +52,47 @@ bool Sphere::intersection(Ray& ray) const {
 		}
 	}
 	return false;
+}//FIXME
+
+bool Sphere::checkLookatsForCamera(int cameraIdx) const {
+	if (cameraIdx >= 0 && cameraIdx < lookats.size()) {
+		return true;
+	}
+	if (DEBUG_MODE) {
+		Sphere sp(*this);
+		std::cerr	<< "Error object '" << sp << "': cameraIdx out of range '"
+		<< cameraIdx << "'" << std::endl;
+	}
+	return false;
+
 }
 
-bool Sphere::intersection(Ray& ray, int currentCamera) const {
-	Vec3f k = ray.pov - lookats[currentCamera].pos;
-	float b = ray.dir * k;
-	float c = k * k - radius * radius;
-	float d = b * b - c;
-	if (d >= 0) {
-		float sqrt_d = std::sqrt(d);
-		float t1 = -b + sqrt_d;
-		float t2 = -b - sqrt_d;
-		float min_t = std::min(t1,t2);
-		float max_t = std::max(t1,t2);
-		float t = min_t >= 0 ? min_t : max_t;
-		if (t > 0) {
-			if (t < ray.dist) {
-				ray.dist = t;
+bool Sphere::intersection(Ray& ray, int cameraIdx) const {
+	if (checkLookatsForCamera(cameraIdx)) {
+		Vec3f k = ray.pov - lookats[cameraIdx].pos;
+		float b = ray.dir * k;
+		float c = k * k - radius * radius;
+		float d = b * b - c;
+		if (d >= 0) {
+			float sqrt_d = std::sqrt(d);
+			float t1 = -b + sqrt_d;
+			float t2 = -b - sqrt_d;
+			float min_t = std::min(t1,t2);
+			float max_t = std::max(t1,t2);
+			float t = min_t >= 0 ? min_t : max_t;
+			if (t > 0) {
+				if (t < ray.dist) {
+					ray.dist = t;
+				}
+				return true;
 			}
-			return true;
 		}
 	}
 	return false;
 }
 
-void Sphere::makeLookatsPositions(const Position& camera) {
-	(void)camera;
+void Sphere::calculateLookatForCamera(const Position& cameraPosition) {
+	(void)cameraPosition;//FIXME
 	lookats.push_back(Position(this->center, this->normal));//FIXME
 }
 
