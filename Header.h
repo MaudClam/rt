@@ -16,6 +16,7 @@
 # include "AScenery.hpp"
 # include "Sphere.hpp"
 # include "Scene.hpp"
+# include "Camera.hpp"
 
 #define DEBUG_MODE	true
 #define DEBUG_MOUSE	false
@@ -29,7 +30,6 @@ struct Scene;
 struct Var {
 	MlxImage*	img;
 	Scene*		scene;
-	
 	Var(void) : img(NULL) {}
 	~Var(void) {}
 };

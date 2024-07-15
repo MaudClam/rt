@@ -13,7 +13,10 @@
 # include <stack>
 # include "Header.h"
 
+struct Var;
+
 enum {
+	UNHOLD				= -1,
 	ON_KEYDOWN			= 2,
 	ON_KEYUP			= 3,
 	ON_MOUSEDOWN		= 4,
@@ -34,6 +37,19 @@ enum {
 	KEY_SPACE			= 49,
 	KEY_ARROW_UP		= 126,
 	KEY_ARROW_DOWN		= 125,
+	KEY_ARROW_RIGHT		= 124,
+	KEY_ARROW_LEFT		= 123,
+	KEY_1				= 18,
+	KEY_2				= 19,
+	KEY_3				= 20,
+	KEY_4				= 21,
+	KEY_5				= 23,
+	KEY_6				= 22,
+	KEY_7				= 26,
+	KEY_8				= 28,
+	KEY_9				= 25,
+	KEY_0				= 29,
+	KEY_c				= 8,
 	MOUSE_LEFT_CLICK	= 1,
 	MOUSE_RIGHT_CLICK	= 2,
 	MOUSE_MIDDLE_CLICK	= 3,
@@ -42,13 +58,13 @@ enum {
 };
 
 struct ImageOptions {
-	const ARGBColor	black			= ARGBColor(  0,   0,   0);
-	const ARGBColor	darkGray		= ARGBColor( 32,  32,  32);
-	const ARGBColor	lightGray		= ARGBColor(200, 200, 200);
-	const ARGBColor	white			= ARGBColor(255, 255, 255);
-	const ARGBColor	red				= ARGBColor(255,   0,   0);
-	const ARGBColor	green			= ARGBColor(  0, 255,   0);
-	const ARGBColor	blue			= ARGBColor(  0,   0, 255);
+	const ARGBColor	black		= ARGBColor(  0,   0,   0);
+	const ARGBColor	darkGray	= ARGBColor( 32,  32,  32);
+	const ARGBColor	lightGray	= ARGBColor(200, 200, 200);
+	const ARGBColor	white		= ARGBColor(255, 255, 255);
+	const ARGBColor	red			= ARGBColor(255,   0,   0);
+	const ARGBColor	green		= ARGBColor(  0, 255,   0);
+	const ARGBColor	blue		= ARGBColor(  0,   0, 255);
 	ImageOptions(void) {}
 	~ImageOptions(void) {}
 };
@@ -97,11 +113,19 @@ public:
 	void	mlxToRtXY(Vec2i& v) const;
 };
 
-int destroyNotify(int button, void* param);
-int keyDown(int key, void* param);
-int keyUp(int key, void* param);
-int mouseKeyDown(int button, void *param);
-int mouseKeyUp(int button, void *param);
-int mouseMove(int button, void *param);
+
+// Non-member functions
+
+void	_exit(Var& var, int code);
+int		destroyNotify(int button, void* param);
+int		keyDown(int key, void* param);
+int		keyUp(int key, void* param);
+int		mouseKeyDown(int button, void *param);
+int		mouseKeyUp(int button, void *param);
+int		mouseMove(int button, void *param);
+bool	isNumericKey(int key);
+bool	isHoldKey(int key);
+int 	keyToNumber(int key);
+void	changeCamera(Var& var, int key);
 
 #endif /* MLXIMAGE_HPP */

@@ -32,29 +32,30 @@ void rt(MlxImage& img, Scene& scene) {
 	}
 	for (auto pixel = pixels.begin(); pixel != pixels.end(); ++pixel) {
 		for (auto obj = scene.objsIdx.begin(); obj != scene.objsIdx.end(); ++obj) {
-			(*obj)->intersection(*pixel);
-			pixel->drawPixel();
+			if ( (*obj)->intersection(*pixel) && pixel->dist < INFINITY) {
+				pixel->color = (*obj)->color;
+			}
 		}
+	}
+	for (auto pixel = pixels.begin(); pixel != pixels.end(); ++pixel) {
+		pixel->drawPixel();
 	}
 }
 
-int main(void) {
-	MlxImage	img;
-	var.img = 	&img;
-	
-	Scene		scene;
+int main() {
+	MlxImage img;
+	var.img = &img;
+	img.init("Hello!", 800, 600);
+	Scene scene(img);
 	var.scene = &scene;
+//	scene.init(ac, av);
 	
-	img.init("Hello!", 1200, 900);
-	mlx_hook(img.get_win(), ON_DESTROY, 0, destroyNotify, NULL);
-	mlx_hook(img.get_win(), ON_KEYDOWN, 0, keyDown, NULL);
-	mlx_hook(img.get_win(), ON_KEYUP, 0, keyUp, NULL);
-	mlx_hook(img.get_win(), ON_MOUSEDOWN, 0, mouseKeyDown, NULL);
-	mlx_hook(img.get_win(), ON_MOUSEUP, 0, mouseKeyUp, NULL);
-	mlx_hook(img.get_win(), ON_MOUSEMOVE, 0, mouseMove, NULL);
-	rt(img, scene);
+	scene.rt();
+	scene.putPixelsToImg();
+	
+//	rt(img, scene);
 	mlx_put_image_to_window(img.get_mlx(), img.get_win(), img.get_ptrShowImg(), 0, 0);
 	mlx_loop(img.get_mlx());
-
+	
 	return 0;
 }

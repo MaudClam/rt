@@ -12,17 +12,17 @@ extern Var var;
 MlxImage::MlxImage() :
 mlx(),
 win(),
-ptrDrawImg(),
-ptrShowImg(),
-dataDraw(),
-dataShow(),
+ptrDrawImg(NULL),
+ptrShowImg(NULL),
+dataDraw(NULL),
+dataShow(NULL),
 pointers(),
 width(0),
 height(0),
 bytespp(0),
 lineLen(0),
 endian(0),
-holdKey(0),
+holdKey(UNHOLD),
 mouseHoldKey(0)
 {}
 
@@ -148,12 +148,18 @@ void	MlxImage::init(const std::string& header, int w, int h) {
 	}
 	bytespp = bitsPerPixel / 8;
 
-//	clear(white, BOTH);
-//	mlx_put_image_to_window(mlx, win, ptrShowImg, 0, 0);
+	mlx_hook(win, ON_DESTROY, 0, destroyNotify, NULL);
+	mlx_hook(win, ON_KEYDOWN, 0, keyDown, NULL);
+	mlx_hook(win, ON_KEYUP, 0, keyUp, NULL);
+	mlx_hook(win, ON_MOUSEDOWN, 0, mouseKeyDown, NULL);
+	mlx_hook(win, ON_MOUSEUP, 0, mouseKeyUp, NULL);
+	mlx_hook(win, ON_MOUSEMOVE, 0, mouseMove, NULL);
 }
 
 void	MlxImage::freePointers(void) {
-	if (DEBUG_MODE) { std::cout << "Pointers freed:"; }
+	if (DEBUG_MODE) { std::cout << "Pointers freed:";
+		if (pointers.empty()) { std::cout << " not used.\n"; }
+	}
 	while (!pointers.empty()) {
 		if (DEBUG_MODE) { std::cout << " " << pointers.top(); }
 		free(pointers.top());
@@ -177,41 +183,49 @@ void	MlxImage::mlxToRtXY(Vec2i& v) const {
 
 // Non-member functions
 
+void	_exit(Var& var, int code) {
+	var.img->~MlxImage();
+	var.scene->~Scene();
+	exit(code);
+}
+
 int		destroyNotify(int button, void* param) {
 	(void)button;
 	(void)param;
-	var.img->~MlxImage();
-	var.scene->~Scene();
-	exit(SUCCESS);
+	_exit(var, SUCCESS);
+	return 0;
 }
 
 int		keyDown(int key, void* param) {
 	(void)param;
-	if (DEBUG_MODE) { std::cout << "keyDown: " << key << "\n"; }
-	if (key == KEY_LEFT_CMD		|| key == KEY_RIGHT_CMD ||
-		key == KEY_LEFT_CTRL	|| key == KEY_RIGHT_CTRL ||
-		key == KEY_LEFT_ALT		|| key == KEY_RIGHT_ALT ||
-		key == KEY_LEFT_SHIFT	|| key == KEY_RIGHT_SHIFT)
-	{
+	if ( isHoldKey(key) ) {
 		var.img->holdKey = key;
-	} else if (key == KEY_ESCAPE) {
-		var.img->~MlxImage();
-		var.scene->~Scene();
-		exit(SUCCESS);
 	}
+	switch (key) {
+		case KEY_ESCAPE:	{ _exit(var, SUCCESS); }
+		case KEY_c:			{ var.scene->nextCamera(); }
+	}
+	switch (var.img->holdKey) {
+		case KEY_RIGHT_ALT: {
+			if (isNumericKey(key)) {
+				var.scene->chooseCamera( keyToNumber(key) );
+			} else if (key == KEY_ARROW_RIGHT) {
+				var.scene->nextCamera();
+			} else if (key == KEY_ARROW_LEFT) {
+				var.scene->previousCamera();
+			}
+		}
+	}
+	if (DEBUG_MODE) { std::cout << "keyDown: " << key << " holdKey: " << var.img->holdKey << "\n"; }
 	return 0;
 }
 
 int		keyUp(int key, void* param) {
 	(void)param;
-	if (DEBUG_MODE) { std::cout << "keyUp: " << key << "\n"; }
-	if (key == KEY_LEFT_CMD		|| key == KEY_RIGHT_CMD ||
-		key == KEY_LEFT_CTRL	|| key == KEY_RIGHT_CTRL ||
-		key == KEY_LEFT_ALT		|| key == KEY_RIGHT_ALT ||
-		key == KEY_LEFT_SHIFT	|| key == KEY_RIGHT_SHIFT)
-	{
-		var.img->holdKey = 0;
+	if (var.img->holdKey == key) {
+		var.img->holdKey = UNHOLD;
 	}
+	if (DEBUG_MODE) { std::cout << "keyUp: " << key << " holdKey: " << var.img->holdKey  << "\n"; }
 	return 0;
 }
 
@@ -252,3 +266,39 @@ int		mouseMove(int button, void* param) {
 	}
 	return 0;
 }
+
+bool	isNumericKey(int key) {
+	if (key == KEY_1 || key == KEY_2 || key == KEY_3 || key == KEY_4 ||
+		key == KEY_5 || key == KEY_6 || key == KEY_7 || key == KEY_8 ||
+		key == KEY_9 || key == KEY_0) {
+		return true;
+	}
+	return false;
+}
+
+bool	isHoldKey(int key) {
+	if (key == KEY_LEFT_CMD		|| key == KEY_RIGHT_CMD ||
+		key == KEY_LEFT_CTRL	|| key == KEY_RIGHT_CTRL ||
+		key == KEY_LEFT_ALT		|| key == KEY_RIGHT_ALT ||
+		key == KEY_LEFT_SHIFT	|| key == KEY_RIGHT_SHIFT) {
+		return true;
+	}
+	return false;
+}
+
+int		keyToNumber(int key) {
+	switch (key) {
+		case KEY_1: { return 1; }
+		case KEY_2: { return 2; }
+		case KEY_3: { return 3; }
+		case KEY_4: { return 4; }
+		case KEY_5: { return 5; }
+		case KEY_6: { return 6; }
+		case KEY_7: { return 7; }
+		case KEY_8: { return 8; }
+		case KEY_9: { return 9; }
+		case KEY_0: { return 0; }
+	}
+	return (ERROR);
+}
+

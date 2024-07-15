@@ -79,4 +79,20 @@ typedef Vec2<int>   Vec2i;
 typedef Vec3<float> Vec3f;
 typedef Vec3<int>   Vec3i;
 
+struct Position {
+	Vec3f	pos;
+	Vec3f	norm;
+	Position(void) : pos(), norm() {}
+	~Position(void) {}
+	Position(const Vec3f& p, const Vec3f& n) : pos(p), norm(n) {}
+	Position(const Position& other) : pos(other.pos), norm(other.norm) {}
+	Position& operator=(const Position& other) {
+		if (this != &other) {
+			pos = other.pos;
+			norm = other.norm;
+		}
+		return *this;
+	};
+};
+
 #endif

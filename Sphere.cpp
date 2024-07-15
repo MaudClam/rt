@@ -7,7 +7,7 @@
 
 #include "Sphere.hpp"
 
-Sphere::Sphere(void) : radius() {
+Sphere::Sphere(void) : radius(), lookats() {
 	name = "sphere";
 	nick = "sp";
 }
@@ -27,6 +27,7 @@ Sphere& Sphere::operator=(const Sphere& other) {
 		center = other.center;
 		color = other.color;
 		radius = other.radius;
+		lookats = other.lookats;
 	}
 	return *this;
 }
@@ -46,12 +47,38 @@ bool Sphere::intersection(Ray& ray) const {
 		if (t > 0) {
 			if (t < ray.dist) {
 				ray.dist = t;
-				ray.color = color;
 			}
 			return true;
 		}
 	}
 	return false;
+}
+
+bool Sphere::intersection(Ray& ray, int currentCamera) const {
+	Vec3f k = ray.pov - lookats[currentCamera].pos;
+	float b = ray.dir * k;
+	float c = k * k - radius * radius;
+	float d = b * b - c;
+	if (d >= 0) {
+		float sqrt_d = std::sqrt(d);
+		float t1 = -b + sqrt_d;
+		float t2 = -b - sqrt_d;
+		float min_t = std::min(t1,t2);
+		float max_t = std::max(t1,t2);
+		float t = min_t >= 0 ? min_t : max_t;
+		if (t > 0) {
+			if (t < ray.dist) {
+				ray.dist = t;
+			}
+			return true;
+		}
+	}
+	return false;
+}
+
+void Sphere::makeLookatsPositions(const Position& camera) {
+	(void)camera;
+	lookats.push_back(Position(this->center, this->normal));//FIXME
 }
 
 std::ostream& operator<<(std::ostream& o, Sphere& sp) {

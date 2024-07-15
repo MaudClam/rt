@@ -8,18 +8,26 @@
 #ifndef SPHERE_HPP
 # define SPHERE_HPP
 
-# include "AScenery.hpp"
+# include "Header.h"
+
+class AScenery;
+class Camera;
+class Ray;
+struct Position;
 
 class Sphere : public AScenery {
 protected:
 	float	radius;
 public:
+	std::vector<Position>	lookats;
 	Sphere(void);
 	~Sphere(void);
 	Sphere(const Vec3f& center, float radius, const ARGBColor& color);
 	Sphere(const Sphere& other);
 	Sphere& operator=(const Sphere& other);
 	bool intersection(Ray& ray) const;
+	bool intersection(Ray& ray, int currentCamera) const;
+	void makeLookatsPositions(const Position& camera);
 	friend std::ostream& operator<<(std::ostream& o, Sphere& sp);
 	friend std::istringstream& operator>>(std::istringstream& is, Sphere& sp);
 };
