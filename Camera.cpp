@@ -13,7 +13,8 @@ width(img.get_width()),
 height(img.get_height()),
 bytespp(img.get_bytespp()),
 mult(2. / width),
-tan(fovToTan(60)),
+fov(60.),
+tan(fovToTan(this->fov)),
 pos(Vec3f(0,0,0),Vec3f(0,0,1)),
 pixels()
 {}
@@ -26,10 +27,11 @@ width(img.get_width()),
 height(img.get_height()),
 bytespp(img.get_bytespp()),
 mult(2. / width),
-tan(fovToTan(fov)),
+fov(fov),
+tan(fovToTan(this->fov)),
 pos(pos),
 pixels()
-{ this->pos.norm.normalize(); }
+{ this->pos.n.normalize(); }
 
 Camera::Camera(const Camera& other) :
 data(other.data),
@@ -37,6 +39,7 @@ width(other.width),
 height(other.height),
 bytespp(other.bytespp),
 mult(other.mult),
+fov(other.fov),
 tan(other.tan),
 pos(other.pos),
 pixels(other.pixels)
@@ -49,6 +52,7 @@ Camera& Camera::operator=(const Camera& other) {
 		height = other.height;
 		bytespp = other.bytespp;
 		mult = other.mult;
+		fov = other.fov;
 		tan = other.tan;
 		pos = other.pos;
 		pixels = other.pixels;
@@ -56,7 +60,18 @@ Camera& Camera::operator=(const Camera& other) {
 	return *this;
 }
 
+float Camera::get_fov(void) const { return fov; }
+
 Position Camera::get_pos(void) const { return pos; }
+
+void Camera::set_fov(float fov) {
+	this->fov = fov;
+	this->tan = fovToTan(this->fov);
+}
+
+void Camera::set_pos(const Position& pos) {
+	this->pos = pos;
+}
 
 void Camera::initPixels(void) {
 	Vec2i	mPos; // pixel xy-position on the monitor (width*height pixels, xy(0,0) in the upper left corner, Y-axis direction down);
@@ -82,32 +97,31 @@ void Camera::resetPixels(void) {
 
 // Non member functions
 
-std::ostream& operator<<(std::ostream& o, Camera& c) {
-	o	<< c.nick
-		<< " " << c.pos.pos
-		<< " " << c.pos.norm
-		<< " " << tanToFov(c.tan)
-		<< "\t#" << c.name;
+std::ostream& operator<<(std::ostream& o, Camera& camera) {
+	o	<< camera.nick
+		<< " " << camera.pos.p
+		<< " " << camera.pos.n
+		<< " " << camera.fov
+		<< "\t#" << camera.name;
 	return o;
 }
 
-std::istringstream& operator>>(std::istringstream& is, Camera& c) {
-	if (!is.str().compare(0, c.nick.size(), c.nick)) {
+std::istringstream& operator>>(std::istringstream& is, Camera& camera) {
+	if (!is.str().compare(0, camera.nick.size(), camera.nick)) {
 		char trash;
-		for (size_t i = 0; i < c.nick.size(); ++i) {
+		for (size_t i = 0; i < camera.nick.size(); ++i) {
 			is >> trash;
 		}
-		float fov = 0;
-		is >> c.pos.pos >> c.pos.norm >> fov;
-		c.pos.norm.normalize();
-		fov = (fov < 0 ? 0 : fov);
-		fov = (fov > 180 ? 180 : fov);
-		c.tan = fovToTan(fov);
+		is >> camera.pos.p >> camera.pos.n >> camera.fov;
+		camera.pos.n.normalize();
+		camera.tan = fovToTan(camera.fov);
 	}
 	return is;
 }
 
-float fovToTan(float fov) {
+float fovToTan(float& fov) {
+	fov = (fov < 0 ? 0 : fov);
+	fov = (fov > 180 ? 180 : fov);
 	return std::tan( (fov / 2.) * (std::numbers::pi / 180.) );
 }
 

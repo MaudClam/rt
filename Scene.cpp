@@ -43,6 +43,14 @@ Scene& Scene::operator=(const Scene& other) {
 	return *this;
 }
 
+int  Scene::get_currentCamera(void) { return currentCamera;}
+
+void Scene::set_currentCamera(int cameraIdx) {
+	if (checkCameraIdx(cameraIdx)) {
+		this->currentCamera = cameraIdx;
+	}
+}
+
 int	Scene::parsing(int ac, char** av) {
 	(void)ac; (void)av;
 	Vec2i	resolution(800,600);
@@ -64,7 +72,6 @@ int	Scene::parsing(int ac, char** av) {
 	set_scenery(sp4);
 	
 	initCameras();
-	calculateLookatsForAllCameras();
 	return SUCCESS;
 }
 
@@ -101,9 +108,18 @@ void Scene::indexingScenerys(void) {
 void Scene::initCameras(void) {
 	for (auto camera = cameras.begin(); camera != cameras.end(); ++camera) {
 		camera->initPixels();
+		for (auto scenery = scenerys.begin(); scenery != scenerys.end(); ++scenery ) {
+			(*scenery)->set_lookat(camera->get_pos());
+		}
 	}
 	if (cameras.size() > 1) {
 		currentCamera = 1;
+	}
+}
+
+void Scene::resetCamera(int cameraIdx) {
+	if (checkCameraIdx(cameraIdx)) {
+		cameras[cameraIdx].resetPixels();
 	}
 }
 
@@ -112,76 +128,64 @@ bool Scene::checkCameraIdx(int cameraIdx) const {
 		return true;
 	}
 	if (DEBUG_MODE) {
-		std::cerr	<< "Error: cameraIdx out of range '"
-		<< cameraIdx << "'" << std::endl;
+		std::cerr	<< "CameraIdx '" << cameraIdx << "' is out of range, "
+		<< "saved current camera '" << currentCamera << "'" << std::endl;
 	}
 	return false;
 }
 
-void Scene::calculateLookatsForCamera(int cameraIdx) {
-	if (checkCameraIdx(cameraIdx)) {
-		for (auto scenery = scenerys.begin(); scenery != scenerys.end(); ++scenery) {
-			(*scenery)->calculateLookatForCamera(cameras[cameraIdx].get_pos());
-		}
-	}
-}
-
-void Scene::calculateLookatsForAllCameras(void) {
+void Scene::recalculateLookatsForCurrentCamera(void) {
 	for (auto scenery = scenerys.begin(); scenery != scenerys.end(); ++scenery) {
-		for (auto camera = cameras.begin(); camera != cameras.end(); ++camera) {
-			(*scenery)->calculateLookatForCamera(camera->get_pos());
-		}
+		(*scenery)->recalculateLookat(currentCamera, cameras[currentCamera].get_pos());
 	}
 }
 
-void Scene::rayTraising(int cameraIdx) {
-	if (checkCameraIdx(cameraIdx)) {
-		for (auto pixel = cameras[cameraIdx].pixels.begin(); pixel != cameras[cameraIdx].pixels.end(); ++pixel) {
-			for (auto obj = objsIdx.begin(); obj != objsIdx.end(); ++obj) {
-				if ( (*obj)->intersection(*pixel, cameraIdx) && pixel->dist < INFINITY) {
-					pixel->color = (*obj)->color;
-				}
+void Scene::raytraisingCurrentCamera(void) {
+	for (auto pixel = cameras[currentCamera].pixels.begin(); pixel != cameras[currentCamera].pixels.end(); ++pixel) {
+		for (auto obj = objsIdx.begin(); obj != objsIdx.end(); ++obj) {
+			if ( (*obj)->intersection(*pixel, currentCamera) && pixel->dist < INFINITY) {
+				pixel->color = (*obj)->color;
 			}
 		}
 	}
 }
 
 void Scene::rt(void) {
-	rayTraising(currentCamera);
-	putPixelsToImg(currentCamera);
+	raytraisingCurrentCamera();
+	putCurrentCameraPixelsToImg();
 	mlx_put_image_to_window(img.get_mlx(), img.get_win(), img.get_image(), 0, 0);
 }
 
-void Scene::putPixelsToImg(int cameraIdx) {
-	if (checkCameraIdx(cameraIdx)) {
-		for (auto pixel = cameras[cameraIdx].pixels.begin(); pixel != cameras[cameraIdx].pixels.end(); ++pixel) {
-			pixel->drawPixel();
-		}
+void Scene::putCurrentCameraPixelsToImg(void) {
+	for (auto pixel = cameras[currentCamera].pixels.begin(); pixel != cameras[currentCamera].pixels.end(); ++pixel) {
+		pixel->drawPixel();
 	}
 }
 
 void Scene::nextCamera(void) {
-	if (cameras.size() < 3) {
-		if (DEBUG_MODE) { std::cout << "===currentCamera: " << currentCamera << "\n";}
+
+	if (cameras.size() <= 2) {
+		if (DEBUG_MODE) { std::cout << "currentCamera: " << currentCamera << "\n";}
 		return;
 	} else if ( currentCamera >= (int)(cameras.size() - 1) ) {
 		currentCamera = 1;
 	} else {
 		currentCamera++;
 	}
-	if (DEBUG_MODE) { std::cout << "===currentCamera: " << currentCamera << "\n";}
+	resetCamera(currentCamera);
+	if (DEBUG_MODE) { std::cout << "currentCamera: " << currentCamera << "\n";}
 }
 
 void Scene::previousCamera(void) {
-	if (cameras.size() < 3) {
-		if (DEBUG_MODE) { std::cout << "===currentCamera: " << currentCamera << "\n";}
+	if (cameras.size() <= 2) {
+		if (DEBUG_MODE) { std::cout << "currentCamera: " << currentCamera << "\n";}
 		return;
 	} else if ( currentCamera <= 1 ) {
 		currentCamera = (int)(cameras.size() - 1);
 	} else {
 		currentCamera--;
 	}
-	if (DEBUG_MODE) { std::cout << "===currentCamera: " << currentCamera << "\n";}
+	if (DEBUG_MODE) { std::cout << "currentCamera: " << currentCamera << "\n";}
 }
 
 void Scene::chooseCamera(int i) {

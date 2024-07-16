@@ -20,23 +20,27 @@ struct Scene {
 	std::vector<AScenery*>	objsIdx;
 	std::vector<AScenery*>	lightsIdx;
 	std::vector<Camera>		cameras;
+private:
 	int						currentCamera;
+public:
 	Scene(MlxImage& img);
 	~Scene(void);
 	Scene(const Scene& other);
 	Scene& operator=(const Scene& other);
+	int  get_currentCamera(void);
+	void set_currentCamera(int cameraIdx);
 	int	 parsing(int ac, char** av);
 	void set_scenery(AScenery* scenery);
 	void set_camera(const Camera& camera);
 	void set_camera(std::istringstream is);
 	void indexingScenerys(void);
 	void initCameras(void);
+	void resetCamera(int cameraIdx);
 	bool checkCameraIdx(int cameraIdx) const;
-	void calculateLookatsForCamera(int cameraIdx);
-	void calculateLookatsForAllCameras(void);
-	void rayTraising(int cameraIdx);
+	void recalculateLookatsForCurrentCamera(void);
+	void raytraisingCurrentCamera(void);
 	void rt(void);
-	void putPixelsToImg(int cameraIdx);
+	void putCurrentCameraPixelsToImg(void);
 	void nextCamera(void);
 	void previousCamera(void);
 	void chooseCamera(int i);

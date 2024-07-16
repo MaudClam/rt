@@ -19,25 +19,29 @@ protected:
 	int					height;
 	int					bytespp;
 	float				mult;
+	float				fov;
 	float				tan;
 	Position			pos;
 public:
 	std::vector<Ray>	pixels;
 	Camera(const MlxImage& img);
 	~Camera(void);
-	Camera(const MlxImage& img, const Position& pos, float fov = 60);
+	Camera(const MlxImage& img, const Position& pos, float fov);
 	Camera(const Camera& other);
 	Camera& operator=(const Camera& other);
+	float get_fov(void) const;
 	Position get_pos(void) const;
+	void set_fov(float fov);
+	void set_pos(const Position& pos);
 	void initPixels(void);
 	void resetPixels(void);
-	friend std::ostream& operator<<(std::ostream& o, Camera& c);
-	friend std::istringstream& operator>>(std::istringstream& is, Camera& c);
+	friend std::ostream& operator<<(std::ostream& o, Camera& camera);
+	friend std::istringstream& operator>>(std::istringstream& is, Camera& camera);
 };
 
 // Non member functions
 
-float fovToTan(float fov);
+float fovToTan(float& fov);
 float tanToFov(float tan);
 
 #endif /* CAMERA_HPP */

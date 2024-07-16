@@ -12,8 +12,8 @@ name(),
 nick(),
 light(false),
 brightness(1),
-center(),
-normal(),
+pos(),
+lookats(),
 color()
 {}
 
@@ -24,24 +24,30 @@ name(other.name),
 nick(other.nick),
 light(other.light),
 brightness(other.brightness),
-center(other.center),
-normal(other.normal),
+pos(other.pos),
+lookats(other.lookats),
 color(other.color)
 {}
 
-AScenery& AScenery::operator=(const AScenery& other) {
-	if (this != &other) {
-		name = other.name;
-		nick = other.nick;
-		light = other.light;
-		brightness = other.brightness;
-		center = other.center;
-		normal = other.normal;
-		color = other.color;
+bool AScenery::checkLookatsIdx(int idx) const {
+	if (idx >= 0 && idx < lookats.size()) {
+		return true;
 	}
-	return *this;
+	std::cerr << "Error: lookats index is out of range" << std::endl;
+	return false;
+
 }
 
-bool AScenery::get_light(void) {
+bool AScenery::get_light(void) const {
 	return light;
+}
+
+void AScenery::set_lookat(const Position& eye) {
+	lookats.push_back( pos.lookat(eye) );
+}
+
+void AScenery::recalculateLookat(int idx, const Position& eye) {
+	if (checkLookatsIdx(idx)) {
+		lookats[idx].lookat(eye);
+	}
 }

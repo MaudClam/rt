@@ -7,33 +7,30 @@
 
 #include "Sphere.hpp"
 
-Sphere::Sphere(void) : radius(), lookats() {
+Sphere::Sphere(void) : radius(0) {
 	name = "sphere";
 	nick = "sp";
 }
 
 Sphere::~Sphere(void) {}
 
-Sphere::Sphere(const Vec3f& center, float radius, const ARGBColor& color) {
-	this->center = center;
-	this->radius = radius;
+Sphere::Sphere(const Vec3f& center, float radius, const ARGBColor& color) : radius(radius) {
+	this->pos.p = center;
 	this->color = color;
 }
 
-Sphere::Sphere(const Sphere& other) { *this = other; }
-
-Sphere& Sphere::operator=(const Sphere& other) {
-	if (this != &other) {
-		center = other.center;
-		color = other.color;
-		radius = other.radius;
-		lookats = other.lookats;
-	}
-	return *this;
+Sphere::Sphere(const Sphere& other) : radius(other.radius) {
+	name = other.name;
+	nick = other.nick;
+	light = other.light;
+	brightness = other.brightness;
+	pos = other.pos;
+	lookats = other.lookats;
+	color = other.color;
 }
 
-bool Sphere::intersection(Ray& ray) const {
-	Vec3f k = ray.pov - center;
+bool Sphere::intersection(Ray& ray) const {//FIXME
+	Vec3f k = ray.pov - pos.p;
 	float b = ray.dir * k;
 	float c = k * k - radius * radius;
 	float d = b * b - c;
@@ -54,22 +51,9 @@ bool Sphere::intersection(Ray& ray) const {
 	return false;
 }//FIXME
 
-bool Sphere::checkLookatsForCamera(int cameraIdx) const {
-	if (cameraIdx >= 0 && cameraIdx < lookats.size()) {
-		return true;
-	}
-	if (DEBUG_MODE) {
-		Sphere sp(*this);
-		std::cerr	<< "Error object '" << sp << "': cameraIdx out of range '"
-		<< cameraIdx << "'" << std::endl;
-	}
-	return false;
-
-}
-
 bool Sphere::intersection(Ray& ray, int cameraIdx) const {
-	if (checkLookatsForCamera(cameraIdx)) {
-		Vec3f k = ray.pov - lookats[cameraIdx].pos;
+	if (checkLookatsIdx(cameraIdx)) {
+		Vec3f k(ray.pov - lookats[cameraIdx].p);
 		float b = ray.dir * k;
 		float c = k * k - radius * radius;
 		float d = b * b - c;
@@ -91,14 +75,9 @@ bool Sphere::intersection(Ray& ray, int cameraIdx) const {
 	return false;
 }
 
-void Sphere::calculateLookatForCamera(const Position& cameraPosition) {
-	(void)cameraPosition;//FIXME
-	lookats.push_back(Position(this->center, this->normal));//FIXME
-}
-
 std::ostream& operator<<(std::ostream& o, Sphere& sp) {
 	o	<< sp.nick
-		<< " " << sp.center
+		<< " " << sp.pos.p
 		<< " " << sp.radius * 2
 		<< " " << sp.color.rrggbb()
 		<< "\t#" << sp.name;
@@ -111,7 +90,7 @@ std::istringstream& operator>>(std::istringstream& is, Sphere& sp) {
 		for (size_t i = 0; i < sp.nick.size(); ++i) {
 			is >> trash;
 		}
-		is >> sp.center >> sp.radius;
+		is >> sp.pos.p >> sp.radius;
 		is >> sp.color;
 		sp.radius /= 2;
 	}
