@@ -29,12 +29,12 @@ public:
 	Camera(const MlxImage& img, const Position& pos, float fov);
 	Camera(const Camera& other);
 	Camera& operator=(const Camera& other);
-	float get_fov(void) const;
-	Position get_pos(void) const;
-	void set_fov(float fov);
-	void set_pos(const Position& pos);
-	void initPixels(void);
-	void resetPixels(void);
+	float		get_fov(void) const;
+	Position	get_pos(void) const;
+	bool		set_fov(float fov);
+	void		set_pos(const Position& pos);
+	void		initPixels(void);
+	void		resetPixels(void);
 	friend std::ostream& operator<<(std::ostream& o, Camera& camera);
 	friend std::istringstream& operator>>(std::istringstream& is, Camera& camera);
 };

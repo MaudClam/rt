@@ -51,6 +51,8 @@ enum {
 	KEY_9				= 25,
 	KEY_0				= 29,
 	KEY_c				= 8,
+	KEY_MINUS			= 27,
+	KEY_PLUS			= 24,
 	MOUSE_LEFT_CLICK	= 1,
 	MOUSE_RIGHT_CLICK	= 2,
 	MOUSE_MIDDLE_CLICK	= 3,
@@ -66,6 +68,7 @@ struct ImageOptions {
 	const ARGBColor	red			= ARGBColor(255,   0,   0);
 	const ARGBColor	green		= ARGBColor(  0, 255,   0);
 	const ARGBColor	blue		= ARGBColor(  0,   0, 255);
+	const int stepCameraFov		= 1;
 	ImageOptions(void) {}
 	~ImageOptions(void) {}
 };
@@ -123,7 +126,7 @@ int		mouseKeyUp(int button, void *param);
 int		mouseMove(int button, void *param);
 bool	isNumericKey(int key);
 bool	isHoldKey(int key);
-int 	keyToNumber(int key);
+int 	numericKeyToNumber(int key);
 void	changeCamera(Var& var, int key);
 
 #endif /* MLXIMAGE_HPP */

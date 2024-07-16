@@ -28,14 +28,14 @@ public:
 	Scene(const Scene& other);
 	Scene& operator=(const Scene& other);
 	int  get_currentCamera(void);
-	void set_currentCamera(int cameraIdx);
+	bool set_currentCamera(int cameraIdx);
 	int	 parsing(int ac, char** av);
 	void set_scenery(AScenery* scenery);
 	void set_camera(const Camera& camera);
 	void set_camera(std::istringstream is);
 	void indexingScenerys(void);
 	void initCameras(void);
-	void resetCamera(int cameraIdx);
+	void resetCurrentCamera(void);
 	bool checkCameraIdx(int cameraIdx) const;
 	void recalculateLookatsForCurrentCamera(void);
 	void raytraisingCurrentCamera(void);
@@ -44,6 +44,8 @@ public:
 	void nextCamera(void);
 	void previousCamera(void);
 	void chooseCamera(int i);
+	void increaseCurrentCameraFOV(void);
+	void decreaseCurrentCameraFOV(void);
 };
 
 #endif /* SCENE_HPP */

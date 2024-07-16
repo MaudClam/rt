@@ -64,9 +64,10 @@ float Camera::get_fov(void) const { return fov; }
 
 Position Camera::get_pos(void) const { return pos; }
 
-void Camera::set_fov(float fov) {
+bool Camera::set_fov(float fov) {
 	this->fov = fov;
 	this->tan = fovToTan(this->fov);
+	return this->fov == fov;
 }
 
 void Camera::set_pos(const Position& pos) {
@@ -90,7 +91,7 @@ void Camera::initPixels(void) {
 
 void Camera::resetPixels(void) {
 	for (auto pixel = pixels.begin(); pixel != pixels.end(); ++pixel) {
-		pixel->reset();
+		pixel->reset(tan);
 	}
 }
 

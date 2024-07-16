@@ -64,7 +64,8 @@ Ray& Ray::operator=(const Ray& other) {
 	return *this;
 }
 
-void Ray::reset(void) {
+void Ray::reset(float tan) {
+	this->tan = tan;
 	pov.x = pov.y = pov.z = 0;
 	dir.x = pos.x * tan; dir.y = pos.y * tan; dir.z = 1.;
 	dir.normalize();
@@ -72,19 +73,6 @@ void Ray::reset(void) {
 	color.val = 0; color.bytespp = RGB;
 }
 
-void Ray::set_tan(float tan) {
-	this->tan = tan;
-	reset();
-}
-
 void Ray::drawPixel(void) {
 	memcpy(addr, color.raw, bytespp);
-}
-
-
-// Non member functions
-
-float d_calculate(int fov) {
-	float d = 0.5 / std::tan(std::numbers::pi * fov / 360);
-	return d;
 }

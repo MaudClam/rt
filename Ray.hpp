@@ -28,8 +28,7 @@ public:
 	Ray(void* addr, int bytespp, const Vec2f& pos, float tan = 1);
 	Ray(const Ray& other);
 	Ray& operator=(const Ray& other);
-	void reset(void);
-	void set_tan(float tan);
+	void reset(float tan);
 	void drawPixel(void);
 };
 

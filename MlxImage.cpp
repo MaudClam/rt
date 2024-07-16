@@ -174,11 +174,19 @@ int		keyDown(int key, void* param) {
 	switch (var.img->holdKey) {
 		case KEY_RIGHT_ALT: {
 			if (isNumericKey(key)) {
-				var.scene->chooseCamera( keyToNumber(key) );
-			} else if (key == KEY_ARROW_RIGHT) {
-				var.scene->nextCamera();
-			} else if (key == KEY_ARROW_LEFT) {
-				var.scene->previousCamera();
+				var.scene->chooseCamera( numericKeyToNumber(key) );
+			} else {
+				switch (key) {
+					case KEY_ARROW_RIGHT: { var.scene->nextCamera(); break; }
+					case KEY_ARROW_LEFT:  { var.scene->previousCamera();  break; }
+				}
+			}
+			break;
+		}
+		case KEY_LEFT_SHIFT: {
+			switch (key) {
+				case KEY_PLUS:  { var.scene->decreaseCurrentCameraFOV(); break; }
+				case KEY_MINUS: { var.scene->increaseCurrentCameraFOV(); break; }
 			}
 		}
 	}
@@ -252,7 +260,7 @@ bool	isHoldKey(int key) {
 	return false;
 }
 
-int		keyToNumber(int key) {
+int		numericKeyToNumber(int key) {
 	switch (key) {
 		case KEY_1: { return 1; }
 		case KEY_2: { return 2; }

@@ -45,10 +45,13 @@ Scene& Scene::operator=(const Scene& other) {
 
 int  Scene::get_currentCamera(void) { return currentCamera;}
 
-void Scene::set_currentCamera(int cameraIdx) {
+bool Scene::set_currentCamera(int cameraIdx) {
 	if (checkCameraIdx(cameraIdx)) {
 		this->currentCamera = cameraIdx;
+		if (DEBUG_MODE) { std::cout << "currentCamera: " << currentCamera << "\n";}
+		return true;
 	}
+	return false;
 }
 
 int	Scene::parsing(int ac, char** av) {
@@ -58,9 +61,9 @@ int	Scene::parsing(int ac, char** av) {
 	img.init("Hello", resolution.x, resolution.y);
 	set_camera(Camera(img));// default camera should stay always
 	set_camera( std::istringstream("c 0,0,0 0,0,1 70") );
-//	set_camera(img);
-//	set_camera(img);
-//	set_camera(img);
+	set_camera(img);
+	set_camera(img);
+	set_camera(img);
 
 	Sphere*	sp1 = new Sphere(Vec3f(-5.1,2,45), 6, img.lightGray);
 	Sphere*	sp2 = new Sphere(Vec3f(0,-1,3), 1, img.red);
@@ -117,10 +120,8 @@ void Scene::initCameras(void) {
 	}
 }
 
-void Scene::resetCamera(int cameraIdx) {
-	if (checkCameraIdx(cameraIdx)) {
-		cameras[cameraIdx].resetPixels();
-	}
+void Scene::resetCurrentCamera(void) {
+	cameras[currentCamera].resetPixels();
 }
 
 bool Scene::checkCameraIdx(int cameraIdx) const {
@@ -163,34 +164,41 @@ void Scene::putCurrentCameraPixelsToImg(void) {
 }
 
 void Scene::nextCamera(void) {
-
-	if (cameras.size() <= 2) {
-		if (DEBUG_MODE) { std::cout << "currentCamera: " << currentCamera << "\n";}
-		return;
-	} else if ( currentCamera >= (int)(cameras.size() - 1) ) {
-		currentCamera = 1;
-	} else {
-		currentCamera++;
+	if ( set_currentCamera(currentCamera +  1) ) {
+		resetCurrentCamera();
+		rt();
 	}
-	resetCamera(currentCamera);
-	if (DEBUG_MODE) { std::cout << "currentCamera: " << currentCamera << "\n";}
 }
 
 void Scene::previousCamera(void) {
-	if (cameras.size() <= 2) {
-		if (DEBUG_MODE) { std::cout << "currentCamera: " << currentCamera << "\n";}
-		return;
-	} else if ( currentCamera <= 1 ) {
-		currentCamera = (int)(cameras.size() - 1);
-	} else {
-		currentCamera--;
+	if ( set_currentCamera(currentCamera -  1) ) {
+		resetCurrentCamera();
+		rt();
 	}
-	if (DEBUG_MODE) { std::cout << "currentCamera: " << currentCamera << "\n";}
 }
 
 void Scene::chooseCamera(int i) {
-	if ( i >= 0 && i < (int)cameras.size() ) {
-		currentCamera = i;
+	if ( set_currentCamera(i) ) {
+		resetCurrentCamera();
+		rt();
 	}
-	if (DEBUG_MODE) { std::cout << "===currentCamera: " << currentCamera << "\n";}
 }
+
+void Scene::increaseCurrentCameraFOV(void) {
+	Camera& cam(cameras[currentCamera]);
+	if ( cam.set_fov(cam.get_fov() + img.stepCameraFov) ) {
+		resetCurrentCamera();
+		rt();
+		std::cout << "increaseCurrentCameraFOV\n";
+	}
+}
+
+void Scene::decreaseCurrentCameraFOV(void) {
+	Camera& cam(cameras[currentCamera]);
+	if ( cam.set_fov(cam.get_fov() - img.stepCameraFov) ) {
+		resetCurrentCamera();
+		rt();
+		std::cout << "decreaseCurrentCameraFOV\n";
+	}
+}
+
