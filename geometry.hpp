@@ -54,6 +54,7 @@ template <class t> struct Vec3 {
 	inline Vec3<t> operator^(const Vec3<t>& v) const { return Vec3<t>(y * v.z - z * v.y, z * v.x - x * v.z, x * v.y - y * v.x); }
 	inline Vec3<t> operator+(const Vec3<t>& v) const { return Vec3<t>(x + v.x, y + v.y, z + v.z); }
 	inline Vec3<t> operator-(const Vec3<t>& v) const { return Vec3<t>(x - v.x, y - v.y, z - v.z); }
+	inline void difference(const Vec3<t>& v1, const Vec3<t>& v2) { x = v1.x - v2.x; y = v1.y - v2.y; z = v1.z - v2.z; }
 	inline Vec3<t> operator*(float f)          const { return Vec3<t>(x * f, y * f, z * f); }
 	inline t       operator*(const Vec3<t>& v) const { return x * v.x + y * v.y + z * v.z; }
 	float norm () const { return std::sqrt(x * x + y * y + z * z); }

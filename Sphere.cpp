@@ -53,7 +53,7 @@ bool Sphere::intersection(Ray& ray) const {//FIXME
 
 bool Sphere::intersection(Ray& ray, int cameraIdx) const {
 	if (checkLookatsIdx(cameraIdx)) {
-		Vec3f k(ray.pov - lookats[cameraIdx].p);
+		Vec3f k; k.difference(ray.pov, lookats[cameraIdx].p); 
 		float b = ray.dir * k;
 		float c = k * k - radius * radius;
 		float d = b * b - c;
