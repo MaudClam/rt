@@ -51,14 +51,42 @@ template <class t> struct Vec3 {
 	};
 	Vec3() : x(0), y(0), z(0) {}
 	Vec3(t _x, t _y, t _z) : x(_x),y(_y),z(_z) {}
-	inline Vec3<t> operator^(const Vec3<t>& v) const { return Vec3<t>(y * v.z - z * v.y, z * v.x - x * v.z, x * v.y - y * v.x); }
-	inline Vec3<t> operator+(const Vec3<t>& v) const { return Vec3<t>(x + v.x, y + v.y, z + v.z); }
-	inline Vec3<t> operator-(const Vec3<t>& v) const { return Vec3<t>(x - v.x, y - v.y, z - v.z); }
-	inline void difference(const Vec3<t>& v1, const Vec3<t>& v2) { x = v1.x - v2.x; y = v1.y - v2.y; z = v1.z - v2.z; }
-	inline Vec3<t> operator*(float f)          const { return Vec3<t>(x * f, y * f, z * f); }
-	inline t       operator*(const Vec3<t>& v) const { return x * v.x + y * v.y + z * v.z; }
-	float norm () const { return std::sqrt(x * x + y * y + z * z); }
-	Vec3<t>& normalize(t l=1) { *this = (*this) * (l / norm()); return *this; }
+	inline Vec3<t>	operator^(const Vec3<t>& v) const {
+		return Vec3<t>(y * v.z - z * v.y,
+					   z * v.x - x * v.z,
+					   x * v.y - y * v.x);
+	}
+	Vec3<t>&		product(const Vec3<t>& v1, const Vec3<t>& v2) {
+		t _x = v1.y * v2.z - v1.z * v2.y;
+		t _y = v1.z * v2.x - v1.x * v2.z;
+		t _z = v1.x * v2.y - v1.y * v2.x;
+		x = _x; y =_y; z = _z;
+		return *this;
+	}
+	inline Vec3<t>	operator+(const Vec3<t>& v) const {
+		return Vec3<t>(x + v.x, y + v.y, z + v.z);
+	}
+	inline Vec3<t>	operator-(const Vec3<t>& v) const {
+		return Vec3<t>(x - v.x, y - v.y, z - v.z);
+	}
+	Vec3<t>&		substract(const Vec3<t>& v1, const Vec3<t>& v2) {
+		x = v1.x - v2.x;
+		y = v1.y - v2.y;
+		z = v1.z - v2.z;
+		return *this;
+	}
+	inline Vec3<t>	operator*(float f) const { return Vec3<t>(x * f, y * f, z * f); }
+	inline t		operator*(const Vec3<t>& v) const { return x * v.x + y * v.y + z * v.z;}
+	float 			norm () const {
+		return std::sqrt(x * x + y * y + z * z);
+	}
+	Vec3<t>&		normalize(t l=1) {
+		t _norm = norm();
+		if (_norm != 0) {
+			*this = (*this) * (l / _norm);
+		}
+		return *this;
+	}
 	template <class > friend std::ostream& operator<<(std::ostream& s, Vec3<t>& v);
 	template <class > friend std::istringstream& operator>>(std::istringstream& is, Vec3<t>& v);
 };
@@ -88,7 +116,12 @@ struct Position {
 	Position(const Vec3f& point, const Vec3f& nnorm);
 	Position(const Position& other);
 	Position& operator=(const Position& other);
-	Position& lookat(const Position& eye);//FIXME
+	Position& rolling(float roll);
+	Position& lookat(const Position& eye, float roll);
+	Position& lookatBase(const Position& eye, float roll);
 };
+
+float radian(float degree);
+float degree(float radian);
 
 #endif

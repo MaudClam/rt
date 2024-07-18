@@ -16,6 +16,7 @@ mult(2. / width),
 fov(60.),
 tan(fovToTan(this->fov)),
 pos(Vec3f(0,0,0),Vec3f(0,0,1)),
+roll(0),
 pixels()
 {}
 
@@ -30,6 +31,7 @@ mult(2. / width),
 fov(fov),
 tan(fovToTan(this->fov)),
 pos(pos),
+roll(0),
 pixels()
 { this->pos.n.normalize(); }
 
@@ -42,6 +44,7 @@ mult(other.mult),
 fov(other.fov),
 tan(other.tan),
 pos(other.pos),
+roll(other.roll),
 pixels(other.pixels)
 {}
 
@@ -55,6 +58,7 @@ Camera& Camera::operator=(const Camera& other) {
 		fov = other.fov;
 		tan = other.tan;
 		pos = other.pos;
+		roll = other.roll;
 		pixels = other.pixels;
 	}
 	return *this;
@@ -64,14 +68,26 @@ float Camera::get_fov(void) const { return fov; }
 
 Position Camera::get_pos(void) const { return pos; }
 
+float Camera::get_roll(void) const { return radian(roll); }
+
 bool Camera::set_fov(float fov) {
 	this->fov = fov;
 	this->tan = fovToTan(this->fov);
 	return this->fov == fov;
 }
 
-void Camera::set_pos(const Position& pos) {
-	this->pos = pos;
+void Camera::set_pos(const Position& pos) { this->pos = pos; }
+
+void Camera::set_roll(float roll) {
+	if (roll >= 90) {
+		this->roll = 90 - EPSILON;
+	} else if (roll <= -90) {
+		this->roll = -90 + EPSILON;
+	} else if (roll > -EPSILON && roll < EPSILON ) {
+		this->roll = 0;
+	} else {
+		this->roll = roll;
+	}
 }
 
 void Camera::initPixels(void) {
@@ -93,6 +109,80 @@ void Camera::resetPixels(void) {
 	for (auto pixel = pixels.begin(); pixel != pixels.end(); ++pixel) {
 		pixel->reset(tan);
 	}
+}
+
+void Camera::move(int ctrl) {
+	switch (ctrl) {
+		case MOVE_RIGHT: {
+			pos.lookatBase( Position(Vec3f(STEP_MOVE,0,0),Vec3f(0,0,1)), get_roll() );
+			break;
+		}
+		case MOVE_LEFT: {
+			pos.lookatBase( Position(Vec3f(-STEP_MOVE,0,0),Vec3f(0,0,1)), get_roll() );
+			break;
+		}
+		case MOVE_UP: {
+			pos.lookatBase( Position(Vec3f(0,STEP_MOVE,0),Vec3f(0,0,1)), get_roll() );
+			break;
+		}
+		case MOVE_DOWN: {
+			pos.lookatBase( Position(Vec3f(0,-STEP_MOVE,0),Vec3f(0,0,1)), get_roll() );
+			break;
+		}
+		case MOVE_FORWARD: {
+			pos.lookatBase( Position(Vec3f(0,0,STEP_MOVE),Vec3f(0,0,1)), get_roll() );
+			break;
+		}
+		case MOVE_BACKWARD: {
+			pos.lookatBase( Position(Vec3f(0,0,-STEP_MOVE),Vec3f(0,0,1)), get_roll() );
+			break;
+		}
+		default:
+			break;
+	}
+}
+
+void Camera::rotate(int ctrl) {
+	float x = 0, y = 0, z = 0;
+	switch (ctrl) {
+		case YAW_RIGHT: {
+			z = std::cos(radian(STEP_ROTATION));
+			x = std::sin(radian(STEP_ROTATION));
+			pos.lookatBase( Position(Vec3f(),Vec3f(x,0,z)), get_roll() );
+			break;
+		}
+		case YAW_LEFT: {
+			z = std::cos(radian(-STEP_ROTATION));
+			x = std::sin(radian(-STEP_ROTATION));
+			pos.lookatBase( Position(Vec3f(),Vec3f(x,0,z)), get_roll() );
+			break;
+		}
+		case PITCH_UP: {
+			z = std::cos(radian(STEP_ROTATION));
+			y = std::sin(radian(STEP_ROTATION));
+			pos.lookatBase( Position(Vec3f(),Vec3f(0,y,z)), get_roll() );
+			break;
+		}
+		case PITCH_DOWN: {
+			z = std::cos(radian(-STEP_ROTATION));
+			y = std::sin(radian(-STEP_ROTATION));
+			pos.lookatBase( Position(Vec3f(),Vec3f(0,y,z)), get_roll() );
+			break;
+		}
+		case ROLL_RIGHT: {
+			set_roll(roll - STEP_ROTATION);
+			pos.lookatBase( Position(Vec3f(),Vec3f(0,0,1)), get_roll() );
+			break;
+		}
+		case ROLL_LEFT: {
+			set_roll(roll + STEP_ROTATION);
+			pos.lookatBase( Position(Vec3f(),Vec3f(0,0,1)), get_roll() );
+			break;
+		}
+		default:
+			break;
+	}
+	std::cout << "roll: " << roll << std::endl;
 }
 
 

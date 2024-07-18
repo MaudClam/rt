@@ -60,6 +60,28 @@ enum {
 	MOUSE_SCROLL_DOWN	= 5
 };
 
+enum Controls {
+	NEXT			= -4,
+	PREVIOUS		= -3,
+	INCREASE_FOV	= -2,
+	DECREASE_FOV	= -1,
+	STEP_FOV		= 1,
+	MOVE_RIGHT,
+	MOVE_LEFT,
+	MOVE_UP,
+	MOVE_DOWN,
+	MOVE_FORWARD,
+	MOVE_BACKWARD,
+	STEP_MOVE		= 1,
+	YAW_RIGHT,
+	YAW_LEFT,
+	PITCH_UP,
+	PITCH_DOWN,
+	ROLL_RIGHT,
+	ROLL_LEFT,
+	STEP_ROTATION	= 1
+};
+
 struct ImageOptions {
 	const ARGBColor	black		= ARGBColor(  0,   0,   0);
 	const ARGBColor	darkGray	= ARGBColor( 32,  32,  32);
@@ -68,7 +90,6 @@ struct ImageOptions {
 	const ARGBColor	red			= ARGBColor(255,   0,   0);
 	const ARGBColor	green		= ARGBColor(  0, 255,   0);
 	const ARGBColor	blue		= ARGBColor(  0,   0, 255);
-	const int stepCameraFov		= 1;
 	ImageOptions(void) {}
 	~ImageOptions(void) {}
 };

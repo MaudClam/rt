@@ -29,7 +29,7 @@
 ** La MinilibX permet le chargement des images de type Xpm.
 ** Notez que cette implementation est incomplete.
 **
-** Il y a des differences entre X11 et MacOS.
+** Il y a des substracts entre X11 et MacOS.
 ** les numeros des touches ne sont pas les memes,
 ** les numeros des boutons souris ne sont pas les memes.
 ** Egalement l'expose est gere differemment, et sous MacOS

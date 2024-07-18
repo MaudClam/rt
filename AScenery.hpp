@@ -29,8 +29,8 @@ public:
 	AScenery(const AScenery& other);
 	bool checkLookatsIdx(int idx) const;
 	bool get_light(void) const;
-	void set_lookat(const Position& eye);
-	void recalculateLookat(int idx, const Position& eye);
+	void set_lookat(const Position& eye, float roll);
+	void recalculateLookat(int idx, const Position& eye, float roll);
 	virtual bool intersection(Ray& ray) const = 0;
 	virtual bool intersection(Ray& ray, int cameraIdx) const = 0;
 };

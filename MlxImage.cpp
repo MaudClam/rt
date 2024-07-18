@@ -164,30 +164,39 @@ int		destroyNotify(int button, void* param) {
 
 int		keyDown(int key, void* param) {
 	(void)param;
-	if ( isHoldKey(key) ) {
-		var.img->holdKey = key;
-	}
-	switch (key) {
-		case KEY_ESCAPE:	{ _exit(var, SUCCESS); }
-		case KEY_c:			{ var.scene->nextCamera(); }
-	}
-	switch (var.img->holdKey) {
-		case KEY_RIGHT_ALT: {
-			if (isNumericKey(key)) {
-				var.scene->chooseCamera( numericKeyToNumber(key) );
-			} else {
-				switch (key) {
-					case KEY_ARROW_RIGHT: { var.scene->nextCamera(); break; }
-					case KEY_ARROW_LEFT:  { var.scene->previousCamera();  break; }
-				}
-			}
-			break;
-		}
-		case KEY_LEFT_SHIFT: {
+	if (isHoldKey(key)) var.img->holdKey = key;
+	if (var.img->holdKey == KEY_LEFT_ALT || var.img->holdKey == KEY_RIGHT_ALT) {
+		if (isNumericKey(key)) {
+			var.scene->selectCurrentCamera( numericKeyToNumber(key) );
+		} else {
 			switch (key) {
-				case KEY_PLUS:  { var.scene->decreaseCurrentCameraFOV(); break; }
-				case KEY_MINUS: { var.scene->increaseCurrentCameraFOV(); break; }
+				case KEY_ARROW_RIGHT: var.scene->selectCurrentCamera(NEXT); break;
+				case KEY_ARROW_LEFT:  var.scene->selectCurrentCamera(PREVIOUS);  break;
+				case KEY_ARROW_UP:    var.scene->moveCurrentCamera(MOVE_FORWARD); break;
+				case KEY_ARROW_DOWN:  var.scene->moveCurrentCamera(MOVE_BACKWARD); break;
+				case KEY_PLUS:    	  var.scene->changeCurrentCameraFOV(INCREASE_FOV); break;
+				case KEY_MINUS:       var.scene->changeCurrentCameraFOV(DECREASE_FOV); break;
+				default: break;
 			}
+		}
+	} else if (var.img->holdKey == KEY_LEFT_SHIFT || var.img->holdKey == KEY_RIGHT_SHIFT) {
+		switch (key) {
+			case KEY_ARROW_RIGHT: var.scene->rotateCurrentCamera(YAW_RIGHT); break;
+			case KEY_ARROW_LEFT:  var.scene->rotateCurrentCamera(YAW_LEFT);  break;
+			case KEY_ARROW_UP:    var.scene->rotateCurrentCamera(PITCH_UP); break;
+			case KEY_ARROW_DOWN:  var.scene->rotateCurrentCamera(PITCH_DOWN); break;
+			case KEY_PLUS:    	  var.scene->rotateCurrentCamera(ROLL_RIGHT); break;
+			case KEY_MINUS:       var.scene->rotateCurrentCamera(ROLL_LEFT); break;
+			default: break;
+		}
+	} else {
+		switch (key) {
+			case KEY_ESCAPE:      _exit(var, SUCCESS);  break;
+			case KEY_ARROW_RIGHT: var.scene->moveCurrentCamera(MOVE_RIGHT); break;
+			case KEY_ARROW_LEFT:  var.scene->moveCurrentCamera(MOVE_LEFT); break;
+			case KEY_ARROW_UP:    var.scene->moveCurrentCamera(MOVE_UP); break;
+			case KEY_ARROW_DOWN:  var.scene->moveCurrentCamera(MOVE_DOWN); break;
+			default: break;
 		}
 	}
 	if (DEBUG_KEYS) { std::cout << "keyDown: " << key << " holdKey: " << var.img->holdKey << "\n"; }

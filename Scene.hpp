@@ -41,11 +41,10 @@ public:
 	void raytraisingCurrentCamera(void);
 	void rt(void);
 	void putCurrentCameraPixelsToImg(void);
-	void nextCamera(void);
-	void previousCamera(void);
-	void chooseCamera(int i);
-	void increaseCurrentCameraFOV(void);
-	void decreaseCurrentCameraFOV(void);
+	void selectCurrentCamera(int ctrl);
+	void changeCurrentCameraFOV(int ctrl);
+	void moveCurrentCamera(int ctrl);
+	void rotateCurrentCamera(int ctrl);
 };
 
 #endif /* SCENE_HPP */

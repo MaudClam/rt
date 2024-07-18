@@ -18,12 +18,12 @@
 # include "Scene.hpp"
 # include "Camera.hpp"
 
-#define DEBUG_MODE	true
-#define DEBUG_KEYS	false
-#define DEBUG_MOUSE	false
-
-#define SUCCESS		0
-#define ERROR		-1
+# define SUCCESS	0
+# define ERROR		-1
+# define EPSILON 	1e-5
+# define DEBUG_MODE	true
+# define DEBUG_KEYS	false
+# define DEBUG_MOUSE	false
 
 class MlxImage;
 struct Scene;

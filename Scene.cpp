@@ -60,13 +60,13 @@ int	Scene::parsing(int ac, char** av) {
 
 	img.init("Hello", resolution.x, resolution.y);
 	set_camera(Camera(img));// default camera should stay always
+	set_camera( std::istringstream("c 5,0,4 -1,0,0 70") );
 	set_camera( std::istringstream("c 0,0,0 0,0,1 70") );
-	set_camera(img);
-	set_camera(img);
-	set_camera(img);
+	set_camera(Camera(img));
+	set_camera(Camera(img));
 
-	Sphere*	sp1 = new Sphere(Vec3f(-5.1,2,45), 6, img.lightGray);
-	Sphere*	sp2 = new Sphere(Vec3f(0,-1,3), 1, img.red);
+	Sphere*	sp1 = new Sphere(Vec3f(0,0,45), 6, img.lightGray);
+	Sphere*	sp2 = new Sphere(Vec3f(0,0,3), 1, img.red);
 	Sphere*	sp3 = new Sphere(Vec3f(2,0,4), 1, img.blue);
 	Sphere*	sp4 = new Sphere(Vec3f(-2,0,4), 1, img.green);
 	set_scenery(sp1);
@@ -112,7 +112,7 @@ void Scene::initCameras(void) {
 	for (auto camera = cameras.begin(); camera != cameras.end(); ++camera) {
 		camera->initPixels();
 		for (auto scenery = scenerys.begin(); scenery != scenerys.end(); ++scenery ) {
-			(*scenery)->set_lookat(camera->get_pos());
+			(*scenery)->set_lookat(camera->get_pos(), camera->get_roll());
 		}
 	}
 	if (cameras.size() > 1) {
@@ -137,7 +137,7 @@ bool Scene::checkCameraIdx(int cameraIdx) const {
 
 void Scene::recalculateLookatsForCurrentCamera(void) {
 	for (auto scenery = scenerys.begin(); scenery != scenerys.end(); ++scenery) {
-		(*scenery)->recalculateLookat(currentCamera, cameras[currentCamera].get_pos());
+		(*scenery)->recalculateLookat(currentCamera, cameras[currentCamera].get_pos(), cameras[currentCamera].get_roll());
 	}
 }
 
@@ -163,42 +163,63 @@ void Scene::putCurrentCameraPixelsToImg(void) {
 	}
 }
 
-void Scene::nextCamera(void) {
-	if ( set_currentCamera(currentCamera +  1) ) {
-		resetCurrentCamera();
-		rt();
+void Scene::selectCurrentCamera(int ctrl) {
+	switch (ctrl) {
+		case NEXT: {
+			if (set_currentCamera(currentCamera +  1))
+				rt();
+			break;
+		}
+		case PREVIOUS: {
+			if (set_currentCamera(currentCamera -  1))
+				rt();
+			break;
+		}
+		default: {
+			if (set_currentCamera(ctrl))
+				rt();
+			break;
+		}
 	}
 }
 
-void Scene::previousCamera(void) {
-	if ( set_currentCamera(currentCamera -  1) ) {
-		resetCurrentCamera();
-		rt();
-	}
-}
-
-void Scene::chooseCamera(int i) {
-	if ( set_currentCamera(i) ) {
-		resetCurrentCamera();
-		rt();
-	}
-}
-
-void Scene::increaseCurrentCameraFOV(void) {
+void Scene::changeCurrentCameraFOV(int ctrl) {
 	Camera& cam(cameras[currentCamera]);
-	if ( cam.set_fov(cam.get_fov() + img.stepCameraFov) ) {
-		resetCurrentCamera();
-		rt();
-		std::cout << "increaseCurrentCameraFOV\n";
+	switch (ctrl) {
+		case INCREASE_FOV: {
+			if ( cam.set_fov(cam.get_fov() + STEP_FOV) ) {
+				resetCurrentCamera();
+				rt();
+			}
+			break;
+		}
+		case DECREASE_FOV: {
+			if ( cam.set_fov(cam.get_fov() - STEP_FOV) ) {
+				resetCurrentCamera();
+				rt();
+			}
+			break;
+		}
+		default: {
+			if ( cam.set_fov(ctrl) ) {
+				resetCurrentCamera();
+				rt();
+			}
+			break;
+		}
 	}
 }
 
-void Scene::decreaseCurrentCameraFOV(void) {
-	Camera& cam(cameras[currentCamera]);
-	if ( cam.set_fov(cam.get_fov() - img.stepCameraFov) ) {
-		resetCurrentCamera();
-		rt();
-		std::cout << "decreaseCurrentCameraFOV\n";
-	}
+void Scene::moveCurrentCamera(int ctrl) {
+	cameras[currentCamera].move(ctrl);
+	recalculateLookatsForCurrentCamera();
+	resetCurrentCamera();
+	rt();
 }
 
+void Scene::rotateCurrentCamera(int ctrl) {
+	cameras[currentCamera].rotate(ctrl);
+	recalculateLookatsForCurrentCamera();
+	resetCurrentCamera();
+	rt();
+}

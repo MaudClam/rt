@@ -42,12 +42,14 @@ bool AScenery::get_light(void) const {
 	return light;
 }
 
-void AScenery::set_lookat(const Position& eye) {
-	lookats.push_back( pos.lookat(eye) );
+void AScenery::set_lookat(const Position& eye, float roll) {
+	lookats.push_back( Position(pos) );
+	lookats.back().lookat(eye, roll);
 }
 
-void AScenery::recalculateLookat(int idx, const Position& eye) {
+void AScenery::recalculateLookat(int idx, const Position& eye, float roll) {
 	if (checkLookatsIdx(idx)) {
-		lookats[idx].lookat(eye);
+		lookats[idx] = pos;
+		lookats[idx].lookat(eye, roll);
 	}
 }

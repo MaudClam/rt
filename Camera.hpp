@@ -22,6 +22,7 @@ protected:
 	float				fov;
 	float				tan;
 	Position			pos;
+	float				roll;
 public:
 	std::vector<Ray>	pixels;
 	Camera(const MlxImage& img);
@@ -31,10 +32,14 @@ public:
 	Camera& operator=(const Camera& other);
 	float		get_fov(void) const;
 	Position	get_pos(void) const;
+	float		get_roll(void) const;
 	bool		set_fov(float fov);
 	void		set_pos(const Position& pos);
+	void		set_roll(float roll);
 	void		initPixels(void);
 	void		resetPixels(void);
+	void		move(int ctrl);
+	void		rotate(int ctrl);
 	friend std::ostream& operator<<(std::ostream& o, Camera& camera);
 	friend std::istringstream& operator>>(std::istringstream& is, Camera& camera);
 };
