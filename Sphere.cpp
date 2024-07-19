@@ -51,7 +51,7 @@ bool Sphere::intersection(Ray& ray) const {//FIXME
 	return false;
 }//FIXME
 
-bool Sphere::intersection(Ray& ray, int cameraIdx) const {
+bool Sphere::intersection(Ray& ray, int cameraIdx, Side side) const {
 	if (checkLookatsIdx(cameraIdx)) {
 		Vec3f k; k.substract(ray.pov, lookats[cameraIdx].p);
 		float b = ray.dir * k;
@@ -63,12 +63,18 @@ bool Sphere::intersection(Ray& ray, int cameraIdx) const {
 			float t2 = -b - sqrt_d;
 			float min_t = std::min(t1,t2);
 			float max_t = std::max(t1,t2);
-			float t = min_t >= 0 ? min_t : max_t;
-			if (t > 0) {
-				if (t < ray.dist) {
+			if (side == FRONT) {
+				float t = min_t >= 0 ? min_t : max_t;
+				if (t > 0) {
 					ray.dist = t;
+					return true;
 				}
-				return true;
+			} else if (side == BACK) {
+				float t = min_t >= 0 ? max_t : min_t;
+				if (t > 0) {
+					ray.dist = t;
+					return true;
+				}
 			}
 		}
 	}

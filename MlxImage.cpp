@@ -22,7 +22,9 @@ bytespp(0),
 lineLen(0),
 endian(0),
 holdKey(UNHOLD),
-mouseHoldKey(0)
+mouseHoldKey(UNHOLD),
+flyby(FLYBY_OFF),
+autoFlyby(AUTO_FLYBY_RIGHT)
 {}
 
 MlxImage::~MlxImage(void) {
@@ -176,6 +178,13 @@ int		keyDown(int key, void* param) {
 				case KEY_ARROW_DOWN:  var.scene->moveCurrentCamera(MOVE_BACKWARD); break;
 				case KEY_PLUS:    	  var.scene->changeCurrentCameraFOV(INCREASE_FOV); break;
 				case KEY_MINUS:       var.scene->changeCurrentCameraFOV(DECREASE_FOV); break;
+				case KEY_F: {
+					var.img->flyby = (var.img->flyby == FLYBY_OFF ? FLYBY_ON : FLYBY_OFF);
+					if (var.img->flyby == FLYBY_ON) {
+						var.scene->setFlybyRadiusForCurrentCamera();
+					}
+					break;
+				}
 				default: break;
 			}
 		}
@@ -246,6 +255,13 @@ int		mouseMove(int button, void* param) {
 //		var.img->rtToMlxXY(v1);
 		v.toRt(var.img->get_width(), var.img->get_height());
 		std::cout << "(" << v << ")\n";
+	}
+	return 0;
+}
+
+int		flyby(void) {
+	if (var.img->flyby == FLYBY_ON) {
+		var.scene->moveCurrentCamera(MOVE_RIGHT);
 	}
 	return 0;
 }

@@ -17,6 +17,7 @@ fov(60.),
 tan(fovToTan(this->fov)),
 pos(Vec3f(0,0,0),Vec3f(0,0,1)),
 roll(0),
+flybyRadius(10),
 pixels()
 {}
 
@@ -32,6 +33,7 @@ fov(fov),
 tan(fovToTan(this->fov)),
 pos(pos),
 roll(0),
+flybyRadius(10),
 pixels()
 { this->pos.n.normalize(); }
 
@@ -45,6 +47,7 @@ fov(other.fov),
 tan(other.tan),
 pos(other.pos),
 roll(other.roll),
+flybyRadius(other.flybyRadius),
 pixels(other.pixels)
 {}
 
@@ -59,6 +62,7 @@ Camera& Camera::operator=(const Camera& other) {
 		tan = other.tan;
 		pos = other.pos;
 		roll = other.roll;
+		flybyRadius = other.flybyRadius;
 		pixels = other.pixels;
 	}
 	return *this;
@@ -69,6 +73,8 @@ float Camera::get_fov(void) const { return fov; }
 Position Camera::get_pos(void) const { return pos; }
 
 float Camera::get_roll(void) const { return radian(roll); }
+
+float Camera::get_flybyRadius(void) const { return flybyRadius; }
 
 bool Camera::set_fov(float fov) {
 	this->fov = fov;
@@ -88,6 +94,10 @@ void Camera::set_roll(float roll) {
 	} else {
 		this->roll = roll;
 	}
+}
+
+void Camera::set_flybyRadius(float flybyRadius) {
+	this->flybyRadius = flybyRadius;
 }
 
 void Camera::initPixels(void) {
@@ -134,6 +144,42 @@ void Camera::move(int ctrl) {
 			break;
 		}
 		case MOVE_BACKWARD: {
+			pos.lookatBase( Position(Vec3f(0,0,-STEP_MOVE),Vec3f(0,0,1)), get_roll() );
+			break;
+		}
+		default:
+			break;
+	}
+}
+
+void Camera::flyby(int ctrl) {
+	float x = 0, z = 0;
+	switch (ctrl) {
+		case MOVE_RIGHT: {
+			x = std::sin(radian(-STEP_MOVE)); z = flybyRadius - std::sqrt(x * x + flybyRadius * flybyRadius);
+			pos.lookatBase( Position(Vec3f(x,0,z),Vec3f(-x,0,flybyRadius - z).normalize()), get_roll() );
+			break;
+		}
+		case MOVE_LEFT: {
+			x = STEP_MOVE; z = flybyRadius - std::sqrt(x * x + flybyRadius * flybyRadius);
+			pos.lookatBase( Position(Vec3f(x,0,z),Vec3f(-x,0,flybyRadius - z).normalize()), get_roll() );
+			break;
+		}
+		case MOVE_UP: {
+			pos.lookatBase( Position(Vec3f(0,STEP_MOVE,0),Vec3f(0,0,1)), get_roll() );
+			break;
+		}
+		case MOVE_DOWN: {
+			pos.lookatBase( Position(Vec3f(0,-STEP_MOVE,0),Vec3f(0,0,1)), get_roll() );
+			break;
+		}
+		case MOVE_FORWARD: {
+			flybyRadius -= STEP_MOVE;
+			pos.lookatBase( Position(Vec3f(0,0,STEP_MOVE),Vec3f(0,0,1)), get_roll() );
+			break;
+		}
+		case MOVE_BACKWARD: {
+			flybyRadius += STEP_MOVE;
 			pos.lookatBase( Position(Vec3f(0,0,-STEP_MOVE),Vec3f(0,0,1)), get_roll() );
 			break;
 		}

@@ -10,6 +10,7 @@
 # include <iostream>
 # include <cstdlib>
 # include <thread>
+# include <chrono>
 # include <stack>
 # include "Header.h"
 
@@ -50,9 +51,9 @@ enum {
 	KEY_8				= 28,
 	KEY_9				= 25,
 	KEY_0				= 29,
-	KEY_c				= 8,
 	KEY_MINUS			= 27,
 	KEY_PLUS			= 24,
+	KEY_F				= 3,
 	MOUSE_LEFT_CLICK	= 1,
 	MOUSE_RIGHT_CLICK	= 2,
 	MOUSE_MIDDLE_CLICK	= 3,
@@ -61,25 +62,30 @@ enum {
 };
 
 enum Controls {
-	NEXT			= -4,
-	PREVIOUS		= -3,
-	INCREASE_FOV	= -2,
-	DECREASE_FOV	= -1,
-	STEP_FOV		= 1,
+	NEXT				= -4,
+	PREVIOUS			= -3,
+	INCREASE_FOV		= -2,
+	DECREASE_FOV		= -1,
+	STEP_FOV			= 1,
 	MOVE_RIGHT,
 	MOVE_LEFT,
 	MOVE_UP,
 	MOVE_DOWN,
 	MOVE_FORWARD,
 	MOVE_BACKWARD,
-	STEP_MOVE		= 1,
+	STEP_MOVE			= 1,
 	YAW_RIGHT,
 	YAW_LEFT,
 	PITCH_UP,
 	PITCH_DOWN,
 	ROLL_RIGHT,
 	ROLL_LEFT,
-	STEP_ROTATION	= 1
+	STEP_ROTATION		= 1,
+	FLYBY_OFF,
+	FLYBY_ON,
+	AUTO_FLYBY_RIGHT,
+	AUTO_FLYBY_LEFT,
+	AUTO_FLYBY_DELAY	= 500
 };
 
 struct ImageOptions {
@@ -110,6 +116,8 @@ private:
 public:
 	int					holdKey;
 	int					mouseHoldKey;
+	int					flyby;
+	int					autoFlyby;
 	enum ClearWhat { BOTH, DRAW_IMG, SHOW_IMG };
 	MlxImage(void);
 	~MlxImage();
@@ -145,6 +153,7 @@ int		keyUp(int key, void* param);
 int		mouseKeyDown(int button, void *param);
 int		mouseKeyUp(int button, void *param);
 int		mouseMove(int button, void *param);
+int		flyby(void);
 bool	isNumericKey(int key);
 bool	isHoldKey(int key);
 int 	numericKeyToNumber(int key);

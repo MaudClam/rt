@@ -25,7 +25,7 @@ public:
 	Sphere(const Sphere& other);
 	Sphere& operator=(const Sphere& other);
 	bool intersection(Ray& ray) const;//FIXME
-	bool intersection(Ray& ray, int cameraIdx) const;
+	bool intersection(Ray& ray, int cameraIdx, Side side = FRONT) const;
 	friend std::ostream& operator<<(std::ostream& o, Sphere& sp);
 	friend std::istringstream& operator>>(std::istringstream& is, Sphere& sp);
 };

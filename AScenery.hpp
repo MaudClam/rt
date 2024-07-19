@@ -23,6 +23,7 @@ protected:
 	Position				pos;
 	std::vector<Position>	lookats;
 public:
+	enum Side { FRONT, BACK };
 	ARGBColor				color;
 	AScenery(void);
 	virtual ~AScenery(void);
@@ -32,7 +33,7 @@ public:
 	void set_lookat(const Position& eye, float roll);
 	void recalculateLookat(int idx, const Position& eye, float roll);
 	virtual bool intersection(Ray& ray) const = 0;
-	virtual bool intersection(Ray& ray, int cameraIdx) const = 0;
+	virtual bool intersection(Ray& ray, int cameraIdx, Side side = FRONT) const = 0;
 };
 
 #endif /* ASCENERY_HPP */

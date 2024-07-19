@@ -54,9 +54,9 @@ bool Scene::set_currentCamera(int cameraIdx) {
 	return false;
 }
 
-int	Scene::parsing(int ac, char** av) {
+int  Scene::parsing(int ac, char** av) {
 	(void)ac; (void)av;
-	Vec2i	resolution(800,600);
+	Vec2i	resolution(1200,900);
 
 	img.init("Hello", resolution.x, resolution.y);
 	set_camera(Camera(img));// default camera should stay always
@@ -142,10 +142,14 @@ void Scene::recalculateLookatsForCurrentCamera(void) {
 }
 
 void Scene::raytraisingCurrentCamera(void) {
+	float dist = INFINITY;
 	for (auto pixel = cameras[currentCamera].pixels.begin(); pixel != cameras[currentCamera].pixels.end(); ++pixel) {
 		for (auto obj = objsIdx.begin(); obj != objsIdx.end(); ++obj) {
-			if ( (*obj)->intersection(*pixel, currentCamera) && pixel->dist < INFINITY) {
-				pixel->color = (*obj)->color;
+			if ( (*obj)->intersection(*pixel, currentCamera)) {
+				if (pixel->dist < dist) {
+					pixel->dist = dist;
+					pixel->color = (*obj)->color;
+				}
 			}
 		}
 	}
@@ -181,6 +185,7 @@ void Scene::selectCurrentCamera(int ctrl) {
 			break;
 		}
 	}
+	img.flyby = FLYBY_OFF;
 }
 
 void Scene::changeCurrentCameraFOV(int ctrl) {
@@ -211,7 +216,11 @@ void Scene::changeCurrentCameraFOV(int ctrl) {
 }
 
 void Scene::moveCurrentCamera(int ctrl) {
-	cameras[currentCamera].move(ctrl);
+	if (img.flyby == FLYBY_ON) {
+		cameras[currentCamera].flyby(ctrl);
+	} else {
+		cameras[currentCamera].move(ctrl);
+	}
 	recalculateLookatsForCurrentCamera();
 	resetCurrentCamera();
 	rt();
@@ -222,4 +231,28 @@ void Scene::rotateCurrentCamera(int ctrl) {
 	recalculateLookatsForCurrentCamera();
 	resetCurrentCamera();
 	rt();
+}
+
+void Scene::setFlybyRadiusForCurrentCamera(void) {
+	Ray		ray;
+	float	back = 0;
+	float	front = 0;
+	for (auto obj = objsIdx.begin(); obj != objsIdx.end(); ++obj) {
+		if ( (*obj)->intersection(ray, currentCamera, AScenery::BACK) ) {
+			if ( ray.dist > back) {
+				back = ray.dist;
+			}
+		}
+	}
+	for (auto obj = objsIdx.begin(); obj != objsIdx.end(); ++obj) {
+		if ( (*obj)->intersection(ray, currentCamera, AScenery::FRONT) ) {
+			if ( ray.dist < front) {
+				front = ray.dist;
+			}
+		}
+	}
+	if ( back != 0) {
+		cameras[currentCamera].set_flybyRadius((back + front) / 2);
+		if (DEBUG_MODE) { std::cout << "flybyRadius: " << cameras[currentCamera].get_flybyRadius() << std::endl; }
+	}
 }
