@@ -12,15 +12,13 @@
 # include "geometry.hpp"
 # include "ARGBColor.hpp"
 # include "MlxImage.hpp"
-# include "Ray.hpp"
 # include "AScenery.hpp"
 # include "Sphere.hpp"
 # include "Scene.hpp"
-# include "Camera.hpp"
+# include "camera.hpp"
 
 # define SUCCESS		0
 # define ERROR			-1
-# define EPSILON 		1e-5
 # define DEBUG_MODE		true
 # define DEBUG_KEYS		false
 # define DEBUG_MOUSE	false

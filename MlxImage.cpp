@@ -90,21 +90,21 @@ void	MlxImage::init(const std::string& header, int w, int h) {
 	if ( !(mlx = mlx_init()) ) {
 		int _errno = errno;
 		std::cerr << "Error mlx_init(): " << strerror(_errno) << std::endl;
-		_exit(var, _errno) ;
+		_exit(*var.img, *var.scene, _errno) ;
 	}
 	pointers.push(mlx);
 
 	if ( !(win = mlx_new_window(mlx, width, height, (char*)header.c_str())) ) {
 		int _errno = errno;
 		std::cerr << "Error mlx_new_window(): " << strerror(_errno) << std::endl;
-		_exit(var, _errno) ;
+		_exit(*var.img, *var.scene, _errno) ;
 	}
 	pointers.push(win);
 
 	if ( !(image = mlx_new_image(mlx, width, height)) ) {
 		int _errno = errno;
 		std::cerr << "Error mlx_new_image(): " << strerror(_errno) << std::endl;
-		_exit(var, _errno) ;
+		_exit(*var.img, *var.scene, _errno) ;
 	}
 	pointers.push(image);
 
@@ -151,9 +151,9 @@ void	MlxImage::mlxToRtXY(Vec2i& v) const {
 
 // Non-member functions
 
-void	_exit(Var& var, int code) {
-	var.img->~MlxImage();
-	var.scene->~Scene();
+void	_exit(MlxImage& img, Scene& scene, int code) {
+	img.~MlxImage();
+	scene.~Scene();
 	exit(code);
 }
 

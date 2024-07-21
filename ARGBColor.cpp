@@ -9,26 +9,26 @@
 
 std::string colorFormat(int bpp) {
 	switch (bpp) {
-		case 1: { return "GRAYSCALE"; }
+		case 1: { return "GRay_SCALE"; }
 		case 3: { return "RGB"; }
 		case 4: { return "ARGB"; }
 	}
 	return "wrong_bytespp";
 }
 
-ARGBColor::ARGBColor(void) : val(0), bytespp(RGB) {}
+ARGBColor::ARGBColor(void) : val(0), bytespp(ARGB) {}
 
 ARGBColor::~ARGBColor(void) {}
 
 ARGBColor::ARGBColor(unsigned char R, unsigned char G, unsigned char B, unsigned char A)
-: b(B), g(G), r(R), a(A), bytespp(RGB) {
+: b(B), g(G), r(R), a(A), bytespp(ARGB) {
 	if (a != 0) {
 		bytespp = ARGB;
 	}
 }
 
 ARGBColor::ARGBColor(int v, int bpp) : val(v), bytespp(bpp) {
-	if (bytespp == GRAYSCALE) {
+	if (bytespp == GRay_SCALE) {
 		if (val > 255) {
 			val = 255;
 		}
@@ -115,8 +115,8 @@ std::string ARGBColor::HTMLrrggbb(void) const {
 }
 
 std::ostream& operator<<(std::ostream& o, const ARGBColor& c) {
-	if (c.bytespp == GRAYSCALE) {
-		o << "GRAY(" << c.val << ") ";
+	if (c.bytespp == GRay_SCALE) {
+		o << "GRay_(" << c.val << ") ";
 	} else {
 		o << c.HEXaarrggbb() << " ";
 		o << c.HTMLrrggbb() << " ";

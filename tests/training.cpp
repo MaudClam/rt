@@ -18,7 +18,7 @@ void rt(MlxImage& img, Scene& scene) {
 	Vec2f				cPos; // pixel xy-position on the canvas (width=1, xy(0,0) in the center, XY-axes up and right directions)
 	float				mult = 2. / width;
 	float				tan = std::tan( (60 / 2) * (std::numbers::pi / 180) ); // argument is horizontal field of view in degrees in range [0,180]
-	std::vector<Ray> 	pixels;
+	std::vector<Ray_> 	pixels;
 	
 	pixels.reserve(width * height);
 	for (; mPos.y < height; mPos.y++) {
@@ -26,7 +26,7 @@ void rt(MlxImage& img, Scene& scene) {
 			
 			cPos.x = mPos.x; cPos.y = mPos.y;
 			cPos = cPos.toRt(width, height) * mult;
-			pixels.push_back(Ray(data, bytespp, cPos, tan));
+			pixels.push_back(Ray_(data, bytespp, cPos, tan));
 			data += bytespp;
 		}
 	}

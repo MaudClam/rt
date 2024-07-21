@@ -15,13 +15,14 @@ class MlxImage;
 class Camera;
 
 struct Scene {
+	const Position			base;
 	MlxImage&				img;
 	std::vector<AScenery*>	scenerys;
 	std::vector<AScenery*>	objsIdx;
 	std::vector<AScenery*>	lightsIdx;
 	std::vector<Camera>		cameras;
 private:
-	int						currentCamera;
+	int						_currentCamera;
 public:
 	Scene(MlxImage& img);
 	~Scene(void);
@@ -34,13 +35,14 @@ public:
 	void set_camera(const Camera& camera);
 	void set_camera(std::istringstream is);
 	void indexingScenerys(void);
-	void initCameras(void);
-	void resetCurrentCamera(void);
+	void initLoockats(void);
+	//	void resetCurrentCamera(void);
 	bool checkCameraIdx(int cameraIdx) const;
-	void recalculateLookatsForCurrentCamera(void);
-	void raytraisingCurrentCamera(void);
-	void rt(void);
-	void putCurrentCameraPixelsToImg(void);
+	bool recalculateLookatsForCurrentCamera(const Position& eye);
+	void raytrasingCurrentCamera(void);
+
+//	void rt(void);
+//	void putCurrentCameraPixelsToImg(void);
 	void selectCurrentCamera(int ctrl);
 	void changeCurrentCameraFOV(int ctrl);
 	void moveCurrentCamera(int ctrl);

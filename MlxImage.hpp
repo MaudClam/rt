@@ -90,8 +90,8 @@ enum Controls {
 
 struct ImageOptions {
 	const ARGBColor	black		= ARGBColor(  0,   0,   0);
-	const ARGBColor	darkGray	= ARGBColor( 32,  32,  32);
-	const ARGBColor	lightGray	= ARGBColor(200, 200, 200);
+	const ARGBColor	darkGRay_	= ARGBColor( 32,  32,  32);
+	const ARGBColor	lightGRay_	= ARGBColor(200, 200, 200);
 	const ARGBColor	white		= ARGBColor(255, 255, 255);
 	const ARGBColor	red			= ARGBColor(255,   0,   0);
 	const ARGBColor	green		= ARGBColor(  0, 255,   0);
@@ -146,6 +146,7 @@ public:
 
 // Non-member functions
 
+void	_exit(MlxImage& img, Scene& scene, int code);
 void	_exit(Var& var, int code);
 int		destroyNotify(int button, void* param);
 int		keyDown(int key, void* param);

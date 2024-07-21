@@ -14,6 +14,14 @@
 # include <cmath>
 # include <numbers>
 
+# define BASE_PT	Vec3f(0,0,0)
+# define BASE_DIR	Vec3f(0,0,1)
+# define BASE		BASE_PT,BASE_DIR
+# define PRECISION	1e-9
+# define EPSILON 	1e-5
+
+bool almostEqual(float a, float b, int precision = PRECISION) { return std::fabs(a - b) < precision; }
+
 template <class t> struct Vec2 {
 	union {
 		struct {t u, v;};
@@ -43,6 +51,8 @@ template <class t> std::istringstream& operator>>(std::istringstream& is, Vec2<t
 	return is;
 }
 
+template <class t> struct LookatAuxiliary;
+
 template <class t> struct Vec3 {
 	union {
 		struct {t x, y, z;};
@@ -56,7 +66,7 @@ template <class t> struct Vec3 {
 					   z * v.x - x * v.z,
 					   x * v.y - y * v.x);
 	}
-	Vec3<t>&		product(const Vec3<t>& v1, const Vec3<t>& v2) {
+	inline Vec3<t>&	product(const Vec3<t>& v1, const Vec3<t>& v2) {
 		t _x = v1.y * v2.z - v1.z * v2.y;
 		t _y = v1.z * v2.x - v1.x * v2.z;
 		t _z = v1.x * v2.y - v1.y * v2.x;
@@ -69,7 +79,7 @@ template <class t> struct Vec3 {
 	inline Vec3<t>	operator-(const Vec3<t>& v) const {
 		return Vec3<t>(x - v.x, y - v.y, z - v.z);
 	}
-	Vec3<t>&		substract(const Vec3<t>& v1, const Vec3<t>& v2) {
+	inline Vec3<t>&	substract(const Vec3<t>& v1, const Vec3<t>& v2) {
 		x = v1.x - v2.x;
 		y = v1.y - v2.y;
 		z = v1.z - v2.z;
@@ -77,14 +87,26 @@ template <class t> struct Vec3 {
 	}
 	inline Vec3<t>	operator*(float f) const { return Vec3<t>(x * f, y * f, z * f); }
 	inline t		operator*(const Vec3<t>& v) const { return x * v.x + y * v.y + z * v.z;}
-	float 			norm () const {
+	inline float 	norm () const {
 		return std::sqrt(x * x + y * y + z * z);
 	}
-	Vec3<t>&		normalize(t l=1) {
+	inline Vec3<t>&	normalize(t l=1) {
 		t _norm = norm();
 		if (_norm != 0) {
 			*this = (*this) * (l / _norm);
 		}
+		return *this;
+	}
+	inline Vec3<t>& lookatDir(const LookatAuxiliary<t>& aux) {
+		t _x = *this * aux.right, _y = *this * aux.up, _z = *this * aux.dir;
+		x = _x; y = _y; z = _z;
+		this->normalize();
+		return *this;
+	}
+	inline Vec3<t>& lookatPt(const Vec3<t>& eyePt, const LookatAuxiliary<t>& aux) {
+		substract(*this, eyePt);
+		t _x = *this * aux.right, _y = *this * aux.up, _z = *this * aux.dir;
+		x = _x; y = _y; z = _z;
 		return *this;
 	}
 	template <class > friend std::ostream& operator<<(std::ostream& s, Vec3<t>& v);
@@ -103,10 +125,38 @@ template <class t> std::istringstream& operator>>(std::istringstream& is, Vec3<t
 	return is;
 }
 
-typedef Vec2<float> Vec2f;
-typedef Vec2<int>   Vec2i;
-typedef Vec3<float> Vec3f;
-typedef Vec3<int>   Vec3i;
+template <class t> bool operator==(const Vec3<t>& lhs, const Vec3<t>& rhs) {
+	return almostEqual(lhs.x, rhs.x) && almostEqual(lhs.y, rhs.y) && almostEqual(lhs.z, rhs.z);
+}
+
+template <class t> bool operator!=(const Vec3<t>& lhs, const Vec3<t>& rhs) {
+	return !(lhs.z == rhs.z);
+}
+
+template <class t> struct LookatAuxiliary {
+	Vec3<t> dir;
+	Vec3<t> up;
+	Vec3<t> right;
+	LookatAuxiliary(const Vec3<t>& eyeDir) : dir(eyeDir), up(), right(0,-1,0) {
+		if (
+			almostEqual(dir.x, 0) &&
+			( almostEqual(dir.y, -1) || almostEqual(dir.y, 1) ) &&
+			almostEqual(dir.z, 0)
+			)
+		{
+			right.y = 0; right.z = -1;
+		}
+		right.product(dir, right).normalize();
+		up.product(dir, right).normalize();
+	}
+	~LookatAuxiliary(void) {}
+};
+
+typedef Vec2<float> 		Vec2f;
+typedef Vec2<int>   		Vec2i;
+typedef Vec3<float> 		Vec3f;
+typedef Vec3<int>   		Vec3i;
+typedef LookatAuxiliary<float>	LookatAux;
 
 struct Position {
 	Vec3f	p;
@@ -116,9 +166,11 @@ struct Position {
 	Position(const Vec3f& point, const Vec3f& nnorm);
 	Position(const Position& other);
 	Position& operator=(const Position& other);
-	Position& rolling(float roll);
-	Position& lookat(const Position& eye, float roll);
-	Position& lookatBase(const Position& eye, float roll);
+	Position& lookat(const Position& eye);
+	Position& lookat(const Position& eye, const LookatAux& aux);
+//	Position& lookat(const Position& eye, float roll);//FIXME
+//	Position& lookatBase(const Position& eye, float roll);//FIXME
+//	Position& rolling(float roll);
 };
 
 float radian(float degree);

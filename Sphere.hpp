@@ -12,20 +12,19 @@
 
 class AScenery;
 class Camera;
-class Ray;
+class Ray_;
 struct Position;
 
 class Sphere : public AScenery {
 protected:
-	float	radius;
+	float	_radius;
 public:
 	Sphere(void);
 	~Sphere(void);
 	Sphere(const Vec3f& center, float radius, const ARGBColor& color);
 	Sphere(const Sphere& other);
 	Sphere& operator=(const Sphere& other);
-	bool intersection(Ray& ray) const;//FIXME
-	bool intersection(Ray& ray, int cameraIdx, Side side = FRONT) const;
+	bool intersection(Ray& ray, int cameraIdx, Side side = FRONT) const = 0;
 	friend std::ostream& operator<<(std::ostream& o, Sphere& sp);
 	friend std::istringstream& operator>>(std::istringstream& is, Sphere& sp);
 };

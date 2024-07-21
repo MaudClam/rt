@@ -15,7 +15,7 @@
 
 
 enum colorFormat {
-	GRAYSCALE=1, RGB=3, ARGB=4
+	GRay_SCALE=1, RGB=3, ARGB=4
 };
 
 std::string colorFormat(int bpp);

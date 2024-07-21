@@ -8,12 +8,13 @@
 #include "Scene.hpp"
 
 Scene::Scene(MlxImage& img) :
+base(BASE),
 img(img),
 scenerys(),
 objsIdx(),
 lightsIdx(),
 cameras(),
-currentCamera(0) { img.set_scene(this); }
+_currentCamera(0) { img.set_scene(this); }
 
 Scene::~Scene(void) {
 	for (auto scenery = scenerys.begin(); scenery != scenerys.end(); ++scenery) {
@@ -24,12 +25,13 @@ Scene::~Scene(void) {
 }
 
 Scene::Scene(const Scene& other) :
+base(other.base),
 img(other.img),
 scenerys(other.scenerys),
 objsIdx(other.objsIdx),
 lightsIdx(other.lightsIdx),
 cameras(other.cameras),
-currentCamera(other.currentCamera)
+_currentCamera(other._currentCamera)
 {}
 
 Scene& Scene::operator=(const Scene& other) {
@@ -38,17 +40,17 @@ Scene& Scene::operator=(const Scene& other) {
 		objsIdx = other.objsIdx;
 		lightsIdx = other.lightsIdx;
 		cameras = other.cameras;
-		currentCamera = other.currentCamera;
+		_currentCamera = other._currentCamera;
 	}
 	return *this;
 }
 
-int  Scene::get_currentCamera(void) { return currentCamera;}
+int  Scene::get_currentCamera(void) { return _currentCamera;}
 
 bool Scene::set_currentCamera(int cameraIdx) {
 	if (checkCameraIdx(cameraIdx)) {
-		this->currentCamera = cameraIdx;
-		if (DEBUG_MODE) { std::cout << "currentCamera: " << currentCamera << "\n";}
+		this->_currentCamera = cameraIdx;
+		if (DEBUG_MODE) { std::cout << "currentCamera: " << _currentCamera << "\n";}
 		return true;
 	}
 	return false;
@@ -60,27 +62,34 @@ int  Scene::parsing(int ac, char** av) {
 
 	img.init("Hello", resolution.x, resolution.y);
 	set_camera(Camera(img));// default camera should stay always
-	set_camera( std::istringstream("c 5,0,4 -1,0,0 70") );
-	set_camera( std::istringstream("c 0,0,0 0,0,1 70") );
-	set_camera(Camera(img));
-	set_camera(Camera(img));
+	BasicCoordinate* basicCoordinate = new BasicCoordinate();
+	set_scenery( basicCoordinate );
+	
+	
+//	set_camera( std::istringstream("c 5,0,4 -1,0,0 70") );
+	set_camera( std::istringstream("c 0,0,0 0,0,1 90") );
+//	set_camera(Camera(img));
+//	set_camera(Camera(img));
 
-	Sphere*	sp1 = new Sphere(Vec3f(0,0,45), 6, img.lightGray);
-	Sphere*	sp2 = new Sphere(Vec3f(0,0,3), 1, img.red);
-	Sphere*	sp3 = new Sphere(Vec3f(2,0,4), 1, img.blue);
-	Sphere*	sp4 = new Sphere(Vec3f(-2,0,4), 1, img.green);
-	set_scenery(sp1);
+//	Sphere*	sp1 = new Sphere(Vec3f(0,0,45), 6, img.lightGRay_);
+	Sphere*	sp2 = new Sphere(Vec3f(0,0,12), 4, img.red);
+	Sphere*	sp3 = new Sphere(Vec3f(0,0,6), 2, img.blue);
+	Sphere*	sp4 = new Sphere(Vec3f(0,0,3), 1, img.green);
+//	set_scenery(sp1);
 	set_scenery(sp2);
 	set_scenery(sp3);
 	set_scenery(sp4);
 	
-	initCameras();
+	
+//	===========
+	
+	initLoockats();
 	return SUCCESS;
 }
 
 void Scene::set_scenery(AScenery* scenery) {
 	scenerys.push_back(scenery);
-	if ( scenerys.back()->get_light() ) {
+	if ( scenerys.back()->get_light() == true ) {
 		lightsIdx.push_back(scenery);
 	} else {
 		objsIdx.push_back(scenery);
@@ -108,21 +117,33 @@ void Scene::indexingScenerys(void) {
 	}
 }
 
-void Scene::initCameras(void) {
+void Scene::initLoockats(void) {
+	if ( scenerys.size() < 1 || (*scenerys[0]).get_nick().compare(0, 2, "BS")) {
+		std::cerr << "Warning: BasicCoordinate class object is missing." << std::endl;
+	}
 	for (auto camera = cameras.begin(); camera != cameras.end(); ++camera) {
-		camera->initPixels();
-		for (auto scenery = scenerys.begin(); scenery != scenerys.end(); ++scenery ) {
-			(*scenery)->set_lookat(camera->get_pos(), camera->get_roll());
+		Position eye(camera->get_pos());
+		if ( base.n == eye.n ) {
+			for (auto scenery = scenerys.begin(); scenery != scenerys.end(); ++scenery ) {
+				(*scenery)->set_lookatBase();
+			}
+			camera->reset_pov(eye.p);
+		} else {
+			LookatAuxiliary aux(eye.n);
+			for (auto scenery = scenerys.begin(); scenery != scenerys.end(); ++scenery ) {
+				(*scenery)->set_lookatCamera(eye, aux);
+			}
+			camera->reset_pov(base.p);
 		}
 	}
 	if (cameras.size() > 1) {
-		currentCamera = 1;
+		_currentCamera = 1;
 	}
 }
 
-void Scene::resetCurrentCamera(void) {
-	cameras[currentCamera].resetPixels();
-}
+//void Scene::resetCurrentCamera(void) {
+//	cameras[_currentCamera].resetPixels();
+//}
 
 bool Scene::checkCameraIdx(int cameraIdx) const {
 	if (cameraIdx >= 0 && cameraIdx < cameras.size()) {
@@ -130,25 +151,34 @@ bool Scene::checkCameraIdx(int cameraIdx) const {
 	}
 	if (DEBUG_MODE) {
 		std::cerr	<< "CameraIdx '" << cameraIdx << "' is out of range, "
-		<< "saved current camera '" << currentCamera << "'" << std::endl;
+		<< "saved current camera '" << _currentCamera << "'" << std::endl;
 	}
 	return false;
 }
 
-void Scene::recalculateLookatsForCurrentCamera(void) {
-	for (auto scenery = scenerys.begin(); scenery != scenerys.end(); ++scenery) {
-		(*scenery)->recalculateLookat(currentCamera, cameras[currentCamera].get_pos(), cameras[currentCamera].get_roll());
+bool Scene::recalculateLookatsForCurrentCamera(const Position& eye) {
+	Camera&	camera(cameras[_currentCamera]);
+	if (camera.get_pos0().n != eye.n) {
+		camera.set_pos0(base);
+		LookatAuxiliary aux(eye.n);
+		for (auto scenery = scenerys.begin(); scenery != scenerys.end(); ++scenery) {
+			(*scenery)->recalculateLookat(_currentCamera, eye, aux);
+		}
+		camera.reset_pov(eye.p);
+		return true;
 	}
+	return camera.reset_pov(eye.p);
 }
 
-void Scene::raytraisingCurrentCamera(void) {
-	float dist = INFINITY;
-	for (auto pixel = cameras[currentCamera].pixels.begin(); pixel != cameras[currentCamera].pixels.end(); ++pixel) {
+void Scene::raytrasingCurrentCamera(void) {
+	float	dist = INFINITY;
+	Camera&	camera(cameras[_currentCamera]);
+	for (auto pixel = camera.matrix.begin(); pixel != camera.matrix.end(); ++pixel) {
 		for (auto obj = objsIdx.begin(); obj != objsIdx.end(); ++obj) {
-			if ( (*obj)->intersection(*pixel, currentCamera)) {
-				if (pixel->dist < dist) {
-					pixel->dist = dist;
-					pixel->color = (*obj)->color;
+			if ( (*obj)->intersection(pixel->ray, _currentCamera)) {
+				if (pixel->ray.dist < dist) {
+					pixel->ray.dist = dist;
+					pixel->ray.color = (*obj)->color;
 				}
 			}
 		}
@@ -156,13 +186,14 @@ void Scene::raytraisingCurrentCamera(void) {
 }
 
 void Scene::rt(void) {
-	raytraisingCurrentCamera();
+	raytrasingCurrentCamera();
 	putCurrentCameraPixelsToImg();
 	mlx_put_image_to_window(img.get_mlx(), img.get_win(), img.get_image(), 0, 0);
 }
 
 void Scene::putCurrentCameraPixelsToImg(void) {
-	for (auto pixel = cameras[currentCamera].pixels.begin(); pixel != cameras[currentCamera].pixels.end(); ++pixel) {
+	Camera&	camera(cameras[_currentCamera]);
+	for (auto pixel = camera.matrix.begin(); pixel != camera.matrix.end(); ++pixel) {
 		pixel->drawPixel();
 	}
 }
@@ -170,12 +201,12 @@ void Scene::putCurrentCameraPixelsToImg(void) {
 void Scene::selectCurrentCamera(int ctrl) {
 	switch (ctrl) {
 		case NEXT: {
-			if (set_currentCamera(currentCamera +  1))
+			if (set_currentCamera(_currentCamera +  1))
 				rt();
 			break;
 		}
 		case PREVIOUS: {
-			if (set_currentCamera(currentCamera -  1))
+			if (set_currentCamera(_currentCamera -  1))
 				rt();
 			break;
 		}
@@ -234,20 +265,20 @@ void Scene::rotateCurrentCamera(int ctrl) {
 }
 
 void Scene::setFlybyRadiusForCurrentCamera(void) {
-	Ray		ray;
+	Ray_		Ray_;
 	float	back = 0;
 	float	front = 0;
 	for (auto obj = objsIdx.begin(); obj != objsIdx.end(); ++obj) {
-		if ( (*obj)->intersection(ray, currentCamera, AScenery::BACK) ) {
-			if ( ray.dist > back) {
-				back = ray.dist;
+		if ( (*obj)->intersection(Ray_, currentCamera, AScenery::BACK) ) {
+			if ( Ray_.dist > back) {
+				back = Ray_.dist;
 			}
 		}
 	}
 	for (auto obj = objsIdx.begin(); obj != objsIdx.end(); ++obj) {
-		if ( (*obj)->intersection(ray, currentCamera, AScenery::FRONT) ) {
-			if ( ray.dist < front) {
-				front = ray.dist;
+		if ( (*obj)->intersection(Ray_, currentCamera, AScenery::FRONT) ) {
+			if ( Ray_.dist < front) {
+				front = Ray_.dist;
 			}
 		}
 	}

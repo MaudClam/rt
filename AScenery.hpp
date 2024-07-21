@@ -10,30 +10,44 @@
 
 # include "geometry.hpp"
 # include "ARGBColor.hpp"
-# include "Ray.hpp"
 
+struct Ray;
 class Camera;
 
 class AScenery {
 protected:
-	std::string				name;
-	std::string				nick;
-	bool					light;
-	float					brightness;
-	Position				pos;
-	std::vector<Position>	lookats;
+	std::string				_name;
+	std::string				_nick;
+	bool					_light;
+	float					_brightness;
+	Position				_pos;
 public:
 	enum Side { FRONT, BACK };
+	std::vector<Position>	lookats;
 	ARGBColor				color;
 	AScenery(void);
 	virtual ~AScenery(void);
 	AScenery(const AScenery& other);
+	std::string  get_nick(void) const;
+	bool  get_light(void) const;
+	float get_brightness(void) const;
+	Position get_pos(void) const;
+	void set_brightness(float brightness);
+	void set_pos(const Position& pos);
 	bool checkLookatsIdx(int idx) const;
-	bool get_light(void) const;
-	void set_lookat(const Position& eye, float roll);
-	void recalculateLookat(int idx, const Position& eye, float roll);
-	virtual bool intersection(Ray& ray) const = 0;
+	void set_lookatCamera(const Position& eye, const LookatAux& aux);
+	void set_lookatBase(void);
+	void recalculateLookat(int idx, const Position& eye, const LookatAux& aux);
 	virtual bool intersection(Ray& ray, int cameraIdx, Side side = FRONT) const = 0;
+};
+
+class BasicCoordinate : public AScenery {
+public:
+	BasicCoordinate(void);
+	~BasicCoordinate(void);
+	BasicCoordinate(const BasicCoordinate& other);
+	BasicCoordinate& operator=(const BasicCoordinate& other);
+	bool intersection(Ray& ray, int cameraIdx, Side side = FRONT) const;
 };
 
 #endif /* ASCENERY_HPP */
