@@ -20,7 +20,9 @@
 # define PRECISION	1e-9
 # define EPSILON 	1e-5
 
-bool almostEqual(float a, float b, int precision = PRECISION) { return std::fabs(a - b) < precision; }
+
+bool almostEqual(float a, float b, int precision = PRECISION);
+bool almostEqual(double a, double b, int precision = PRECISION);
 
 template <class t> struct Vec2 {
 	union {
@@ -130,7 +132,7 @@ template <class t> bool operator==(const Vec3<t>& lhs, const Vec3<t>& rhs) {
 }
 
 template <class t> bool operator!=(const Vec3<t>& lhs, const Vec3<t>& rhs) {
-	return !(lhs.z == rhs.z);
+	return !(lhs == rhs);
 }
 
 template <class t> struct LookatAuxiliary {
@@ -146,8 +148,8 @@ template <class t> struct LookatAuxiliary {
 		{
 			right.y = 0; right.z = -1;
 		}
-		right.product(dir, right).normalize();
-		up.product(dir, right).normalize();
+		right.product(dir, right); right.normalize();
+		up.product(dir, right); up.normalize();
 	}
 	~LookatAuxiliary(void) {}
 };
@@ -168,10 +170,11 @@ struct Position {
 	Position& operator=(const Position& other);
 	Position& lookat(const Position& eye);
 	Position& lookat(const Position& eye, const LookatAux& aux);
-//	Position& lookat(const Position& eye, float roll);//FIXME
-//	Position& lookatBase(const Position& eye, float roll);//FIXME
 //	Position& rolling(float roll);
 };
+
+
+// Non member functions
 
 float radian(float degree);
 float degree(float radian);

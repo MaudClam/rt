@@ -52,9 +52,8 @@ bool Sphere::intersection(Ray& ray, int cameraIdx, Side side) const {
 					return true;
 				}
 			} else if (side == BACK) {
-				float t = min_t >= 0 ? max_t : min_t;
-				if (t > 0) {
-					ray.dist = t;
+				if (max_t > 0) {
+					ray.dist = max_t;
 					return true;
 				}
 			}
@@ -73,7 +72,7 @@ std::ostream& operator<<(std::ostream& o, Sphere& sp) {
 }
 
 std::istringstream& operator>>(std::istringstream& is, Sphere& sp) {
-	if (!is.str().compare(0, sp._nick.size(), sp._nick)) {
+	if (!is.str().compare(0,sp._nick.size(),sp._nick)) {
 		char trash;
 		for (size_t i = 0; i < sp._nick.size(); ++i) {
 			is >> trash;

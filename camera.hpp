@@ -8,8 +8,6 @@
 #ifndef CAMERA_HPP
 # define CAMERA_HPP
 
-extern "C"
-
 # include "Header.h"
 
 class Fov {
@@ -68,6 +66,7 @@ public:
 	int  get_height(void);
 	int  get_bytespp(void);
 	Fov  get_fov(void);
+	float get_fovDegree(void);
 	void set_width(int width);
 	void set_height(int height);
 	void set_bytespp(int bytespp);
@@ -101,10 +100,8 @@ public:
 	void		resetMatrix(void);
 	void		takePicture(MlxImage& img);
 	bool		reset_fovDegree(float degree);
-	bool		reset_pov(const Vec3f& pov);
-	bool		move(int ctrl);
+	void		reset_pov(const Position& pos0);
 //	void		flyby(int ctrl);
-//	void		rotate(int ctrl);
 	friend std::ostream& operator<<(std::ostream& o, Camera& camera);
 	friend std::istringstream& operator>>(std::istringstream& is, Camera& camera);
 };

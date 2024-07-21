@@ -10,21 +10,21 @@
 
 # include "Header.h"
 
-class AScenery;
-class Camera;
-class Ray_;
-struct Position;
+class	AScenery;
+class	Camera;
+struct	Ray;
+struct	Position;
 
 class Sphere : public AScenery {
 protected:
-	float	_radius;
+	float _radius;
 public:
 	Sphere(void);
 	~Sphere(void);
 	Sphere(const Vec3f& center, float radius, const ARGBColor& color);
 	Sphere(const Sphere& other);
 	Sphere& operator=(const Sphere& other);
-	bool intersection(Ray& ray, int cameraIdx, Side side = FRONT) const = 0;
+	bool intersection(Ray& ray, int cameraIdx, Side side = FRONT) const;
 	friend std::ostream& operator<<(std::ostream& o, Sphere& sp);
 	friend std::istringstream& operator>>(std::istringstream& is, Sphere& sp);
 };

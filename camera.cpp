@@ -156,6 +156,8 @@ int	Matrix::get_bytespp(void) { return _bytespp; }
 
 Fov	Matrix::get_fov(void) { return _fov; }
 
+float Matrix::get_fovDegree(void) { return _fov.get_degree(); }
+
 void Matrix::set_width(int width) { this->_width = width; _mult = 2. / 2; }
 
 void Matrix::set_height(int height) { this->_height = height; }
@@ -265,7 +267,7 @@ void Camera::takePicture(MlxImage& img) {
 	char* data = img.get_data();
 	if (data) {
 		for (auto pixel = matrix.begin(); pixel != matrix.end(); ++pixel) {
-			memcpy(data, pixel->ray.color, _bytespp);
+			memcpy(data, pixel->ray.color.raw, _bytespp);
 			data += _bytespp;
 		}
 	}
@@ -279,49 +281,12 @@ bool Camera::reset_fovDegree(float degree) {
 	return false;
 }
 
-bool Camera::reset_pov(const Vec3f& pov) {
-	if (pov != _pos0.p) {
-		_pos0.p = pov;
-		for (auto pixel = matrix.begin(); pixel != matrix.end(); ++pixel) {
-			pixel->ray.pov = _pos0.p;
-			pixel->ray.color.val = 0; pixel->ray.color.bytespp = ARGB;
-		}
-		return true;
+void Camera::reset_pov(const Position& pos0) {
+	_pos0 = pos0;
+	for (auto pixel = matrix.begin(); pixel != matrix.end(); ++pixel) {
+		pixel->ray.pov = _pos0.p;
+		pixel->ray.color.val = 0;
 	}
-	return false;
-}
-
-
-bool Camera::move(int ctrl) {
-	switch (ctrl) {
-		case MOVE_RIGHT: {
-			if ( reset_pov( Vec3f(STEP_MOVE,0,0)) ) { return true; }
-			break;
-		}
-		case MOVE_LEFT: {
-			if ( reset_pov( Vec3f(-STEP_MOVE,0,0)) ) { return true; }
-			break;
-		}
-		case MOVE_UP: {
-			if ( reset_pov( Vec3f(0,STEP_MOVE,0)) ) { return true; }
-			break;
-		}
-		case MOVE_DOWN: {
-			if ( reset_pov( Vec3f(0,-STEP_MOVE,0)) ) { return true; }
-			break;
-		}
-		case MOVE_FORWARD: {
-			if ( reset_pov( Vec3f(0,0,STEP_MOVE)) ) { return true; }
-			break;
-		}
-		case MOVE_BACKWARD: {
-			if ( reset_pov( Vec3f(0,0,-STEP_MOVE)) ) { return true; }
-			break;
-		}
-		default:
-			break;
-	}
-	return false;
 }
 
 //void Camera::flyby(int ctrl) {
@@ -360,48 +325,6 @@ bool Camera::move(int ctrl) {
 //	}
 //}
 
-//void Camera::rotate(int ctrl) {
-//	float x = 0, y = 0, z = 0;
-//	switch (ctrl) {
-//		case YAW_RIGHT: {
-//			z = std::cos(radian(STEP_ROTATION));
-//			x = std::sin(radian(STEP_ROTATION));
-//			pos.lookatBase( Position(Vec3f(),Vec3f(x,0,z)), get_roll() );
-//			break;
-//		}
-//		case YAW_LEFT: {
-//			z = std::cos(radian(-STEP_ROTATION));
-//			x = std::sin(radian(-STEP_ROTATION));
-//			pos.lookatBase( Position(Vec3f(),Vec3f(x,0,z)), get_roll() );
-//			break;
-//		}
-//		case PITCH_UP: {
-//			z = std::cos(radian(STEP_ROTATION));
-//			y = std::sin(radian(STEP_ROTATION));
-//			pos.lookatBase( Position(Vec3f(),Vec3f(0,y,z)), get_roll() );
-//			break;
-//		}
-//		case PITCH_DOWN: {
-//			z = std::cos(radian(-STEP_ROTATION));
-//			y = std::sin(radian(-STEP_ROTATION));
-//			pos.lookatBase( Position(Vec3f(),Vec3f(0,y,z)), get_roll() );
-//			break;
-//		}
-//		case ROLL_RIGHT: {
-//			set_roll(roll - STEP_ROTATION);
-//			pos.lookatBase( Position(Vec3f(),BASE_DIR), get_roll() );
-//			break;
-//		}
-//		case ROLL_LEFT: {
-//			set_roll(roll + STEP_ROTATION);
-//			pos.lookatBase( Position(Vec3f(),BASE_DIR), get_roll() );
-//			break;
-//		}
-//		default:
-//			break;
-//	}
-//	std::cout << "roll: " << roll << std::endl;
-//}
 
 
 // Non member functions

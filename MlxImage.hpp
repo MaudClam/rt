@@ -147,14 +147,13 @@ public:
 // Non-member functions
 
 void	_exit(MlxImage& img, Scene& scene, int code);
-void	_exit(Var& var, int code);
 int		destroyNotify(int button, void* param);
 int		keyDown(int key, void* param);
 int		keyUp(int key, void* param);
 int		mouseKeyDown(int button, void *param);
 int		mouseKeyUp(int button, void *param);
 int		mouseMove(int button, void *param);
-int		flyby(void);
+//int		flyby(void);
 bool	isNumericKey(int key);
 bool	isHoldKey(int key);
 int 	numericKeyToNumber(int key);

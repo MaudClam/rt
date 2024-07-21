@@ -104,7 +104,7 @@ void	MlxImage::init(const std::string& header, int w, int h) {
 	if ( !(image = mlx_new_image(mlx, width, height)) ) {
 		int _errno = errno;
 		std::cerr << "Error mlx_new_image(): " << strerror(_errno) << std::endl;
-		_exit(*var.img, *var.scene, _errno) ;
+		_exit(*var.img, *var.scene, _errno);
 	}
 	pointers.push(image);
 
@@ -160,7 +160,7 @@ void	_exit(MlxImage& img, Scene& scene, int code) {
 int		destroyNotify(int button, void* param) {
 	(void)button;
 	(void)param;
-	_exit(var, SUCCESS);
+	_exit(*var.img, *var.scene, SUCCESS) ;
 	return 0;
 }
 
@@ -178,13 +178,6 @@ int		keyDown(int key, void* param) {
 				case KEY_ARROW_DOWN:  var.scene->moveCurrentCamera(MOVE_BACKWARD); break;
 				case KEY_PLUS:    	  var.scene->changeCurrentCameraFOV(INCREASE_FOV); break;
 				case KEY_MINUS:       var.scene->changeCurrentCameraFOV(DECREASE_FOV); break;
-				case KEY_F: {
-					var.img->flyby = (var.img->flyby == FLYBY_OFF ? FLYBY_ON : FLYBY_OFF);
-					if (var.img->flyby == FLYBY_ON) {
-						var.scene->setFlybyRadiusForCurrentCamera();
-					}
-					break;
-				}
 				default: break;
 			}
 		}
@@ -200,7 +193,7 @@ int		keyDown(int key, void* param) {
 		}
 	} else {
 		switch (key) {
-			case KEY_ESCAPE:      _exit(var, SUCCESS);  break;
+			case KEY_ESCAPE:      _exit(*var.img, *var.scene, SUCCESS);  break;
 			case KEY_ARROW_RIGHT: var.scene->moveCurrentCamera(MOVE_RIGHT); break;
 			case KEY_ARROW_LEFT:  var.scene->moveCurrentCamera(MOVE_LEFT); break;
 			case KEY_ARROW_UP:    var.scene->moveCurrentCamera(MOVE_UP); break;
@@ -259,12 +252,12 @@ int		mouseMove(int button, void* param) {
 	return 0;
 }
 
-int		flyby(void) {
-	if (var.img->flyby == FLYBY_ON) {
-		var.scene->moveCurrentCamera(MOVE_RIGHT);
-	}
-	return 0;
-}
+//int		flyby(void) {
+//	if (var.img->flyby == FLYBY_ON) {
+//		var.scene->moveCurrentCamera(MOVE_RIGHT);
+//	}
+//	return 0;
+//}
 
 bool	isNumericKey(int key) {
 	if (key == KEY_1 || key == KEY_2 || key == KEY_3 || key == KEY_4 ||

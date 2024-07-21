@@ -36,18 +36,15 @@ public:
 	void set_camera(std::istringstream is);
 	void indexingScenerys(void);
 	void initLoockats(void);
-	//	void resetCurrentCamera(void);
 	bool checkCameraIdx(int cameraIdx) const;
-	bool recalculateLookatsForCurrentCamera(const Position& eye);
+	void recalculateLookatsForCurrentCamera(const Position& eye);
 	void raytrasingCurrentCamera(void);
-
-//	void rt(void);
-//	void putCurrentCameraPixelsToImg(void);
+	void rt(void);
 	void selectCurrentCamera(int ctrl);
 	void changeCurrentCameraFOV(int ctrl);
 	void moveCurrentCamera(int ctrl);
 	void rotateCurrentCamera(int ctrl);
-	void setFlybyRadiusForCurrentCamera(void);
+//	void setFlybyRadiusForCurrentCamera(void);
 };
 
 #endif /* SCENE_HPP */

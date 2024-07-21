@@ -11,8 +11,8 @@
 # include "geometry.hpp"
 # include "ARGBColor.hpp"
 
-struct Ray;
-class Camera;
+struct	Ray;
+class	Camera;
 
 class AScenery {
 protected:
