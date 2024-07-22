@@ -170,7 +170,7 @@ struct Position {
 	Position& operator=(const Position& other);
 	Position& lookat(const Position& eye);
 	Position& lookat(const Position& eye, const LookatAux& aux);
-//	Position& rolling(float roll);
+	Position& rollingDegree(float roll);
 };
 
 

@@ -38,7 +38,7 @@ public:
 	void set_lookatCamera(const Position& eye, const LookatAux& aux);
 	void set_lookatBase(void);
 	void recalculateLookat(int idx, const Position& eye, const LookatAux& aux);
-	virtual bool intersection(Ray& ray, int cameraIdx, Side side = FRONT) const = 0;
+	virtual bool intersection(Ray& ray, int cameraIdx, float cameraRoll = 0, Side side = FRONT) const = 0;
 };
 
 class BasicCoordinate : public AScenery {
@@ -47,7 +47,7 @@ public:
 	~BasicCoordinate(void);
 	BasicCoordinate(const BasicCoordinate& other);
 	BasicCoordinate& operator=(const BasicCoordinate& other);
-	bool intersection(Ray& ray, int cameraIdx, Side side = FRONT) const;
+	bool intersection(Ray& ray, int cameraIdx, float cameraRoll = 0, Side side = FRONT) const;
 };
 
 #endif /* ASCENERY_HPP */

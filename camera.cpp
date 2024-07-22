@@ -222,25 +222,13 @@ Position Camera::get_pos(void) const { return _pos; }
 
 Position Camera::get_pos0(void) const { return _pos0; }
 
-float Camera::get_roll(void) const { return radian(_roll); }
+float Camera::get_roll(void) const { return _roll; }
 
 float Camera::get_flybyRadius(void) const { return _flybyRadius; }
 
 void Camera::set_pos(const Position& pos) { this->_pos = pos; }
 
 void Camera::set_pos0(const Position& pos0) { this->_pos0 = pos0; }
-
-void Camera::set_roll(float roll) {
-	if (roll > 90 || almostEqual(roll, 90, EPSILON)) {
-		this->_roll = 90 - EPSILON;
-	} else if (roll < -90 || almostEqual(roll, 90, EPSILON)) {
-		this->_roll = -90 + EPSILON;
-	} else if (almostEqual(roll, 0, 1)) {
-		this->_roll = 0;
-	} else {
-		this->_roll = roll;
-	}
-}
 
 void Camera::set_flybyRadius(float flybyRadius) { this->_flybyRadius = flybyRadius; }
 
@@ -285,6 +273,22 @@ void Camera::reset_pov(const Position& pos0) {
 	_pos0 = pos0;
 	for (auto pixel = matrix.begin(); pixel != matrix.end(); ++pixel) {
 		pixel->ray.pov = _pos0.p;
+		pixel->ray.color.val = 0;
+	}
+}
+
+void Camera::reset_roll(float roll) {
+	if (roll >= 90) {
+		_roll = 90;
+	} else if (roll <= -90) {
+		_roll = -90;
+	} else if (roll == 0) {
+		_roll = 0;
+	} else {
+		_roll = roll;
+	}
+	if (DEBUG) { std::cout << "roll: " << _roll << std::endl; }
+	for (auto pixel = matrix.begin(); pixel != matrix.end(); ++pixel) {
 		pixel->ray.color.val = 0;
 	}
 }

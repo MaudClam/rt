@@ -40,18 +40,20 @@ Position& Position::lookat(const Position& eye, const LookatAux& aux) {
 	return *this;
 }
 
-//Position& Position::rolling(float roll) {
-//	if (roll != 0) {
-//		float x = 0, y = 0, cos = std::cos(roll), sin = std::sin(roll);
-//		x = p.x * cos - p.y * sin;
-//		y = p.x * sin + p.y * cos;
-//		p.x = x; p.y = y;
-//		x = n.x * cos - n.y * sin;
-//		y = n.x * sin + n.y * cos;
-//		n.x = x; n.y = y;
-//	}
-//	return *this;
-//}
+Position& Position::rollingDegree(float roll) {
+	if (roll != 0) {
+		roll = radian(roll);
+		float x = 0, y = 0, cos = std::cos(roll), sin = std::sin(roll);
+		x = p.x * cos - p.y * sin;
+		y = p.x * sin + p.y * cos;
+		p.x = x; p.y = y;
+		x = n.x * cos - n.y * sin;
+		y = n.x * sin + n.y * cos;
+		n.x = x; n.y = y;
+		n.normalize();
+	}
+	return *this;
+}
 
 
 // Non member functions

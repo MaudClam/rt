@@ -168,11 +168,11 @@ void Scene::recalculateLookatsForCurrentCamera(const Position& eye) {
 }
 
 void Scene::raytrasingCurrentCamera(void) {
-	Camera&	camera(cameras[_currentCamera]);
-	for (auto pixel = camera.matrix.begin(); pixel != camera.matrix.end(); ++pixel) {
+	Camera&	cam(cameras[_currentCamera]);
+	for (auto pixel = cam.matrix.begin(); pixel != cam.matrix.end(); ++pixel) {
 		float dist = INFINITY;
 		for (auto obj = objsIdx.begin(); obj != objsIdx.end(); ++obj) {
-			if ( (*obj)->intersection(pixel->ray, _currentCamera)) {
+			if ( (*obj)->intersection(pixel->ray, _currentCamera, cam.get_roll())) {
 				if (dist > pixel->ray.dist) {
 					dist = pixel->ray.dist;
 					pixel->ray.color.val = (*obj)->color.val;
@@ -256,7 +256,8 @@ void Scene::moveCurrentCamera(int ctrl) {
 }
 
 void Scene::rotateCurrentCamera(int ctrl) {
-	Position eye(cameras[_currentCamera].get_pos0());
+	Camera& cam(cameras[_currentCamera]);
+	Position eye(cam.get_pos0());
 	switch (ctrl) {
 		case YAW_RIGHT: {
 			eye.n.z = std::cos(radian(STEP_ROTATION));
@@ -279,15 +280,17 @@ void Scene::rotateCurrentCamera(int ctrl) {
 			break;
 		}
 		case ROLL_RIGHT: {
-			break;
+			cam.reset_roll( cam.get_roll() - STEP_ROTATION );
+			rt();
+			return;
 		}
 		case ROLL_LEFT: {
+			cam.reset_roll( cam.get_roll() + STEP_ROTATION );
+			rt();
 			return;
-			break;
 		}
 		default:
 			return;
-			break;
 	}
 	recalculateLookatsForCurrentCamera(eye);
 	rt();

@@ -94,13 +94,13 @@ public:
 	float		get_flybyRadius(void) const;
 	void		set_pos(const Position& pos);
 	void		set_pos0(const Position& pos0);
-	void		set_roll(float roll);
 	void		set_flybyRadius(float flybyRadius);
 	void		initMatrix(void);
 	void		resetMatrix(void);
 	void		takePicture(MlxImage& img);
 	bool		reset_fovDegree(float degree);
 	void		reset_pov(const Position& pos0);
+	void		reset_roll(float roll);
 //	void		flyby(int ctrl);
 	friend std::ostream& operator<<(std::ostream& o, Camera& camera);
 	friend std::istringstream& operator>>(std::istringstream& is, Camera& camera);

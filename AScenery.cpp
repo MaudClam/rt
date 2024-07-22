@@ -93,7 +93,7 @@ BasicCoordinate& BasicCoordinate::operator=(const BasicCoordinate& other) {
 	return *this;
 }
 
-bool BasicCoordinate::intersection(Ray& ray, int cameraIdx, Side side) const {
+bool BasicCoordinate::intersection(Ray& ray, int cameraIdx, float cameraRoll, Side side) const {
 	(void)ray;
 	(void)cameraIdx;
 	(void)side;
