@@ -37,7 +37,7 @@ bool Sphere::intersection(Ray& ray, int cameraIdx, float roll, Side side) const 
 	if (checkLookatsIdx(cameraIdx)) {
 		Vec3f		k;
 		Position	r(lookats[cameraIdx]);
-		r.rollingRadian(roll);
+		r.rolling(roll);
 		k.substract(ray.pov, r.p);
 		float b = ray.dir * k;
 		float c = k * k - _radius * _radius;

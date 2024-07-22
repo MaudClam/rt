@@ -44,7 +44,8 @@ public:
 	void changeCurrentCameraFOV(int ctrl);
 	void moveCurrentCamera(int ctrl);
 	void rotateCurrentCamera(int ctrl);
-//	void setFlybyRadiusForCurrentCamera(void);
+	void setFlybyRadiusForCurrentCamera(void);
+	void flybyCurrentCamera(void);
 };
 
 #endif /* SCENE_HPP */

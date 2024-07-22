@@ -78,6 +78,12 @@ template <class t> struct Vec3 {
 	inline Vec3<t>	operator+(const Vec3<t>& v) const {
 		return Vec3<t>(x + v.x, y + v.y, z + v.z);
 	}
+	inline Vec3<t>&	addition(const Vec3<t>& v1, const Vec3<t>& v2) {
+		x = v1.x + v2.x;
+		y = v1.y + v2.y;
+		z = v1.z + v2.z;
+		return *this;
+	}
 	inline Vec3<t>	operator-(const Vec3<t>& v) const {
 		return Vec3<t>(x - v.x, y - v.y, z - v.z);
 	}
@@ -109,6 +115,13 @@ template <class t> struct Vec3 {
 		substract(*this, eyePt);
 		t _x = *this * aux.right, _y = *this * aux.up, _z = *this * aux.dir;
 		x = _x; y = _y; z = _z;
+		return *this;
+	}
+	inline Vec3<t>& turnAroundY(float angle) {
+		float sin = std::sin(angle), cos = std::cos(angle);
+		float _z = z * cos - x * sin;
+		float _x = z * sin + x * cos;
+		x = _x; z = _z;
 		return *this;
 	}
 	template <class > friend std::ostream& operator<<(std::ostream& s, Vec3<t>& v);

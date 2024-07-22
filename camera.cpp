@@ -64,6 +64,8 @@ Ray::Ray(void) : pov(), dir(), dist(0), touch(0), color() {}
 
 Ray::~Ray(void) {}
 
+Ray::Ray(const Position& pos) : pov(pos.p), dir(pos.n), dist(0), touch(0), color() {}
+
 Ray::Ray(const Ray& other) :
 pov(other.pov),
 dir(other.dir),
@@ -294,43 +296,6 @@ void Camera::reset_roll(float roll) {
 		pixel->ray.color.val = 0;
 	}
 }
-
-//void Camera::flyby(int ctrl) {
-//	float x = 0, z = 0;
-//	switch (ctrl) {
-//		case MOVE_RIGHT: {
-//			x = std::sin(radian(-STEP_MOVE)); z = flybyRadius - std::sqrt(x * x + flybyRadius * flybyRadius);
-//			pos.lookatBase( Position(Vec3f(x,0,z),Vec3f(-x,0,flybyRadius - z).normalize()), get_roll() );
-//			break;
-//		}
-//		case MOVE_LEFT: {
-//			x = STEP_MOVE; z = flybyRadius - std::sqrt(x * x + flybyRadius * flybyRadius);
-//			pos.lookatBase( Position(Vec3f(x,0,z),Vec3f(-x,0,flybyRadius - z).normalize()), get_roll() );
-//			break;
-//		}
-//		case MOVE_UP: {
-//			pos.lookatBase( Position(Vec3f(0,STEP_MOVE,0),BASE_DIR), get_roll() );
-//			break;
-//		}
-//		case MOVE_DOWN: {
-//			pos.lookatBase( Position(Vec3f(0,-STEP_MOVE,0),BASE_DIR), get_roll() );
-//			break;
-//		}
-//		case MOVE_FORWARD: {
-//			flybyRadius -= STEP_MOVE;
-//			pos.lookatBase( Position(Vec3f(0,0,STEP_MOVE),BASE_DIR), get_roll() );
-//			break;
-//		}
-//		case MOVE_BACKWARD: {
-//			flybyRadius += STEP_MOVE;
-//			pos.lookatBase( Position(Vec3f(0,0,-STEP_MOVE),BASE_DIR), get_roll() );
-//			break;
-//		}
-//		default:
-//			break;
-//	}
-//}
-
 
 
 // Non member functions

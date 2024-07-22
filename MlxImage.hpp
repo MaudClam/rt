@@ -83,9 +83,10 @@ enum Controls {
 	STEP_ROTATION		= 1,
 	FLYBY_OFF,
 	FLYBY_ON,
-	AUTO_FLYBY_RIGHT,
-	AUTO_FLYBY_LEFT,
-	AUTO_FLYBY_DELAY	= 500
+	FLYBY_STEP			= 3,
+	FLYBY_DELAY			= 500,
+	FLYBY_CLOCKWISE,
+	FLYBY_COUNTER_CLOCKWISE
 };
 
 struct ImageOptions {
@@ -117,7 +118,6 @@ public:
 	int					holdKey;
 	int					mouseHoldKey;
 	int					flyby;
-	int					autoFlyby;
 	enum ClearWhat { BOTH, DRAW_IMG, SHOW_IMG };
 	MlxImage(void);
 	~MlxImage();
@@ -153,7 +153,7 @@ int		keyUp(int key, void* param);
 int		mouseKeyDown(int button, void *param);
 int		mouseKeyUp(int button, void *param);
 int		mouseMove(int button, void *param);
-//int		flyby(void);
+int		flyby(void);
 bool	isNumericKey(int key);
 bool	isHoldKey(int key);
 int 	numericKeyToNumber(int key);

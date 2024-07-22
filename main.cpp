@@ -19,7 +19,7 @@ int main(int ac, char** av) {
 		return error;
 	}
 	scene.rt();
-//	mlx_loop_hook(img.get_mlx(), flyby, NULL);
+	mlx_loop_hook(img.get_mlx(), flyby, NULL);
 	mlx_loop(img.get_mlx());
 	return SUCCESS;
 }

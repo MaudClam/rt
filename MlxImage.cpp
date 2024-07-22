@@ -23,8 +23,7 @@ lineLen(0),
 endian(0),
 holdKey(UNHOLD),
 mouseHoldKey(UNHOLD),
-flyby(FLYBY_OFF),
-autoFlyby(AUTO_FLYBY_RIGHT)
+flyby(FLYBY_OFF)
 {}
 
 MlxImage::~MlxImage(void) {
@@ -191,7 +190,21 @@ int		keyDown(int key, void* param) {
 			case KEY_MINUS:       var.scene->rotateCurrentCamera(ROLL_LEFT); break;
 			default: break;
 		}
-	} else {
+	} else if (var.img->holdKey == KEY_LEFT_CMD || var.img->holdKey == KEY_RIGHT_CMD) {
+		switch (key) {
+			case KEY_LEFT_CMD: {
+				var.img->flyby = FLYBY_COUNTER_CLOCKWISE;
+				var.scene->setFlybyRadiusForCurrentCamera();
+				break;
+			}
+			case KEY_RIGHT_CMD: {
+				var.img->flyby = FLYBY_CLOCKWISE;
+				var.scene->setFlybyRadiusForCurrentCamera();
+				break;
+			}
+			default: break;
+		}
+} else {
 		switch (key) {
 			case KEY_ESCAPE:      _exit(*var.img, *var.scene, SUCCESS);  break;
 			case KEY_ARROW_RIGHT: var.scene->moveCurrentCamera(MOVE_RIGHT); break;
@@ -210,6 +223,10 @@ int		keyUp(int key, void* param) {
 	if (var.img->holdKey == key) {
 		var.img->holdKey = UNHOLD;
 	}
+	if (key == KEY_LEFT_CMD || key == KEY_RIGHT_CMD) {
+		var.img->flyby = FLYBY_OFF;
+	}
+
 	if (DEBUG_KEYS) { std::cout << "keyUp: " << key << " holdKey: " << var.img->holdKey  << "\n"; }
 	return 0;
 }
@@ -252,12 +269,12 @@ int		mouseMove(int button, void* param) {
 	return 0;
 }
 
-//int		flyby(void) {
-//	if (var.img->flyby == FLYBY_ON) {
-//		var.scene->moveCurrentCamera(MOVE_RIGHT);
-//	}
-//	return 0;
-//}
+int		flyby(void) {
+	if (var.img->flyby != FLYBY_OFF) {
+		var.scene->flybyCurrentCamera();
+	}
+	return 0;
+}
 
 bool	isNumericKey(int key) {
 	if (key == KEY_1 || key == KEY_2 || key == KEY_3 || key == KEY_4 ||

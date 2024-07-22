@@ -58,7 +58,7 @@ bool Scene::set_currentCamera(int cameraIdx) {
 
 int  Scene::parsing(int ac, char** av) {
 	(void)ac; (void)av;
-	Vec2i	resolution(1200,900);
+	Vec2i	resolution(800,600);
 
 	img.init("Hello", resolution.x, resolution.y);
 	set_camera(Camera(img));// default camera should stay always
@@ -296,26 +296,43 @@ void Scene::rotateCurrentCamera(int ctrl) {
 	rt();
 }
 
-//void Scene::setFlybyRadiusForCurrentCamera(void) {
-//	Ray_		Ray_;
-//	float	back = 0;
-//	float	front = 0;
-//	for (auto obj = objsIdx.begin(); obj != objsIdx.end(); ++obj) {
-//		if ( (*obj)->intersection(Ray_, currentCamera, AScenery::BACK) ) {
-//			if ( Ray_.dist > back) {
-//				back = Ray_.dist;
-//			}
-//		}
-//	}
-//	for (auto obj = objsIdx.begin(); obj != objsIdx.end(); ++obj) {
-//		if ( (*obj)->intersection(Ray_, currentCamera, AScenery::FRONT) ) {
-//			if ( Ray_.dist < front) {
-//				front = Ray_.dist;
-//			}
-//		}
-//	}
-//	if ( back != 0) {
-//		cameras[currentCamera].set_flybyRadius((back + front) / 2);
-//		if (DEBUG_MODE) { std::cout << "flybyRadius: " << cameras[currentCamera].get_flybyRadius() << std::endl; }
-//	}
-//}
+void Scene::setFlybyRadiusForCurrentCamera(void) {
+	Camera&		cam(cameras[_currentCamera]);
+	Position	pos0 = cam.get_pos0();
+	Ray			ray; ray.pov = pos0.p; ray.dir = pos0.n;
+	float		back = 0, front = INFINITY;
+
+	for (auto obj = objsIdx.begin(); obj != objsIdx.end(); ++obj) {
+		if ( (*obj)->intersection(ray, _currentCamera, 0, AScenery::BACK) ) {
+			if ( back < ray.dist) {
+				back = ray.dist;
+			}
+		}
+	}
+	for (auto obj = objsIdx.begin(); obj != objsIdx.end(); ++obj) {
+		if ( (*obj)->intersection(ray, _currentCamera, 0, AScenery::FRONT) ) {
+			if ( front > ray.dist) {
+				front = ray.dist;
+			}
+		}
+	}
+	if ( back > 0) {
+	cam.set_flybyRadius((back - front) / 2 + front);
+		if (DEBUG_MODE) { std::cout << "flybyRadius: " << cam.get_flybyRadius() << std::endl; }
+	}
+}
+
+void Scene::flybyCurrentCamera(void) {
+	Camera& cam(cameras[_currentCamera]);
+	float angle = radian(FLYBY_STEP), radius = cam.get_flybyRadius();
+	if (img.flyby == FLYBY_CLOCKWISE) {
+		angle = -angle;
+	}
+	Position pos0(cam.get_pos0());
+	pos0.p.z += radius;
+	pos0.p.turnAroundY(angle);
+	pos0.n.turnAroundY(-angle).normalize();
+	pos0.p.z -= radius;
+	recalculateLookatsForCurrentCamera(pos0);
+	rt();
+}

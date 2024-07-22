@@ -35,6 +35,7 @@ struct Ray {
 	ARGBColor	color;
 	Ray(void);
 	~Ray(void);
+	Ray(const Position& pos);
 	Ray(const Ray& other);
 	Ray& operator=(const Ray& other);
 };
@@ -102,7 +103,6 @@ public:
 	bool		reset_fovDegree(float degree);
 	void		reset_pov(const Position& pos0);
 	void		reset_roll(float roll);
-//	void		flyby(int ctrl);
 	friend std::ostream& operator<<(std::ostream& o, Camera& camera);
 	friend std::istringstream& operator>>(std::istringstream& is, Camera& camera);
 };
