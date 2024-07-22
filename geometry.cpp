@@ -40,17 +40,16 @@ Position& Position::lookat(const Position& eye, const LookatAux& aux) {
 	return *this;
 }
 
-Position& Position::rollingDegree(float roll) {
+Position& Position::rolling(float roll) {
 	if (roll != 0) {
-		roll = radian(roll);
-		float x = 0, y = 0, cos = std::cos(roll), sin = std::sin(roll);
-		x = p.x * cos - p.y * sin;
-		y = p.x * sin + p.y * cos;
-		p.x = x; p.y = y;
-		x = n.x * cos - n.y * sin;
-		y = n.x * sin + n.y * cos;
-		n.x = x; n.y = y;
-		n.normalize();
+		float cos = std::cos(roll), sin = std::sin(roll);
+		float px = p.x * cos - p.y * sin, py = p.x * sin + p.y * cos;
+		p.x = px; p.y = py;
+		if ( !(n.x == 0 && n.y == 0) ) {
+			float nx = n.x * cos - n.y * sin, ny = n.x * sin + n.y * cos;
+			n.x = nx; n.y = ny;
+			n.normalize();
+		}
 	}
 	return *this;
 }

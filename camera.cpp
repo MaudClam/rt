@@ -222,6 +222,8 @@ Position Camera::get_pos(void) const { return _pos; }
 
 Position Camera::get_pos0(void) const { return _pos0; }
 
+float Camera::get_rollDegree(void) const { return degree(_roll); }
+
 float Camera::get_roll(void) const { return _roll; }
 
 float Camera::get_flybyRadius(void) const { return _flybyRadius; }
@@ -279,15 +281,15 @@ void Camera::reset_pov(const Position& pos0) {
 
 void Camera::reset_roll(float roll) {
 	if (roll >= 90) {
-		_roll = 90;
+		_roll = radian(90);
 	} else if (roll <= -90) {
-		_roll = -90;
+		_roll = radian(-90);
 	} else if (roll == 0) {
-		_roll = 0;
+		_roll = radian(0);
 	} else {
-		_roll = roll;
+		_roll = radian(roll);
 	}
-	if (DEBUG) { std::cout << "roll: " << _roll << std::endl; }
+	if (DEBUG) { std::cout << "roll: " << degree(_roll) << std::endl; }
 	for (auto pixel = matrix.begin(); pixel != matrix.end(); ++pixel) {
 		pixel->ray.color.val = 0;
 	}

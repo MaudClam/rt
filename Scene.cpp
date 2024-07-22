@@ -280,12 +280,12 @@ void Scene::rotateCurrentCamera(int ctrl) {
 			break;
 		}
 		case ROLL_RIGHT: {
-			cam.reset_roll( cam.get_roll() - STEP_ROTATION );
+			cam.reset_roll( cam.get_rollDegree() - STEP_ROTATION );
 			rt();
 			return;
 		}
 		case ROLL_LEFT: {
-			cam.reset_roll( cam.get_roll() + STEP_ROTATION );
+			cam.reset_roll( cam.get_rollDegree() + STEP_ROTATION );
 			rt();
 			return;
 		}

@@ -33,12 +33,11 @@ Sphere::Sphere(const Sphere& other) : _radius(other._radius) {
 	color = other.color;
 }
 
-bool Sphere::intersection(Ray& ray, int cameraIdx, float cameraRoll, Side side) const {
+bool Sphere::intersection(Ray& ray, int cameraIdx, float roll, Side side) const {
 	if (checkLookatsIdx(cameraIdx)) {
 		Vec3f		k;
 		Position	r(lookats[cameraIdx]);
-		
-		r.rollingDegree(cameraRoll);
+		r.rollingRadian(roll);
 		k.substract(ray.pov, r.p);
 		float b = ray.dir * k;
 		float c = k * k - _radius * _radius;

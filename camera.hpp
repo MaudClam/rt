@@ -90,6 +90,7 @@ public:
 	Camera& operator=(const Camera& other);
 	Position	get_pos(void) const;
 	Position	get_pos0(void) const;
+	float		get_rollDegree(void) const;
 	float		get_roll(void) const;
 	float		get_flybyRadius(void) const;
 	void		set_pos(const Position& pos);
