@@ -193,13 +193,21 @@ int		keyDown(int key, void* param) {
 	} else if (var.img->holdKey == KEY_LEFT_CMD || var.img->holdKey == KEY_RIGHT_CMD) {
 		switch (key) {
 			case KEY_LEFT_CMD: {
-				var.img->flyby = FLYBY_COUNTER_CLOCKWISE;
-				var.scene->setFlybyRadiusForCurrentCamera();
+				if (var.img->flyby == FLYBY_OFF) {
+					var.img->flyby = FLYBY_COUNTER_CLOCKWISE;
+					var.scene->setFlybyRadiusForCurrentCamera();
+				} else {
+					var.img->flyby = FLYBY_OFF;
+				}
 				break;
 			}
 			case KEY_RIGHT_CMD: {
-				var.img->flyby = FLYBY_CLOCKWISE;
-				var.scene->setFlybyRadiusForCurrentCamera();
+				if (var.img->flyby == FLYBY_OFF) {
+					var.img->flyby = FLYBY_CLOCKWISE;
+					var.scene->setFlybyRadiusForCurrentCamera();
+				} else {
+					var.img->flyby = FLYBY_OFF;
+				}
 				break;
 			}
 			default: break;
@@ -222,9 +230,6 @@ int		keyUp(int key, void* param) {
 	(void)param;
 	if (var.img->holdKey == key) {
 		var.img->holdKey = UNHOLD;
-	}
-	if (key == KEY_LEFT_CMD || key == KEY_RIGHT_CMD) {
-		var.img->flyby = FLYBY_OFF;
 	}
 
 	if (DEBUG_KEYS) { std::cout << "keyUp: " << key << " holdKey: " << var.img->holdKey  << "\n"; }

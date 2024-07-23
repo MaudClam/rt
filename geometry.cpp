@@ -41,16 +41,8 @@ Position& Position::lookat(const Position& eye, const LookatAux& aux) {
 }
 
 Position& Position::rolling(float roll) {
-	if (roll != 0) {
-		float cos = std::cos(roll), sin = std::sin(roll);
-		float px = p.x * cos - p.y * sin, py = p.x * sin + p.y * cos;
-		p.x = px; p.y = py;
-		if ( !(n.x == 0 && n.y == 0) ) {
-			float nx = n.x * cos - n.y * sin, ny = n.x * sin + n.y * cos;
-			n.x = nx; n.y = ny;
-			n.normalize();
-		}
-	}
+	p.turnAroundZ(roll);
+	n.turnAroundZ(roll).normalize();
 	return *this;
 }
 

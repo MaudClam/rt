@@ -170,17 +170,32 @@ void Scene::recalculateLookatsForCurrentCamera(const Position& eye) {
 void Scene::raytrasingCurrentCamera(void) {
 	Camera&	cam(cameras[_currentCamera]);
 	for (auto pixel = cam.matrix.begin(); pixel != cam.matrix.end(); ++pixel) {
-		float dist = INFINITY;
-		for (auto obj = objsIdx.begin(); obj != objsIdx.end(); ++obj) {
-			if ( (*obj)->intersection(pixel->ray, _currentCamera, cam.get_roll())) {
-				if (dist > pixel->ray.dist) {
-					dist = pixel->ray.dist;
-					pixel->ray.color.val = (*obj)->color.val;
-				}
+		trasingRay(pixel->ray, _currentCamera, cam.get_roll());
+	}
+}
+
+void Scene::trasingRay(Ray& ray, int cam, float roll) {
+	float		distance = INFINITY;
+	AScenery*	nearestObj = NULL;
+	for (auto obj = objsIdx.begin(); obj != objsIdx.end(); ++obj) {
+		if ( (*obj)->intersection(ray, cam, roll) ) {
+			if (distance > ray.dist) {
+				distance = ray.dist;
+				nearestObj = *obj;
 			}
 		}
 	}
+	if (nearestObj) {
+		ray.dist = distance;
+		nearestObj->hit(ray, cam, roll);
+		lighting(ray, cam, roll);
+	}
 }
+
+void Scene::lighting(Ray& ray, int cam, float roll) {
+	ray.color.product(ray.color, img.white);
+}
+
 
 void Scene::rt(void) {
 	raytrasingCurrentCamera();

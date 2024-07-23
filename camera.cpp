@@ -60,17 +60,18 @@ std::istringstream& operator>>(std::istringstream& is, Fov& fov) {
 
 // struct Ray
 
-Ray::Ray(void) : pov(), dir(), dist(0), touch(0), color() {}
+Ray::Ray(void) : pov(), dir(), dist(0), hits(0), color(SPACE) {}
 
 Ray::~Ray(void) {}
 
-Ray::Ray(const Position& pos) : pov(pos.p), dir(pos.n), dist(0), touch(0), color() {}
+Ray::Ray(const Position& pos) : pov(pos.p), dir(pos.n), norm(), dist(0), hits(0), color(SPACE) {}
 
 Ray::Ray(const Ray& other) :
 pov(other.pov),
 dir(other.dir),
+norm(other.norm),
 dist(other.dist),
-touch(other.touch),
+hits(other.hits),
 color(other.color)
 {}
 
@@ -78,8 +79,9 @@ Ray& Ray::operator=(const Ray& other) {
 	if (this != & other) {
 		pov = other.pov;
 		dir = other.dir;
+		norm = other.norm;
 		dist = other.dist;
-		touch = other.touch;
+		hits = other.hits;
 	}
 	return *this;
 }
@@ -111,8 +113,8 @@ void Pixel::reset(float tan, const Vec3f& pov) {
 	ray.dir.x = cPos.x * tan; ray.dir.y = cPos.y * tan; ray.dir.z = 1.;
 	ray.dir.normalize();
 	ray.dist = INFINITY;
-	ray.touch = 0;
-	ray.color.val = 0; ray.color.bytespp = ARGB;
+	ray.hits = 0;
+	ray.color.val = SPACE; ray.color.bytespp = ARGB;
 }
 
 
@@ -261,6 +263,7 @@ void Camera::takePicture(MlxImage& img) {
 		for (auto pixel = matrix.begin(); pixel != matrix.end(); ++pixel) {
 			memcpy(data, pixel->ray.color.raw, _bytespp);
 			data += _bytespp;
+			pixel->ray.color.val = SPACE;
 		}
 	}
 }
@@ -277,7 +280,7 @@ void Camera::reset_pov(const Position& pos0) {
 	_pos0 = pos0;
 	for (auto pixel = matrix.begin(); pixel != matrix.end(); ++pixel) {
 		pixel->ray.pov = _pos0.p;
-		pixel->ray.color.val = 0;
+		pixel->ray.color = 0;
 	}
 }
 
@@ -293,7 +296,8 @@ void Camera::reset_roll(float roll) {
 	}
 	if (DEBUG) { std::cout << "roll: " << degree(_roll) << std::endl; }
 	for (auto pixel = matrix.begin(); pixel != matrix.end(); ++pixel) {
-		pixel->ray.color.val = 0;
+		pixel->ray.pov = _pos0.p;
+		pixel->ray.color.val = SPACE;
 	}
 }
 

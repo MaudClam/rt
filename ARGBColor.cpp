@@ -16,7 +16,7 @@ std::string colorFormat(int bpp) {
 	return "wrong_bytespp";
 }
 
-ARGBColor::ARGBColor(void) : val(0), bytespp(ARGB) {}
+ARGBColor::ARGBColor(void) : val(SPACE), bytespp(ARGB) {}
 
 ARGBColor::~ARGBColor(void) {}
 
@@ -48,48 +48,65 @@ ARGBColor& ARGBColor::operator=(const ARGBColor& c) {
 }
 
 ARGBColor ARGBColor::operator+(const ARGBColor& c) const {
+	return ARGBColor().addition(*this, c);
+}
+
+ARGBColor& ARGBColor::addition(const ARGBColor& c1, const ARGBColor& c2) {
 	int tmp[4];
 	for (int i = 0; i < 4; ++i) {
-		tmp[i] = this->raw[i] + c.raw[i];
-		tmp[i] = (tmp[i] > 255 ? 255 : tmp[i]);
+		tmp[i] = c1.raw[i] + c2.raw[i];
+		raw[i] = (tmp[i] > 255 ? 255 : tmp[i]);
 	}
-	return ARGBColor(tmp[2],tmp[1],tmp[0],tmp[3]);
+	return *this;
 }
 
 ARGBColor ARGBColor::operator-(const ARGBColor& c) const {
+	return ARGBColor(*this).substract(*this, c);
+}
+
+ARGBColor& ARGBColor::substract(const ARGBColor& c1, const ARGBColor& c2) {
 	int tmp[4];
 	for (int i = 0; i < 4; ++i) {
-		tmp[i] = this->raw[i] - c.raw[i];
-		tmp[i] = (tmp[i] < 0 ? 0 : tmp[i]);
+		tmp[i] = c1.raw[i] - c2.raw[i];
+		raw[i] = (tmp[i] < 0 ? 0 : tmp[i]);
 	}
-	return ARGBColor(tmp[2],tmp[1],tmp[0],tmp[3]);
+	return *this;
 }
 
 ARGBColor ARGBColor::operator*(const ARGBColor& c) const {
+	return ARGBColor(*this).product(*this, c);
+}
+
+ARGBColor& ARGBColor::product(const ARGBColor& c1, const ARGBColor& c2) {
 	int tmp[4];
 	for (int i = 0; i < 4; ++i) {
-		tmp[i] = this->raw[i] * c.raw[i] * 0.003922;
+		tmp[i] = c1.raw[i] * c2.raw[i] * 0.003922;
+		raw[i] = tmp[i];
 	}
-	return ARGBColor(tmp[2],tmp[1],tmp[0],tmp[3]);
-
+	return *this;
 }
 
 ARGBColor ARGBColor::operator*(float f) const {
-	int tmp[3];
-	for (int i = 0; i < 3; ++i) {
-		tmp[i] = this->raw[i] * f;
-		tmp[i] = (tmp[i] > 255 ? 255 : tmp[i]);
-	}
-	return ARGBColor(tmp[2],tmp[1],tmp[0],this->raw[3]);
+	return ARGBColor(*this).product(f);
 }
 
-ARGBColor ARGBColor::negative(void) const {
-	int tmp[3];
-	for (int i = 0; i < 3; ++i) {
-		tmp[i] = 255 - this->raw[i];
+ARGBColor& ARGBColor::product(float f) {
+	int tmp[4];
+	for (int i = 0; i < 4; ++i) {
+		tmp[i] = this->raw[i] * f;
+		raw[i] = (tmp[i] > 255 ? 255 : tmp[i]);
 	}
-	return ARGBColor(tmp[2],tmp[1],tmp[0],this->raw[3]);
+	return *this;
 }
+
+ARGBColor& ARGBColor::negative(void) {
+	for (int i = 0; i < 4; ++i) {
+		raw[i] = 255 - raw[i];
+	}
+	return *this;
+}
+
+// Non member functions
 
 std::string ARGBColor::rrggbb(void) const {
 	return std::to_string( (int)r ) + "," + std::to_string( (int)g ) + "," + std::to_string( (int)b);
@@ -159,4 +176,8 @@ std::istringstream& operator>>(std::istringstream& is, ARGBColor& c) {
 		c.bytespp = (c.a == 0 ? RGB : ARGB);
 	}
 	return is;
+}
+
+ARGBColor negative(const ARGBColor& c) {
+	return ARGBColor(c).negative();
 }

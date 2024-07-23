@@ -29,9 +29,10 @@ public:
 
 struct Ray {
 	Vec3f		pov;	// POV (point of view)
-	Vec3f		dir;	// Ray_ direction vector (normalized)
-	float		dist;	// variable to record distance from pov to object
-	int			touch;	// number of reflections, refractions, absorptions
+	Vec3f		dir;	// ray direction vector (normalized)
+	Vec3f		norm;	// normal vector at the ray hit (normalized)
+	float		dist;	// vdistance from pov to object
+	int			hits;	// number of ray reflections, refractions, absorptions
 	ARGBColor	color;
 	Ray(void);
 	~Ray(void);

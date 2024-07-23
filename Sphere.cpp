@@ -33,10 +33,10 @@ Sphere::Sphere(const Sphere& other) : _radius(other._radius) {
 	color = other.color;
 }
 
-bool Sphere::intersection(Ray& ray, int cameraIdx, float roll, Side side) const {
-	if (checkLookatsIdx(cameraIdx)) {
+bool Sphere::intersection(Ray& ray, int cam, float roll, Side side) const {
+	if (checkLookatsIdx(cam)) {
 		Vec3f		k;
-		Position	r(lookats[cameraIdx]);
+		Position	r(lookats[cam]);
 		r.rolling(roll);
 		k.substract(ray.pov, r.p);
 		float b = ray.dir * k;
@@ -63,6 +63,24 @@ bool Sphere::intersection(Ray& ray, int cameraIdx, float roll, Side side) const 
 		}
 	}
 	return false;
+}
+
+void Sphere::hit(Ray& ray, int cam, float roll) const {
+	if (checkLookatsIdx(cam)) {
+		Position center(lookats[cam]);
+		center.rolling(roll);
+		ray.pov.addition(ray.pov, ray.dir * ray.dist);
+		ray.norm.substract(center.p, ray.pov).normalize();
+		if (roll != 0) {
+			ray.norm.turnAroundZ(roll);
+		}
+		float k = ray.dir * ray.norm;
+		if (k > 0) {
+			ray.color.val = color.val;
+			ray.color.product(k);
+		}
+		ray.hits++;
+	}
 }
 
 std::ostream& operator<<(std::ostream& o, Sphere& sp) {

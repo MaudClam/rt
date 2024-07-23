@@ -13,6 +13,7 @@
 # include <iomanip>
 # include <vector>
 
+# define SPACE 0x00FFFFFF
 
 enum colorFormat {
 	GRay_SCALE=1, RGB=3, ARGB=4
@@ -36,10 +37,14 @@ struct ARGBColor {
 	ARGBColor(const ARGBColor& c);
 	ARGBColor& operator=(const ARGBColor& c);
 	ARGBColor operator+(const ARGBColor& c) const;
+	ARGBColor& addition(const ARGBColor& c1, const ARGBColor& c2);
 	ARGBColor operator-(const ARGBColor& c) const;
-	ARGBColor operator*(const ARGBColor& c) const;	
+	ARGBColor& substract(const ARGBColor& c1, const ARGBColor& c2);
+	ARGBColor operator*(const ARGBColor& c) const;
+	ARGBColor& product(const ARGBColor& c1, const ARGBColor& c2);
 	ARGBColor operator*(float f) const;
-	ARGBColor negative(void) const;
+	ARGBColor& product(float f);
+	ARGBColor& negative(void);
 	std::string rrggbb(void) const;
 	std::string aarrggbb(void) const;
 	std::string HEXaarrggbb(void) const;
@@ -47,5 +52,7 @@ struct ARGBColor {
 	friend std::ostream& operator<<(std::ostream& o, const ARGBColor& c);
 	friend std::istringstream& operator>>(std::istringstream& is, ARGBColor& c);
 };
+
+	ARGBColor negative(const ARGBColor& c);
 
 #endif /* ARGBCOLOR_HPP */

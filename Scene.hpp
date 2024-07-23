@@ -39,6 +39,8 @@ public:
 	bool checkCameraIdx(int cameraIdx) const;
 	void recalculateLookatsForCurrentCamera(const Position& eye);
 	void raytrasingCurrentCamera(void);
+	void trasingRay(Ray& ray, int cam, float roll);
+	void lighting(Ray& ray, int cam, float roll);
 	void rt(void);
 	void selectCurrentCamera(int ctrl);
 	void changeCurrentCameraFOV(int ctrl);

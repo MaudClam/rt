@@ -94,6 +94,7 @@ template <class t> struct Vec3 {
 		return *this;
 	}
 	inline Vec3<t>	operator*(float f) const { return Vec3<t>(x * f, y * f, z * f); }
+	inline Vec3<t>&	product(float f)  { x *= f; y *= f; z *= f; return *this; }
 	inline t		operator*(const Vec3<t>& v) const { return x * v.x + y * v.y + z * v.z;}
 	inline float 	norm () const {
 		return std::sqrt(x * x + y * y + z * z);
@@ -118,10 +119,21 @@ template <class t> struct Vec3 {
 		return *this;
 	}
 	inline Vec3<t>& turnAroundY(float angle) {
-		float sin = std::sin(angle), cos = std::cos(angle);
-		float _z = z * cos - x * sin;
-		float _x = z * sin + x * cos;
-		x = _x; z = _z;
+		if (angle != 0) {
+			float sin = std::sin(angle), cos = std::cos(angle);
+			float _z = z * cos - x * sin;
+			float _x = z * sin + x * cos;
+			x = _x; z = _z;
+		}
+		return *this;
+	}
+	inline Vec3<t>& turnAroundZ(float angle) {
+		if (angle != 0) {
+			float sin = std::sin(angle), cos = std::cos(angle);
+			float _x = x * cos - y * sin;
+			float _y = x * sin + y * cos;
+			x = _x; y = _y;
+		}
 		return *this;
 	}
 	template <class > friend std::ostream& operator<<(std::ostream& s, Vec3<t>& v);
