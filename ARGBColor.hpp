@@ -13,13 +13,14 @@
 # include <iomanip>
 # include <vector>
 
-# define SPACE 0x00FFFFFF
 
 enum colorFormat {
-	GRay_SCALE=1, RGB=3, ARGB=4
+	GRAY_SCALE=1, RGB=3, ARGB=4
 };
 
 std::string colorFormat(int bpp);
+int   i2limits(int num, int min, int max);
+float f2limits(float num, float min, float max);
 
 struct ARGBColor {
 	union {
@@ -51,6 +52,25 @@ struct ARGBColor {
 	std::string HTMLrrggbb(void) const;
 	friend std::ostream& operator<<(std::ostream& o, const ARGBColor& c);
 	friend std::istringstream& operator>>(std::istringstream& is, ARGBColor& c);
+};
+
+class Lightning {
+	float		_ratio;
+	ARGBColor	_color;
+public:
+	ARGBColor	light;
+	Lightning(void);
+	Lightning(float ratio, const ARGBColor& color = ARGBColor(0x00FFFFFF));
+	~Lightning(void);
+	Lightning(const Lightning& other);
+	Lightning& operator=(const Lightning& other);
+	float get_ratio(void) const;
+	ARGBColor get_color(void) const;
+	void set_ratio(float ratio);
+	void set_color(const ARGBColor& color);
+	void invert(void);
+	friend std::ostream& operator<<(std::ostream& o, Lightning& al);
+	friend std::istringstream& operator>>(std::istringstream& is, Lightning& l);
 };
 
 	ARGBColor negative(const ARGBColor& c);

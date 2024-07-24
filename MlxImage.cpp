@@ -194,7 +194,7 @@ int		keyDown(int key, void* param) {
 		switch (key) {
 			case KEY_LEFT_CMD: {
 				if (var.img->flyby == FLYBY_OFF) {
-					var.img->flyby = FLYBY_COUNTER_CLOCKWISE;
+					var.img->flyby = FLYBY_CLOCKWISE;
 					var.scene->setFlybyRadiusForCurrentCamera();
 				} else {
 					var.img->flyby = FLYBY_OFF;
@@ -203,7 +203,7 @@ int		keyDown(int key, void* param) {
 			}
 			case KEY_RIGHT_CMD: {
 				if (var.img->flyby == FLYBY_OFF) {
-					var.img->flyby = FLYBY_CLOCKWISE;
+					var.img->flyby = FLYBY_COUNTER_CLOCKWISE;
 					var.scene->setFlybyRadiusForCurrentCamera();
 				} else {
 					var.img->flyby = FLYBY_OFF;

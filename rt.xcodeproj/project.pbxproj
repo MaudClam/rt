@@ -20,7 +20,7 @@
 		667951792C427BFD009C1DDD /* camera.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 667951772C427BFD009C1DDD /* camera.cpp */; };
 		6679517A2C427BFD009C1DDD /* camera.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 667951772C427BFD009C1DDD /* camera.cpp */; settings = {COMPILER_FLAGS = "-Wall -Wextra -Werror"; }; };
 		6679517D2C46DF55009C1DDD /* geometry.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 6679517C2C46DF55009C1DDD /* geometry.cpp */; };
-		6679517E2C46DF55009C1DDD /* geometry.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 6679517C2C46DF55009C1DDD /* geometry.cpp */; };
+		6679517E2C46DF55009C1DDD /* geometry.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 6679517C2C46DF55009C1DDD /* geometry.cpp */; settings = {COMPILER_FLAGS = "-Wall -Wextra -Werror"; }; };
 		66D1668D2C3B4243002E6F7E /* libmlx.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 66D1668C2C3B4243002E6F7E /* libmlx.a */; };
 		66D166AE2C3BEE1A002E6F7E /* training.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 66D166AD2C3BEE1A002E6F7E /* training.cpp */; settings = {COMPILER_FLAGS = "-Wall -Wextra -Werror"; }; };
 		66D166B52C3BEF3E002E6F7E /* ARGBColor.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 6659C4DA2C399A6700CC7FAB /* ARGBColor.cpp */; settings = {COMPILER_FLAGS = "-Wall -Wextra -Werror"; }; };
@@ -91,11 +91,11 @@
 		667951782C427BFD009C1DDD /* camera.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; path = camera.hpp; sourceTree = "<group>"; };
 		6679517C2C46DF55009C1DDD /* geometry.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = geometry.cpp; sourceTree = "<group>"; };
 		667951822C4D535C009C1DDD /* rt */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = rt; sourceTree = BUILT_PRODUCTS_DIR; };
-		667951832C4D535C009C1DDD /* colortest */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; name = colortest; path = "/Users/uru/Library/Mobile Documents/com~apple~CloudDocs/42_Projects/rt/build/Debug/colortest"; sourceTree = "<absolute>"; };
-		667951842C4D535C009C1DDD /* geometrytest */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; name = geometrytest; path = "/Users/uru/Library/Mobile Documents/com~apple~CloudDocs/42_Projects/rt/build/Debug/geometrytest"; sourceTree = "<absolute>"; };
+		667951852C502042009C1DDD /* colortest */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; name = colortest; path = "/Users/uru/Library/Mobile Documents/com~apple~CloudDocs/42_Projects/rt/build/Debug/colortest"; sourceTree = "<absolute>"; };
+		667951862C502042009C1DDD /* geometrytest */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; name = geometrytest; path = "/Users/uru/Library/Mobile Documents/com~apple~CloudDocs/42_Projects/rt/build/Debug/geometrytest"; sourceTree = "<absolute>"; };
+		667951882C505F5E009C1DDD /* training */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = training; sourceTree = BUILT_PRODUCTS_DIR; };
 		66B6D1C42C3AD3B9008FD6E6 /* Header.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = Header.h; sourceTree = "<group>"; };
 		66D1668C2C3B4243002E6F7E /* libmlx.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; path = libmlx.a; sourceTree = "<group>"; };
-		66D166AB2C3BEE1A002E6F7E /* training */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; name = training; path = "/Users/uru/Library/Mobile Documents/com~apple~CloudDocs/42_Projects/rt/build/Debug/training"; sourceTree = "<absolute>"; };
 		66D166AD2C3BEE1A002E6F7E /* training.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = training.cpp; sourceTree = "<group>"; };
 		66D166C42C3C172F002E6F7E /* Sphere.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = Sphere.cpp; sourceTree = "<group>"; };
 		66D166C52C3C172F002E6F7E /* Sphere.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; path = Sphere.hpp; sourceTree = "<group>"; };
@@ -171,6 +171,7 @@
 				66D166C52C3C172F002E6F7E /* Sphere.hpp */,
 				6661C23F2C380B9A00D58CDC /* tests */,
 				667951822C4D535C009C1DDD /* rt */,
+				667951882C505F5E009C1DDD /* training */,
 			);
 			sourceTree = "<group>";
 		};
@@ -229,7 +230,7 @@
 			);
 			name = colortest;
 			productName = colortest;
-			productReference = 667951832C4D535C009C1DDD /* colortest */;
+			productReference = 667951852C502042009C1DDD /* colortest */;
 			productType = "com.apple.product-type.tool";
 		};
 		6661C2492C380BFE00D58CDC /* geometrytest */ = {
@@ -246,7 +247,7 @@
 			);
 			name = geometrytest;
 			productName = geometrytest;
-			productReference = 667951842C4D535C009C1DDD /* geometrytest */;
+			productReference = 667951862C502042009C1DDD /* geometrytest */;
 			productType = "com.apple.product-type.tool";
 		};
 		66D166AA2C3BEE1A002E6F7E /* training */ = {
@@ -263,7 +264,7 @@
 			);
 			name = training;
 			productName = training;
-			productReference = 66D166AB2C3BEE1A002E6F7E /* training */;
+			productReference = 667951882C505F5E009C1DDD /* training */;
 			productType = "com.apple.product-type.tool";
 		};
 /* End PBXNativeTarget section */

@@ -97,6 +97,9 @@ struct ImageOptions {
 	const ARGBColor	red			= ARGBColor(255,   0,   0);
 	const ARGBColor	green		= ARGBColor(  0, 255,   0);
 	const ARGBColor	blue		= ARGBColor(  0,   0, 255);
+	const ARGBColor	cyan		= ARGBColor(  0, 255, 255);
+	const ARGBColor	magenta		= ARGBColor(  255, 0, 255);
+	const ARGBColor	yellow		= ARGBColor(  255, 255, 0);
 	ImageOptions(void) {}
 	~ImageOptions(void) {}
 };

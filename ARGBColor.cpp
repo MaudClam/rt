@@ -7,16 +7,20 @@
 
 #include "ARGBColor.hpp"
 
+
 std::string colorFormat(int bpp) {
 	switch (bpp) {
-		case 1: { return "GRay_SCALE"; }
+		case 1: { return "GRAY_SCALE"; }
 		case 3: { return "RGB"; }
 		case 4: { return "ARGB"; }
 	}
 	return "wrong_bytespp";
 }
 
-ARGBColor::ARGBColor(void) : val(SPACE), bytespp(ARGB) {}
+
+// Struct ARGBColor
+
+ARGBColor::ARGBColor(void) : val(0), bytespp(ARGB) {}
 
 ARGBColor::~ARGBColor(void) {}
 
@@ -28,7 +32,7 @@ ARGBColor::ARGBColor(unsigned char R, unsigned char G, unsigned char B, unsigned
 }
 
 ARGBColor::ARGBColor(int v, int bpp) : val(v), bytespp(bpp) {
-	if (bytespp == GRay_SCALE) {
+	if (bytespp == GRAY_SCALE) {
 		if (val > 255) {
 			val = 255;
 		}
@@ -52,10 +56,8 @@ ARGBColor ARGBColor::operator+(const ARGBColor& c) const {
 }
 
 ARGBColor& ARGBColor::addition(const ARGBColor& c1, const ARGBColor& c2) {
-	int tmp[4];
 	for (int i = 0; i < 4; ++i) {
-		tmp[i] = c1.raw[i] + c2.raw[i];
-		raw[i] = (tmp[i] > 255 ? 255 : tmp[i]);
+		raw[i] = i2limits(c1.raw[i] + c2.raw[i], 0, 255);
 	}
 	return *this;
 }
@@ -65,10 +67,8 @@ ARGBColor ARGBColor::operator-(const ARGBColor& c) const {
 }
 
 ARGBColor& ARGBColor::substract(const ARGBColor& c1, const ARGBColor& c2) {
-	int tmp[4];
 	for (int i = 0; i < 4; ++i) {
-		tmp[i] = c1.raw[i] - c2.raw[i];
-		raw[i] = (tmp[i] < 0 ? 0 : tmp[i]);
+		raw[i] = i2limits(c1.raw[i] - c2.raw[i], 0, 255);
 	}
 	return *this;
 }
@@ -78,10 +78,8 @@ ARGBColor ARGBColor::operator*(const ARGBColor& c) const {
 }
 
 ARGBColor& ARGBColor::product(const ARGBColor& c1, const ARGBColor& c2) {
-	int tmp[4];
 	for (int i = 0; i < 4; ++i) {
-		tmp[i] = c1.raw[i] * c2.raw[i] * 0.003922;
-		raw[i] = tmp[i];
+		raw[i] = c1.raw[i] * c2.raw[i] * 0.003922;
 	}
 	return *this;
 }
@@ -91,20 +89,19 @@ ARGBColor ARGBColor::operator*(float f) const {
 }
 
 ARGBColor& ARGBColor::product(float f) {
-	int tmp[4];
 	for (int i = 0; i < 4; ++i) {
-		tmp[i] = this->raw[i] * f;
-		raw[i] = (tmp[i] > 255 ? 255 : tmp[i]);
+		raw[i] = f2limits(raw[i] * f, 0., 255.);
 	}
 	return *this;
 }
 
 ARGBColor& ARGBColor::negative(void) {
-	for (int i = 0; i < 4; ++i) {
+	for (int i = 0; i < 3; ++i) {
 		raw[i] = 255 - raw[i];
 	}
 	return *this;
 }
+
 
 // Non member functions
 
@@ -132,7 +129,7 @@ std::string ARGBColor::HTMLrrggbb(void) const {
 }
 
 std::ostream& operator<<(std::ostream& o, const ARGBColor& c) {
-	if (c.bytespp == GRay_SCALE) {
+	if (c.bytespp == GRAY_SCALE) {
 		o << "GRay_(" << c.val << ") ";
 	} else {
 		o << c.HEXaarrggbb() << " ";
@@ -178,6 +175,95 @@ std::istringstream& operator>>(std::istringstream& is, ARGBColor& c) {
 	return is;
 }
 
+
+// Struct Lightning
+
+Lightning::Lightning(void) : _ratio(1.), _color(0x00FFFFFF), light() {
+	_ratio = f2limits(_ratio, 0., 1.);
+	light.product(_ratio);
+}
+
+Lightning::~Lightning(void) {}
+
+Lightning::Lightning(float ratio, const ARGBColor& color) :
+_ratio(ratio),
+_color(color),
+light(color) {
+	_ratio = f2limits(_ratio, 0., 1.);
+	light.product(ratio);
+}
+
+Lightning::Lightning(const Lightning& other) :
+_ratio(other._ratio),
+_color(other._color),
+light(other.light)
+{}
+
+Lightning& Lightning::operator=(const Lightning& other) {
+	if (this != &other) {
+		_ratio = other._ratio;
+		_color = other._color;
+		light = other.light;
+	}
+	return *this;
+}
+
+float Lightning::get_ratio(void) const { return _ratio; }
+
+ARGBColor Lightning::get_color(void) const { return _color; }
+
+void Lightning::set_ratio(float ratio) {
+	_ratio = f2limits(ratio, 0., 1.);
+	light = _color;
+	light.product(_ratio);
+}
+
+void Lightning::set_color(const ARGBColor& color) {
+	light = color;
+	light.product(_ratio);
+}
+
+void Lightning::invert(void) {
+	_ratio = 1 - _ratio;
+	light = _color;
+	light.product(_ratio);
+}
+
+// Non member functions
+
+std::ostream& operator<<(std::ostream& o, Lightning& l) {
+
+	o	<< l._ratio << " " << l._color;
+	return o;
+}
+
+std::istringstream& operator>>(std::istringstream& is, Lightning& l) {
+	is >> l._ratio;
+	is >> l._color;
+	l._ratio = f2limits(l._ratio, 0., 1.);
+	l.light = l._color;
+	l.light.product(l._ratio);
+	return is;
+}
+
 ARGBColor negative(const ARGBColor& c) {
 	return ARGBColor(c).negative();
+}
+
+int i2limits(int num, int min, int max) {
+	if (num < min) {
+		return min;
+	} else if (num > max) {
+		return max;
+	}
+	return num;
+}
+
+float f2limits(float num, float min, float max) {
+	if (num < min) {
+		return min;
+	} else if (num > max) {
+		return max;
+	}
+	return num;
 }

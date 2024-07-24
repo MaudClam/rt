@@ -50,6 +50,7 @@ Position& Position::rolling(float roll) {
 // Non member functions
 
 bool almostEqual(float a, float b, int precision) { return std::fabs(a - b) < precision; }
+
 bool almostEqual(double a, double b, int precision) { return std::fabs(a - b) < precision; }
 
 float radian(float degree) {

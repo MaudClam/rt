@@ -21,8 +21,10 @@
 # define EPSILON 	1e-5
 
 
-bool almostEqual(float a, float b, int precision = PRECISION);
-bool almostEqual(double a, double b, int precision = PRECISION);
+bool  almostEqual(float a, float b, int precision = PRECISION);
+bool  almostEqual(double a, double b, int precision = PRECISION);
+float radian(float degree);
+float degree(float radian);
 
 template <class t> struct Vec2 {
 	union {
@@ -179,10 +181,10 @@ template <class t> struct LookatAuxiliary {
 	~LookatAuxiliary(void) {}
 };
 
-typedef Vec2<float> 		Vec2f;
-typedef Vec2<int>   		Vec2i;
-typedef Vec3<float> 		Vec3f;
-typedef Vec3<int>   		Vec3i;
+typedef Vec2<float> 			Vec2f;
+typedef Vec2<int>   			Vec2i;
+typedef Vec3<float> 			Vec3f;
+typedef Vec3<int>   			Vec3i;
 typedef LookatAuxiliary<float>	LookatAux;
 
 struct Position {
@@ -198,10 +200,6 @@ struct Position {
 	Position& rolling(float roll);
 };
 
-
 // Non member functions
-
-float radian(float degree);
-float degree(float radian);
 
 #endif

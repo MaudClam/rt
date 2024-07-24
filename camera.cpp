@@ -60,11 +60,11 @@ std::istringstream& operator>>(std::istringstream& is, Fov& fov) {
 
 // struct Ray
 
-Ray::Ray(void) : pov(), dir(), dist(0), hits(0), color(SPACE) {}
+Ray::Ray(void) : pov(), dir(), dist(0), hits(0), color(0) {}
 
 Ray::~Ray(void) {}
 
-Ray::Ray(const Position& pos) : pov(pos.p), dir(pos.n), norm(), dist(0), hits(0), color(SPACE) {}
+Ray::Ray(const Position& pos) : pov(pos.p), dir(pos.n), norm(), dist(0), hits(0), color(0) {}
 
 Ray::Ray(const Ray& other) :
 pov(other.pov),
@@ -114,7 +114,6 @@ void Pixel::reset(float tan, const Vec3f& pov) {
 	ray.dir.normalize();
 	ray.dist = INFINITY;
 	ray.hits = 0;
-	ray.color.val = SPACE; ray.color.bytespp = ARGB;
 }
 
 
@@ -161,6 +160,8 @@ int	Matrix::get_bytespp(void) { return _bytespp; }
 Fov	Matrix::get_fov(void) { return _fov; }
 
 float Matrix::get_fovDegree(void) { return _fov.get_degree(); }
+
+float Matrix::get_fovTan(void) { return _fov.get_tan(); }
 
 void Matrix::set_width(int width) { this->_width = width; _mult = 2. / 2; }
 
@@ -252,7 +253,8 @@ void Camera::initMatrix(void) {
 }
 
 void Camera::resetMatrix(void) {
-	for (auto pixel = matrix.begin(); pixel != matrix.end(); ++pixel) {
+	auto End = matrix.end();
+	for (auto pixel = matrix.begin(); pixel != End; ++pixel) {
 		pixel->reset(_fov.get_tan(), _pos0.p);
 	}
 }
@@ -260,10 +262,12 @@ void Camera::resetMatrix(void) {
 void Camera::takePicture(MlxImage& img) {
 	char* data = img.get_data();
 	if (data) {
-		for (auto pixel = matrix.begin(); pixel != matrix.end(); ++pixel) {
+		auto End = matrix.end();
+		for (auto pixel = matrix.begin(); pixel != End; ++pixel) {
 			memcpy(data, pixel->ray.color.raw, _bytespp);
 			data += _bytespp;
-			pixel->ray.color.val = SPACE;
+			pixel->ray.color.val = 0;
+			pixel->ray.hits = 0;
 		}
 	}
 }
@@ -278,7 +282,8 @@ bool Camera::reset_fovDegree(float degree) {
 
 void Camera::reset_pov(const Position& pos0) {
 	_pos0 = pos0;
-	for (auto pixel = matrix.begin(); pixel != matrix.end(); ++pixel) {
+	auto End = matrix.end();
+	for (auto pixel = matrix.begin(); pixel != End; ++pixel) {
 		pixel->ray.pov = _pos0.p;
 		pixel->ray.color = 0;
 	}
@@ -295,9 +300,10 @@ void Camera::reset_roll(float roll) {
 		_roll = radian(roll);
 	}
 	if (DEBUG) { std::cout << "roll: " << degree(_roll) << std::endl; }
-	for (auto pixel = matrix.begin(); pixel != matrix.end(); ++pixel) {
+	auto End = matrix.end();
+	for (auto pixel = matrix.begin(); pixel != End; ++pixel) {
 		pixel->ray.pov = _pos0.p;
-		pixel->ray.color.val = SPACE;
+		pixel->ray.color.val = 0;
 	}
 }
 

@@ -10,9 +10,10 @@
 
 # include "Header.h"
 
-class AScenery;
-class MlxImage;
-class Camera;
+class	AScenery;
+class	MlxImage;
+class	Camera;
+class	Lightning;
 
 struct Scene {
 	const Position			base;
@@ -22,6 +23,10 @@ struct Scene {
 	std::vector<AScenery*>	lightsIdx;
 	std::vector<Camera>		cameras;
 private:
+	Vec2i					_resolution;
+	std::string				_header;
+	Lightning				_ambient;
+	Lightning				_space;
 	int						_currentCamera;
 public:
 	Scene(MlxImage& img);
@@ -30,10 +35,11 @@ public:
 	Scene& operator=(const Scene& other);
 	int  get_currentCamera(void);
 	bool set_currentCamera(int cameraIdx);
-	int	 parsing(int ac, char** av);
 	void set_scenery(AScenery* scenery);
+	void set_ambientLight(std::istringstream is);
 	void set_camera(const Camera& camera);
 	void set_camera(std::istringstream is);
+	int	 parsing(int ac, char** av);
 	void indexingScenerys(void);
 	void initLoockats(void);
 	bool checkCameraIdx(int cameraIdx) const;
@@ -48,6 +54,9 @@ public:
 	void rotateCurrentCamera(int ctrl);
 	void setFlybyRadiusForCurrentCamera(void);
 	void flybyCurrentCamera(void);
+	friend std::ostream& operator<<(std::ostream& o, Scene& sc);
+	friend std::istringstream& operator>>(std::istringstream& is, Scene& sc);
 };
+
 
 #endif /* SCENE_HPP */

@@ -11,7 +11,7 @@ int main(void) {
 	ARGBColor c(255,254,253);
 	ARGBColor c1(0xFFF1F2F3);
 	ARGBColor c2(13302345,RGB);
-	ARGBColor c3(45,GRay_SCALE);
+	ARGBColor c3(45,GRAY_SCALE);
 	ARGBColor c4; c4 = c1;
 	ARGBColor c5;
 	std::istringstream is("90");

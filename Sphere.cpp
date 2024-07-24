@@ -71,14 +71,13 @@ void Sphere::hit(Ray& ray, int cam, float roll) const {
 		center.rolling(roll);
 		ray.pov.addition(ray.pov, ray.dir * ray.dist);
 		ray.norm.substract(center.p, ray.pov).normalize();
-		if (roll != 0) {
-			ray.norm.turnAroundZ(roll);
-		}
+		ray.norm.turnAroundZ(roll);
 		float k = ray.dir * ray.norm;
-		if (k > 0) {
-			ray.color.val = color.val;
-			ray.color.product(k);
+		if (k < 0) {
+			k = -k;
 		}
+		ray.color = color;
+		ray.color.product(k);
 		ray.hits++;
 	}
 }
