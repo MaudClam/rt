@@ -54,23 +54,23 @@ struct ARGBColor {
 	friend std::istringstream& operator>>(std::istringstream& is, ARGBColor& c);
 };
 
-class Lightning {
+class Lighting {
 	float		_ratio;
 	ARGBColor	_color;
 public:
 	ARGBColor	light;
-	Lightning(void);
-	Lightning(float ratio, const ARGBColor& color = ARGBColor(0x00FFFFFF));
-	~Lightning(void);
-	Lightning(const Lightning& other);
-	Lightning& operator=(const Lightning& other);
+	Lighting(void);
+	Lighting(float ratio, const ARGBColor& color = ARGBColor(0x00FFFFFF));
+	~Lighting(void);
+	Lighting(const Lighting& other);
+	Lighting& operator=(const Lighting& other);
 	float get_ratio(void) const;
 	ARGBColor get_color(void) const;
 	void set_ratio(float ratio);
 	void set_color(const ARGBColor& color);
 	void invert(void);
-	friend std::ostream& operator<<(std::ostream& o, Lightning& al);
-	friend std::istringstream& operator>>(std::istringstream& is, Lightning& l);
+	friend std::ostream& operator<<(std::ostream& o, Lighting& al);
+	friend std::istringstream& operator>>(std::istringstream& is, Lighting& l);
 };
 
 	ARGBColor negative(const ARGBColor& c);

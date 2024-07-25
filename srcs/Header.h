@@ -15,6 +15,7 @@
 # include "AScenery.hpp"
 # include "Sphere.hpp"
 # include "Scene.hpp"
+# include "Light.hpp"
 # include "camera.hpp"
 
 # define SUCCESS		0

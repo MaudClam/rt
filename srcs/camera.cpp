@@ -64,7 +64,15 @@ Ray::Ray(void) : pov(), dir(), dist(0), hits(0), color(0) {}
 
 Ray::~Ray(void) {}
 
-Ray::Ray(const Position& pos) : pov(pos.p), dir(pos.n), norm(), dist(0), hits(0), color(0) {}
+Ray::Ray(const Position& pos) :
+pov(pos.p),
+dir(pos.n),
+norm(),
+dist(0),
+hits(0),
+tmpColor(0),
+color(0)
+{}
 
 Ray::Ray(const Ray& other) :
 pov(other.pov),
@@ -72,6 +80,7 @@ dir(other.dir),
 norm(other.norm),
 dist(other.dist),
 hits(other.hits),
+tmpColor(other.tmpColor),
 color(other.color)
 {}
 
@@ -82,6 +91,8 @@ Ray& Ray::operator=(const Ray& other) {
 		norm = other.norm;
 		dist = other.dist;
 		hits = other.hits;
+		tmpColor = other.tmpColor;
+		color = other.color;
 	}
 	return *this;
 }

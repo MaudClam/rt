@@ -12,6 +12,7 @@
 
 Scene::Scene(MlxImage& img) :
 base(BASE),
+nullVec(),
 img(img),
 scenerys(),
 objsIdx(),
@@ -37,11 +38,16 @@ Scene::~Scene(void) {
 
 Scene::Scene(const Scene& other) :
 base(other.base),
+nullVec(other.nullVec),
 img(other.img),
 scenerys(other.scenerys),
 objsIdx(other.objsIdx),
 lightsIdx(other.lightsIdx),
 cameras(other.cameras),
+_resolution(other._resolution),
+_header(other._header),
+_ambient(other._ambient),
+_space(other._space),
 _currentCamera(other._currentCamera)
 {}
 
@@ -51,6 +57,10 @@ Scene& Scene::operator=(const Scene& other) {
 		objsIdx = other.objsIdx;
 		lightsIdx = other.lightsIdx;
 		cameras = other.cameras;
+		_resolution = other._resolution;
+		_header = other._header;
+		_ambient = other._ambient;
+		_space = other._space;
 		_currentCamera = other._currentCamera;
 	}
 	return *this;
@@ -77,7 +87,7 @@ void Scene::set_scenery(AScenery* scenery) {
 	}
 }
 
-void Scene::set_ambientLight(std::istringstream is) {
+void Scene::set_ambientLighting(std::istringstream is) {
 	is >> _ambient;
 	_space = _ambient;
 	_space.invert();
@@ -95,7 +105,7 @@ void Scene::set_camera(std::istringstream is) {
 int  Scene::parsing(int ac, char** av) {
 	(void)ac; (void)av;
 	Vec2i	resolution(800,600);
-	set_ambientLight( std::istringstream("0.9 255,255,255") );
+	set_ambientLighting( std::istringstream("0.9 255,255,255") );
 
 	img.init(_header, resolution.x, resolution.y);
 	set_camera(Camera(img));// default camera should stay always
@@ -169,7 +179,7 @@ void Scene::initLoockats(void) {
 }
 
 bool Scene::checkCameraIdx(int cameraIdx) const {
-	if (cameraIdx >= 0 && cameraIdx < cameras.size()) {
+	if (cameraIdx >= 0 && cameraIdx < (int)cameras.size()) {
 		return true;
 	}
 	if (DEBUG_MODE) {
@@ -201,9 +211,9 @@ void Scene::raytrasingCurrentCamera(void) {
 	}
 }
 
-void Scene::trasingRay(Ray& ray, int cam, float roll) {
-	float		distance = INFINITY;
+AScenery* Scene::intersection(Ray& ray, int cam, float roll) {
 	AScenery*	nearestObj = NULL;
+	float		distance = INFINITY;
 	auto End = objsIdx.end();
 	for (auto obj = objsIdx.begin(); obj != End; ++obj) {
 		if ( (*obj)->intersection(ray, cam, roll) ) {
@@ -215,15 +225,38 @@ void Scene::trasingRay(Ray& ray, int cam, float roll) {
 	}
 	if (nearestObj) {
 		ray.dist = distance;
-		nearestObj->hit(ray, cam, roll);
-		lighting(ray, cam, roll);
+	}
+	return nearestObj;
+}
+
+bool Scene::shadow(Ray& ray, int cam, float roll) {
+	auto End = objsIdx.end();
+	for (auto obj = objsIdx.begin(); obj != End; ++obj) {
+		if ( (*obj)->intersection(ray, cam, roll) ) {
+			return true;
+		}
+	}
+	return false;
+}
+
+void Scene::trasingRay(Ray& ray, int cam, float roll) {
+	if (ray.hits >= RECURSIONS) {
+		return;
+	}
+	AScenery* obj = intersection(ray, cam, roll);
+	if (obj) {
+		obj->hit(ray, cam, roll);
+		ray.tmpColor.product(ray.tmpColor,_ambient.light);// Ambient Lighting
+		ray.color.addition(ray.color, ray.tmpColor);
+		auto End = lightsIdx.end();
+		for (auto light = lightsIdx.begin(); light != End; ++light) {
+			if ( (*light)->intersection(ray, cam, roll) ) {
+				
+			}
+		}
 	} else {
 		ray.color = _space.light;
 	}
-}
-
-void Scene::lighting(Ray& ray, int cam, float roll) {
-	ray.color.product(ray.color, _ambient.light);
 }
 
 void Scene::rt(void) {

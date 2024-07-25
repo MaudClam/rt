@@ -10,13 +10,16 @@
 
 # include "Header.h"
 
+# define RECURSIONS	5
+
 class	AScenery;
 class	MlxImage;
 class	Camera;
-class	Lightning;
+class	Lighting;
 
 struct Scene {
 	const Position			base;
+	const Vec3f				nullVec;
 	MlxImage&				img;
 	std::vector<AScenery*>	scenerys;
 	std::vector<AScenery*>	objsIdx;
@@ -25,8 +28,8 @@ struct Scene {
 private:
 	Vec2i					_resolution;
 	std::string				_header;
-	Lightning				_ambient;
-	Lightning				_space;
+	Lighting				_ambient;
+	Lighting				_space;
 	int						_currentCamera;
 public:
 	Scene(MlxImage& img);
@@ -36,7 +39,7 @@ public:
 	int  get_currentCamera(void);
 	bool set_currentCamera(int cameraIdx);
 	void set_scenery(AScenery* scenery);
-	void set_ambientLight(std::istringstream is);
+	void set_ambientLighting(std::istringstream is);
 	void set_camera(const Camera& camera);
 	void set_camera(std::istringstream is);
 	int	 parsing(int ac, char** av);
@@ -45,8 +48,9 @@ public:
 	bool checkCameraIdx(int cameraIdx) const;
 	void recalculateLookatsForCurrentCamera(const Position& eye);
 	void raytrasingCurrentCamera(void);
+	AScenery* intersection(Ray& ray, int cam, float roll);
+	bool shadow(Ray& ray, int cam, float roll);
 	void trasingRay(Ray& ray, int cam, float roll);
-	void lighting(Ray& ray, int cam, float roll);
 	void rt(void);
 	void selectCurrentCamera(int ctrl);
 	void changeCurrentCameraFOV(int ctrl);

@@ -176,16 +176,16 @@ std::istringstream& operator>>(std::istringstream& is, ARGBColor& c) {
 }
 
 
-// Struct Lightning
+// Struct Lighting
 
-Lightning::Lightning(void) : _ratio(1.), _color(0x00FFFFFF), light() {
+Lighting::Lighting(void) : _ratio(1.), _color(0x00FFFFFF), light() {
 	_ratio = f2limits(_ratio, 0., 1.);
 	light.product(_ratio);
 }
 
-Lightning::~Lightning(void) {}
+Lighting::~Lighting(void) {}
 
-Lightning::Lightning(float ratio, const ARGBColor& color) :
+Lighting::Lighting(float ratio, const ARGBColor& color) :
 _ratio(ratio),
 _color(color),
 light(color) {
@@ -193,13 +193,13 @@ light(color) {
 	light.product(ratio);
 }
 
-Lightning::Lightning(const Lightning& other) :
+Lighting::Lighting(const Lighting& other) :
 _ratio(other._ratio),
 _color(other._color),
 light(other.light)
 {}
 
-Lightning& Lightning::operator=(const Lightning& other) {
+Lighting& Lighting::operator=(const Lighting& other) {
 	if (this != &other) {
 		_ratio = other._ratio;
 		_color = other._color;
@@ -208,22 +208,22 @@ Lightning& Lightning::operator=(const Lightning& other) {
 	return *this;
 }
 
-float Lightning::get_ratio(void) const { return _ratio; }
+float Lighting::get_ratio(void) const { return _ratio; }
 
-ARGBColor Lightning::get_color(void) const { return _color; }
+ARGBColor Lighting::get_color(void) const { return _color; }
 
-void Lightning::set_ratio(float ratio) {
+void Lighting::set_ratio(float ratio) {
 	_ratio = f2limits(ratio, 0., 1.);
 	light = _color;
 	light.product(_ratio);
 }
 
-void Lightning::set_color(const ARGBColor& color) {
+void Lighting::set_color(const ARGBColor& color) {
 	light = color;
 	light.product(_ratio);
 }
 
-void Lightning::invert(void) {
+void Lighting::invert(void) {
 	_ratio = 1 - _ratio;
 	light = _color;
 	light.product(_ratio);
@@ -231,13 +231,13 @@ void Lightning::invert(void) {
 
 // Non member functions
 
-std::ostream& operator<<(std::ostream& o, Lightning& l) {
+std::ostream& operator<<(std::ostream& o, Lighting& l) {
 
 	o	<< l._ratio << " " << l._color;
 	return o;
 }
 
-std::istringstream& operator>>(std::istringstream& is, Lightning& l) {
+std::istringstream& operator>>(std::istringstream& is, Lighting& l) {
 	is >> l._ratio;
 	is >> l._color;
 	l._ratio = f2limits(l._ratio, 0., 1.);

@@ -27,7 +27,6 @@ Sphere::Sphere(const Sphere& other) : _radius(other._radius) {
 	_name = other._name;
 	_nick = other._nick;
 	_light = other._light;
-	_brightness = other._brightness;
 	_pos = other._pos;
 	lookats = other.lookats;
 	color = other.color;
@@ -65,6 +64,12 @@ bool Sphere::intersection(Ray& ray, int cam, float roll, Side side) const {
 	return false;
 }
 
+void Sphere::lighting(Ray& ray, int cam, float roll) const {
+	(void)ray;
+	(void)cam;
+	(void)roll;
+}
+
 void Sphere::hit(Ray& ray, int cam, float roll) const {
 	if (checkLookatsIdx(cam)) {
 		Position center(lookats[cam]);
@@ -76,8 +81,8 @@ void Sphere::hit(Ray& ray, int cam, float roll) const {
 		if (k < 0) {
 			k = -k;
 		}
-		ray.color = color;
-		ray.color.product(k);
+		ray.tmpColor = color;
+		ray.tmpColor.product(k);
 		ray.hits++;
 	}
 }

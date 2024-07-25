@@ -19,7 +19,6 @@ protected:
 	std::string				_name;
 	std::string				_nick;
 	bool					_light;
-	float					_brightness;
 	Position				_pos;
 public:
 	enum Side { FRONT, BACK };
@@ -30,9 +29,7 @@ public:
 	AScenery(const AScenery& other);
 	std::string  get_nick(void) const;
 	bool  get_light(void) const;
-	float get_brightness(void) const;
 	Position get_pos(void) const;
-	void set_brightness(float brightness);
 	void set_pos(const Position& pos);
 	bool checkLookatsIdx(int idx) const;
 	void set_lookatCamera(const Position& eye, const LookatAux& aux);
@@ -49,6 +46,7 @@ public:
 	BasicCoordinate(const BasicCoordinate& other);
 	BasicCoordinate& operator=(const BasicCoordinate& other);
 	bool intersection(Ray& ray, int cameraIdx, float cameraRoll = 0, Side side = FRONT) const;
+	void lighting(Ray& ray, int cameraIdx, float cameraRoll = 0) const;
 	void hit(Ray& ray, int cameraIdx, float cameraRoll = 0) const;
 };
 
