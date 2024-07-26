@@ -11,20 +11,19 @@
 // Class Scene
 
 Scene::Scene(MlxImage& img) :
-base(BASE),
-nullVec(),
 img(img),
 scenerys(),
 objsIdx(),
 lightsIdx(),
 cameras(),
+_base(BASE),
 _resolution(800,600),
 _header(std::to_string(_resolution.x) + "x" + std::to_string(_resolution.y)),
 _ambient(1),
 _space(1),
 _currentCamera(0) {
 	img.set_scene(this);
-	_space.invert();
+	_space.invertBrightness();
 }
 
 Scene::~Scene(void) {
@@ -37,13 +36,12 @@ Scene::~Scene(void) {
 }
 
 Scene::Scene(const Scene& other) :
-base(other.base),
-nullVec(other.nullVec),
 img(other.img),
 scenerys(other.scenerys),
 objsIdx(other.objsIdx),
 lightsIdx(other.lightsIdx),
 cameras(other.cameras),
+_base(other._base),
 _resolution(other._resolution),
 _header(other._header),
 _ambient(other._ambient),
@@ -78,7 +76,56 @@ bool Scene::set_currentCamera(int cameraIdx) {
 	return false;
 }
 
-void Scene::set_scenery(AScenery* scenery) {
+bool Scene::set_any(std::istringstream is) {
+	std::string	iD;
+	size_t		id = 0;
+	
+	is >> iD;
+	for (; id < nicks.size(); id++) {
+		if (nicks[id] == iD)
+			break;
+	}
+	switch (id) {// bc BasicCoordinate
+		case 0: {
+			is >> _base.p >> _base.n;
+			_base.n.normalize();
+			break;
+		}
+		case 1: {// R Resolution
+			is >> _resolution.x >> _resolution.y >> _header;
+			_header = _header + " " +std::to_string(_resolution.x) + "x" + std::to_string(_resolution.y);
+			break;
+		}
+		case 2: {// A AmbientLightning
+			is >> _ambient;
+			_space = _ambient;
+			_space.invertBrightness();
+			break;
+		}
+		case 3: {// c camera
+			cameras.push_back(Camera(img));
+			is >> cameras.back();
+			break;
+		}
+		case 4: {// c litght
+			Light* l = new Light();
+			is >> *l;
+			scenerys.push_back(l);
+			break;
+		}
+		case 5: {// sp sphere
+			Sphere* sp = new Sphere;
+			is >> *sp;
+			scenerys.push_back(sp);
+			break;
+		}
+		default:
+			return false;
+	}
+	return true;
+}
+
+void Scene::set_scenery(A_Scenery* scenery) {
 	scenerys.push_back(scenery);
 	if ( scenerys.back()->get_light() == true ) {
 		lightsIdx.push_back(scenery);
@@ -87,53 +134,24 @@ void Scene::set_scenery(AScenery* scenery) {
 	}
 }
 
-void Scene::set_ambientLighting(std::istringstream is) {
-	is >> _ambient;
-	_space = _ambient;
-	_space.invert();
-}
-
-void Scene::set_camera(const Camera& camera) {
-	cameras.push_back(camera);
-}
-
-void Scene::set_camera(std::istringstream is) {
-	cameras.push_back(Camera(img));
-	is >> cameras.back();
-}
-
 int  Scene::parsing(int ac, char** av) {
 	(void)ac; (void)av;
-	Vec2i	resolution(800,600);
-	set_ambientLighting( std::istringstream("0.9 255,255,255") );
+	set_any( std::istringstream("R 800 600	RayTrasing") );
+	img.init(_header, _resolution);
+	set_any( std::istringstream("A 0.9	255,255,255") );
+	set_any( std::istringstream("c    19,0,19       -1,0,0      70 ") );
+	set_any( std::istringstream("c     0,0,0         0,0,1      70 ") );
+	set_any( std::istringstream("c     0,0,38        0,0,-1     70 ") );
+	set_any( std::istringstream("l     0,1,133    0.6 " + img.white.rrggbb() + " 0,0,0") );
+	set_any( std::istringstream("sp    0,0,25     16  " + img.lightGray.rrggbb()) );
+	set_any( std::istringstream("sp    0,0,16.9   8   " + img.yellow.rrggbb()) );
+	set_any( std::istringstream("sp    0,0,12.5   4   " + img.cyan.rrggbb()) );
+	set_any( std::istringstream("sp    0,0,9.9    2   " + img.magenta.rrggbb()) );
+	set_any( std::istringstream("sp    0,0,3      0.5 " + img.red.rrggbb()) );
 
-	img.init(_header, resolution.x, resolution.y);
-	set_camera(Camera(img));// default camera should stay always
-	BasicCoordinate* basicCoordinate = new BasicCoordinate();
-	set_scenery(basicCoordinate);
-	
-	
-	set_camera( std::istringstream("c 0,0,0 0,0,1 90") );
-	set_camera( std::istringstream("c 0,0,38 0,0,-1 60") );
-	set_camera( std::istringstream("c 19,0,19 -1,0,0 60") );
-//	set_camera(Camera(img));
-//	set_camera(Camera(img));
-
-	Sphere*	sp1 = new Sphere(Vec3f(0,0,25), 8, img.lightGRay_);
-	Sphere*	sp2 = new Sphere(Vec3f(0,0,16.9), 4, img.yellow);
-	Sphere*	sp3 = new Sphere(Vec3f(0,0,12.5), 2, img.cyan);
-	Sphere*	sp4 = new Sphere(Vec3f(0,0,9.9), 1, img.magenta);
-//	Sphere*	sp5 = new Sphere(Vec3f(0,0,3), 0.5, img.red);
-	set_scenery(sp1);
-	set_scenery(sp2);
-	set_scenery(sp3);
-	set_scenery(sp4);
-//	set_scenery(sp_5);
-
-	
 //	===========
-	
 	initLoockats();
+	if (DEBUG) { std::cout << *this; }
 	return SUCCESS;
 }
 
@@ -151,19 +169,20 @@ void Scene::indexingScenerys(void) {
 }
 
 void Scene::initLoockats(void) {
-	if ( scenerys.size() < 1 || (*scenerys[0]).get_nick().compare(0, 2, "BC")) {
-		std::cerr << "Warning: BasicCoordinate class object is missing." << std::endl;
-	}
+	BasicCoordinate* bc = new BasicCoordinate(_base);
+	scenerys.insert(scenerys.begin(), bc);			// BasicCoordinate
+	cameras.insert(cameras.begin(), Camera(img));	// default camera "0"
+	indexingScenerys();
 	auto End = cameras.end();
 	for (auto camera = cameras.begin(); camera != End; ++camera) {
 		Position eye(camera->get_pos());
-		if (base.n != eye.n) {
+		if (_base.n != eye.n) {
 			LookatAux aux(eye.n);
 			auto end = scenerys.end();
 			for (auto scenery = scenerys.begin(); scenery != end; ++scenery ) {
 				(*scenery)->set_lookatCamera(eye, aux);
 			}
-			camera->reset_pov(base);
+			camera->reset_pov(_base);
 		} else {
 			LookatAux aux(eye.n);
 			auto end = scenerys.end();
@@ -191,13 +210,13 @@ bool Scene::checkCameraIdx(int cameraIdx) const {
 
 void Scene::recalculateLookatsForCurrentCamera(const Position& eye) {
 	Camera&	camera(cameras[_currentCamera]);
-	if (base.n != eye.n) {
+	if (_base.n != eye.n) {
 		LookatAux aux(eye.n);
 		auto End = scenerys.end();
 		for (auto scenery = scenerys.begin(); scenery != End; ++scenery) {
 			(*scenery)->recalculateLookat(_currentCamera, eye, aux);
 		}
-		camera.reset_pov(base);
+		camera.reset_pov(_base);
 	} else if (camera.get_pos0().p != eye.p) {
 		camera.reset_pov(eye);
 	}
@@ -211,8 +230,8 @@ void Scene::raytrasingCurrentCamera(void) {
 	}
 }
 
-AScenery* Scene::intersection(Ray& ray, int cam, float roll) {
-	AScenery*	nearestObj = NULL;
+A_Scenery* Scene::intersection(Ray& ray, int cam, float roll) {
+	A_Scenery*	nearestObj = NULL;
 	float		distance = INFINITY;
 	auto End = objsIdx.end();
 	for (auto obj = objsIdx.begin(); obj != End; ++obj) {
@@ -243,7 +262,7 @@ void Scene::trasingRay(Ray& ray, int cam, float roll) {
 	if (ray.hits >= RECURSIONS) {
 		return;
 	}
-	AScenery* obj = intersection(ray, cam, roll);
+	A_Scenery* obj = intersection(ray, cam, roll);
 	if (obj) {
 		obj->hit(ray, cam, roll);
 		ray.tmpColor.product(ray.tmpColor,_ambient.light);// Ambient Lighting
@@ -384,13 +403,13 @@ void Scene::setFlybyRadiusForCurrentCamera(void) {
 	for (auto pixel = cam.matrix.begin(); pixel != End; ++pixel) {
 		auto end = objsIdx.end();
 		for (auto obj = objsIdx.begin(); obj != end; ++obj) {
-			if ( (*obj)->intersection(pixel->ray, _currentCamera, 0, AScenery::FRONT) ) {
+			if ( (*obj)->intersection(pixel->ray, _currentCamera, 0, A_Scenery::FRONT) ) {
 				if ( front > pixel->ray.dist ) {
 					front = pixel->ray.dist;
 				}
 			}
 			pixel->reset(tan, pov);
-			if ( (*obj)->intersection(pixel->ray, _currentCamera, 0, AScenery::BACK) ) {
+			if ( (*obj)->intersection(pixel->ray, _currentCamera, 0, A_Scenery::BACK) ) {
 				if ( back < pixel->ray.dist ) {
 					back = pixel->ray.dist;
 				}
@@ -426,19 +445,13 @@ void Scene::flybyCurrentCamera(void) {
 // Non member functions
 
 std::ostream& operator<<(std::ostream& o, Scene& sc) {
-	o	<< "R"
-		<< " " << sc._resolution.x
-		<< " " << sc._resolution.x
-		<< " " << sc._header
-		<< "\t#Resolution";
-	return o;
-}
-
-std::istringstream& operator>>(std::istringstream& is, Scene& sc) {
-	if (!is.str().compare(0,1,"R")) {
-		char trash;
-		is >> trash >> sc._resolution.x >> sc._resolution.y;
-		is >> sc._header;
+	o	<< "R" << std::setw(5) << sc._resolution << " " << sc._header << std::endl;
+	o	<< "A" << std::setw(5) << sc._ambient << " #ambient liting" << std::endl;
+	for (auto camera = sc.cameras.begin(); camera != sc.cameras.end(); ++camera) {
+		o << *camera << std::endl;
 	}
-	return is;
+	for (auto scenary = sc.scenerys.begin(); scenary != sc.scenerys.end(); ++scenary) {
+		o << *(*scenary) << std::endl;
+	}
+	return o;
 }

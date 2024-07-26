@@ -322,23 +322,19 @@ void Camera::reset_roll(float roll) {
 // Non member functions
 
 std::ostream& operator<<(std::ostream& o, Camera& camera) {
-	o	<< camera._nick
-		<< " " << camera._pos.p
-		<< " " << camera._pos.n
-		<< " " << camera._fov.get_degree()
-		<< "\t#" << camera._name;
+	std::ostringstream os;
+	os << std::setw(2) << std::left << camera._nick;
+	os << " " << camera._pos.p;
+	os << " " << camera._pos.n;
+	os << " " << std::setw(4) << camera._fov.get_degree();
+	o << std::setw(36) << std::left << os.str();
+	o << " #" << camera._name;
 	return o;
 }
 
 std::istringstream& operator>>(std::istringstream& is, Camera& camera) {
-	if (!is.str().compare(0, camera._nick.size(), camera._nick)) {
-		char trash;
-		for (size_t i = 0; i < camera._nick.size(); ++i) {
-			is >> trash;
-		}
-		is >> camera._pos.p >> camera._pos.n >> camera._fov;
-		camera._pos.n.normalize();
-	}
+	is >> camera._pos.p >> camera._pos.n >> camera._fov;
+	camera._pos.n.normalize();
 	camera.resetMatrix();
 	return is;
 }

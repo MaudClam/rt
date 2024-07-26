@@ -82,9 +82,9 @@ void	MlxImage::fill(char* data, const ARGBColor& color) {
 	}
 }
 
-void	MlxImage::init(const std::string& header, int w, int h) {
-	width = w;
-	height = h;
+void	MlxImage::init(const std::string& header, const Vec2i& resolution) {
+	width = resolution.x;
+	height = resolution.y;
 
 	if ( !(mlx = mlx_init()) ) {
 		int _errno = errno;

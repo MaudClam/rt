@@ -87,24 +87,26 @@ void Sphere::hit(Ray& ray, int cam, float roll) const {
 	}
 }
 
+void Sphere::output(std::ostringstream& os) {
+	os << *this;
+}
+
+// Non member functions
+
 std::ostream& operator<<(std::ostream& o, Sphere& sp) {
-	o	<< sp._nick
-		<< " " << sp._pos.p
-		<< " " << sp._radius * 2
-		<< " " << sp.color.rrggbb()
-		<< "\t#" << sp._name;
+	std::ostringstream os;
+	os << std::setw(2) << std::left << sp._nick;
+	os << " " << sp._pos.p;
+	os << " " << std::setw(4) << std::right << sp._radius * 2;
+	os << "   " << sp.color.rrggbb();
+	o  << std::setw(36) << std::left << os.str();
+	o  << " #" << sp._name;
 	return o;
 }
 
 std::istringstream& operator>>(std::istringstream& is, Sphere& sp) {
-	if (!is.str().compare(0,sp._nick.size(),sp._nick)) {
-		char trash;
-		for (size_t i = 0; i < sp._nick.size(); ++i) {
-			is >> trash;
-		}
-		is >> sp._pos.p >> sp._radius;
-		is >> sp.color;
-		sp._radius /= 2;
-	}
+	is >> sp._pos.p >> sp._radius;
+	is >> sp.color;
+	sp._radius /= 2;
 	return is;
 }

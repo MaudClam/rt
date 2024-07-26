@@ -12,20 +12,22 @@
 
 # define RECURSIONS	5
 
-class	AScenery;
+class	A_Scenery;
 class	MlxImage;
 class	Camera;
 class	Lighting;
 
 struct Scene {
-	const Position			base;
-	const Vec3f				nullVec;
+	const std::vector<std::string> nicks {
+		"bc","R","A","c","l","sp"
+	};
 	MlxImage&				img;
-	std::vector<AScenery*>	scenerys;
-	std::vector<AScenery*>	objsIdx;
-	std::vector<AScenery*>	lightsIdx;
+	std::vector<A_Scenery*>	scenerys;
+	std::vector<A_Scenery*>	objsIdx;
+	std::vector<A_Scenery*>	lightsIdx;
 	std::vector<Camera>		cameras;
 private:
+	Position				_base;
 	Vec2i					_resolution;
 	std::string				_header;
 	Lighting				_ambient;
@@ -38,17 +40,15 @@ public:
 	Scene& operator=(const Scene& other);
 	int  get_currentCamera(void);
 	bool set_currentCamera(int cameraIdx);
-	void set_scenery(AScenery* scenery);
-	void set_ambientLighting(std::istringstream is);
-	void set_camera(const Camera& camera);
-	void set_camera(std::istringstream is);
+	bool set_any(std::istringstream is);
+	void set_scenery(A_Scenery* scenery);
 	int	 parsing(int ac, char** av);
 	void indexingScenerys(void);
 	void initLoockats(void);
 	bool checkCameraIdx(int cameraIdx) const;
 	void recalculateLookatsForCurrentCamera(const Position& eye);
 	void raytrasingCurrentCamera(void);
-	AScenery* intersection(Ray& ray, int cam, float roll);
+	A_Scenery* intersection(Ray& ray, int cam, float roll);
 	bool shadow(Ray& ray, int cam, float roll);
 	void trasingRay(Ray& ray, int cam, float roll);
 	void rt(void);
@@ -59,7 +59,6 @@ public:
 	void setFlybyRadiusForCurrentCamera(void);
 	void flybyCurrentCamera(void);
 	friend std::ostream& operator<<(std::ostream& o, Scene& sc);
-	friend std::istringstream& operator>>(std::istringstream& is, Scene& sc);
 };
 
 

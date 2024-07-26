@@ -10,12 +10,12 @@
 
 # include "Header.h"
 
-class	AScenery;
+class	A_Scenery;
 class	Camera;
 struct	Ray;
 struct	Position;
 
-class Sphere : public AScenery {
+class Sphere : public A_Scenery {
 protected:
 	float _radius;
 public:
@@ -27,6 +27,7 @@ public:
 	bool intersection(Ray& ray, int cameraIdx, float cameraRoll = 0, Side side = FRONT) const;
 	void lighting(Ray& ray, int cameraIdx, float cameraRoll = 0) const;
 	void hit(Ray& ray, int cameraIdx, float cameraRoll = 0) const;
+	virtual void output(std::ostringstream& os);
 	friend std::ostream& operator<<(std::ostream& o, Sphere& sp);
 	friend std::istringstream& operator>>(std::istringstream& is, Sphere& sp);
 };

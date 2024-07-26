@@ -106,11 +106,18 @@ ARGBColor& ARGBColor::negative(void) {
 // Non member functions
 
 std::string ARGBColor::rrggbb(void) const {
-	return std::to_string( (int)r ) + "," + std::to_string( (int)g ) + "," + std::to_string( (int)b);
+	std::ostringstream os;
+	os << std::setw(3) << std::setfill(' ') << (int)r << ",";
+	os << std::setw(3) << std::setfill(' ') << (int)g << ",";
+	os << std::setw(3) << std::setfill(' ') << (int)b;
+	return os.str();
 }
 
 std::string ARGBColor::aarrggbb(void) const {
-	return std::to_string( (int)a ) + "," + rrggbb();
+	std::ostringstream os;
+	os << std::setw(3) << std::setfill(' ') << (int)a << ",";
+	os << rrggbb();
+	return os.str();
 }
 
 std::string ARGBColor::HEXaarrggbb(void) const {
@@ -130,7 +137,7 @@ std::string ARGBColor::HTMLrrggbb(void) const {
 
 std::ostream& operator<<(std::ostream& o, const ARGBColor& c) {
 	if (c.bytespp == GRAY_SCALE) {
-		o << "GRay_(" << c.val << ") ";
+		o << "GRAY(" << c.val << ") ";
 	} else {
 		o << c.HEXaarrggbb() << " ";
 		o << c.HTMLrrggbb() << " ";
@@ -223,7 +230,7 @@ void Lighting::set_color(const ARGBColor& color) {
 	light.product(_ratio);
 }
 
-void Lighting::invert(void) {
+void Lighting::invertBrightness(void) {
 	_ratio = 1 - _ratio;
 	light = _color;
 	light.product(_ratio);
@@ -232,8 +239,8 @@ void Lighting::invert(void) {
 // Non member functions
 
 std::ostream& operator<<(std::ostream& o, Lighting& l) {
-
-	o	<< l._ratio << " " << l._color;
+	o << std::setw(4) << std::right << l._ratio;
+	o << " " << l._color.rrggbb();
 	return o;
 }
 

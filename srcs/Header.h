@@ -12,7 +12,7 @@
 # include "geometry.hpp"
 # include "ARGBColor.hpp"
 # include "MlxImage.hpp"
-# include "AScenery.hpp"
+# include "A_Scenery.hpp"
 # include "Sphere.hpp"
 # include "Scene.hpp"
 # include "Light.hpp"

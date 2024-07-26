@@ -23,6 +23,7 @@
 		6679518C2C5216CF009C1DDD /* Light.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 667951892C5216B7009C1DDD /* Light.cpp */; };
 		6679518E2C521801009C1DDD /* main.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 6661C21A2C38071100D58CDC /* main.cpp */; };
 		667951922C5293BB009C1DDD /* ARGBColor.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 667951912C5293BB009C1DDD /* ARGBColor.cpp */; settings = {COMPILER_FLAGS = "-Wall -Wextra -Werror"; }; };
+		667951932C52FD48009C1DDD /* ARGBColor.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 667951912C5293BB009C1DDD /* ARGBColor.cpp */; settings = {COMPILER_FLAGS = "-Wall -Wextra -Werror"; }; };
 		66D1668D2C3B4243002E6F7E /* libmlx.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 66D1668C2C3B4243002E6F7E /* libmlx.a */; };
 		66D166AE2C3BEE1A002E6F7E /* training.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 66D166AD2C3BEE1A002E6F7E /* training.cpp */; settings = {COMPILER_FLAGS = "-Wall -Wextra -Werror"; }; };
 		66D166C02C3C0719002E6F7E /* AppKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 6659C4E72C39A8CD00CC7FAB /* AppKit.framework */; };
@@ -31,8 +32,8 @@
 		66D166C32C3C097A002E6F7E /* MlxImage.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 6659C4E12C399E8A00CC7FAB /* MlxImage.cpp */; settings = {COMPILER_FLAGS = "-Wall -Wextra -Werror"; }; };
 		66D166C62C3C172F002E6F7E /* Sphere.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 66D166C42C3C172F002E6F7E /* Sphere.cpp */; settings = {COMPILER_FLAGS = "-Wall -Wextra -Werror"; }; };
 		66D166C72C3C172F002E6F7E /* Sphere.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 66D166C42C3C172F002E6F7E /* Sphere.cpp */; settings = {COMPILER_FLAGS = "-Wall -Wextra -Werror"; }; };
-		66D166CA2C3D9281002E6F7E /* AScenery.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 66D166C82C3D9281002E6F7E /* AScenery.cpp */; settings = {COMPILER_FLAGS = "-Wall -Wextra -Werror"; }; };
-		66D166CB2C3D9281002E6F7E /* AScenery.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 66D166C82C3D9281002E6F7E /* AScenery.cpp */; settings = {COMPILER_FLAGS = "-Wall -Wextra -Werror"; }; };
+		66D166CA2C3D9281002E6F7E /* A_Scenery.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 66D166C82C3D9281002E6F7E /* A_Scenery.cpp */; settings = {COMPILER_FLAGS = "-Wall -Wextra -Werror"; }; };
+		66D166CB2C3D9281002E6F7E /* A_Scenery.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 66D166C82C3D9281002E6F7E /* A_Scenery.cpp */; settings = {COMPILER_FLAGS = "-Wall -Wextra -Werror"; }; };
 /* End PBXBuildFile section */
 
 /* Begin PBXCopyFilesBuildPhase section */
@@ -89,7 +90,6 @@
 		667951782C427BFD009C1DDD /* camera.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; path = camera.hpp; sourceTree = "<group>"; };
 		6679517C2C46DF55009C1DDD /* geometry.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = geometry.cpp; sourceTree = "<group>"; };
 		667951822C4D535C009C1DDD /* rt */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = rt; sourceTree = BUILT_PRODUCTS_DIR; };
-		667951852C502042009C1DDD /* colortest */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; name = colortest; path = "/Users/uru/Library/Mobile Documents/com~apple~CloudDocs/42_Projects/rt/build/Debug/colortest"; sourceTree = "<absolute>"; };
 		667951862C502042009C1DDD /* geometrytest */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; name = geometrytest; path = "/Users/uru/Library/Mobile Documents/com~apple~CloudDocs/42_Projects/rt/build/Debug/geometrytest"; sourceTree = "<absolute>"; };
 		667951882C505F5E009C1DDD /* training */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; name = training; path = "/Users/uru/Library/Mobile Documents/com~apple~CloudDocs/42_Projects/rt/build/Debug/training"; sourceTree = "<absolute>"; };
 		667951892C5216B7009C1DDD /* Light.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = Light.cpp; sourceTree = "<group>"; };
@@ -97,13 +97,14 @@
 		6679518F2C5293BB009C1DDD /* geometry.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = geometry.hpp; sourceTree = "<group>"; };
 		667951902C5293BB009C1DDD /* ARGBColor.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = ARGBColor.hpp; sourceTree = "<group>"; };
 		667951912C5293BB009C1DDD /* ARGBColor.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = ARGBColor.cpp; sourceTree = "<group>"; };
+		667951942C52FD4F009C1DDD /* colortest */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = colortest; sourceTree = BUILT_PRODUCTS_DIR; };
 		66B6D1C42C3AD3B9008FD6E6 /* Header.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = Header.h; sourceTree = "<group>"; };
 		66D1668C2C3B4243002E6F7E /* libmlx.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; path = libmlx.a; sourceTree = "<group>"; };
 		66D166AD2C3BEE1A002E6F7E /* training.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = training.cpp; sourceTree = "<group>"; };
 		66D166C42C3C172F002E6F7E /* Sphere.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = Sphere.cpp; sourceTree = "<group>"; };
 		66D166C52C3C172F002E6F7E /* Sphere.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; path = Sphere.hpp; sourceTree = "<group>"; };
-		66D166C82C3D9281002E6F7E /* AScenery.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = AScenery.cpp; sourceTree = "<group>"; };
-		66D166C92C3D9281002E6F7E /* AScenery.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; path = AScenery.hpp; sourceTree = "<group>"; };
+		66D166C82C3D9281002E6F7E /* A_Scenery.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = A_Scenery.cpp; sourceTree = "<group>"; };
+		66D166C92C3D9281002E6F7E /* A_Scenery.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; path = A_Scenery.hpp; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -161,6 +162,7 @@
 				667951822C4D535C009C1DDD /* rt */,
 				6679518D2C5217A4009C1DDD /* srcs */,
 				6661C23F2C380B9A00D58CDC /* tests */,
+				667951942C52FD4F009C1DDD /* colortest */,
 			);
 			sourceTree = "<group>";
 		};
@@ -177,14 +179,14 @@
 		6679518D2C5217A4009C1DDD /* srcs */ = {
 			isa = PBXGroup;
 			children = (
+				66D166C82C3D9281002E6F7E /* A_Scenery.cpp */,
+				66D166C92C3D9281002E6F7E /* A_Scenery.hpp */,
 				667951912C5293BB009C1DDD /* ARGBColor.cpp */,
 				667951902C5293BB009C1DDD /* ARGBColor.hpp */,
-				6679518F2C5293BB009C1DDD /* geometry.hpp */,
-				66D166C82C3D9281002E6F7E /* AScenery.cpp */,
-				66D166C92C3D9281002E6F7E /* AScenery.hpp */,
 				667951772C427BFD009C1DDD /* camera.cpp */,
 				667951782C427BFD009C1DDD /* camera.hpp */,
 				6679517C2C46DF55009C1DDD /* geometry.cpp */,
+				6679518F2C5293BB009C1DDD /* geometry.hpp */,
 				66B6D1C42C3AD3B9008FD6E6 /* Header.h */,
 				667951892C5216B7009C1DDD /* Light.cpp */,
 				6679518A2C5216B7009C1DDD /* Light.hpp */,
@@ -234,7 +236,7 @@
 			);
 			name = colortest;
 			productName = colortest;
-			productReference = 667951852C502042009C1DDD /* colortest */;
+			productReference = 667951942C52FD4F009C1DDD /* colortest */;
 			productType = "com.apple.product-type.tool";
 		};
 		6661C2492C380BFE00D58CDC /* geometrytest */ = {
@@ -324,7 +326,7 @@
 				6661C21B2C38071100D58CDC /* main.cpp in Sources */,
 				667951722C41AD05009C1DDD /* Scene.cpp in Sources */,
 				6679517D2C46DF55009C1DDD /* geometry.cpp in Sources */,
-				66D166CA2C3D9281002E6F7E /* AScenery.cpp in Sources */,
+				66D166CA2C3D9281002E6F7E /* A_Scenery.cpp in Sources */,
 				6659C4E32C399E8A00CC7FAB /* MlxImage.cpp in Sources */,
 				667951792C427BFD009C1DDD /* camera.cpp in Sources */,
 				66D166C62C3C172F002E6F7E /* Sphere.cpp in Sources */,
@@ -337,6 +339,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				6661C2452C380BC200D58CDC /* colortest.cpp in Sources */,
+				667951932C52FD48009C1DDD /* ARGBColor.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -358,7 +361,7 @@
 				6679518C2C5216CF009C1DDD /* Light.cpp in Sources */,
 				66D166C32C3C097A002E6F7E /* MlxImage.cpp in Sources */,
 				6679517A2C427BFD009C1DDD /* camera.cpp in Sources */,
-				66D166CB2C3D9281002E6F7E /* AScenery.cpp in Sources */,
+				66D166CB2C3D9281002E6F7E /* A_Scenery.cpp in Sources */,
 				6679518E2C521801009C1DDD /* main.cpp in Sources */,
 				66D166C72C3C172F002E6F7E /* Sphere.cpp in Sources */,
 			);

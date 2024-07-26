@@ -39,12 +39,16 @@ template <class t> struct Vec2 {
 	inline Vec2<t> operator*(float f)          const { return Vec2<t>(u * f, v * f); }
 	inline Vec2<t>& toMonitor(int width, int height) { x += width / 2; y = height / 2 - y - 1; return *this; }
 	inline Vec2<t>& toRt(int width, int height) { x -= width / 2; y = height / 2 - y - 1; return *this; }
+	inline bool		isNull(void) { return x == 0 && y == 0;  }
 	template <class > friend std::ostream& operator<<(std::ostream& o, Vec2<t>& v);
 	template <class > friend std::istringstream& operator>>(std::istringstream& is, Vec2<t>& v);
 };
 
 template <class t> std::ostream& operator<<(std::ostream& o, Vec2<t>& v) {
-	o << v.x << "," << v.y;
+	std::ostringstream os;
+	os << v.x << ",";
+	o << std::setw(6) << std::right << std::setfill(' ') << os.str()
+	  << std::setw(5) << std::left << std::setfill(' ') << v.y;
 	return o;
 }
 
@@ -138,12 +142,17 @@ template <class t> struct Vec3 {
 		}
 		return *this;
 	}
+	inline bool		isNull(void) { return x == 0 && y == 0 && z == 0;  }
 	template <class > friend std::ostream& operator<<(std::ostream& s, Vec3<t>& v);
 	template <class > friend std::istringstream& operator>>(std::istringstream& is, Vec3<t>& v);
 };
 
 template <class t> std::ostream& operator<<(std::ostream& s, Vec3<t>& v) {
-	s << v.x << "," << v.y << "," << v.z;
+	std::ostringstream os, os1;
+	os  << v.x << ",";
+	os1 << v.y << "," << v.z;
+	s << std::setw(5) << std::right << std::setfill(' ') << os.str();
+	s << std::setw(8) << std::left << std::setfill(' ') << os1.str();
 	return s;
 }
 

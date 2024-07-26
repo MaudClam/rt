@@ -52,23 +52,29 @@ void Light::hit(Ray& ray, int cam, float roll) const {
 	}
 }
 
+void Light::output(std::ostringstream& os) {
+	os << *this;
+}
+
+
+// Non member functions
+
 std::ostream& operator<<(std::ostream& o, Light& l) {
-	o	<< l._nick
-		<< " " << l._pos.p
-		<< " " << l._pos.p
-		<< " " << l.light
-		<< "\t#" << l._name;
+	std::ostringstream os;
+	os << std::setw(2) << std::left << l._nick;
+	os << " " << l._pos.p;
+	os << "   " << l.light;
+	if (!l._pos.n.isNull()) {
+		os << " " << l._pos.n;
+	}
+	o  << std::setw(36) << std::left << os.str();
+	o  << " #" << l._name;
 	return o;
 }
 
 std::istringstream& operator>>(std::istringstream& is, Light& l) {
-	if (!is.str().compare(0,l._nick.size(),l._nick)) {
-		char trash;
-		for (size_t i = 0; i < l._nick.size(); ++i) {
-			is >> trash;
-		}
-		is >> l._pos.p >> l.light;
-	}
+	is >> l._pos.p >> l.light >> l._pos.n;
+	l._pos.n.normalize();
 	return is;
 }
 

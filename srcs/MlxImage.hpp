@@ -91,8 +91,8 @@ enum Controls {
 
 struct ImageOptions {
 	const ARGBColor	black		= ARGBColor(  0,   0,   0);
-	const ARGBColor	darkGRay_	= ARGBColor( 32,  32,  32);
-	const ARGBColor	lightGRay_	= ARGBColor(200, 200, 200);
+	const ARGBColor	darkGray	= ARGBColor( 32,  32,  32);
+	const ARGBColor	lightGray	= ARGBColor(200, 200, 200);
 	const ARGBColor	white		= ARGBColor(255, 255, 255);
 	const ARGBColor	red			= ARGBColor(255,   0,   0);
 	const ARGBColor	green		= ARGBColor(  0, 255,   0);
@@ -139,7 +139,7 @@ public:
 	Vec2i	get_XY(char* data, char* addr) const;
 	void	set_scene(Scene* scene);
 	void	fill(char* data, const ARGBColor& color);
-	void	init(const std::string& header, int w, int h);
+	void	init(const std::string& header, const Vec2i& resolution);
 	void	freePointers(void);
 	bool	isInWinowXY(const Vec2i& v) const;
 	void	rtToMlxXY(Vec2i& v) const;
