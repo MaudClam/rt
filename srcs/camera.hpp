@@ -80,16 +80,16 @@ public:
 
 class Camera : public Matrix {
 protected:
-	std::string	_name = "camera";
-	std::string	_nick = "c";
-	Position	_pos;
-	Position	_pos0;
-	float		_roll;
-	float		_flybyRadius;
+	const std::string	_name = "camera";
+	const std::string	_nick = "c";
+	Position			_pos;
+	Position			_pos0;
+	float				_roll;
+	float				_flybyRadius;
 public:
-	Camera(const MlxImage& img);
+	Camera(const MlxImage& img, const Position& base);
 	~Camera(void);
-	Camera(const MlxImage& img, const Position& pos, float fov);
+	Camera(const MlxImage& img, const Position& pos, float fov, const Position& base);
 	Camera(const Camera& other);
 	Camera& operator=(const Camera& other);
 	Position	get_pos(void) const;

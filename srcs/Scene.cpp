@@ -18,7 +18,7 @@ lightsIdx(),
 cameras(),
 _base(BASE),
 _resolution(800,600),
-_header(std::to_string(_resolution.x) + "x" + std::to_string(_resolution.y)),
+_header(),
 _ambient(1),
 _space(1),
 _currentCamera(0) {
@@ -93,7 +93,6 @@ bool Scene::set_any(std::istringstream is) {
 		}
 		case 1: {// R Resolution
 			is >> _resolution.x >> _resolution.y >> _header;
-			_header = _header + " " +std::to_string(_resolution.x) + "x" + std::to_string(_resolution.y);
 			break;
 		}
 		case 2: {// A AmbientLightning
@@ -103,7 +102,7 @@ bool Scene::set_any(std::istringstream is) {
 			break;
 		}
 		case 3: {// c camera
-			cameras.push_back(Camera(img));
+			cameras.push_back(Camera(img, _base));
 			is >> cameras.back();
 			break;
 		}
@@ -137,8 +136,9 @@ void Scene::set_scenery(A_Scenery* scenery) {
 int  Scene::parsing(int ac, char** av) {
 	(void)ac; (void)av;
 	set_any( std::istringstream("R 800 600	RayTrasing") );
-	img.init(_header, _resolution);
-	set_any( std::istringstream("A 0.9	255,255,255") );
+	std::string header(_header + " " + std::to_string(_resolution.x) + "x" + std::to_string(_resolution.y));
+	img.init(header, _resolution);
+	set_any( std::istringstream("A 0.9	255,255,230") );
 	set_any( std::istringstream("c    19,0,19       -1,0,0      70 ") );
 	set_any( std::istringstream("c     0,0,0         0,0,1      70 ") );
 	set_any( std::istringstream("c     0,0,38        0,0,-1     70 ") );
@@ -171,7 +171,7 @@ void Scene::indexingScenerys(void) {
 void Scene::initLoockats(void) {
 	BasicCoordinate* bc = new BasicCoordinate(_base);
 	scenerys.insert(scenerys.begin(), bc);			// BasicCoordinate
-	cameras.insert(cameras.begin(), Camera(img));	// default camera "0"
+	cameras.insert(cameras.begin(), Camera(img, _base));	// default camera "0"
 	indexingScenerys();
 	auto End = cameras.end();
 	for (auto camera = cameras.begin(); camera != End; ++camera) {
@@ -445,13 +445,20 @@ void Scene::flybyCurrentCamera(void) {
 // Non member functions
 
 std::ostream& operator<<(std::ostream& o, Scene& sc) {
-	o	<< "R" << std::setw(5) << sc._resolution << " " << sc._header << std::endl;
-	o	<< "A" << std::setw(5) << sc._ambient << " #ambient liting" << std::endl;
-	for (auto camera = sc.cameras.begin(); camera != sc.cameras.end(); ++camera) {
-		o << *camera << std::endl;
+	std::ostringstream os;
+	o  << "R " << std::setw(5) << sc._resolution << " " << sc._header << std::endl;
+	os << "A  " << std::setw(32) << sc._ambient;
+	o << std::setw(36) << std::left << os.str();
+	o << " #ambient liting" << std::endl;
+	for (auto light = sc.lightsIdx.begin(); light != sc.lightsIdx.end(); ++light) {
+		o << *(*light) << std::endl;
 	}
-	for (auto scenary = sc.scenerys.begin(); scenary != sc.scenerys.end(); ++scenary) {
-		o << *(*scenary) << std::endl;
+	int i = 0;
+	for (auto camera = sc.cameras.begin(); camera != sc.cameras.end(); ++camera, ++i) {
+		o << *camera << " " << i << std::endl;
+	}
+	for (auto obj = sc.objsIdx.begin(); obj != sc.objsIdx.end(); ++obj) {
+		o << *(*obj) << std::endl;
 	}
 	return o;
 }

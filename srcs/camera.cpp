@@ -187,9 +187,9 @@ bool Matrix::set_fovDegree(float degree) { return _fov.set_degree(degree); }
 
 // class Camera
 
-Camera::Camera(const MlxImage& img) :
-_pos(BASE),
-_pos0(BASE),
+Camera::Camera(const MlxImage& img, const Position& base) :
+_pos(base),
+_pos0(base),
 _roll(0),
 _flybyRadius(0)
 {	_width = img.get_width();
@@ -201,8 +201,8 @@ _flybyRadius(0)
 
 Camera::~Camera(void) {}
 
-Camera::Camera(const MlxImage& img, const Position& pos, float fov) :
-_pos0(BASE)
+Camera::Camera(const MlxImage& img, const Position& pos, float fov, const Position& base) :
+_pos0(base)
 {
 	_width = img.get_width();
 	_height = img.get_height();
