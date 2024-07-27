@@ -7,17 +7,17 @@
       <BreakpointProxy
          BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
          <BreakpointContent
-            uuid = "A76FEA34-5245-4453-A93A-053A54026525"
+            uuid = "92BC7DEE-5924-4D36-B39A-56EED6E8CFEC"
             shouldBeEnabled = "Yes"
             ignoreCount = "0"
             continueAfterRunningActions = "No"
-            filePath = "srcs/camera.hpp"
+            filePath = "srcs/Scene.cpp"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "96"
-            endingLineNumber = "96"
-            landmarkName = "Camera"
-            landmarkType = "3">
+            startingLineNumber = "393"
+            endingLineNumber = "393"
+            landmarkName = "Scene::rotateCurrentCamera(ctrl)"
+            landmarkType = "7">
          </BreakpointContent>
       </BreakpointProxy>
    </Breakpoints>

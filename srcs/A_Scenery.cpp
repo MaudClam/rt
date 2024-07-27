@@ -49,16 +49,22 @@ void A_Scenery::set_pos(const Position& pos) { _pos = pos; }
 
 void A_Scenery::set_lookatCamera(const Position& eye, const LookatAux& aux) {
 	set_lookatBase();
-	lookats.back().lookat(eye, aux);
+	lookats.back().lookAt(eye, aux);
 }
 
 void A_Scenery::set_lookatBase(void) {
-	lookats.push_back(_pos);
+	lookats.push_back(Lookat(_pos));
 }
 
 void A_Scenery::recalculateLookat(int idx, const Position& eye, const LookatAux& aux) {
 	if (checkLookatsIdx(idx)) {
-		lookats[idx].lookat(eye, aux);
+		lookats[idx].lookAt(eye, aux);
+	}
+}
+
+void A_Scenery::recalculateLookat(int idx, float roll) {
+	if (checkLookatsIdx(idx)) {
+		lookats[idx].set_roll(roll);
 	}
 }
 
@@ -71,7 +77,6 @@ std::ostream& operator<<(std::ostream& o, A_Scenery& s) {
 	o << os.str();
 	return o;
 }
-
 
 
 // class BasicCoordinate
@@ -109,10 +114,9 @@ void BasicCoordinate::lighting(Ray& ray, int cam, float roll ) const {
 	(void)roll;
 }
 
-void BasicCoordinate::hit(Ray& ray, int cam, float roll ) const {
+void BasicCoordinate::hit(Ray& ray, int cam) const {
 	(void)ray;
 	(void)cam;
-	(void)roll;
 }
 
 void BasicCoordinate::output(std::ostringstream& os) {

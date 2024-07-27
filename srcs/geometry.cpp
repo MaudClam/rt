@@ -26,23 +26,60 @@ Position& Position::operator=(const Position& other) {
 	return *this;
 };
 
-Position& Position::lookat(const Position& eye) {
+
+// Struct Lookat
+
+Lookat::Lookat(void) : _roll(0) {}
+
+Lookat::~Lookat(void) {}
+
+Lookat::Lookat(const Vec3f& point, const Vec3f& norm, float roll) : _roll(roll) {
+	p = point;
+	n = norm;
+}
+
+Lookat::Lookat(const Position& pos, float roll) : _roll(roll) {
+	p = pos.p;
+	n = pos.n;
+}
+
+Lookat::Lookat(const Lookat& other) : _roll(other._roll) {
+	p = other.p;
+	n = other.n;
+}
+
+Lookat Lookat::operator=(const Lookat& other) {
+	p = other.p;
+	n = other.n;
+	_roll = other._roll;
+	return *this;
+}
+
+float	Lookat::get_roll(void) { return _roll; }
+
+void	Lookat::set_roll(float roll) {
+	p.turnAroundZ(roll - _roll);
+	n.turnAroundZ(roll - _roll).normalize();
+	_roll = roll;
+}
+
+Lookat& Lookat::lookAt(const Position& eye) {
 	LookatAux aux(eye.n);
-	lookat(eye, aux);
+	lookAt(eye, aux);
 	return *this;
 }
 
-Position& Position::lookat(const Position& eye, const LookatAux& aux) {
-	if ( !(almostEqual(n.x, 0) && almostEqual(n.y, 0) && almostEqual(n.z, 0)) ) {
-		n.lookatDir(aux);
+Lookat& Lookat::lookAt(const Position& eye, const LookatAux& aux) {
+	if (_roll != 0) {
+		p.turnAroundZ(-_roll);
+		n.turnAroundZ(-_roll).normalize();
 	}
+	n.lookatDir(aux);
 	p.lookatPt(eye.p, aux);
-	return *this;
-}
-
-Position& Position::rolling(float roll) {
-	p.turnAroundZ(roll);
-	n.turnAroundZ(roll).normalize();
+	if (_roll != 0) {
+		p.turnAroundZ(_roll);
+		n.turnAroundZ(_roll).normalize();
+	}
 	return *this;
 }
 

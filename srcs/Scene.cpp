@@ -209,16 +209,26 @@ bool Scene::checkCameraIdx(int cameraIdx) const {
 }
 
 void Scene::recalculateLookatsForCurrentCamera(const Position& eye) {
-	Camera&	camera(cameras[_currentCamera]);
+	Camera&	cam(cameras[_currentCamera]);
+	float	roll = cam.get_roll();
+	auto	End = scenerys.end();
 	if (_base.n != eye.n) {
 		LookatAux aux(eye.n);
-		auto End = scenerys.end();
 		for (auto scenery = scenerys.begin(); scenery != End; ++scenery) {
 			(*scenery)->recalculateLookat(_currentCamera, eye, aux);
+			(*scenery)->recalculateLookat(_currentCamera, roll);
 		}
-		camera.reset_pov(_base);
-	} else if (camera.get_pos0().p != eye.p) {
-		camera.reset_pov(eye);
+		cam.reset_pov(_base);
+	} else if (cam.get_pos0().p != eye.p) {
+		for (auto scenery = scenerys.begin(); scenery != End; ++scenery) {
+			(*scenery)->recalculateLookat(_currentCamera, roll);
+		}
+		cam.reset_pov(eye);
+	} else {
+		for (auto scenery = scenerys.begin(); scenery != End; ++scenery) {
+			(*scenery)->recalculateLookat(_currentCamera, roll);
+		}
+		cam.reset_pov(eye);
 	}
 }
 
@@ -264,7 +274,7 @@ void Scene::trasingRay(Ray& ray, int cam, float roll) {
 	}
 	A_Scenery* obj = intersection(ray, cam, roll);
 	if (obj) {
-		obj->hit(ray, cam, roll);
+		obj->hit(ray, cam);
 		ray.tmpColor.product(ray.tmpColor,_ambient.light);// Ambient Lighting
 		ray.color.addition(ray.color, ray.tmpColor);
 		auto End = lightsIdx.end();
@@ -352,8 +362,8 @@ void Scene::moveCurrentCamera(int ctrl) {
 }
 
 void Scene::rotateCurrentCamera(int ctrl) {
-	Camera& cam(cameras[_currentCamera]);
-	Position eye(cam.get_pos0());
+	Camera&		cam(cameras[_currentCamera]);
+	Position	eye(cam.get_pos0());
 	switch (ctrl) {
 		case YAW_RIGHT: {
 			eye.n.z = std::cos(radian(STEP_ROTATION));
@@ -376,14 +386,12 @@ void Scene::rotateCurrentCamera(int ctrl) {
 			break;
 		}
 		case ROLL_RIGHT: {
-			cam.reset_roll( cam.get_rollDegree() - STEP_ROTATION );
-			rt();
-			return;
+			cam.reset_roll( cam.get_rollDegree() + STEP_ROTATION );
+			break;
 		}
 		case ROLL_LEFT: {
-			cam.reset_roll( cam.get_rollDegree() + STEP_ROTATION );
-			rt();
-			return;
+			cam.reset_roll( cam.get_rollDegree() - STEP_ROTATION );
+			break;
 		}
 		default:
 			return;

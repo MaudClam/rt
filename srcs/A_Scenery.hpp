@@ -22,7 +22,7 @@ protected:
 	Position				_pos;
 public:
 	enum Side { FRONT, BACK };
-	std::vector<Position>	lookats;
+	std::vector<Lookat>		lookats;
 	ARGBColor				color;
 	A_Scenery(void);
 	virtual ~A_Scenery(void);
@@ -35,8 +35,9 @@ public:
 	void set_lookatCamera(const Position& eye, const LookatAux& aux);
 	void set_lookatBase(void);
 	void recalculateLookat(int idx, const Position& eye, const LookatAux& aux);
+	void recalculateLookat(int idx, float roll);
 	virtual bool intersection(Ray& ray, int cameraIdx, float cameraRoll = 0, Side side = FRONT) const = 0;
-	virtual void hit(Ray& ray, int cameraIdx, float cameraRoll = 0) const = 0;
+	virtual void hit(Ray& ray, int cameraIdx) const = 0;
 	virtual void output(std::ostringstream& os) = 0;
 	friend std::ostream& operator<<(std::ostream& o, A_Scenery& s);
 };
@@ -49,7 +50,7 @@ public:
 	BasicCoordinate& operator=(const BasicCoordinate& other);
 	bool intersection(Ray& ray, int cameraIdx, float cameraRoll = 0, Side side = FRONT) const;
 	void lighting(Ray& ray, int cameraIdx, float cameraRoll = 0) const;
-	void hit(Ray& ray, int cameraIdx, float cameraRoll = 0) const;
+	void hit(Ray& ray, int cameraIdx) const;
 	void output(std::ostringstream& os);
 	friend std::ostream& operator<<(std::ostream& o, BasicCoordinate& bc);
 	friend std::istringstream& operator>>(std::istringstream& is, BasicCoordinate& bc);

@@ -34,10 +34,9 @@ Sphere::Sphere(const Sphere& other) : _radius(other._radius) {
 
 bool Sphere::intersection(Ray& ray, int cam, float roll, Side side) const {
 	if (checkLookatsIdx(cam)) {
-		Vec3f		k;
-		Position	r(lookats[cam]);
-		r.rolling(roll);
-		k.substract(ray.pov, r.p);
+		(void)roll;
+		Vec3f	k;
+		k.substract(ray.pov, lookats[cam].p);
 		float b = ray.dir * k;
 		float c = k * k - _radius * _radius;
 		float d = b * b - c;
@@ -70,13 +69,10 @@ void Sphere::lighting(Ray& ray, int cam, float roll) const {
 	(void)roll;
 }
 
-void Sphere::hit(Ray& ray, int cam, float roll) const {
+void Sphere::hit(Ray& ray, int cam) const {
 	if (checkLookatsIdx(cam)) {
-		Position center(lookats[cam]);
-		center.rolling(roll);
 		ray.pov.addition(ray.pov, ray.dir * ray.dist);
-		ray.norm.substract(center.p, ray.pov).normalize();
-		ray.norm.turnAroundZ(roll);
+		ray.norm.substract(lookats[cam].p, ray.pov).normalize();
 		float k = ray.dir * ray.norm;
 		if (k < 0) {
 			k = -k;

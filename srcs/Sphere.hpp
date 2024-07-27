@@ -26,7 +26,7 @@ public:
 	Sphere& operator=(const Sphere& other);
 	bool intersection(Ray& ray, int cameraIdx, float cameraRoll = 0, Side side = FRONT) const;
 	void lighting(Ray& ray, int cameraIdx, float cameraRoll = 0) const;
-	void hit(Ray& ray, int cameraIdx, float cameraRoll = 0) const;
+	void hit(Ray& ray, int cameraIdx) const;
 	virtual void output(std::ostringstream& os);
 	friend std::ostream& operator<<(std::ostream& o, Sphere& sp);
 	friend std::istringstream& operator>>(std::istringstream& is, Sphere& sp);

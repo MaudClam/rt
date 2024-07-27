@@ -82,9 +82,9 @@ class Camera : public Matrix {
 protected:
 	const std::string	_name = "camera";
 	const std::string	_nick = "c";
-	Position			_pos;
-	Position			_pos0;
-	float				_roll;
+	Position			_pos;	// Camera position in the basic coordinate system
+	Position			_pos0;	// Camera position in its own coordinate system
+	float				_roll;	// Camera tilt (aviation term 'roll') relative to its optical axis (z-axis)
 	float				_flybyRadius;
 public:
 	Camera(const MlxImage& img, const Position& base);

@@ -244,11 +244,11 @@ float Camera::get_roll(void) const { return _roll; }
 
 float Camera::get_flybyRadius(void) const { return _flybyRadius; }
 
-void Camera::set_pos(const Position& pos) { this->_pos = pos; }
+void Camera::set_pos(const Position& pos) { _pos = pos; }
 
-void Camera::set_pos0(const Position& pos0) { this->_pos0 = pos0; }
+void Camera::set_pos0(const Position& pos0) { _pos0 = pos0; }
 
-void Camera::set_flybyRadius(float flybyRadius) { this->_flybyRadius = flybyRadius; }
+void Camera::set_flybyRadius(float flybyRadius) { _flybyRadius = flybyRadius; }
 
 void Camera::initMatrix(void) {
 	Vec2i	mPos; // pixel xy-position on the monitor (width*height pixels, xy(0,0) in the upper left corner, Y-axis direction down);
@@ -311,11 +311,6 @@ void Camera::reset_roll(float roll) {
 		_roll = radian(roll);
 	}
 	if (DEBUG) { std::cout << "roll: " << degree(_roll) << std::endl; }
-	auto End = matrix.end();
-	for (auto pixel = matrix.begin(); pixel != End; ++pixel) {
-		pixel->ray.pov = _pos0.p;
-		pixel->ray.color.val = 0;
-	}
 }
 
 

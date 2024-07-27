@@ -35,13 +35,10 @@ void Light::lighting(Ray& ray, int cam, float roll) const {
 	(void)roll;
 }
 
-void Light::hit(Ray& ray, int cam, float roll) const {
+void Light::hit(Ray& ray, int cam) const {
 	if (checkLookatsIdx(cam)) {
-		Position center(lookats[cam]);
-		center.rolling(roll);
 		ray.pov.addition(ray.pov, ray.dir * ray.dist);
-		ray.norm.substract(center.p, ray.pov).normalize();
-		ray.norm.turnAroundZ(roll);
+		ray.norm.substract(lookats[cam].p, ray.pov).normalize();
 		float k = ray.dir * ray.norm;
 		if (k < 0) {
 			k = -k;

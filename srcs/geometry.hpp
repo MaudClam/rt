@@ -113,9 +113,11 @@ template <class t> struct Vec3 {
 		return *this;
 	}
 	inline Vec3<t>& lookatDir(const LookatAuxiliary<t>& aux) {
-		t _x = *this * aux.right, _y = *this * aux.up, _z = *this * aux.dir;
-		x = _x; y = _y; z = _z;
-		this->normalize();
+		if ( !isNull() ) {
+			t _x = *this * aux.right, _y = *this * aux.up, _z = *this * aux.dir;
+			x = _x; y = _y; z = _z;
+			this->normalize();
+		}
 		return *this;
 	}
 	inline Vec3<t>& lookatPt(const Vec3<t>& eyePt, const LookatAuxiliary<t>& aux) {
@@ -125,7 +127,7 @@ template <class t> struct Vec3 {
 		return *this;
 	}
 	inline Vec3<t>& turnAroundY(float angle) {
-		if (angle != 0) {
+		if ( !(angle == 0 || (x == 0 && z == 0)) ) {
 			float sin = std::sin(angle), cos = std::cos(angle);
 			float _z = z * cos - x * sin;
 			float _x = z * sin + x * cos;
@@ -134,7 +136,7 @@ template <class t> struct Vec3 {
 		return *this;
 	}
 	inline Vec3<t>& turnAroundZ(float angle) {
-		if (angle != 0) {
+		if ( !(angle == 0 || (x == 0 && y == 0)) ) {
 			float sin = std::sin(angle), cos = std::cos(angle);
 			float _x = x * cos - y * sin;
 			float _y = x * sin + y * cos;
@@ -164,7 +166,7 @@ template <class t> std::istringstream& operator>>(std::istringstream& is, Vec3<t
 }
 
 template <class t> bool operator==(const Vec3<t>& lhs, const Vec3<t>& rhs) {
-	return almostEqual(lhs.x, rhs.x) && almostEqual(lhs.y, rhs.y) && almostEqual(lhs.z, rhs.z);
+	return lhs.x == rhs.x && lhs.y == rhs.y && lhs.z == rhs.z;
 }
 
 template <class t> bool operator!=(const Vec3<t>& lhs, const Vec3<t>& rhs) {
@@ -201,12 +203,25 @@ struct Position {
 	Vec3f	n;
 	Position(void);
 	~Position(void);
-	Position(const Vec3f& point, const Vec3f& nnorm);
+	Position(const Vec3f& point, const Vec3f& norm);
 	Position(const Position& other);
 	Position& operator=(const Position& other);
-	Position& lookat(const Position& eye);
-	Position& lookat(const Position& eye, const LookatAux& aux);
-	Position& rolling(float roll);
+};
+
+class Lookat : public Position {
+protected:
+	float _roll;
+public:
+	Lookat(void);
+	~Lookat(void);
+	Lookat(const Vec3f& point, const Vec3f& norm, float roll);
+	Lookat(const Position& pos, float roll = 0);
+	Lookat(const Lookat& other);
+	Lookat operator=(const Lookat& other);
+	float	get_roll(void);
+	void	set_roll(float roll);
+	Lookat& lookAt(const Position& eye);
+	Lookat& lookAt(const Position& eye, const LookatAux& aux);
 };
 
 // Non member functions
