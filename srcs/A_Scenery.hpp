@@ -36,8 +36,9 @@ public:
 	void set_lookatBase(void);
 	void recalculateLookat(int idx, const Position& eye, const LookatAux& aux);
 	void recalculateLookat(int idx, float roll);
-	virtual bool intersection(Ray& ray, int cameraIdx, float cameraRoll = 0, Side side = FRONT) const = 0;
+	virtual bool intersection(Ray& ray, int cameraIdx, Side side = FRONT) const = 0;
 	virtual void hit(Ray& ray, int cameraIdx) const = 0;
+	virtual void lighting(Ray& ray, int cameraIdx) const = 0;
 	virtual void output(std::ostringstream& os) = 0;
 	friend std::ostream& operator<<(std::ostream& o, A_Scenery& s);
 };
@@ -48,9 +49,9 @@ public:
 	~BasicCoordinate(void);
 	BasicCoordinate(const BasicCoordinate& other);
 	BasicCoordinate& operator=(const BasicCoordinate& other);
-	bool intersection(Ray& ray, int cameraIdx, float cameraRoll = 0, Side side = FRONT) const;
-	void lighting(Ray& ray, int cameraIdx, float cameraRoll = 0) const;
+	bool intersection(Ray& ray, int cameraIdx, Side side = FRONT) const;
 	void hit(Ray& ray, int cameraIdx) const;
+	void lighting(Ray& ray, int cameraIdx) const;
 	void output(std::ostringstream& os);
 	friend std::ostream& operator<<(std::ostream& o, BasicCoordinate& bc);
 	friend std::istringstream& operator>>(std::istringstream& is, BasicCoordinate& bc);

@@ -21,18 +21,11 @@ Light::Light(const Light& other) : light(other.light) {
 	color = other.color;
 }
 
-bool Light::intersection(Ray& ray, int cam, float roll, Side side) const {
+bool Light::intersection(Ray& ray, int cam, Side side) const {
 	(void)ray;
 	(void)cam;
-	(void)roll;
 	(void)side;
 	return false;
-}
-
-void Light::lighting(Ray& ray, int cam, float roll) const {
-	(void)ray;
-	(void)cam;
-	(void)roll;
 }
 
 void Light::hit(Ray& ray, int cam) const {
@@ -47,6 +40,11 @@ void Light::hit(Ray& ray, int cam) const {
 		ray.tmpColor.product(k);
 		ray.hits++;
 	}
+}
+
+void Light::lighting(Ray& ray, int cam) const {
+	(void)ray;
+	(void)cam;
 }
 
 void Light::output(std::ostringstream& os) {

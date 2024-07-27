@@ -236,16 +236,16 @@ void Scene::raytrasingCurrentCamera(void) {
 	Camera&	cam(cameras[_currentCamera]);
 	auto End = cam.matrix.end();
 	for (auto pixel = cam.matrix.begin(); pixel != End; ++pixel) {
-		trasingRay(pixel->ray, _currentCamera, cam.get_roll());
+		trasingRay(pixel->ray, _currentCamera);
 	}
 }
 
-A_Scenery* Scene::intersection(Ray& ray, int cam, float roll) {
+A_Scenery* Scene::intersection(Ray& ray, int cam) {
 	A_Scenery*	nearestObj = NULL;
 	float		distance = INFINITY;
 	auto End = objsIdx.end();
 	for (auto obj = objsIdx.begin(); obj != End; ++obj) {
-		if ( (*obj)->intersection(ray, cam, roll) ) {
+		if ( (*obj)->intersection(ray, cam) ) {
 			if (distance > ray.dist) {
 				distance = ray.dist;
 				nearestObj = *obj;
@@ -258,28 +258,28 @@ A_Scenery* Scene::intersection(Ray& ray, int cam, float roll) {
 	return nearestObj;
 }
 
-bool Scene::shadow(Ray& ray, int cam, float roll) {
+bool Scene::shadow(Ray& ray, int cam) {
 	auto End = objsIdx.end();
 	for (auto obj = objsIdx.begin(); obj != End; ++obj) {
-		if ( (*obj)->intersection(ray, cam, roll) ) {
+		if ( (*obj)->intersection(ray, cam) ) {
 			return true;
 		}
 	}
 	return false;
 }
 
-void Scene::trasingRay(Ray& ray, int cam, float roll) {
+void Scene::trasingRay(Ray& ray, int cam) {
 	if (ray.hits >= RECURSIONS) {
 		return;
 	}
-	A_Scenery* obj = intersection(ray, cam, roll);
+	A_Scenery* obj = intersection(ray, cam);
 	if (obj) {
 		obj->hit(ray, cam);
 		ray.tmpColor.product(ray.tmpColor,_ambient.light);// Ambient Lighting
 		ray.color.addition(ray.color, ray.tmpColor);
 		auto End = lightsIdx.end();
 		for (auto light = lightsIdx.begin(); light != End; ++light) {
-			if ( (*light)->intersection(ray, cam, roll) ) {
+			if ( (*light)->intersection(ray, cam) ) {
 				
 			}
 		}
@@ -411,13 +411,13 @@ void Scene::setFlybyRadiusForCurrentCamera(void) {
 	for (auto pixel = cam.matrix.begin(); pixel != End; ++pixel) {
 		auto end = objsIdx.end();
 		for (auto obj = objsIdx.begin(); obj != end; ++obj) {
-			if ( (*obj)->intersection(pixel->ray, _currentCamera, 0, A_Scenery::FRONT) ) {
+			if ( (*obj)->intersection(pixel->ray, _currentCamera, A_Scenery::FRONT) ) {
 				if ( front > pixel->ray.dist ) {
 					front = pixel->ray.dist;
 				}
 			}
 			pixel->reset(tan, pov);
-			if ( (*obj)->intersection(pixel->ray, _currentCamera, 0, A_Scenery::BACK) ) {
+			if ( (*obj)->intersection(pixel->ray, _currentCamera, A_Scenery::BACK) ) {
 				if ( back < pixel->ray.dist ) {
 					back = pixel->ray.dist;
 				}

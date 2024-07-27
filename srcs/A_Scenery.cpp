@@ -100,21 +100,19 @@ BasicCoordinate& BasicCoordinate::operator=(const BasicCoordinate& other) {
 	return *this;
 }
 
-bool BasicCoordinate::intersection(Ray& ray, int cam, float roll, Side side) const {
+bool BasicCoordinate::intersection(Ray& ray, int cam, Side side) const {
 	(void)ray;
 	(void)cam;
-	(void)roll;
 	(void)side;
 	return false;
 }
 
-void BasicCoordinate::lighting(Ray& ray, int cam, float roll ) const {
+void BasicCoordinate::hit(Ray& ray, int cam) const {
 	(void)ray;
 	(void)cam;
-	(void)roll;
 }
 
-void BasicCoordinate::hit(Ray& ray, int cam) const {
+void BasicCoordinate::lighting(Ray& ray, int cam) const {
 	(void)ray;
 	(void)cam;
 }

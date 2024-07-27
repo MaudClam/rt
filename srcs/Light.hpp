@@ -23,9 +23,9 @@ public:
 	~Light(void);
 	Light(const Light& other);
 	Light& operator=(const Lighting& other);
-	bool intersection(Ray& ray, int cameraIdx, float cameraRoll = 0, Side side = FRONT) const;
-	void lighting(Ray& ray, int cameraIdx, float cameraRoll = 0) const;
+	bool intersection(Ray& ray, int cameraIdx, Side side = FRONT) const;
 	void hit(Ray& ray, int cameraIdx) const;
+	void lighting(Ray& ray, int cameraIdx) const;
 	virtual void output(std::ostringstream& os);
 	friend std::ostream& operator<<(std::ostream& o, Light& sp);
 	friend std::istringstream& operator>>(std::istringstream& is, Light& sp);
