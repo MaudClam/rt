@@ -30,30 +30,30 @@ bool Light::checkLookatsIdx(int idx) const {
 }
 
 void Light::set_lookatCamera(const Position& eye, const LookatAux& aux) {
-	set_lookatBase();
-	bool pIsNull = lookats.back().p.isNull();
+	set_lookatBase(eye);
 	lookats.back().lookAt(eye, aux);
-	if (pIsNull) lookats.back().p.toNull();
 }
 
-void Light::set_lookatBase(void) {
+void Light::set_lookatBase(const Position& eye) {
+	(void)eye;
 	lookats.push_back(Lookat(_pos));
 }
 
-void Light::recalculateLookat(int idx, const Position& eye, const LookatAux& aux) {
-	if (checkLookatsIdx(idx)) {
-		bool pIsNull = lookats[idx].p.isNull();
-		lookats[idx].lookAt(eye, aux);
-		if (pIsNull) lookats[idx].p.toNull();
+void Light::recalculateLookat(int cam, const Position& eye, const LookatAux& aux) {
+	if (checkLookatsIdx(cam)) {
+		bool pIsNull = lookats[cam].p.isNull();
+		lookats[cam].lookAt(eye, aux);
+		if (pIsNull) lookats[cam].p.toNull();
 	}
 
 }
 
-void Light::recalculateLookat(int idx, float roll) {
-	if (checkLookatsIdx(idx)) {
-		bool pIsNull = lookats[idx].p.isNull();
-		lookats[idx].set_roll(roll);
-		if (pIsNull) lookats[idx].p.toNull();
+void Light::recalculateLookat(int cam, float roll, const Vec3f& newPov) {
+	if (checkLookatsIdx(cam)) {
+		(void)newPov;
+		bool pIsNull = lookats[cam].p.isNull();
+		lookats[cam].set_roll(roll);
+		if (pIsNull) lookats[cam].p.toNull();
 	}
 }
 
@@ -80,7 +80,7 @@ void Light::getNormal(Ray& ray, int cam) const {
 
 bool Light::lighting(Ray& ray, int cam) const {
 	if (checkLookatsIdx(cam)) {
-		if (lookats[cam].p.isNull() && !lookats[cam].n.isNull()) {// Sunlight
+		if (lookats[cam].p.isInf() && !lookats[cam].n.isNull()) {// Sunlight
 			float k = ray.norm * lookats[cam].n;
 			if (k > 0) {
 				ray.dist = INFINITY;
@@ -89,7 +89,7 @@ bool Light::lighting(Ray& ray, int cam) const {
 				ray.light.product(k);
 				return true;
 			}
-		} else if (!lookats[cam].p.isNull() && lookats[cam].n.isNull()) {// Spot light
+		} else if (!lookats[cam].p.isInf() && lookats[cam].n.isNull()) {// Spot light
 			ray.dist = ray.dir.substract(lookats[cam].p, ray.pov).norm();
 			ray.dir.normalize();
 			float k = ray.norm * ray.dir;
@@ -98,7 +98,7 @@ bool Light::lighting(Ray& ray, int cam) const {
 				ray.light.product(k);
 				return true;
 			}
-		} else if (!lookats[cam].p.isNull() && !lookats[cam].n.isNull()) {// Sunlight from the plane
+		} else if (!lookats[cam].p.isInf() && !lookats[cam].n.isNull()) {// Sunlight from the plane
 			float k = ray.norm * lookats[cam].n;
 			if (k > 0) {
 				rayPlaneIntersection(ray.pov, ray.dir, lookats[cam].p, lookats[cam].n, ray.dist);

@@ -116,7 +116,7 @@ template <class t> struct Vec3 {
 		return *this;
 	}
 	inline Vec3<t>& lookatDir(const LookatAuxiliary<t>& aux) {
-		if ( !isNull() ) {
+		if ( !isNull() && !isInf() ) {
 			t _x = *this * aux.right, _y = *this * aux.up, _z = *this * aux.dir;
 			x = _x; y = _y; z = _z;
 			this->normalize();
@@ -124,13 +124,15 @@ template <class t> struct Vec3 {
 		return *this;
 	}
 	inline Vec3<t>& lookatPt(const Vec3<t>& eyePt, const LookatAuxiliary<t>& aux) {
-		substract(*this, eyePt);
-		t _x = *this * aux.right, _y = *this * aux.up, _z = *this * aux.dir;
-		x = _x; y = _y; z = _z;
+		if (!isInf()) {
+			substract(*this, eyePt);
+			t _x = *this * aux.right, _y = *this * aux.up, _z = *this * aux.dir;
+			x = _x; y = _y; z = _z;
+		}
 		return *this;
 	}
 	inline Vec3<t>& turnAroundY(float angle) {
-		if ( !(angle == 0 || (x == 0 && z == 0)) ) {
+		if ( !(angle == 0 || (x == 0 && z == 0) || x == INFINITY || z == INFINITY) ) {
 			float sin = std::sin(angle), cos = std::cos(angle);
 			float _z = z * cos - x * sin;
 			float _x = z * sin + x * cos;
@@ -139,7 +141,7 @@ template <class t> struct Vec3 {
 		return *this;
 	}
 	inline Vec3<t>& turnAroundZ(float angle) {
-		if ( !(angle == 0 || (x == 0 && y == 0)) ) {
+		if ( !(angle == 0 || (x == 0 && y == 0) || x == INFINITY || y == INFINITY) ) {
 			float sin = std::sin(angle), cos = std::cos(angle);
 			float _x = x * cos - y * sin;
 			float _y = x * sin + y * cos;
@@ -149,6 +151,8 @@ template <class t> struct Vec3 {
 	}
 	inline bool		isNull(void) const { return x == 0 && y == 0 && z == 0;  }
 	inline void		toNull(void) { x = 0; y = 0; z = 0;  }
+	inline bool		isInf(void) const { return x == INFINITY || y == INFINITY || z == INFINITY;  }
+	inline void		toInf(void) { x = INFINITY; y = INFINITY; z = INFINITY;  }
 	template <class > friend std::ostream& operator<<(std::ostream& s, Vec3<t>& v);
 	template <class > friend std::istringstream& operator>>(std::istringstream& is, Vec3<t>& v);
 };
@@ -213,7 +217,7 @@ protected:
 public:
 	Lookat(void);
 	~Lookat(void);
-	Lookat(const Vec3f& point, const Vec3f& norm, float roll);
+	Lookat(const Vec3f& point, const Vec3f& norm, float roll = 0);
 	Lookat(const Position& pos, float roll = 0);
 	Lookat(const Lookat& other);
 	Lookat operator=(const Lookat& other);
@@ -225,10 +229,9 @@ public:
 
 // Intersections & normals
 
-bool raySphereIntersection(const Vec3f& rayPov,
-						   const Vec3f& rayDir,
-						   const Vec3f& center,
-						   float radius,
+bool raySphereIntersection(const Vec3f& rayDir,
+						   const Vec3f& pov_center,
+						   float sqrRadius,
 						   float& distance,
 						   Hit rayHit = FRONT);
 

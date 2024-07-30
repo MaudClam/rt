@@ -135,7 +135,7 @@ void Scene::set_scenery(A_Scenery* scenery) {
 
 int  Scene::parsing(int ac, char** av) {
 	(void)ac; (void)av;
-	set_any( std::istringstream("R 800 600	RayTrasing") );
+	set_any( std::istringstream("R 1200 600	RayTrasing") );
 	std::string header(_header + " " + std::to_string(_resolution.x) + "x" + std::to_string(_resolution.y));
 	img.init(header, _resolution);
 //	set_any( std::istringstream("A 0.2	255,255,230") );
@@ -155,7 +155,7 @@ int  Scene::parsing(int ac, char** av) {
 	set_any( std::istringstream("c     0,0,0         0,0,1      60 ") );
 	set_any( std::istringstream("A 0.2	255,255,250") );
 	set_any( std::istringstream("l     2,1,0    0.6 " + img.white.rrggbb() + " 0,0,0") );
-	set_any( std::istringstream("l     0,0,0    0.2 " + img.white.rrggbb() + " 1,4,4") );
+	set_any( std::istringstream("l     inf,0,0    0.2 " + img.white.rrggbb() + " 1,4,4") );
 	set_any( std::istringstream("sp    0,-1,3	2 " + img.red.rrggbb()) );
 	set_any( std::istringstream("sp    2,0,4	2 " + img.blue.rrggbb()) );
 	set_any( std::istringstream("sp    -2,0,4	2 " + img.green.rrggbb()) );
@@ -199,7 +199,7 @@ void Scene::initLoockats(void) {
 			LookatAux aux(eye.n);
 			auto end = scenerys.end();
 			for (auto scenery = scenerys.begin(); scenery != end; ++scenery ) {
-				(*scenery)->set_lookatBase();
+				(*scenery)->set_lookatBase(eye);
 			}
 			camera->reset_pov(eye);
 		}
@@ -228,17 +228,17 @@ void Scene::recalculateLookatsForCurrentCamera(const Position& eye) {
 		LookatAux aux(eye.n);
 		for (auto scenery = scenerys.begin(); scenery != End; ++scenery) {
 			(*scenery)->recalculateLookat(_currentCamera, eye, aux);
-			(*scenery)->recalculateLookat(_currentCamera, roll);
+			(*scenery)->recalculateLookat(_currentCamera, roll, _base.p);
 		}
 		cam.reset_pov(_base);
 	} else if (cam.get_pos0().p != eye.p) {
 		for (auto scenery = scenerys.begin(); scenery != End; ++scenery) {
-			(*scenery)->recalculateLookat(_currentCamera, roll);
+			(*scenery)->recalculateLookat(_currentCamera, roll, eye.p);
 		}
 		cam.reset_pov(eye);
 	} else {
 		for (auto scenery = scenerys.begin(); scenery != End; ++scenery) {
-			(*scenery)->recalculateLookat(_currentCamera, roll);
+			(*scenery)->recalculateLookat(_currentCamera, roll, eye.p);
 		}
 		cam.reset_pov(eye);
 	}
@@ -274,7 +274,6 @@ bool Scene::shadow(Ray& ray, int cam) {
 	Vec3f epsilon(ray.norm);
 	epsilon.product(EPSILON);
 	ray.pov.addition(ray.pov, epsilon);
-	ray.dist += epsilon.norm();
 	float	distance = ray.dist;
 	auto	End = objsIdx.end();
 	for (auto obj = objsIdx.begin(); obj != End; ++obj) {
@@ -294,9 +293,9 @@ void Scene::trasingRay(Ray& ray, int cam) {
 	A_Scenery* obj = nearestIntersection(ray, cam);
 	if (obj) {
 		ray.hits++;
+		ray.color.product(obj->color, _ambient.light);// Ambient Lighting
 		ray.pov.addition( ray.pov, ray.dir * ray.dist ); // change ray.pov
 		obj->getNormal(ray, cam);
-		ray.color.product(obj->color, _ambient.light);// Ambient Lighting
 		auto End = lightsIdx.end();
 		for (auto light = lightsIdx.begin(); light != End; ++light) {
 			if ( (*light)->lighting(ray, cam) && !shadow(ray, cam) ) {
@@ -457,7 +456,7 @@ void Scene::setFlybyRadiusForCurrentCamera(void) {
 
 void Scene::flybyCurrentCamera(void) {
 	Camera& cam(cameras[_currentCamera]);
-	float angle = radian(FLYBY_STEP), radius = cam.get_flybyRadius();
+	float angle = radian(FLYBY_STEP / 10.), radius = cam.get_flybyRadius();
 	if (img.flyby == FLYBY_CLOCKWISE) {
 		angle = -angle;
 	}

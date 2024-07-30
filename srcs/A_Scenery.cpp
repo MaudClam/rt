@@ -79,23 +79,25 @@ bool BasicCoordinate::checkLookatsIdx(int idx) const {
 }
 
 void BasicCoordinate::set_lookatCamera(const Position& eye, const LookatAux& aux) {
-	set_lookatBase();
+	set_lookatBase(eye);
 	lookats.back().lookAt(eye, aux);
 }
 
-void BasicCoordinate::set_lookatBase(void) {
+void BasicCoordinate::set_lookatBase(const Position& eye) {
+	(void)eye;
 	lookats.push_back(Lookat(_pos));
 }
 
-void BasicCoordinate::recalculateLookat(int idx, const Position& eye, const LookatAux& aux) {
-	if (checkLookatsIdx(idx)) {
-		lookats[idx].lookAt(eye, aux);
+void BasicCoordinate::recalculateLookat(int cam, const Position& eye, const LookatAux& aux) {
+	if (checkLookatsIdx(cam)) {
+		lookats[cam].lookAt(eye, aux);
 	}
 }
 
-void BasicCoordinate::recalculateLookat(int idx, float roll) {
-	if (checkLookatsIdx(idx)) {
-		lookats[idx].set_roll(roll);
+void BasicCoordinate::recalculateLookat(int cam, float roll, const Vec3f& newPov) {
+	if (checkLookatsIdx(cam)) {
+		(void)newPov;
+		lookats[cam].set_roll(roll);
 	}
 }
 

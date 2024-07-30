@@ -32,9 +32,9 @@ public:
 	void set_pos(const Position& pos);
 	virtual bool checkLookatsIdx(int idx) const = 0;
 	virtual void set_lookatCamera(const Position& eye, const LookatAux& aux) = 0;
-	virtual void set_lookatBase(void) = 0;
-	virtual void recalculateLookat(int idx, const Position& eye, const LookatAux& aux) = 0;
-	virtual void recalculateLookat(int idx, float roll) = 0;
+	virtual void set_lookatBase(const Position& eye) = 0;
+	virtual void recalculateLookat(int cameraIdx, const Position& eye, const LookatAux& aux) = 0;
+	virtual void recalculateLookat(int cameraIdx, float roll, const Vec3f& newPov) = 0;
 	virtual bool intersection(Ray& ray, int cameraIdx, Hit rayHit = FRONT) const = 0;
 	virtual void getNormal(Ray& ray, int cameraIdx) const = 0;
 	virtual bool lighting(Ray& ray, int cameraIdx) const = 0;
@@ -50,9 +50,9 @@ public:
 	BasicCoordinate& operator=(const BasicCoordinate& other);
 	bool checkLookatsIdx(int idx) const;
 	void set_lookatCamera(const Position& eye, const LookatAux& aux);
-	void set_lookatBase(void);
-	void recalculateLookat(int idx, const Position& eye, const LookatAux& aux);
-	void recalculateLookat(int idx, float roll);
+	void set_lookatBase(const Position& eye);
+	void recalculateLookat(int cameraIdx, const Position& eye, const LookatAux& aux);
+	void recalculateLookat(int cameraIdx, float roll, const Vec3f& newPov);
 	bool intersection(Ray& ray, int cameraIdx, Hit rayHit = FRONT) const;
 	void getNormal(Ray& ray, int cameraIdx) const;
 	bool lighting(Ray& ray, int cameraIdx) const;

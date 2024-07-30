@@ -17,7 +17,8 @@ struct	Position;
 
 class Sphere : public A_Scenery {
 protected:
-	float _radius;
+	float 	_radius;
+	float 	_sqrRadius;
 public:
 	Sphere(void);
 	~Sphere(void);
@@ -26,9 +27,9 @@ public:
 	Sphere& operator=(const Sphere& other);
 	bool checkLookatsIdx(int idx) const;
 	void set_lookatCamera(const Position& eye, const LookatAux& aux);
-	void set_lookatBase(void);
-	void recalculateLookat(int idx, const Position& eye, const LookatAux& aux);
-	void recalculateLookat(int idx, float roll);
+	void set_lookatBase(const Position& eye);
+	void recalculateLookat(int cameraIdx, const Position& eye, const LookatAux& aux);
+	void recalculateLookat(int cameraIdx, float roll, const Vec3f& newPov);
 	bool intersection(Ray& ray, int cameraIdx, Hit rayHit = FRONT) const;
 	void getNormal(Ray& ray, int cameraIdx) const;
 	bool lighting(Ray& ray, int cameraIdx) const;

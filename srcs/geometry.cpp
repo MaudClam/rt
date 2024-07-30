@@ -98,16 +98,13 @@ float degree(float radian) {
 	return (radian * 180. / std::numbers::pi);
 }
 
-bool raySphereIntersection(const Vec3f& rayPov,
-						   const Vec3f& rayDir,
-						   const Vec3f& center,
-						   float radius,
+bool raySphereIntersection(const Vec3f& rayDir,
+						   const Vec3f& pov_center,
+						   float sqrRadius,
 						   float& distance,
 						   Hit rayHit) {
-	Vec3f	r;
-	r.substract(rayPov, center);
-	float b = rayDir * r;
-	float c = r * r - radius * radius;
+	float b = rayDir * pov_center;
+	float c = pov_center * pov_center - sqrRadius;
 	float d = b * b - c;
 	if (d >= 0) {
 		float sqrt_d = std::sqrt(d);
