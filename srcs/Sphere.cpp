@@ -32,53 +32,44 @@ Sphere::Sphere(const Sphere& other) : _radius(other._radius) {
 	color = other.color;
 }
 
-bool Sphere::intersection(Ray& ray, int cam, Side side) const {
+void Sphere::set_lookatCamera(const Position& eye, const LookatAux& aux) {
+	set_lookatBase();
+	lookats.back().lookAt(eye, aux);
+}
+
+void Sphere::set_lookatBase(void) {
+	lookats.push_back(Lookat(_pos));
+}
+
+void Sphere::recalculateLookat(int idx, const Position& eye, const LookatAux& aux) {
+	if (checkLookatsIdx(idx)) {
+		lookats[idx].lookAt(eye, aux);
+	}
+}
+
+void Sphere::recalculateLookat(int idx, float roll) {
+	if (checkLookatsIdx(idx)) {
+		lookats[idx].set_roll(roll);
+	}
+}
+
+bool Sphere::intersection(Ray& ray, int cam, Hit rayHit) const {
 	if (checkLookatsIdx(cam)) {
-		Vec3f	k;
-		k.substract(ray.pov, lookats[cam].p);
-		float b = ray.dir * k;
-		float c = k * k - _radius * _radius;
-		float d = b * b - c;
-		if (d >= 0) {
-			float sqrt_d = std::sqrt(d);
-			float t1 = -b + sqrt_d;
-			float t2 = -b - sqrt_d;
-			float min_t = std::min(t1,t2);
-			float max_t = std::max(t1,t2);
-			if (side == FRONT) {
-				float t = min_t >= 0 ? min_t : max_t;
-				if (t > 0) {
-					ray.dist = t;
-					return true;
-				}
-			} else if (side == BACK) {
-				if (max_t > 0) {
-					ray.dist = max_t;
-					return true;
-				}
-			}
-		}
+		return raySphereIntersection(ray.pov, ray.dir, lookats[cam].p, _radius, ray.dist, rayHit);
 	}
 	return false;
 }
 
-void Sphere::hit(Ray& ray, int cam) const {
+void Sphere::getNormal(Ray& ray, int cam) const {
 	if (checkLookatsIdx(cam)) {
-		ray.pov.addition(ray.pov, ray.dir * ray.dist);
-		ray.norm.substract(lookats[cam].p, ray.pov).normalize();
-		float k = ray.dir * ray.norm;
-		if (k < 0) {
-			k = -k;
-		}
-		ray.tmpColor = color;
-		ray.tmpColor.product(k);
-		ray.hits++;
+		normalToRaySphereIntersect(ray.pov, lookats[cam].p, ray.norm);
 	}
 }
 
-void Sphere::lighting(Ray& ray, int cam) const {
+bool Sphere::lighting(Ray& ray, int cam) const {
 	(void)ray;
 	(void)cam;
+	return false;
 }
 
 void Sphere::output(std::ostringstream& os) {

@@ -21,7 +21,6 @@ protected:
 	bool					_light;
 	Position				_pos;
 public:
-	enum Side { FRONT, BACK };
 	std::vector<Lookat>		lookats;
 	ARGBColor				color;
 	A_Scenery(void);
@@ -32,13 +31,13 @@ public:
 	Position get_pos(void) const;
 	void set_pos(const Position& pos);
 	bool checkLookatsIdx(int idx) const;
-	void set_lookatCamera(const Position& eye, const LookatAux& aux);
-	void set_lookatBase(void);
-	void recalculateLookat(int idx, const Position& eye, const LookatAux& aux);
-	void recalculateLookat(int idx, float roll);
-	virtual bool intersection(Ray& ray, int cameraIdx, Side side = FRONT) const = 0;
-	virtual void hit(Ray& ray, int cameraIdx) const = 0;
-	virtual void lighting(Ray& ray, int cameraIdx) const = 0;
+	virtual void set_lookatCamera(const Position& eye, const LookatAux& aux) = 0;
+	virtual void set_lookatBase(void) = 0;
+	virtual void recalculateLookat(int idx, const Position& eye, const LookatAux& aux) = 0;
+	virtual void recalculateLookat(int idx, float roll) = 0;
+	virtual bool intersection(Ray& ray, int cameraIdx, Hit rayHit = FRONT) const = 0;
+	virtual void getNormal(Ray& ray, int cameraIdx) const = 0;
+	virtual bool lighting(Ray& ray, int cameraIdx) const = 0;
 	virtual void output(std::ostringstream& os) = 0;
 	friend std::ostream& operator<<(std::ostream& o, A_Scenery& s);
 };
@@ -49,9 +48,13 @@ public:
 	~BasicCoordinate(void);
 	BasicCoordinate(const BasicCoordinate& other);
 	BasicCoordinate& operator=(const BasicCoordinate& other);
-	bool intersection(Ray& ray, int cameraIdx, Side side = FRONT) const;
-	void hit(Ray& ray, int cameraIdx) const;
-	void lighting(Ray& ray, int cameraIdx) const;
+	void set_lookatCamera(const Position& eye, const LookatAux& aux);
+	void set_lookatBase(void);
+	void recalculateLookat(int idx, const Position& eye, const LookatAux& aux);
+	void recalculateLookat(int idx, float roll);
+	bool intersection(Ray& ray, int cameraIdx, Hit rayHit = FRONT) const;
+	void getNormal(Ray& ray, int cameraIdx) const;
+	bool lighting(Ray& ray, int cameraIdx) const;
 	void output(std::ostringstream& os);
 	friend std::ostream& operator<<(std::ostream& o, BasicCoordinate& bc);
 	friend std::istringstream& operator>>(std::istringstream& is, BasicCoordinate& bc);

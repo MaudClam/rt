@@ -231,7 +231,6 @@ int		keyUp(int key, void* param) {
 	if (var.img->holdKey == key) {
 		var.img->holdKey = UNHOLD;
 	}
-
 	if (DEBUG_KEYS) { std::cout << "keyUp: " << key << " holdKey: " << var.img->holdKey  << "\n"; }
 	return 0;
 }

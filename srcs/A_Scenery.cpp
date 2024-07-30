@@ -47,27 +47,6 @@ bool A_Scenery::checkLookatsIdx(int idx) const {
 
 void A_Scenery::set_pos(const Position& pos) { _pos = pos; }
 
-void A_Scenery::set_lookatCamera(const Position& eye, const LookatAux& aux) {
-	set_lookatBase();
-	lookats.back().lookAt(eye, aux);
-}
-
-void A_Scenery::set_lookatBase(void) {
-	lookats.push_back(Lookat(_pos));
-}
-
-void A_Scenery::recalculateLookat(int idx, const Position& eye, const LookatAux& aux) {
-	if (checkLookatsIdx(idx)) {
-		lookats[idx].lookAt(eye, aux);
-	}
-}
-
-void A_Scenery::recalculateLookat(int idx, float roll) {
-	if (checkLookatsIdx(idx)) {
-		lookats[idx].set_roll(roll);
-	}
-}
-
 
 // Non member functions
 
@@ -100,21 +79,43 @@ BasicCoordinate& BasicCoordinate::operator=(const BasicCoordinate& other) {
 	return *this;
 }
 
-bool BasicCoordinate::intersection(Ray& ray, int cam, Side side) const {
+void BasicCoordinate::set_lookatCamera(const Position& eye, const LookatAux& aux) {
+	set_lookatBase();
+	lookats.back().lookAt(eye, aux);
+}
+
+void BasicCoordinate::set_lookatBase(void) {
+	lookats.push_back(Lookat(_pos));
+}
+
+void BasicCoordinate::recalculateLookat(int idx, const Position& eye, const LookatAux& aux) {
+	if (checkLookatsIdx(idx)) {
+		lookats[idx].lookAt(eye, aux);
+	}
+}
+
+void BasicCoordinate::recalculateLookat(int idx, float roll) {
+	if (checkLookatsIdx(idx)) {
+		lookats[idx].set_roll(roll);
+	}
+}
+
+bool BasicCoordinate::intersection(Ray& ray, int cam, Hit rayHit) const {
 	(void)ray;
 	(void)cam;
-	(void)side;
+	(void)rayHit;
 	return false;
 }
 
-void BasicCoordinate::hit(Ray& ray, int cam) const {
+void BasicCoordinate::getNormal(Ray& ray, int cam) const {
 	(void)ray;
 	(void)cam;
 }
 
-void BasicCoordinate::lighting(Ray& ray, int cam) const {
+bool BasicCoordinate::lighting(Ray& ray, int cam) const {
 	(void)ray;
 	(void)cam;
+	return false;
 }
 
 void BasicCoordinate::output(std::ostringstream& os) {

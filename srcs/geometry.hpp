@@ -14,11 +14,13 @@
 # include <cmath>
 # include <numbers>
 
-# define BASE_PT	Vec3f(0,0,0)
-# define BASE_DIR	Vec3f(0,0,1)
-# define BASE		BASE_PT,BASE_DIR
-# define PRECISION	1e-9
-# define EPSILON 	1e-5
+# define BASE_PT		Vec3f(0,0,0)
+# define BASE_DIR		Vec3f(0,0,1)
+# define BASE			BASE_PT,BASE_DIR
+# define PRECISION		1e-9
+# define EPSILON 		1e-3
+
+enum Hit { FRONT, BACK, OUTLINE };
 
 
 bool  almostEqual(float a, float b, int precision = PRECISION);
@@ -102,6 +104,7 @@ template <class t> struct Vec3 {
 	inline Vec3<t>	operator*(float f) const { return Vec3<t>(x * f, y * f, z * f); }
 	inline Vec3<t>&	product(float f)  { x *= f; y *= f; z *= f; return *this; }
 	inline t		operator*(const Vec3<t>& v) const { return x * v.x + y * v.y + z * v.z;}
+	inline t		product(const Vec3<t>& v) const { return x * v.x + y * v.y + z * v.z;}
 	inline float 	norm () const {
 		return std::sqrt(x * x + y * y + z * z);
 	}
@@ -144,7 +147,8 @@ template <class t> struct Vec3 {
 		}
 		return *this;
 	}
-	inline bool		isNull(void) { return x == 0 && y == 0 && z == 0;  }
+	inline bool		isNull(void) const { return x == 0 && y == 0 && z == 0;  }
+	inline void		toNull(void) { x = 0; y = 0; z = 0;  }
 	template <class > friend std::ostream& operator<<(std::ostream& s, Vec3<t>& v);
 	template <class > friend std::istringstream& operator>>(std::istringstream& is, Vec3<t>& v);
 };
@@ -178,12 +182,7 @@ template <class t> struct LookatAuxiliary {
 	Vec3<t> up;
 	Vec3<t> right;
 	LookatAuxiliary(const Vec3<t>& eyeDir) : dir(eyeDir), up(), right(0,-1,0) {
-		if (
-			almostEqual(dir.x, 0) &&
-			( almostEqual(dir.y, -1) || almostEqual(dir.y, 1) ) &&
-			almostEqual(dir.z, 0)
-			)
-		{
+		if ( dir.x == 0 && (dir.y == -1 || dir.y == 1) && dir.z == 0) {
 			right.y = 0; right.z = -1;
 		}
 		right.product(dir, right); right.normalize();
@@ -224,6 +223,28 @@ public:
 	Lookat& lookAt(const Position& eye, const LookatAux& aux);
 };
 
-// Non member functions
+// Intersections & normals
+
+bool raySphereIntersection(const Vec3f& rayPov,
+						   const Vec3f& rayDir,
+						   const Vec3f& center,
+						   float radius,
+						   float& distance,
+						   Hit rayHit = FRONT);
+
+void normalToRaySphereIntersect(const Vec3f& intersectPt,
+								const Vec3f& center,
+								Vec3f& normal);
+
+bool rayPlaneIntersection(const Vec3f& rayPov,
+						  const Vec3f& rayDir,
+						  const Vec3f& point,
+						  const Vec3f& norm,
+						  float& distance);
+
+
+
+
+
 
 #endif

@@ -57,7 +57,8 @@ ARGBColor ARGBColor::operator+(const ARGBColor& c) const {
 
 ARGBColor& ARGBColor::addition(const ARGBColor& c1, const ARGBColor& c2) {
 	for (int i = 0; i < 4; ++i) {
-		raw[i] = i2limits(c1.raw[i] + c2.raw[i], 0, 255);
+		int tmp = c1.raw[i] + c2.raw[i];
+		raw[i] = i2limits(tmp, 0, 255);
 	}
 	return *this;
 }
@@ -107,9 +108,9 @@ ARGBColor& ARGBColor::negative(void) {
 
 std::string ARGBColor::rrggbb(void) const {
 	std::ostringstream os;
-	os << std::setw(3) << std::setfill(' ') << (int)r << ",";
-	os << std::setw(3) << std::setfill(' ') << (int)g << ",";
-	os << std::setw(3) << std::setfill(' ') << (int)b;
+	os << std::setw(3) << std::setfill('0') << (int)r << ",";
+	os << std::setw(3) << std::setfill('0') << (int)g << ",";
+	os << std::setw(3) << std::setfill('0') << (int)b;
 	return os.str();
 }
 

@@ -48,7 +48,7 @@ public:
 	bool checkCameraIdx(int cameraIdx) const;
 	void recalculateLookatsForCurrentCamera(const Position& eye);
 	void raytrasingCurrentCamera(void);
-	A_Scenery* intersection(Ray& ray, int cam);
+	A_Scenery* nearestIntersection(Ray& ray, int cam);
 	bool shadow(Ray& ray, int cam);
 	void trasingRay(Ray& ray, int cam);
 	void rt(void);

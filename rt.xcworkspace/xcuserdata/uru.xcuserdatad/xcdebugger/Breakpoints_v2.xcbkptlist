@@ -14,8 +14,8 @@
             filePath = "srcs/Scene.cpp"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "393"
-            endingLineNumber = "393"
+            startingLineNumber = "414"
+            endingLineNumber = "414"
             landmarkName = "Scene::rotateCurrentCamera(ctrl)"
             landmarkType = "7">
          </BreakpointContent>

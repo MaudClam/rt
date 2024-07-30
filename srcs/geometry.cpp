@@ -97,3 +97,64 @@ float radian(float degree) {
 float degree(float radian) {
 	return (radian * 180. / std::numbers::pi);
 }
+
+bool raySphereIntersection(const Vec3f& rayPov,
+						   const Vec3f& rayDir,
+						   const Vec3f& center,
+						   float radius,
+						   float& distance,
+						   Hit rayHit) {
+	Vec3f	r;
+	r.substract(rayPov, center);
+	float b = rayDir * r;
+	float c = r * r - radius * radius;
+	float d = b * b - c;
+	if (d >= 0) {
+		float sqrt_d = std::sqrt(d);
+		float t1 = -b + sqrt_d;
+		float t2 = -b - sqrt_d;
+		float min_t = std::min(t1,t2);
+		float max_t = std::max(t1,t2);
+		if (rayHit == FRONT) {
+			float t = min_t >= 0 ? min_t : max_t;
+			if (t > 0) {
+				distance = t;
+				return true;
+			}
+		} else if (rayHit == BACK) {
+			if (max_t > 0) {
+				distance = max_t;
+				return true;
+			}
+		} else if (rayHit == OUTLINE && almostEqual(d, 0, EPSILON)) {
+			float t = min_t >= 0 ? min_t : max_t;
+			if (t > 0) {
+				distance = t;
+				return true;
+			}
+		}
+	}
+	return false;
+}
+
+void normalToRaySphereIntersect(const Vec3f& intersectPt, const Vec3f& center, Vec3f& normal) {
+	normal.substract(intersectPt, center).normalize();
+}
+
+bool rayPlaneIntersection(const Vec3f& rayPov,
+						  const Vec3f& rayDir,
+						  const Vec3f& point,
+						  const Vec3f& norm,
+						  float& distance) {
+	float k = rayDir * norm;
+	if ( !almostEqual(k, 0, EPSILON) ) {
+		Vec3f r;
+		r.substract(rayPov, point);
+		float t = r.product(norm) / -k;
+		if (t > 0) {
+			distance = t;
+			return true;
+		}
+	}
+	return false;
+}

@@ -138,16 +138,28 @@ int  Scene::parsing(int ac, char** av) {
 	set_any( std::istringstream("R 800 600	RayTrasing") );
 	std::string header(_header + " " + std::to_string(_resolution.x) + "x" + std::to_string(_resolution.y));
 	img.init(header, _resolution);
-	set_any( std::istringstream("A 0.9	255,255,230") );
+	set_any( std::istringstream("A 0.2	255,255,230") );
 	set_any( std::istringstream("c    19,0,19       -1,0,0      70 ") );
 	set_any( std::istringstream("c     0,0,0         0,0,1      70 ") );
 	set_any( std::istringstream("c     0,0,38        0,0,-1     70 ") );
-	set_any( std::istringstream("l     0,1,133    0.6 " + img.white.rrggbb() + " 0,0,0") );
-	set_any( std::istringstream("sp    0,0,25     16  " + img.lightGray.rrggbb()) );
+	set_any( std::istringstream("l     0,0,0      0.6 " + img.white.rrggbb() + " -1,0,-1") );
+	set_any( std::istringstream("l     0,0,0      0.2 " + img.white.rrggbb() + " 1,-2,1") );
+	set_any( std::istringstream("sp    0,0,25     16  " + img.white.rrggbb()) );
 	set_any( std::istringstream("sp    0,0,16.9   8   " + img.yellow.rrggbb()) );
 	set_any( std::istringstream("sp    0,0,12.5   4   " + img.cyan.rrggbb()) );
 	set_any( std::istringstream("sp    0,0,9.9    2   " + img.magenta.rrggbb()) );
 	set_any( std::istringstream("sp    0,0,3      0.5 " + img.red.rrggbb()) );
+
+// ============
+
+//	set_any( std::istringstream("c     0,0,0         0,0,1      60 ") );
+//	set_any( std::istringstream("A 0.2	255,255,250") );
+//	set_any( std::istringstream("l     2,1,0    0.6 " + img.white.rrggbb() + " 0,0,0") );
+//	set_any( std::istringstream("l     0,0,0    0.2 " + img.white.rrggbb() + " 1,4,4") );
+//	set_any( std::istringstream("sp    0,-1,3	2 " + img.red.rrggbb()) );
+//	set_any( std::istringstream("sp    2,0,4	2 " + img.blue.rrggbb()) );
+//	set_any( std::istringstream("sp    -2,0,4	2 " + img.green.rrggbb()) );
+//	set_any( std::istringstream("sp    0,-5001,0	10000 " + img.yellow.rrggbb()) );
 
 //	===========
 	initLoockats();
@@ -240,10 +252,10 @@ void Scene::raytrasingCurrentCamera(void) {
 	}
 }
 
-A_Scenery* Scene::intersection(Ray& ray, int cam) {
+A_Scenery* Scene::nearestIntersection(Ray& ray, int cam) {
 	A_Scenery*	nearestObj = NULL;
 	float		distance = INFINITY;
-	auto End = objsIdx.end();
+	auto		End = objsIdx.end();
 	for (auto obj = objsIdx.begin(); obj != End; ++obj) {
 		if ( (*obj)->intersection(ray, cam) ) {
 			if (distance > ray.dist) {
@@ -259,10 +271,17 @@ A_Scenery* Scene::intersection(Ray& ray, int cam) {
 }
 
 bool Scene::shadow(Ray& ray, int cam) {
-	auto End = objsIdx.end();
+	Vec3f epsilon(ray.norm);
+	epsilon.product(EPSILON);
+	ray.pov.addition(ray.pov, epsilon);
+	ray.dist += epsilon.norm();
+	float	distance = ray.dist;
+	auto	End = objsIdx.end();
 	for (auto obj = objsIdx.begin(); obj != End; ++obj) {
 		if ( (*obj)->intersection(ray, cam) ) {
-			return true;
+			if (ray.dist < distance) {
+				return true;
+			}
 		}
 	}
 	return false;
@@ -272,15 +291,17 @@ void Scene::trasingRay(Ray& ray, int cam) {
 	if (ray.hits >= RECURSIONS) {
 		return;
 	}
-	A_Scenery* obj = intersection(ray, cam);
+	A_Scenery* obj = nearestIntersection(ray, cam);
 	if (obj) {
-		obj->hit(ray, cam);
-		ray.tmpColor.product(ray.tmpColor,_ambient.light);// Ambient Lighting
-		ray.color.addition(ray.color, ray.tmpColor);
+		ray.hits++;
+		ray.pov.addition( ray.pov, ray.dir * ray.dist ); // change ray.pov
+		obj->getNormal(ray, cam);
+		ray.color.product(obj->color, _ambient.light);// Ambient Lighting
 		auto End = lightsIdx.end();
 		for (auto light = lightsIdx.begin(); light != End; ++light) {
-			if ( (*light)->intersection(ray, cam) ) {
-				
+			if ( (*light)->lighting(ray, cam) && !shadow(ray, cam) ) {
+				ray.light.product(obj->color, ray.light);
+				ray.color.addition(ray.color, ray.light);
 			}
 		}
 	} else {
@@ -411,14 +432,14 @@ void Scene::setFlybyRadiusForCurrentCamera(void) {
 	for (auto pixel = cam.matrix.begin(); pixel != End; ++pixel) {
 		auto end = objsIdx.end();
 		for (auto obj = objsIdx.begin(); obj != end; ++obj) {
-			if ( (*obj)->intersection(pixel->ray, _currentCamera, A_Scenery::FRONT) ) {
+			if ( (*obj)->intersection(pixel->ray, _currentCamera, FRONT) ) {
 				if ( front > pixel->ray.dist ) {
 					front = pixel->ray.dist;
 				}
 			}
 			pixel->reset(tan, pov);
-			if ( (*obj)->intersection(pixel->ray, _currentCamera, A_Scenery::BACK) ) {
-				if ( back < pixel->ray.dist ) {
+			if ( (*obj)->intersection(pixel->ray, _currentCamera, BACK) ) {
+				if ( back < pixel->ray.dist && pixel->ray.dist < FLYBY_RADIUS_MAX) {
 					back = pixel->ray.dist;
 				}
 			}
