@@ -126,7 +126,7 @@ bool Scene::set_any(std::istringstream is) {
 
 void Scene::set_scenery(A_Scenery* scenery) {
 	scenerys.push_back(scenery);
-	if ( scenerys.back()->get_light() == true ) {
+	if ( scenerys.back()->get_isLight() == true ) {
 		lightsIdx.push_back(scenery);
 	} else {
 		objsIdx.push_back(scenery);
@@ -138,28 +138,28 @@ int  Scene::parsing(int ac, char** av) {
 	set_any( std::istringstream("R 800 600	RayTrasing") );
 	std::string header(_header + " " + std::to_string(_resolution.x) + "x" + std::to_string(_resolution.y));
 	img.init(header, _resolution);
-	set_any( std::istringstream("A 0.2	255,255,230") );
-	set_any( std::istringstream("c    19,0,19       -1,0,0      70 ") );
-	set_any( std::istringstream("c     0,0,0         0,0,1      70 ") );
-	set_any( std::istringstream("c     0,0,38        0,0,-1     70 ") );
-	set_any( std::istringstream("l     0,0,0      0.6 " + img.white.rrggbb() + " -1,0,-1") );
-	set_any( std::istringstream("l     0,0,0      0.2 " + img.white.rrggbb() + " 1,-2,1") );
-	set_any( std::istringstream("sp    0,0,25     16  " + img.white.rrggbb()) );
-	set_any( std::istringstream("sp    0,0,16.9   8   " + img.yellow.rrggbb()) );
-	set_any( std::istringstream("sp    0,0,12.5   4   " + img.cyan.rrggbb()) );
-	set_any( std::istringstream("sp    0,0,9.9    2   " + img.magenta.rrggbb()) );
-	set_any( std::istringstream("sp    0,0,3      0.5 " + img.red.rrggbb()) );
+//	set_any( std::istringstream("A 0.2	255,255,230") );
+//	set_any( std::istringstream("c    19,0,19       -1,0,0      70 ") );
+//	set_any( std::istringstream("c     0,0,0         0,0,1      70 ") );
+//	set_any( std::istringstream("c     0,0,38        0,0,-1     70 ") );
+//	set_any( std::istringstream("l     0,0,0      0.6 " + img.white.rrggbb() + " -1,0,-1") );
+//	set_any( std::istringstream("l     0,0,0      0.2 " + img.white.rrggbb() + " 1,-2,1") );
+//	set_any( std::istringstream("sp    0,0,25     16  " + img.white.rrggbb()) );
+//	set_any( std::istringstream("sp    0,0,16.9   8   " + img.yellow.rrggbb()) );
+//	set_any( std::istringstream("sp    0,0,12.5   4   " + img.cyan.rrggbb()) );
+//	set_any( std::istringstream("sp    0,0,9.9    2   " + img.magenta.rrggbb()) );
+//	set_any( std::istringstream("sp    0,0,3      0.5 " + img.red.rrggbb()) );
 
 // ============
 
-//	set_any( std::istringstream("c     0,0,0         0,0,1      60 ") );
-//	set_any( std::istringstream("A 0.2	255,255,250") );
-//	set_any( std::istringstream("l     2,1,0    0.6 " + img.white.rrggbb() + " 0,0,0") );
-//	set_any( std::istringstream("l     0,0,0    0.2 " + img.white.rrggbb() + " 1,4,4") );
-//	set_any( std::istringstream("sp    0,-1,3	2 " + img.red.rrggbb()) );
-//	set_any( std::istringstream("sp    2,0,4	2 " + img.blue.rrggbb()) );
-//	set_any( std::istringstream("sp    -2,0,4	2 " + img.green.rrggbb()) );
-//	set_any( std::istringstream("sp    0,-5001,0	10000 " + img.yellow.rrggbb()) );
+	set_any( std::istringstream("c     0,0,0         0,0,1      60 ") );
+	set_any( std::istringstream("A 0.2	255,255,250") );
+	set_any( std::istringstream("l     2,1,0    0.6 " + img.white.rrggbb() + " 0,0,0") );
+	set_any( std::istringstream("l     0,0,0    0.2 " + img.white.rrggbb() + " 1,4,4") );
+	set_any( std::istringstream("sp    0,-1,3	2 " + img.red.rrggbb()) );
+	set_any( std::istringstream("sp    2,0,4	2 " + img.blue.rrggbb()) );
+	set_any( std::istringstream("sp    -2,0,4	2 " + img.green.rrggbb()) );
+	set_any( std::istringstream("sp    0,-5001,0	10000 " + img.yellow.rrggbb()) );
 
 //	===========
 	initLoockats();
@@ -172,7 +172,7 @@ void Scene::indexingScenerys(void) {
 	lightsIdx.clear();
 	auto End = scenerys.end();
 	for (auto scenery = scenerys.begin(); scenery != End; ++scenery) {
-		if ( (*scenery)->get_light() ) {
+		if ( (*scenery)->get_isLight() ) {
 			lightsIdx.push_back(*scenery);
 		} else {
 			objsIdx.push_back(*scenery);

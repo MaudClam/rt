@@ -10,7 +10,7 @@
 Sphere::Sphere(void) : _radius(0) {
 	_name = "sphere";
 	_nick = "sp";
-	_light = false;
+	_isLight = false;
 }
 
 Sphere::~Sphere(void) {}
@@ -18,7 +18,7 @@ Sphere::~Sphere(void) {}
 Sphere::Sphere(const Vec3f& center, float radius, const ARGBColor& color) : _radius(radius) {
 	_name = "sphere";
 	_nick = "sp";
-	_light = false;
+	_isLight = false;
 	this->_pos.p = center;
 	this->color = color;
 }
@@ -26,10 +26,18 @@ Sphere::Sphere(const Vec3f& center, float radius, const ARGBColor& color) : _rad
 Sphere::Sphere(const Sphere& other) : _radius(other._radius) {
 	_name = other._name;
 	_nick = other._nick;
-	_light = other._light;
+	_isLight = other._isLight;
 	_pos = other._pos;
 	lookats = other.lookats;
 	color = other.color;
+}
+
+bool Sphere::checkLookatsIdx(int idx) const {
+	if (idx >= 0 && idx < (int)lookats.size()) {
+		return true;
+	}
+	std::cerr << "Warning: lookats index is out of range" << std::endl;
+	return false;
 }
 
 void Sphere::set_lookatCamera(const Position& eye, const LookatAux& aux) {

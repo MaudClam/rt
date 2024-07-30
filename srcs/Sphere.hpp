@@ -24,6 +24,7 @@ public:
 	Sphere(const Vec3f& center, float radius, const ARGBColor& color);
 	Sphere(const Sphere& other);
 	Sphere& operator=(const Sphere& other);
+	bool checkLookatsIdx(int idx) const;
 	void set_lookatCamera(const Position& eye, const LookatAux& aux);
 	void set_lookatBase(void);
 	void recalculateLookat(int idx, const Position& eye, const LookatAux& aux);

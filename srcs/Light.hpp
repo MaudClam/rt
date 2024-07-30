@@ -23,6 +23,7 @@ public:
 	~Light(void);
 	Light(const Light& other);
 	Light& operator=(const Lighting& other);
+	bool checkLookatsIdx(int idx) const;
 	void set_lookatCamera(const Position& eye, const LookatAux& aux);
 	void set_lookatBase(void);
 	void recalculateLookat(int idx, const Position& eye, const LookatAux& aux);

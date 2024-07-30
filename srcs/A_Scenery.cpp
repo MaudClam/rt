@@ -13,7 +13,7 @@
 A_Scenery::A_Scenery(void) :
 _name(),
 _nick(),
-_light(false),
+_isLight(false),
 _pos(),
 lookats(),
 color()
@@ -24,7 +24,7 @@ A_Scenery::~A_Scenery(void) {}
 A_Scenery::A_Scenery(const A_Scenery& other) :
 _name(other._name),
 _nick(other._nick),
-_light(other._light),
+_isLight(other._isLight),
 _pos(other._pos),
 lookats(other.lookats),
 color(other.color)
@@ -32,18 +32,9 @@ color(other.color)
 
 std::string A_Scenery::get_nick(void) const { return _nick; }
 
-bool A_Scenery::get_light(void) const { return _light; }
-
+bool A_Scenery::get_isLight(void) const { return _isLight; }
 
 Position A_Scenery::get_pos(void) const { return _pos; }
-
-bool A_Scenery::checkLookatsIdx(int idx) const {
-	if (idx >= 0 && idx < (int)lookats.size()) {
-		return true;
-	}
-	std::cerr << "Warning: lookats index is out of range" << std::endl;
-	return false;
-}
 
 void A_Scenery::set_pos(const Position& pos) { _pos = pos; }
 
@@ -63,7 +54,7 @@ std::ostream& operator<<(std::ostream& o, A_Scenery& s) {
 BasicCoordinate::BasicCoordinate(const Position& pos) {
 	_name = "BasicCoordinate";
 	_nick = "bc";
-	_light = false;
+	_isLight = false;
 	_pos = pos;
 }
 
@@ -77,6 +68,14 @@ BasicCoordinate& BasicCoordinate::operator=(const BasicCoordinate& other) {
 		lookats = other.lookats;
 	}
 	return *this;
+}
+
+bool BasicCoordinate::checkLookatsIdx(int idx) const {
+	if (idx >= 0 && idx < (int)lookats.size()) {
+		return true;
+	}
+	std::cerr << "Warning: lookats index is out of range" << std::endl;
+	return false;
 }
 
 void BasicCoordinate::set_lookatCamera(const Position& eye, const LookatAux& aux) {

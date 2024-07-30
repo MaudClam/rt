@@ -18,7 +18,7 @@ class A_Scenery {
 protected:
 	std::string				_name;
 	std::string				_nick;
-	bool					_light;
+	bool					_isLight;
 	Position				_pos;
 public:
 	std::vector<Lookat>		lookats;
@@ -27,10 +27,10 @@ public:
 	virtual ~A_Scenery(void);
 	A_Scenery(const A_Scenery& other);
 	std::string  get_nick(void) const;
-	bool  get_light(void) const;
+	bool  get_isLight(void) const;
 	Position get_pos(void) const;
 	void set_pos(const Position& pos);
-	bool checkLookatsIdx(int idx) const;
+	virtual bool checkLookatsIdx(int idx) const = 0;
 	virtual void set_lookatCamera(const Position& eye, const LookatAux& aux) = 0;
 	virtual void set_lookatBase(void) = 0;
 	virtual void recalculateLookat(int idx, const Position& eye, const LookatAux& aux) = 0;
@@ -48,6 +48,7 @@ public:
 	~BasicCoordinate(void);
 	BasicCoordinate(const BasicCoordinate& other);
 	BasicCoordinate& operator=(const BasicCoordinate& other);
+	bool checkLookatsIdx(int idx) const;
 	void set_lookatCamera(const Position& eye, const LookatAux& aux);
 	void set_lookatBase(void);
 	void recalculateLookat(int idx, const Position& eye, const LookatAux& aux);

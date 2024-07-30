@@ -10,7 +10,7 @@
 Light::Light(void) {
 	_name = "light";
 	_nick = "l";
-	_light = true;
+	_isLight = true;
 }
 
 Light::~Light(void) {}
@@ -21,13 +21,19 @@ Light::Light(const Light& other) : light(other.light) {
 	color = other.color;
 }
 
+bool Light::checkLookatsIdx(int idx) const {
+	if (idx >= 0 && idx < (int)lookats.size()) {
+		return true;
+	}
+	std::cerr << "Warning: lookats index is out of range" << std::endl;
+	return false;
+}
+
 void Light::set_lookatCamera(const Position& eye, const LookatAux& aux) {
 	set_lookatBase();
 	bool pIsNull = lookats.back().p.isNull();
-	bool nIsNull = lookats.back().n.isNull();
 	lookats.back().lookAt(eye, aux);
 	if (pIsNull) lookats.back().p.toNull();
-	if (nIsNull) lookats.back().n.toNull();
 }
 
 void Light::set_lookatBase(void) {
