@@ -84,7 +84,6 @@ void Pixel::reset(float tan, const Vec3f& pov) {
 	ray.dir.x = cPos.x * tan; ray.dir.y = cPos.y * tan; ray.dir.z = 1.;
 	ray.dir.normalize();
 	ray.dist = INFINITY;
-	ray.hits = 0;
 }
 
 
@@ -139,9 +138,8 @@ bool Matrix::set_fovDegree(float degree) { return _fov.set_degree(degree); }
 
 // class Camera
 
-Camera::Camera(const MlxImage& img, const Position& base) :
-_pos(base),
-_pos0(base),
+Camera::Camera(const MlxImage& img) :
+_pos(Vec3f(), Vec3f(0,0,1)),
 _roll(0),
 _flybyRadius(0)
 {	_width = img.get_width();
@@ -152,21 +150,6 @@ _flybyRadius(0)
 }
 
 Camera::~Camera(void) {}
-
-Camera::Camera(const MlxImage& img, const Position& pos, float fov, const Position& base) :
-_pos0(base)
-{
-	_width = img.get_width();
-	_height = img.get_height();
-	_bytespp = img.get_bytespp();
-	_mult = 2. / _width;
-	set_fovDegree(fov);
-	_pos = pos;
-	_pos.n.normalize();
-	_roll = 0;
-	_flybyRadius = 0;
-	initMatrix();
-}
 
 Camera::Camera(const Camera& other) { *this = other; }
 
@@ -179,7 +162,6 @@ Camera& Camera::operator=(const Camera& other) {
 		_fov = other._fov;
 		matrix = other.matrix;
 		_pos = other._pos;
-		_pos0 = other._pos0;
 		_roll = other._roll;
 		_flybyRadius = other._flybyRadius;
 	}
@@ -187,8 +169,6 @@ Camera& Camera::operator=(const Camera& other) {
 }
 
 Position Camera::get_pos(void) const { return _pos; }
-
-Position Camera::get_pos0(void) const { return _pos0; }
 
 float Camera::get_rollDegree(void) const { return degree(_roll); }
 
@@ -198,19 +178,17 @@ float Camera::get_flybyRadius(void) const { return _flybyRadius; }
 
 void Camera::set_pos(const Position& pos) { _pos = pos; }
 
-void Camera::set_pos0(const Position& pos0) { _pos0 = pos0; }
-
 void Camera::set_flybyRadius(float flybyRadius) { _flybyRadius = flybyRadius; }
 
 void Camera::initMatrix(void) {
-	Vec2i	mPos; // pixel xy-position on the monitor (width*height pixels, xy(0,0) in the upper left corner, Y-axis direction down);
-	Vec2f	cPos; // pixel xy-position on the canvas (width=1, xy(0,0) in the center, XY-axes up and right directions)
+	Vec2i	mPos; // pixel xy-coordinate on the monitor (width*height pixels, xy(0,0) in the upper left corner, Y-axis direction down);
+	Vec2f	cPos; // pixel xy-coordinate on the canvas (width=1, xy(0,0) in the center, XY-axes up and right directions)
 	matrix.reserve(_width * _height);
 	for (mPos.y = 0; mPos.y < _height; mPos.y++) {
 		for (mPos.x = 0; mPos.x < _width; mPos.x++) {
 			cPos.x = mPos.x; cPos.y = mPos.y;
 			cPos = cPos.toRt(_width, _height) * _mult;
-			matrix.push_back( Pixel(cPos, _fov.get_tan(), _pos0.p) );
+			matrix.push_back( Pixel(cPos, _fov.get_tan(), _pos.p) );
 		}
 	}
 }
@@ -218,7 +196,7 @@ void Camera::initMatrix(void) {
 void Camera::resetMatrix(void) {
 	auto End = matrix.end();
 	for (auto pixel = matrix.begin(); pixel != End; ++pixel) {
-		pixel->reset(_fov.get_tan(), _pos0.p);
+		pixel->reset(_fov.get_tan(), _pos.p);
 	}
 }
 
@@ -230,7 +208,6 @@ void Camera::takePicture(MlxImage& img) {
 			memcpy(data, pixel->ray.color.raw, _bytespp);
 			data += _bytespp;
 			pixel->ray.color.val = 0;
-			pixel->ray.hits = 0;
 		}
 	}
 }
@@ -243,8 +220,8 @@ bool Camera::reset_fovDegree(float degree) {
 	return false;
 }
 
-void Camera::reset_pov(const Position& pos0) {
-	_pos0 = pos0;
+void Camera::reset_pov(const Position& pos) {
+	_pos = pos;
 	resetMatrix();
 }
 

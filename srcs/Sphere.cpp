@@ -29,66 +29,24 @@ Sphere::Sphere(const Sphere& other) : _radius(other._radius), _sqrRadius(_radius
 	_nick = other._nick;
 	_isLight = other._isLight;
 	_pos = other._pos;
-	lookats = other.lookats;
 	color = other.color;
 	specular = other.specular;
 	reflective = other.reflective;
 }
 
-bool Sphere::checkLookatsIdx(int idx) const {
-	if (idx >= 0 && idx < (int)lookats.size()) {
+bool Sphere::intersection(Ray& ray, Hit rayHit) const {
+	if (raySphereIntersection(ray.dir, ray.pov, _pos.p, _sqrRadius, ray.dist, rayHit)) {
 		return true;
 	}
-	std::cerr << "Warning: lookats index is out of range" << std::endl;
 	return false;
 }
 
-void Sphere::set_lookatCamera(const Position& eye, const LookatAux& aux) {
-	set_lookatBase(eye);
-	size_t idx = lookats.size() - 2;
-	lookats[idx].lookAt(eye, aux);
-	lookats[idx + 1].p.substract(eye.p, lookats[idx].p);
+void Sphere::getNormal(Ray& ray) const {
+	normalToRaySphereIntersect(ray.pov, _pos.p, ray.norm);
 }
 
-void Sphere::set_lookatBase(const Position& eye) {
-	lookats.push_back(Lookat(_pos));
-	lookats.push_back( Lookat(eye.p - _pos.p, Vec3f()) );
-}
-
-void Sphere::recalculateLookat(int cam, const Position& eye, const LookatAux& aux) {
-	int idx = cam * 2;
-	if (checkLookatsIdx(idx + 1)) {
-		lookats[idx].lookAt(eye, aux);
-		lookats[idx + 1].p.substract(eye.p, lookats[idx].p);
-	}
-}
-
-void Sphere::recalculateLookat(int cam, float roll, const Vec3f& newPov) {
-	int idx = cam * 2;
-	if (checkLookatsIdx(idx + 1)) {
-		lookats[idx].set_roll(roll);
-		lookats[idx + 1].p.substract(newPov, lookats[idx].p);
-	}
-}
-
-bool Sphere::intersection(Ray& ray, int cam, Hit rayHit) const {
-	int  idx = cam * 2; // pov_center idx
-	if (checkLookatsIdx(idx)) {
-		return raySphereIntersection(ray.dir, ray.pov - lookats[idx].p, _sqrRadius, ray.dist, rayHit);
-	}
-	return false;
-}
-
-void Sphere::getNormal(Ray& ray, int cam) const {
-	int  idx = cam * 2; // center idx
-	if (checkLookatsIdx(idx)) {
-		normalToRaySphereIntersect(ray.pov, lookats[idx].p, ray.norm);
-	}
-}
-
-bool Sphere::lighting(Ray& ray, int cam) const {
+bool Sphere::lighting(Ray& ray) const {
 	(void)ray;
-	(void)cam;
 	return false;
 }
 

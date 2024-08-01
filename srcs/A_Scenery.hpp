@@ -10,9 +10,7 @@
 
 # include "geometry.hpp"
 # include "ARGBColor.hpp"
-
-struct	Ray;
-class	Camera;
+# include "Ray.hpp"
 
 class A_Scenery {
 protected:
@@ -21,7 +19,6 @@ protected:
 	bool					_isLight;
 	Position				_pos;
 public:
-	std::vector<Lookat>		lookats;
 	ARGBColor				color;
 	int						specular;	// in range [-1,1000]
 	float					reflective;	// in range [0,1]
@@ -32,14 +29,9 @@ public:
 	bool  get_isLight(void) const;
 	Position get_pos(void) const;
 	void set_pos(const Position& pos);
-	virtual bool checkLookatsIdx(int idx) const = 0;
-	virtual void set_lookatCamera(const Position& eye, const LookatAux& aux) = 0;
-	virtual void set_lookatBase(const Position& eye) = 0;
-	virtual void recalculateLookat(int cameraIdx, const Position& eye, const LookatAux& aux) = 0;
-	virtual void recalculateLookat(int cameraIdx, float roll, const Vec3f& newPov) = 0;
-	virtual bool intersection(Ray& ray, int cameraIdx, Hit rayHit = FRONT) const = 0;
-	virtual void getNormal(Ray& ray, int cameraIdx) const = 0;
-	virtual bool lighting(Ray& ray, int cameraIdx) const = 0;
+	virtual bool intersection(Ray& ray, Hit rayHit = FRONT) const = 0;
+	virtual void getNormal(Ray& ray) const = 0;
+	virtual bool lighting(Ray& ray) const = 0;
 	virtual void output(std::ostringstream& os) = 0;
 	friend std::ostream& operator<<(std::ostream& o, A_Scenery& s);
 };

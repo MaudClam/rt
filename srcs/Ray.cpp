@@ -9,7 +9,7 @@
 
 // struct Ray
 
-Ray::Ray(void) : pov(), dir(), dist(0), hits(0), color(0) {}
+Ray::Ray(void) : pov(), dir(), dist(0), color(0) {}
 
 Ray::~Ray(void) {}
 
@@ -18,7 +18,6 @@ pov(pos.p),
 dir(pos.n),
 norm(),
 dist(0),
-hits(0),
 light(0),
 color(0)
 {}
@@ -28,7 +27,6 @@ pov(other.pov),
 dir(other.dir),
 norm(other.norm),
 dist(other.dist),
-hits(other.hits),
 light(other.light),
 color(other.color)
 {}
@@ -39,7 +37,6 @@ Ray& Ray::operator=(const Ray& other) {
 		dir = other.dir;
 		norm = other.norm;
 		dist = other.dist;
-		hits = other.hits;
 		light = other.light;
 		color = other.color;
 	}

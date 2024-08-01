@@ -168,26 +168,26 @@ int		keyDown(int key, void* param) {
 	if (isHoldKey(key)) var.img->holdKey = key;
 	if (var.img->holdKey == KEY_LEFT_ALT || var.img->holdKey == KEY_RIGHT_ALT) {
 		if (isNumericKey(key)) {
-			var.scene->selectCurrentCamera( numericKeyToNumber(key) );
+			var.scene->selectCamera( numericKeyToNumber(key) );
 		} else {
 			switch (key) {
-				case KEY_ARROW_RIGHT: var.scene->selectCurrentCamera(NEXT); break;
-				case KEY_ARROW_LEFT:  var.scene->selectCurrentCamera(PREVIOUS);  break;
-				case KEY_ARROW_UP:    var.scene->moveCurrentCamera(MOVE_FORWARD); break;
-				case KEY_ARROW_DOWN:  var.scene->moveCurrentCamera(MOVE_BACKWARD); break;
-				case KEY_PLUS:    	  var.scene->changeCurrentCameraFOV(INCREASE_FOV); break;
-				case KEY_MINUS:       var.scene->changeCurrentCameraFOV(DECREASE_FOV); break;
+				case KEY_ARROW_RIGHT: var.scene->selectCamera(NEXT); break;
+				case KEY_ARROW_LEFT:  var.scene->selectCamera(PREVIOUS);  break;
+				case KEY_ARROW_UP:    var.scene->moveCamera(MOVE_FORWARD); break;
+				case KEY_ARROW_DOWN:  var.scene->moveCamera(MOVE_BACKWARD); break;
+				case KEY_PLUS:    	  var.scene->changeCameraFOV(INCREASE_FOV); break;
+				case KEY_MINUS:       var.scene->changeCameraFOV(DECREASE_FOV); break;
 				default: break;
 			}
 		}
 	} else if (var.img->holdKey == KEY_LEFT_SHIFT || var.img->holdKey == KEY_RIGHT_SHIFT) {
 		switch (key) {
-			case KEY_ARROW_RIGHT: var.scene->rotateCurrentCamera(YAW_RIGHT); break;
-			case KEY_ARROW_LEFT:  var.scene->rotateCurrentCamera(YAW_LEFT);  break;
-			case KEY_ARROW_UP:    var.scene->rotateCurrentCamera(PITCH_UP); break;
-			case KEY_ARROW_DOWN:  var.scene->rotateCurrentCamera(PITCH_DOWN); break;
-			case KEY_PLUS:    	  var.scene->rotateCurrentCamera(ROLL_RIGHT); break;
-			case KEY_MINUS:       var.scene->rotateCurrentCamera(ROLL_LEFT); break;
+			case KEY_ARROW_RIGHT: var.scene->rotateCamera(YAW_RIGHT); break;
+			case KEY_ARROW_LEFT:  var.scene->rotateCamera(YAW_LEFT);  break;
+			case KEY_ARROW_UP:    var.scene->rotateCamera(PITCH_UP); break;
+			case KEY_ARROW_DOWN:  var.scene->rotateCamera(PITCH_DOWN); break;
+			case KEY_PLUS:    	  var.scene->rotateCamera(ROLL_RIGHT); break;
+			case KEY_MINUS:       var.scene->rotateCamera(ROLL_LEFT); break;
 			default: break;
 		}
 	} else if (var.img->holdKey == KEY_LEFT_CMD || var.img->holdKey == KEY_RIGHT_CMD) {
@@ -195,7 +195,7 @@ int		keyDown(int key, void* param) {
 			case KEY_LEFT_CMD: {
 				if (var.img->flyby == FLYBY_OFF) {
 					var.img->flyby = FLYBY_CLOCKWISE;
-					var.scene->setFlybyRadiusForCurrentCamera();
+					var.scene->calculateFlybyRadius();
 				} else {
 					var.img->flyby = FLYBY_OFF;
 				}
@@ -204,7 +204,7 @@ int		keyDown(int key, void* param) {
 			case KEY_RIGHT_CMD: {
 				if (var.img->flyby == FLYBY_OFF) {
 					var.img->flyby = FLYBY_COUNTER_CLOCKWISE;
-					var.scene->setFlybyRadiusForCurrentCamera();
+					var.scene->calculateFlybyRadius();
 				} else {
 					var.img->flyby = FLYBY_OFF;
 				}
@@ -215,10 +215,10 @@ int		keyDown(int key, void* param) {
 } else {
 		switch (key) {
 			case KEY_ESCAPE:      _exit(*var.img, *var.scene, SUCCESS);  break;
-			case KEY_ARROW_RIGHT: var.scene->moveCurrentCamera(MOVE_RIGHT); break;
-			case KEY_ARROW_LEFT:  var.scene->moveCurrentCamera(MOVE_LEFT); break;
-			case KEY_ARROW_UP:    var.scene->moveCurrentCamera(MOVE_UP); break;
-			case KEY_ARROW_DOWN:  var.scene->moveCurrentCamera(MOVE_DOWN); break;
+			case KEY_ARROW_RIGHT: var.scene->moveCamera(MOVE_RIGHT); break;
+			case KEY_ARROW_LEFT:  var.scene->moveCamera(MOVE_LEFT); break;
+			case KEY_ARROW_UP:    var.scene->moveCamera(MOVE_UP); break;
+			case KEY_ARROW_DOWN:  var.scene->moveCamera(MOVE_DOWN); break;
 			default: break;
 		}
 	}
@@ -275,7 +275,7 @@ int		mouseMove(int button, void* param) {
 
 int		flyby(void) {
 	if (var.img->flyby != FLYBY_OFF) {
-		var.scene->flybyCurrentCamera();
+		var.scene->flybyCamera();
 	}
 	return 0;
 }

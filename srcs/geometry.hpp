@@ -14,15 +14,10 @@
 # include <cmath>
 # include <numbers>
 
-# define BASE_PT		Vec3f(0,0,0)
-# define BASE_DIR		Vec3f(0,0,1)
-# define BASE			BASE_PT,BASE_DIR
 # define PRECISION		1e-9
 # define EPSILON 		1e-3
 
-enum Hit { FRONT, BACK, OUTLINE };
-
-
+enum  Hit { FRONT, BACK, OUTLINE };
 bool  almostEqual(float a, float b, int precision = PRECISION);
 bool  almostEqual(double a, double b, int precision = PRECISION);
 float radian(float degree);
@@ -60,8 +55,6 @@ template <class t> std::istringstream& operator>>(std::istringstream& is, Vec2<t
 	is >> v.x >> trash >> v.y;
 	return is;
 }
-
-template <class t> struct LookatAuxiliary;
 
 template <class t> struct Vec3 {
 	union {
@@ -115,22 +108,6 @@ template <class t> struct Vec3 {
 		}
 		return *this;
 	}
-	inline Vec3<t>& lookatDir(const LookatAuxiliary<t>& aux) {
-		if ( !isNull() && !isInf() ) {
-			t _x = *this * aux.right, _y = *this * aux.up, _z = *this * aux.dir;
-			x = _x; y = _y; z = _z;
-			this->normalize();
-		}
-		return *this;
-	}
-	inline Vec3<t>& lookatPt(const Vec3<t>& eyePt, const LookatAuxiliary<t>& aux) {
-		if (!isInf()) {
-			substract(*this, eyePt);
-			t _x = *this * aux.right, _y = *this * aux.up, _z = *this * aux.dir;
-			x = _x; y = _y; z = _z;
-		}
-		return *this;
-	}
 	inline Vec3<t>& turnAroundY(float angle) {
 		if ( !(angle == 0 || (x == 0 && z == 0) || x == INFINITY || z == INFINITY) ) {
 			float sin = std::sin(angle), cos = std::cos(angle);
@@ -181,25 +158,10 @@ template <class t> bool operator!=(const Vec3<t>& lhs, const Vec3<t>& rhs) {
 	return !(lhs == rhs);
 }
 
-template <class t> struct LookatAuxiliary {
-	Vec3<t> dir;
-	Vec3<t> up;
-	Vec3<t> right;
-	LookatAuxiliary(const Vec3<t>& eyeDir) : dir(eyeDir), up(), right(0,-1,0) {
-		if ( dir.x == 0 && (dir.y == -1 || dir.y == 1) && dir.z == 0) {
-			right.y = 0; right.z = -1;
-		}
-		right.product(dir, right); right.normalize();
-		up.product(dir, right); up.normalize();
-	}
-	~LookatAuxiliary(void) {}
-};
-
-typedef Vec2<float> 			Vec2f;
-typedef Vec2<int>   			Vec2i;
-typedef Vec3<float> 			Vec3f;
-typedef Vec3<int>   			Vec3i;
-typedef LookatAuxiliary<float>	LookatAux;
+typedef Vec2<float>	Vec2f;
+typedef Vec2<int>	Vec2i;
+typedef Vec3<float>	Vec3f;
+typedef Vec3<int>	Vec3i;
 
 struct Position {
 	Vec3f	p;
@@ -211,28 +173,13 @@ struct Position {
 	Position& operator=(const Position& other);
 };
 
-class Lookat : public Position {
-protected:
-	float _roll;
-public:
-	Lookat(void);
-	~Lookat(void);
-	Lookat(const Vec3f& point, const Vec3f& norm, float roll = 0);
-	Lookat(const Position& pos, float roll = 0);
-	Lookat(const Lookat& other);
-	Lookat operator=(const Lookat& other);
-	float	get_roll(void);
-	void	set_roll(float roll);
-	Lookat& lookAt(const Position& eye);
-	Lookat& lookAt(const Position& eye, const LookatAux& aux);
-};
-
 // Intersections, normals, rays
 
 Vec3f reflectRay(const Vec3f& norm, const Vec3f& dir);
 
 bool raySphereIntersection(const Vec3f& rayDir,
-						   const Vec3f& pov_center,
+						   const Vec3f& rayPov,
+						   const Vec3f& center,
 						   float sqrRadius,
 						   float& distance,
 						   Hit rayHit = FRONT);
@@ -246,10 +193,5 @@ bool rayPlaneIntersection(const Vec3f& rayPov,
 						  const Vec3f& point,
 						  const Vec3f& norm,
 						  float& distance);
-
-
-
-
-
 
 #endif

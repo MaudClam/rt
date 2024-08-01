@@ -16,7 +16,6 @@ struct Ray {
 	Vec3f		dir;	// ray direction vector (normalized)
 	Vec3f		norm;	// normal vector at the ray hit (normalized)
 	float		dist;	// vdistance from pov to object
-	int			hits;	// number of ray reflections, refractions, absorptions
 	ARGBColor	light;
 	ARGBColor	color;
 	Ray(void);

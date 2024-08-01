@@ -16,7 +16,6 @@ scenerys(),
 objsIdx(),
 lightsIdx(),
 cameras(),
-_base(BASE),
 _resolution(800,600),
 _header(),
 _ambient(1),
@@ -41,7 +40,6 @@ scenerys(other.scenerys),
 objsIdx(other.objsIdx),
 lightsIdx(other.lightsIdx),
 cameras(other.cameras),
-_base(other._base),
 _resolution(other._resolution),
 _header(other._header),
 _ambient(other._ambient),
@@ -64,11 +62,52 @@ Scene& Scene::operator=(const Scene& other) {
 	return *this;
 }
 
+int  Scene::parsing(int ac, char** av) {
+	(void)ac; (void)av;
+	set_any( std::istringstream("R 600 600	RayTrasing") );
+	std::string header(_header + " " + std::to_string(_resolution.x) + "x" + std::to_string(_resolution.y));
+	img.init(header, _resolution);
+	cameras.push_back(Camera(img));// default camera '0'
+	
+// ============
+
+//	set_any( std::istringstream("A 0.2	255,255,230") );
+//	set_any( std::istringstream("c    19,0,19       -1,0,0      70 ") );
+//	set_any( std::istringstream("c     0,0,0         0,0,1      70 ") );
+//	set_any( std::istringstream("c     0,0,38        0,0,-1     70 ") );
+//	set_any( std::istringstream("l     0,0,0      0.6 " + img.white.rrggbb() +  " -1,0,-1") );
+//	set_any( std::istringstream("l     0,0,0      0.2 " + img.white.rrggbb() +  " 1,-2,1") );
+//	set_any( std::istringstream("sp    0,0,25     16  " + img.white.rrggbb() +  " 1000 0.8") );
+//	set_any( std::istringstream("sp    0,0,16.9   8   " + img.yellow.rrggbb() + " 500  0.2") );
+//	set_any( std::istringstream("sp    0,0,12.5   4   " + img.cyan.rrggbb() +   " 500  0.3") );
+//	set_any( std::istringstream("sp    0,0,9.9    2   " + img.magenta.rrggbb() + " 10  0.4") );
+//	set_any( std::istringstream("sp    0,0,3      0.5 " + img.red.rrggbb()) );
+
+// ============
+
+	set_any( std::istringstream("c     0,0,0         0,0,1      60 ") );
+	set_any( std::istringstream("A 0.2	255,255,250") );
+	set_any( std::istringstream("l     2,1,0    0.6 " + img.white.rrggbb() + "  0,0,0 ") );
+	set_any( std::istringstream("l     inf,0,0  0.2 " + img.white.rrggbb() + "  1,4,4 ") );
+	set_any( std::istringstream("sp    0,-1,3	2   " + img.red.rrggbb()   + " 500  0.2") );
+	set_any( std::istringstream("sp    2,0,4	2   " + img.blue.rrggbb()  + " 500  0.3") );
+	set_any( std::istringstream("sp    -2,0,4	2   " + img.green.rrggbb() + " 10  0.4") );
+	set_any( std::istringstream("sp 0,-5001,0 10000 " + img.yellow.rrggbb()+ " 1000 0.5") );
+
+//	===========
+	
+	if (cameras.size() > 1) {
+		_currentCamera = 1;
+	}
+	if (DEBUG) { std::cout << *this; }
+	return SUCCESS;
+}
+
 int  Scene::get_currentCamera(void) { return _currentCamera;}
 
-bool Scene::set_currentCamera(int cameraIdx) {
-	if (checkCameraIdx(cameraIdx)) {
-		this->_currentCamera = cameraIdx;
+bool Scene::set_currentCamera(int idx) {
+	if (idx >= 0 && idx < (int)cameras.size()) {
+		_currentCamera = idx;
 		cameras[_currentCamera].resetMatrix();
 		if (DEBUG_MODE) { std::cout << "currentCamera: " << _currentCamera << "\n";}
 		return true;
@@ -85,37 +124,32 @@ bool Scene::set_any(std::istringstream is) {
 		if (nicks[id] == iD)
 			break;
 	}
-	switch (id) {// bc BasicCoordinate
-		case 0: {
-			is >> _base.p >> _base.n;
-			_base.n.normalize();
-			break;
-		}
-		case 1: {// R Resolution
+	switch (id) {
+		case 0: {// R Resolution
 			is >> _resolution.x >> _resolution.y >> _header;
 			break;
 		}
-		case 2: {// A AmbientLightning
+		case 1: {// A AmbientLightning
 			is >> _ambient;
 			_space = _ambient;
 			_space.invertBrightness();
 			break;
 		}
-		case 3: {// c camera
-			cameras.push_back(Camera(img, _base));
+		case 2: {// c camera
+			cameras.push_back(Camera(img));
 			is >> cameras.back();
 			break;
 		}
-		case 4: {// c litght
+		case 3: {// c litght
 			Light* l = new Light();
 			is >> *l;
-			scenerys.push_back(l);
+			set_scenery(l);
 			break;
 		}
-		case 5: {// sp sphere
+		case 4: {// sp sphere
 			Sphere* sp = new Sphere;
 			is >> *sp;
-			scenerys.push_back(sp);
+			set_scenery(sp);
 			break;
 		}
 		default:
@@ -133,40 +167,6 @@ void Scene::set_scenery(A_Scenery* scenery) {
 	}
 }
 
-int  Scene::parsing(int ac, char** av) {
-	(void)ac; (void)av;
-	set_any( std::istringstream("R 600 600	RayTrasing") );
-	std::string header(_header + " " + std::to_string(_resolution.x) + "x" + std::to_string(_resolution.y));
-	img.init(header, _resolution);
-	set_any( std::istringstream("A 0.2	255,255,230") );
-	set_any( std::istringstream("c    19,0,19       -1,0,0      70 ") );
-	set_any( std::istringstream("c     0,0,0         0,0,1      70 ") );
-	set_any( std::istringstream("c     0,0,38        0,0,-1     70 ") );
-	set_any( std::istringstream("l     0,0,0      0.6 " + img.white.rrggbb() +  " -1,0,-1") );
-	set_any( std::istringstream("l     0,0,0      0.2 " + img.white.rrggbb() +  " 1,-2,1") );
-	set_any( std::istringstream("sp    0,0,25     16  " + img.white.rrggbb() +  " 1000 0.8") );
-	set_any( std::istringstream("sp    0,0,16.9   8   " + img.yellow.rrggbb() + " 500  0.2") );
-	set_any( std::istringstream("sp    0,0,12.5   4   " + img.cyan.rrggbb() +   " 500  0.3") );
-	set_any( std::istringstream("sp    0,0,9.9    2   " + img.magenta.rrggbb() + " 10  0.4") );
-	set_any( std::istringstream("sp    0,0,3      0.5 " + img.red.rrggbb()) );
-
-// ============
-
-//	set_any( std::istringstream("c     0,0,0         0,0,1      60 ") );
-//	set_any( std::istringstream("A 0.2	255,255,250") );
-//	set_any( std::istringstream("l     2,1,0    0.6 " + img.white.rrggbb() + "  0,0,0 ") );
-//	set_any( std::istringstream("l     inf,0,0  0.2 " + img.white.rrggbb() + "  1,4,4 ") );
-//	set_any( std::istringstream("sp    0,-1,3	2   " + img.red.rrggbb()   + " 500  0.2") );
-//	set_any( std::istringstream("sp    2,0,4	2   " + img.blue.rrggbb()  + " 500  0.3") );
-//	set_any( std::istringstream("sp    -2,0,4	2   " + img.green.rrggbb() + " 10  0.4") );
-//	set_any( std::istringstream("sp 0,-5001,0 10000 " + img.yellow.rrggbb()+ " 1000 0.5") );
-
-//	===========
-	initLoockats();
-	if (DEBUG) { std::cout << *this; }
-	return SUCCESS;
-}
-
 void Scene::indexingScenerys(void) {
 	objsIdx.clear();
 	lightsIdx.clear();
@@ -180,82 +180,20 @@ void Scene::indexingScenerys(void) {
 	}
 }
 
-void Scene::initLoockats(void) {
-	cameras.insert(cameras.begin(), Camera(img, _base));	// default camera "0"
-	indexingScenerys();
-	auto End = cameras.end();
-	for (auto camera = cameras.begin(); camera != End; ++camera) {
-		Position eye(camera->get_pos());
-		if (_base.n != eye.n) {
-			LookatAux aux(eye.n);
-			auto end = scenerys.end();
-			for (auto scenery = scenerys.begin(); scenery != end; ++scenery ) {
-				(*scenery)->set_lookatCamera(eye, aux);
-			}
-			camera->reset_pov(_base);
-		} else {
-			LookatAux aux(eye.n);
-			auto end = scenerys.end();
-			for (auto scenery = scenerys.begin(); scenery != end; ++scenery ) {
-				(*scenery)->set_lookatBase(eye);
-			}
-			camera->reset_pov(eye);
-		}
-	}
-	if (cameras.size() > 1) {
-		_currentCamera = 1;
-	}
-}
-
-bool Scene::checkCameraIdx(int cameraIdx) const {
-	if (cameraIdx >= 0 && cameraIdx < (int)cameras.size()) {
-		return true;
-	}
-	if (DEBUG_MODE) {
-		std::cerr	<< "CameraIdx '" << cameraIdx << "' is out of range, "
-		<< "saved current camera '" << _currentCamera << "'" << std::endl;
-	}
-	return false;
-}
-
-void Scene::recalculateLookatsForCurrentCamera(const Position& eye) {
-	Camera&	cam(cameras[_currentCamera]);
-	float	roll = cam.get_roll();
-	auto	End = scenerys.end();
-	if (_base.n != eye.n) {
-		LookatAux aux(eye.n);
-		for (auto scenery = scenerys.begin(); scenery != End; ++scenery) {
-			(*scenery)->recalculateLookat(_currentCamera, eye, aux);
-			(*scenery)->recalculateLookat(_currentCamera, roll, _base.p);
-		}
-		cam.reset_pov(_base);
-	} else if (cam.get_pos0().p != eye.p) {
-		for (auto scenery = scenerys.begin(); scenery != End; ++scenery) {
-			(*scenery)->recalculateLookat(_currentCamera, roll, eye.p);
-		}
-		cam.reset_pov(eye);
-	} else {
-		for (auto scenery = scenerys.begin(); scenery != End; ++scenery) {
-			(*scenery)->recalculateLookat(_currentCamera, roll, eye.p);
-		}
-		cam.reset_pov(eye);
-	}
-}
-
-void Scene::raytrasingCurrentCamera(void) {
+void Scene::raytrasing(void) {
 	Camera&	cam(cameras[_currentCamera]);
 	auto End = cam.matrix.end();
 	for (auto pixel = cam.matrix.begin(); pixel != End; ++pixel) {
-		trasingRay(pixel->ray, _currentCamera);
+		trasingRay(pixel->ray, 0);
 	}
 }
 
-A_Scenery* Scene::nearestIntersection(Ray& ray, int cam) {
+A_Scenery* Scene::nearestIntersection(Ray& ray) {
 	A_Scenery*	nearestObj = NULL;
 	float		distance = INFINITY;
 	auto		End = objsIdx.end();
 	for (auto obj = objsIdx.begin(); obj != End; ++obj) {
-		if ( (*obj)->intersection(ray, cam) ) {
+		if ( (*obj)->intersection(ray) ) {
 			if (distance > ray.dist) {
 				distance = ray.dist;
 				nearestObj = *obj;
@@ -268,14 +206,14 @@ A_Scenery* Scene::nearestIntersection(Ray& ray, int cam) {
 	return nearestObj;
 }
 
-bool Scene::shadow(Ray& ray, int cam) {
+bool Scene::shadow(Ray& ray) {
 	Vec3f epsilon(ray.norm);
 	epsilon.product(EPSILON);
 	ray.pov.addition(ray.pov, epsilon);
 	float	distance = ray.dist;
 	auto	End = objsIdx.end();
 	for (auto obj = objsIdx.begin(); obj != End; ++obj) {
-		if ( (*obj)->intersection(ray, cam) ) {
+		if ( (*obj)->intersection(ray) ) {
 			if (ray.dist < distance) {
 				return true;
 			}
@@ -284,21 +222,20 @@ bool Scene::shadow(Ray& ray, int cam) {
 	return false;
 }
 
-void Scene::trasingRay(Ray& ray, int cam) {
-	if (ray.hits > RECURSIONS) {
+void Scene::trasingRay(Ray& ray, int recursion) {
+	if (recursion > RECURSIONS) {
 		return;
 	}
-	A_Scenery* obj = nearestIntersection(ray, cam);
+	A_Scenery* obj = nearestIntersection(ray);
 	if (obj) {
-		ray.hits++;
 		ray.color.product(obj->color, _ambient.light);// Ambient Lighting
 		ray.pov.addition( ray.pov, ray.dir * ray.dist ); // change ray.pov
-		obj->getNormal(ray, cam);
+		obj->getNormal(ray);
 		Ray rRay(ray); rRay.reflect();
 		Vec3f V(ray.dir); V.product(-1);
 		auto End = lightsIdx.end();
 		for (auto light = lightsIdx.begin(); light != End; ++light) {
-			if ( (*light)->lighting(ray, cam) && !shadow(ray, cam) ) {
+			if ( (*light)->lighting(ray) && !shadow(ray) ) {
 				ray.light.product(obj->color, ray.light);
 				ray.color.addition(ray.color, ray.light);
 				if (obj->specular != -1) {
@@ -313,7 +250,7 @@ void Scene::trasingRay(Ray& ray, int cam) {
 			}
 		}
 		if (obj->reflective > 0) {
-			trasingRay(rRay, cam);
+			trasingRay(rRay, recursion++);
 			ray.color.addition(ray.color.product(1 - obj->reflective), rRay.color.product(obj->reflective));
 		}
 	} else {
@@ -322,12 +259,12 @@ void Scene::trasingRay(Ray& ray, int cam) {
 }
 
 void Scene::rt(void) {
-	raytrasingCurrentCamera();
+	raytrasing();
 	cameras[_currentCamera].takePicture(img);
 	mlx_put_image_to_window(img.get_mlx(), img.get_win(), img.get_image(), 0, 0);
 }
 
-void Scene::selectCurrentCamera(int ctrl) {
+void Scene::selectCamera(int ctrl) {
 	switch (ctrl) {
 		case NEXT: {
 			if (set_currentCamera(_currentCamera +  1))
@@ -348,7 +285,7 @@ void Scene::selectCurrentCamera(int ctrl) {
 	img.flyby = FLYBY_OFF;
 }
 
-void Scene::changeCurrentCameraFOV(int ctrl) {
+void Scene::changeCameraFOV(int ctrl) {
 	Camera& cam(cameras[_currentCamera]);
 	float fovDegree = cam.get_fovDegree();
 	switch (ctrl) {
@@ -365,38 +302,38 @@ void Scene::changeCurrentCameraFOV(int ctrl) {
 		}
 }
 
-void Scene::moveCurrentCamera(int ctrl) {
+void Scene::moveCamera(int ctrl) {
 	Camera& cam(cameras[_currentCamera]);
-	Position pos0(cam.get_pos0());
+	Position pos(cam.get_pos());
 	switch (ctrl) {
 		case MOVE_RIGHT:
-			pos0.p.x += STEP_MOVE;
+			pos.p.x += STEP_MOVE;
 			break;
 		case MOVE_LEFT:
-			pos0.p.x -= STEP_MOVE;
+			pos.p.x -= STEP_MOVE;
 			break;
 		case MOVE_UP:
-			pos0.p.y += STEP_MOVE;
+			pos.p.y += STEP_MOVE;
 			break;
 		case MOVE_DOWN:
-			pos0.p.y -= STEP_MOVE;
+			pos.p.y -= STEP_MOVE;
 			break;
 		case MOVE_FORWARD:
-			pos0.p.z += STEP_MOVE;
+			pos.p.z += STEP_MOVE;
 			break;
 		case MOVE_BACKWARD:
-			pos0.p.z -= STEP_MOVE;
+			pos.p.z -= STEP_MOVE;
 			break;
 		default:
 			break;
 	}
-	cam.reset_pov(pos0);
+	cam.reset_pov(pos);
 	rt();
 }
 
-void Scene::rotateCurrentCamera(int ctrl) {
+void Scene::rotateCamera(int ctrl) {
 	Camera&		cam(cameras[_currentCamera]);
-	Position	eye(cam.get_pos0());
+	Position	eye(cam.get_pos());
 	switch (ctrl) {
 		case YAW_RIGHT: {
 			eye.n.z = std::cos(radian(STEP_ROTATION));
@@ -429,13 +366,12 @@ void Scene::rotateCurrentCamera(int ctrl) {
 		default:
 			return;
 	}
-	recalculateLookatsForCurrentCamera(eye);
 	rt();
 }
 
-void Scene::setFlybyRadiusForCurrentCamera(void) {
+void Scene::calculateFlybyRadius(void) {
 	Camera&		cam(cameras[_currentCamera]);
-	Vec3f		pov = cam.get_pos0().p;
+	Vec3f		pov = cam.get_pos().p;
 	float		tan = cam.get_fovTan();
 	float		back = 0;
 	float		front = INFINITY;
@@ -444,13 +380,13 @@ void Scene::setFlybyRadiusForCurrentCamera(void) {
 	for (auto pixel = cam.matrix.begin(); pixel != End; ++pixel) {
 		auto end = objsIdx.end();
 		for (auto obj = objsIdx.begin(); obj != end; ++obj) {
-			if ( (*obj)->intersection(pixel->ray, _currentCamera, FRONT) ) {
+			if ( (*obj)->intersection(pixel->ray, FRONT) ) {
 				if ( front > pixel->ray.dist ) {
 					front = pixel->ray.dist;
 				}
 			}
 			pixel->reset(tan, pov);
-			if ( (*obj)->intersection(pixel->ray, _currentCamera, BACK) ) {
+			if ( (*obj)->intersection(pixel->ray, BACK) ) {
 				if ( back < pixel->ray.dist && pixel->ray.dist < FLYBY_RADIUS_MAX) {
 					back = pixel->ray.dist;
 				}
@@ -467,18 +403,17 @@ void Scene::setFlybyRadiusForCurrentCamera(void) {
 	}
 }
 
-void Scene::flybyCurrentCamera(void) {
+void Scene::flybyCamera(void) {
 	Camera& cam(cameras[_currentCamera]);
 	float angle = radian(FLYBY_STEP / 10.), radius = cam.get_flybyRadius();
 	if (img.flyby == FLYBY_CLOCKWISE) {
 		angle = -angle;
 	}
-	Position pos0(cam.get_pos0());
-	pos0.p.z += radius;
-	pos0.p.turnAroundY(angle);
-	pos0.n.turnAroundY(-angle).normalize();
-	pos0.p.z -= radius;
-	recalculateLookatsForCurrentCamera(pos0);
+	Position pos(cam.get_pos());
+	pos.p.z += radius;
+	pos.p.turnAroundY(angle);
+	pos.n.turnAroundY(-angle).normalize();
+	pos.p.z -= radius;
 	rt();
 }
 

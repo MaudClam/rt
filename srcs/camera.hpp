@@ -63,29 +63,25 @@ class Camera : public Matrix {
 protected:
 	const std::string	_name = "camera";
 	const std::string	_nick = "c";
-	Position			_pos;	// Camera position in the basic coordinate system
-	Position			_pos0;	// Camera position in its own coordinate system
+	Position			_pos;
 	float				_roll;	// Camera tilt (aviation term 'roll') relative to its optical axis (z-axis)
 	float				_flybyRadius;
 public:
-	Camera(const MlxImage& img, const Position& base);
+	Camera(const MlxImage& img);
 	~Camera(void);
-	Camera(const MlxImage& img, const Position& pos, float fov, const Position& base);
 	Camera(const Camera& other);
 	Camera& operator=(const Camera& other);
 	Position	get_pos(void) const;
-	Position	get_pos0(void) const;
 	float		get_rollDegree(void) const;
 	float		get_roll(void) const;
 	float		get_flybyRadius(void) const;
 	void		set_pos(const Position& pos);
-	void		set_pos0(const Position& pos0);
 	void		set_flybyRadius(float flybyRadius);
 	void		initMatrix(void);
 	void		resetMatrix(void);
 	void		takePicture(MlxImage& img);
 	bool		reset_fovDegree(float degree);
-	void		reset_pov(const Position& pos0);
+	void		reset_pov(const Position& pos);
 	void		reset_roll(float roll);
 	friend std::ostream& operator<<(std::ostream& o, Camera& camera);
 	friend std::istringstream& operator>>(std::istringstream& is, Camera& camera);

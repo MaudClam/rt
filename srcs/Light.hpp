@@ -8,13 +8,7 @@
 #ifndef LIGHT_HPP
 #define LIGHT_HPP
 
-# include "Header.h"
-
-class	A_Scenery;
-class	Camera;
-struct	Ray;
-struct	Position;
-class	Lighting;
+# include "A_Scenery.hpp"
 
 class Light : public A_Scenery {
 	Lighting	light;
@@ -23,14 +17,9 @@ public:
 	~Light(void);
 	Light(const Light& other);
 	Light& operator=(const Lighting& other);
-	bool checkLookatsIdx(int idx) const;
-	void set_lookatCamera(const Position& eye, const LookatAux& aux);
-	void set_lookatBase(const Position& eye);
-	void recalculateLookat(int cameraIdx, const Position& eye, const LookatAux& aux);
-	void recalculateLookat(int cameraIdx, float roll, const Vec3f& newPov);
-	bool intersection(Ray& ray, int cameraIdx, Hit rayHit = FRONT) const;
-	void getNormal(Ray& ray, int cameraIdx) const;
-	bool lighting(Ray& ray, int cameraIdx) const;
+	bool intersection(Ray& ray, Hit rayHit = FRONT) const;
+	void getNormal(Ray& ray) const;
+	bool lighting(Ray& ray) const;
 	virtual void output(std::ostringstream& os);
 	friend std::ostream& operator<<(std::ostream& o, Light& sp);
 	friend std::istringstream& operator>>(std::istringstream& is, Light& sp);
