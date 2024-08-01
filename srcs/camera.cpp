@@ -60,8 +60,8 @@ std::istringstream& operator>>(std::istringstream& is, Fov& fov) {
 
 // struct Pixel
 
-Pixel::Pixel(const Vec2f& cPos, float tan, const Vec3f& pov) : ray(), cPos(cPos) {
-	reset(tan, pov);
+Pixel::Pixel(const Vec2f& cPos, float tan, const Position& pos) : ray(), cPos(cPos) {
+	reset(tan, pos);
 }
 
 Pixel::~Pixel(void) {}
@@ -79,10 +79,13 @@ Pixel& Pixel::operator=(const Pixel& other) {
 	return *this;
 }
 
-void Pixel::reset(float tan, const Vec3f& pov) {
-	ray.pov = pov;
+void Pixel::reset(float tan, const Position& pos) {
+	ray.pov = pos.p;
 	ray.dir.x = cPos.x * tan; ray.dir.y = cPos.y * tan; ray.dir.z = 1.;
 	ray.dir.normalize();
+	ray.dir.product(ray.dir,  pos.n);
+	ray.dir.normalize();
+
 	ray.dist = INFINITY;
 }
 
@@ -188,7 +191,7 @@ void Camera::initMatrix(void) {
 		for (mPos.x = 0; mPos.x < _width; mPos.x++) {
 			cPos.x = mPos.x; cPos.y = mPos.y;
 			cPos = cPos.toRt(_width, _height) * _mult;
-			matrix.push_back( Pixel(cPos, _fov.get_tan(), _pos.p) );
+			matrix.push_back( Pixel(cPos, _fov.get_tan(), _pos) );
 		}
 	}
 }
@@ -196,7 +199,7 @@ void Camera::initMatrix(void) {
 void Camera::resetMatrix(void) {
 	auto End = matrix.end();
 	for (auto pixel = matrix.begin(); pixel != End; ++pixel) {
-		pixel->reset(_fov.get_tan(), _pos.p);
+		pixel->reset(_fov.get_tan(), _pos);
 	}
 }
 
@@ -220,7 +223,7 @@ bool Camera::reset_fovDegree(float degree) {
 	return false;
 }
 
-void Camera::reset_pov(const Position& pos) {
+void Camera::reset_pos(const Position& pos) {
 	_pos = pos;
 	resetMatrix();
 }

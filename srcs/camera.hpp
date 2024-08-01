@@ -30,11 +30,11 @@ public:
 struct Pixel {
 	Ray			ray;
 	Vec2f		cPos;	// relative xy-coordinate on RT canvas of width 1
-	Pixel(const Vec2f& cPos, float tan, const Vec3f& pov);
+	Pixel(const Vec2f& cPos, float tan, const Position& pos);
 	~Pixel(void);
 	Pixel(const Pixel& other);
 	Pixel& operator=(const Pixel& other);
-	void reset(float tan, const Vec3f& pov);
+	void reset(float tan, const Position& pos);
 };
 	
 class Matrix {
@@ -81,7 +81,7 @@ public:
 	void		resetMatrix(void);
 	void		takePicture(MlxImage& img);
 	bool		reset_fovDegree(float degree);
-	void		reset_pov(const Position& pos);
+	void		reset_pos(const Position& pos);
 	void		reset_roll(float roll);
 	friend std::ostream& operator<<(std::ostream& o, Camera& camera);
 	friend std::istringstream& operator>>(std::istringstream& is, Camera& camera);

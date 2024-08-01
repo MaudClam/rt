@@ -85,7 +85,8 @@ int  Scene::parsing(int ac, char** av) {
 
 // ============
 
-	set_any( std::istringstream("c     0,0,0         0,0,1      60 ") );
+	set_any( std::istringstream("c     1,1,-1         0,0,1      60 ") );
+	set_any( std::istringstream("c     4,0,4         -1,0,0      60 ") );
 	set_any( std::istringstream("A 0.2	255,255,250") );
 	set_any( std::istringstream("l     2,1,0    0.6 " + img.white.rrggbb() + "  0,0,0 ") );
 	set_any( std::istringstream("l     inf,0,0  0.2 " + img.white.rrggbb() + "  1,4,4 ") );
@@ -250,7 +251,7 @@ void Scene::trasingRay(Ray& ray, int recursion) {
 			}
 		}
 		if (obj->reflective > 0) {
-			trasingRay(rRay, recursion++);
+			trasingRay(rRay, ++recursion);
 			ray.color.addition(ray.color.product(1 - obj->reflective), rRay.color.product(obj->reflective));
 		}
 	} else {
@@ -327,32 +328,32 @@ void Scene::moveCamera(int ctrl) {
 		default:
 			break;
 	}
-	cam.reset_pov(pos);
+	cam.reset_pos(pos);
 	rt();
 }
 
 void Scene::rotateCamera(int ctrl) {
 	Camera&		cam(cameras[_currentCamera]);
-	Position	eye(cam.get_pos());
+	Position	pos(cam.get_pos());
 	switch (ctrl) {
 		case YAW_RIGHT: {
-			eye.n.z = std::cos(radian(STEP_ROTATION));
-			eye.n.x = std::sin(radian(STEP_ROTATION));
+			pos.n.z += std::cos(radian(STEP_ROTATION));
+			pos.n.x += std::sin(radian(STEP_ROTATION));
 			break;
 		}
 		case YAW_LEFT: {
-			eye.n.z = std::cos(radian(-STEP_ROTATION));
-			eye.n.x = std::sin(radian(-STEP_ROTATION));
+			pos.n.z -= std::cos(radian(STEP_ROTATION));
+			pos.n.x -= std::sin(radian(STEP_ROTATION));
 			break;
 		}
 		case PITCH_UP: {
-			eye.n.z = std::cos(radian(STEP_ROTATION));
-			eye.n.y = std::sin(radian(STEP_ROTATION));
+			pos.n.z += std::cos(radian(STEP_ROTATION));
+			pos.n.y += std::sin(radian(STEP_ROTATION));
 			break;
 		}
 		case PITCH_DOWN: {
-			eye.n.z = std::cos(radian(-STEP_ROTATION));
-			eye.n.y = std::sin(radian(-STEP_ROTATION));
+			pos.n.z -= std::cos(radian(-STEP_ROTATION));
+			pos.n.y -= std::sin(radian(-STEP_ROTATION));
 			break;
 		}
 		case ROLL_RIGHT: {
@@ -366,12 +367,14 @@ void Scene::rotateCamera(int ctrl) {
 		default:
 			return;
 	}
+//	pos.n.normalize();
+	cam.reset_pos(pos);
 	rt();
 }
 
 void Scene::calculateFlybyRadius(void) {
 	Camera&		cam(cameras[_currentCamera]);
-	Vec3f		pov = cam.get_pos().p;
+	Position	pos = cam.get_pos();
 	float		tan = cam.get_fovTan();
 	float		back = 0;
 	float		front = INFINITY;
@@ -385,7 +388,7 @@ void Scene::calculateFlybyRadius(void) {
 					front = pixel->ray.dist;
 				}
 			}
-			pixel->reset(tan, pov);
+			pixel->reset(tan, pos);
 			if ( (*obj)->intersection(pixel->ray, BACK) ) {
 				if ( back < pixel->ray.dist && pixel->ray.dist < FLYBY_RADIUS_MAX) {
 					back = pixel->ray.dist;

@@ -108,8 +108,17 @@ template <class t> struct Vec3 {
 		}
 		return *this;
 	}
+	inline Vec3<t>& turnAroundX(float angle) {
+		if ( !(angle == 0 || (y == 0 && z == 0)) ) {
+			float sin = std::sin(angle), cos = std::cos(angle);
+			float _y = y * cos - z * sin;
+			float _z = y * sin + z * cos;
+			y = _y; z = _z;
+		}
+		return *this;
+	}
 	inline Vec3<t>& turnAroundY(float angle) {
-		if ( !(angle == 0 || (x == 0 && z == 0) || x == INFINITY || z == INFINITY) ) {
+		if ( !(angle == 0 || (x == 0 && z == 0)) ) {
 			float sin = std::sin(angle), cos = std::cos(angle);
 			float _z = z * cos - x * sin;
 			float _x = z * sin + x * cos;
@@ -118,7 +127,7 @@ template <class t> struct Vec3 {
 		return *this;
 	}
 	inline Vec3<t>& turnAroundZ(float angle) {
-		if ( !(angle == 0 || (x == 0 && y == 0) || x == INFINITY || y == INFINITY) ) {
+		if ( !(angle == 0 || (x == 0 && y == 0)) ) {
 			float sin = std::sin(angle), cos = std::cos(angle);
 			float _x = x * cos - y * sin;
 			float _y = x * sin + y * cos;
