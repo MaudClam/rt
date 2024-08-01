@@ -27,22 +27,6 @@ public:
 	friend std::istringstream& operator>>(std::istringstream& is, Fov& fov);
 };
 
-struct Ray {
-	Vec3f		pov;	// POV (point of view)
-	Vec3f		dir;	// ray direction vector (normalized)
-	Vec3f		norm;	// normal vector at the ray hit (normalized)
-	float		dist;	// vdistance from pov to object
-	int			hits;	// number of ray reflections, refractions, absorptions
-	ARGBColor	light;
-	ARGBColor	color;
-	Ray(void);
-	~Ray(void);
-	Ray(const Position& pos);
-	Ray(const Ray& other);
-	Ray& operator=(const Ray& other);
-	void reflect(void);
-};
-
 struct Pixel {
 	Ray			ray;
 	Vec2f		cPos;	// relative xy-coordinate on RT canvas of width 1

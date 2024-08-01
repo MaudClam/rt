@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		665241D22C5BA6E700BD3A64 /* Ray.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 665241D02C5BA6E700BD3A64 /* Ray.cpp */; settings = {COMPILER_FLAGS = "-Wall -Wextra -Werror"; }; };
 		6659C4E32C399E8A00CC7FAB /* MlxImage.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 6659C4E12C399E8A00CC7FAB /* MlxImage.cpp */; settings = {COMPILER_FLAGS = "-Wall -Wextra -Werror"; }; };
 		6659C4E62C39A8B200CC7FAB /* OpenGL.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 6659C4E52C39A8B200CC7FAB /* OpenGL.framework */; };
 		6659C4E82C39A8CD00CC7FAB /* AppKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 6659C4E72C39A8CD00CC7FAB /* AppKit.framework */; };
@@ -79,6 +80,8 @@
 		665241CD2C58174000BD3A64 /* colortest */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; name = colortest; path = "/Users/uru/Library/Mobile Documents/com~apple~CloudDocs/42_Projects/rt/build/Debug/colortest"; sourceTree = "<absolute>"; };
 		665241CE2C58174000BD3A64 /* geometrytest */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; name = geometrytest; path = "/Users/uru/Library/Mobile Documents/com~apple~CloudDocs/42_Projects/rt/build/Debug/geometrytest"; sourceTree = "<absolute>"; };
 		665241CF2C58174000BD3A64 /* training */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; name = training; path = "/Users/uru/Library/Mobile Documents/com~apple~CloudDocs/42_Projects/rt/build/Debug/training"; sourceTree = "<absolute>"; };
+		665241D02C5BA6E700BD3A64 /* Ray.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = Ray.cpp; sourceTree = "<group>"; };
+		665241D12C5BA6E700BD3A64 /* Ray.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; path = Ray.hpp; sourceTree = "<group>"; };
 		6659C4E12C399E8A00CC7FAB /* MlxImage.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = MlxImage.cpp; sourceTree = "<group>"; };
 		6659C4E22C399E8A00CC7FAB /* MlxImage.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; path = MlxImage.hpp; sourceTree = "<group>"; };
 		6659C4E52C39A8B200CC7FAB /* OpenGL.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = OpenGL.framework; path = System/Library/Frameworks/OpenGL.framework; sourceTree = SDKROOT; };
@@ -193,6 +196,8 @@
 				6659C4EB2C39A8F700CC7FAB /* mlx.h */,
 				6659C4E12C399E8A00CC7FAB /* MlxImage.cpp */,
 				6659C4E22C399E8A00CC7FAB /* MlxImage.hpp */,
+				665241D02C5BA6E700BD3A64 /* Ray.cpp */,
+				665241D12C5BA6E700BD3A64 /* Ray.hpp */,
 				667951702C41AD05009C1DDD /* Scene.cpp */,
 				667951712C41AD05009C1DDD /* Scene.hpp */,
 				66D166C42C3C172F002E6F7E /* Sphere.cpp */,
@@ -323,6 +328,7 @@
 			files = (
 				6679518B2C5216B7009C1DDD /* Light.cpp in Sources */,
 				6661C21B2C38071100D58CDC /* main.cpp in Sources */,
+				665241D22C5BA6E700BD3A64 /* Ray.cpp in Sources */,
 				667951722C41AD05009C1DDD /* Scene.cpp in Sources */,
 				6679517D2C46DF55009C1DDD /* geometry.cpp in Sources */,
 				66D166CA2C3D9281002E6F7E /* A_Scenery.cpp in Sources */,

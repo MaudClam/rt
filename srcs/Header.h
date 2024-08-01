@@ -11,6 +11,7 @@
 # include "mlx.h"
 # include "geometry.hpp"
 # include "ARGBColor.hpp"
+# include "Ray.hpp"
 # include "MlxImage.hpp"
 # include "A_Scenery.hpp"
 # include "Sphere.hpp"
