@@ -98,6 +98,15 @@ float degree(float radian) {
 	return (radian * 180. / std::numbers::pi);
 }
 
+// Intersections, normals, rays
+
+Vec3f reflectRay(const Vec3f& norm, const Vec3f& dir) {
+	Vec3f R(norm);
+	R.product(dir * norm * 2);
+	R.substract(R, dir).normalize();
+	return R;
+}
+
 bool raySphereIntersection(const Vec3f& rayDir,
 						   const Vec3f& pov_center,
 						   float sqrRadius,

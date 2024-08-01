@@ -23,6 +23,8 @@ protected:
 public:
 	std::vector<Lookat>		lookats;
 	ARGBColor				color;
+	int						specular;	// in range [-1,1000]
+	float					reflective;	// in range [0,1]
 	A_Scenery(void);
 	virtual ~A_Scenery(void);
 	A_Scenery(const A_Scenery& other);

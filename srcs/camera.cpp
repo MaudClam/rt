@@ -97,6 +97,11 @@ Ray& Ray::operator=(const Ray& other) {
 	return *this;
 }
 
+void Ray::reflect(void) {
+	dir.product(-1);
+	dir.substract(norm * (2 * (norm * dir)), dir);
+	pov.addition(pov, norm * EPSILON);
+}
 
 // struct Pixel
 
@@ -318,7 +323,7 @@ std::ostream& operator<<(std::ostream& o, Camera& camera) {
 	os << " " << camera._pos.p;
 	os << " " << camera._pos.n;
 	os << " " << std::setw(4) << camera._fov.get_degree();
-	o << std::setw(36) << std::left << os.str();
+	o << std::setw(46) << std::left << os.str();
 	o << " #" << camera._name;
 	return o;
 }

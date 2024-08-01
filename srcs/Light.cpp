@@ -127,7 +127,7 @@ std::ostream& operator<<(std::ostream& o, Light& l) {
 	if (!l._pos.n.isNull()) {
 		os << " " << l._pos.n;
 	}
-	o  << std::setw(36) << std::left << os.str();
+	o  << std::setw(46) << std::left << os.str();
 	o  << " #" << l._name;
 	return o;
 }

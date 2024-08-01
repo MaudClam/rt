@@ -40,6 +40,7 @@ struct Ray {
 	Ray(const Position& pos);
 	Ray(const Ray& other);
 	Ray& operator=(const Ray& other);
+	void reflect(void);
 };
 
 struct Pixel {

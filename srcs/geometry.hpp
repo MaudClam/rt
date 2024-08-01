@@ -227,7 +227,9 @@ public:
 	Lookat& lookAt(const Position& eye, const LookatAux& aux);
 };
 
-// Intersections & normals
+// Intersections, normals, rays
+
+Vec3f reflectRay(const Vec3f& norm, const Vec3f& dir);
 
 bool raySphereIntersection(const Vec3f& rayDir,
 						   const Vec3f& pov_center,

@@ -16,7 +16,9 @@ _nick(),
 _isLight(false),
 _pos(),
 lookats(),
-color()
+color(),
+specular(-1),
+reflective(0)
 {}
 
 A_Scenery::~A_Scenery(void) {}
@@ -27,7 +29,9 @@ _nick(other._nick),
 _isLight(other._isLight),
 _pos(other._pos),
 lookats(other.lookats),
-color(other.color)
+color(other.color),
+specular(other.specular),
+reflective(other.reflective)
 {}
 
 std::string A_Scenery::get_nick(void) const { return _nick; }
@@ -131,7 +135,7 @@ std::ostream& operator<<(std::ostream& o, BasicCoordinate& bc) {
 	os << std::setw(2) << std::left << bc._nick;
 	os << " " << bc._pos.p;
 	os << " " << bc._pos.n;
-	o << std::setw(36) << std::left << os.str();
+	o << std::setw(46) << std::left << os.str();
 	o << " #" << bc._name;
 	return o;
 }

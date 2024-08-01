@@ -20,7 +20,7 @@ _radius(radius), _sqrRadius(radius * radius) {
 	_name = "sphere";
 	_nick = "sp";
 	_isLight = false;
-	this->_pos.p = center;
+	_pos.p = center;
 	this->color = color;
 }
 
@@ -31,6 +31,8 @@ Sphere::Sphere(const Sphere& other) : _radius(other._radius), _sqrRadius(_radius
 	_pos = other._pos;
 	lookats = other.lookats;
 	color = other.color;
+	specular = other.specular;
+	reflective = other.reflective;
 }
 
 bool Sphere::checkLookatsIdx(int idx) const {
@@ -70,13 +72,9 @@ void Sphere::recalculateLookat(int cam, float roll, const Vec3f& newPov) {
 }
 
 bool Sphere::intersection(Ray& ray, int cam, Hit rayHit) const {
-	int  idx = cam * 2 + 1; // pov_center idx
+	int  idx = cam * 2; // pov_center idx
 	if (checkLookatsIdx(idx)) {
-		if (ray.hits == 10) {
-			return raySphereIntersection(ray.dir, lookats[idx].p, _sqrRadius, ray.dist, rayHit);
-		} else {
-			return raySphereIntersection(ray.dir, ray.pov - lookats[--idx].p, _sqrRadius, ray.dist, rayHit);
-		}
+		return raySphereIntersection(ray.dir, ray.pov - lookats[idx].p, _sqrRadius, ray.dist, rayHit);
 	}
 	return false;
 }
@@ -104,17 +102,21 @@ std::ostream& operator<<(std::ostream& o, Sphere& sp) {
 	std::ostringstream os;
 	os << std::setw(2) << std::left << sp._nick;
 	os << " " << sp._pos.p;
-	os << " " << std::setw(4) << std::right << sp._radius * 2;
+	os << " " << std::setw(5) << std::right << sp._radius * 2;
 	os << "   " << sp.color.rrggbb();
-	o  << std::setw(36) << std::left << os.str();
+	os << " " << std::setw(4) << std::right << sp.specular;
+	os << " " << std::setw(4) << std::right << sp.reflective;
+	o  << std::setw(46) << std::left << os.str();
 	o  << " #" << sp._name;
 	return o;
 }
 
 std::istringstream& operator>>(std::istringstream& is, Sphere& sp) {
 	is >> sp._pos.p >> sp._radius;
-	is >> sp.color;
+	is >> sp.color >> sp.specular >> sp.reflective;
 	sp._radius /= 2;
 	sp._sqrRadius = sp._radius * sp._radius;
+	sp.specular = i2limits(sp.specular, -1, 1000);
+	sp.reflective = f2limits(sp.reflective, 0, 1);
 	return is;
 }

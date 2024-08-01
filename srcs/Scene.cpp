@@ -135,31 +135,31 @@ void Scene::set_scenery(A_Scenery* scenery) {
 
 int  Scene::parsing(int ac, char** av) {
 	(void)ac; (void)av;
-	set_any( std::istringstream("R 1200 600	RayTrasing") );
+	set_any( std::istringstream("R 600 600	RayTrasing") );
 	std::string header(_header + " " + std::to_string(_resolution.x) + "x" + std::to_string(_resolution.y));
 	img.init(header, _resolution);
-//	set_any( std::istringstream("A 0.2	255,255,230") );
-//	set_any( std::istringstream("c    19,0,19       -1,0,0      70 ") );
-//	set_any( std::istringstream("c     0,0,0         0,0,1      70 ") );
-//	set_any( std::istringstream("c     0,0,38        0,0,-1     70 ") );
-//	set_any( std::istringstream("l     0,0,0      0.6 " + img.white.rrggbb() + " -1,0,-1") );
-//	set_any( std::istringstream("l     0,0,0      0.2 " + img.white.rrggbb() + " 1,-2,1") );
-//	set_any( std::istringstream("sp    0,0,25     16  " + img.white.rrggbb()) );
-//	set_any( std::istringstream("sp    0,0,16.9   8   " + img.yellow.rrggbb()) );
-//	set_any( std::istringstream("sp    0,0,12.5   4   " + img.cyan.rrggbb()) );
-//	set_any( std::istringstream("sp    0,0,9.9    2   " + img.magenta.rrggbb()) );
-//	set_any( std::istringstream("sp    0,0,3      0.5 " + img.red.rrggbb()) );
+	set_any( std::istringstream("A 0.2	255,255,230") );
+	set_any( std::istringstream("c    19,0,19       -1,0,0      70 ") );
+	set_any( std::istringstream("c     0,0,0         0,0,1      70 ") );
+	set_any( std::istringstream("c     0,0,38        0,0,-1     70 ") );
+	set_any( std::istringstream("l     0,0,0      0.6 " + img.white.rrggbb() +  " -1,0,-1") );
+	set_any( std::istringstream("l     0,0,0      0.2 " + img.white.rrggbb() +  " 1,-2,1") );
+	set_any( std::istringstream("sp    0,0,25     16  " + img.white.rrggbb() +  " 1000 0.8") );
+	set_any( std::istringstream("sp    0,0,16.9   8   " + img.yellow.rrggbb() + " 500  0.2") );
+	set_any( std::istringstream("sp    0,0,12.5   4   " + img.cyan.rrggbb() +   " 500  0.3") );
+	set_any( std::istringstream("sp    0,0,9.9    2   " + img.magenta.rrggbb() + " 10  0.4") );
+	set_any( std::istringstream("sp    0,0,3      0.5 " + img.red.rrggbb()) );
 
 // ============
 
-	set_any( std::istringstream("c     0,0,0         0,0,1      60 ") );
-	set_any( std::istringstream("A 0.2	255,255,250") );
-	set_any( std::istringstream("l     2,1,0    0.6 " + img.white.rrggbb() + " 0,0,0") );
-	set_any( std::istringstream("l     inf,0,0    0.2 " + img.white.rrggbb() + " 1,4,4") );
-	set_any( std::istringstream("sp    0,-1,3	2 " + img.red.rrggbb()) );
-	set_any( std::istringstream("sp    2,0,4	2 " + img.blue.rrggbb()) );
-	set_any( std::istringstream("sp    -2,0,4	2 " + img.green.rrggbb()) );
-	set_any( std::istringstream("sp    0,-5001,0	10000 " + img.yellow.rrggbb()) );
+//	set_any( std::istringstream("c     0,0,0         0,0,1      60 ") );
+//	set_any( std::istringstream("A 0.2	255,255,250") );
+//	set_any( std::istringstream("l     2,1,0    0.6 " + img.white.rrggbb() + "  0,0,0 ") );
+//	set_any( std::istringstream("l     inf,0,0  0.2 " + img.white.rrggbb() + "  1,4,4 ") );
+//	set_any( std::istringstream("sp    0,-1,3	2   " + img.red.rrggbb()   + " 500  0.2") );
+//	set_any( std::istringstream("sp    2,0,4	2   " + img.blue.rrggbb()  + " 500  0.3") );
+//	set_any( std::istringstream("sp    -2,0,4	2   " + img.green.rrggbb() + " 10  0.4") );
+//	set_any( std::istringstream("sp 0,-5001,0 10000 " + img.yellow.rrggbb()+ " 1000 0.5") );
 
 //	===========
 	initLoockats();
@@ -287,7 +287,7 @@ bool Scene::shadow(Ray& ray, int cam) {
 }
 
 void Scene::trasingRay(Ray& ray, int cam) {
-	if (ray.hits >= RECURSIONS) {
+	if (ray.hits > RECURSIONS) {
 		return;
 	}
 	A_Scenery* obj = nearestIntersection(ray, cam);
@@ -296,12 +296,27 @@ void Scene::trasingRay(Ray& ray, int cam) {
 		ray.color.product(obj->color, _ambient.light);// Ambient Lighting
 		ray.pov.addition( ray.pov, ray.dir * ray.dist ); // change ray.pov
 		obj->getNormal(ray, cam);
+		Ray rRay(ray); rRay.reflect();
+		Vec3f V(ray.dir); V.product(-1);
 		auto End = lightsIdx.end();
 		for (auto light = lightsIdx.begin(); light != End; ++light) {
 			if ( (*light)->lighting(ray, cam) && !shadow(ray, cam) ) {
 				ray.light.product(obj->color, ray.light);
 				ray.color.addition(ray.color, ray.light);
+				if (obj->specular != -1) {
+					Vec3f r(reflectRay(ray.norm, ray.dir));
+					float k = r * V;
+					if (k > 0) {
+						k = std::pow(k, obj->specular);
+						ray.light.product(obj->color, ray.light).product(k);
+						ray.color.addition(ray.color, ray.light);
+					}
+				}
 			}
+		}
+		if (obj->reflective > 0) {
+			trasingRay(rRay, cam);
+			ray.color.addition(ray.color.product(1 - obj->reflective), rRay.color.product(obj->reflective));
 		}
 	} else {
 		ray.color = _space.light;
@@ -476,7 +491,7 @@ std::ostream& operator<<(std::ostream& o, Scene& sc) {
 	std::ostringstream os;
 	o  << "R " << std::setw(5) << sc._resolution << " " << sc._header << std::endl;
 	os << "A  " << std::setw(32) << sc._ambient;
-	o << std::setw(36) << std::left << os.str();
+	o << std::setw(46) << std::left << os.str();
 	o << " #ambient liting" << std::endl;
 	for (auto light = sc.lightsIdx.begin(); light != sc.lightsIdx.end(); ++light) {
 		o << *(*light) << std::endl;
