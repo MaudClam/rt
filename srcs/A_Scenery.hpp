@@ -44,23 +44,4 @@ public:
 	friend std::ostream& operator<<(std::ostream& o, A_Scenery& s);
 };
 
-class BasicCoordinate : public A_Scenery {
-public:
-	BasicCoordinate(const Position& pos);
-	~BasicCoordinate(void);
-	BasicCoordinate(const BasicCoordinate& other);
-	BasicCoordinate& operator=(const BasicCoordinate& other);
-	bool checkLookatsIdx(int idx) const;
-	void set_lookatCamera(const Position& eye, const LookatAux& aux);
-	void set_lookatBase(const Position& eye);
-	void recalculateLookat(int cameraIdx, const Position& eye, const LookatAux& aux);
-	void recalculateLookat(int cameraIdx, float roll, const Vec3f& newPov);
-	bool intersection(Ray& ray, int cameraIdx, Hit rayHit = FRONT) const;
-	void getNormal(Ray& ray, int cameraIdx) const;
-	bool lighting(Ray& ray, int cameraIdx) const;
-	void output(std::ostringstream& os);
-	friend std::ostream& operator<<(std::ostream& o, BasicCoordinate& bc);
-	friend std::istringstream& operator>>(std::istringstream& is, BasicCoordinate& bc);
-};
-
 #endif /* A_SCENERY_HPP */

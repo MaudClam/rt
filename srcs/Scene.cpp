@@ -181,8 +181,6 @@ void Scene::indexingScenerys(void) {
 }
 
 void Scene::initLoockats(void) {
-	BasicCoordinate* bc = new BasicCoordinate(_base);
-	scenerys.insert(scenerys.begin(), bc);			// BasicCoordinate
 	cameras.insert(cameras.begin(), Camera(img, _base));	// default camera "0"
 	indexingScenerys();
 	auto End = cameras.end();
