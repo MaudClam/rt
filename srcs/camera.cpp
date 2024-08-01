@@ -134,14 +134,6 @@ float Matrix::get_fovDegree(void) { return _fov.get_degree(); }
 
 float Matrix::get_fovTan(void) { return _fov.get_tan(); }
 
-void Matrix::set_width(int width) { this->_width = width; _mult = 2. / 2; }
-
-void Matrix::set_height(int height) { this->_height = height; }
-
-void Matrix::set_bytespp(int bytespp) { this->_bytespp = bytespp; }
-
-bool Matrix::set_fovTan(float tan) { return _fov.set_tan(tan); }
-
 bool Matrix::set_fovDegree(float degree) { return _fov.set_degree(degree); }
 
 

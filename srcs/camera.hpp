@@ -56,10 +56,6 @@ public:
 	Fov  get_fov(void);
 	float get_fovDegree(void);
 	float get_fovTan(void);
-	void set_width(int width);
-	void set_height(int height);
-	void set_bytespp(int bytespp);
-	bool set_fovTan(float tan);
 	bool set_fovDegree(float degree);
 };
 
