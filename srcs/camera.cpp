@@ -81,11 +81,8 @@ Pixel& Pixel::operator=(const Pixel& other) {
 
 void Pixel::reset(float tan, const Position& pos) {
 	ray.pov = pos.p;
-	ray.dir.x = cPos.x * tan; ray.dir.y = cPos.y * tan; ray.dir.z = 1.;
+	ray.dir.x = cPos.x * tan; ray.dir.y = cPos.y * tan; ray.dir.z = 1;
 	ray.dir.normalize();
-	ray.dir.product(ray.dir,  pos.n);
-	ray.dir.normalize();
-
 	ray.dist = INFINITY;
 }
 

@@ -28,8 +28,8 @@ public:
 };
 
 struct Pixel {
-	Ray			ray;
-	Vec2f		cPos;	// relative xy-coordinate on RT canvas of width 1
+	Ray		ray;
+	Vec2f	cPos;	// relative xy-coordinate on RT canvas of width 1
 	Pixel(const Vec2f& cPos, float tan, const Position& pos);
 	~Pixel(void);
 	Pixel(const Pixel& other);
@@ -71,20 +71,20 @@ public:
 	~Camera(void);
 	Camera(const Camera& other);
 	Camera& operator=(const Camera& other);
-	Position	get_pos(void) const;
-	float		get_rollDegree(void) const;
-	float		get_roll(void) const;
-	float		get_flybyRadius(void) const;
-	void		set_pos(const Position& pos);
-	void		set_flybyRadius(float flybyRadius);
-	void		initMatrix(void);
-	void		resetMatrix(void);
-	void		takePicture(MlxImage& img);
-	bool		reset_fovDegree(float degree);
-	void		reset_pos(const Position& pos);
-	void		reset_roll(float roll);
-	friend std::ostream& operator<<(std::ostream& o, Camera& camera);
-	friend std::istringstream& operator>>(std::istringstream& is, Camera& camera);
+	Position get_pos(void) const;
+	float	get_rollDegree(void) const;
+	float	get_roll(void) const;
+	float	get_flybyRadius(void) const;
+	void	set_pos(const Position& pos);
+	void	set_flybyRadius(float flybyRadius);
+	void	initMatrix(void);
+	void	resetMatrix(void);
+	void	takePicture(MlxImage& img);
+	bool	reset_fovDegree(float degree);
+	void	reset_pos(const Position& pos);
+	void	reset_roll(float roll);
+	friend	std::ostream& operator<<(std::ostream& o, Camera& camera);
+	friend	std::istringstream& operator>>(std::istringstream& is, Camera& camera);
 };
 
 // Non member functions

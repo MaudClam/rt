@@ -14,10 +14,15 @@
 # include <cmath>
 # include <numbers>
 
+# define BASE_PT		Vec3f(0,0,0)
+# define BASE_DIR		Vec3f(0,0,1)
+# define BASE			BASE_PT,BASE_DIR
 # define PRECISION		1e-9
 # define EPSILON 		1e-3
 
-enum  Hit { FRONT, BACK, OUTLINE };
+enum Hit { FRONT, BACK, OUTLINE };
+
+
 bool  almostEqual(float a, float b, int precision = PRECISION);
 bool  almostEqual(double a, double b, int precision = PRECISION);
 float radian(float degree);
@@ -71,7 +76,7 @@ template <class t> struct Vec3 {
 					   z * v.x - x * v.z,
 					   x * v.y - y * v.x);
 	}
-	Vec3<t>& product(const Vec3<t>& v1, const Vec3<t>& v2) {
+	inline Vec3<t>&	product(const Vec3<t>& v1, const Vec3<t>& v2) {
 		t _x = v1.y * v2.z - v1.z * v2.y;
 		t _y = v1.z * v2.x - v1.x * v2.z;
 		t _z = v1.x * v2.y - v1.y * v2.x;
@@ -81,7 +86,7 @@ template <class t> struct Vec3 {
 	inline Vec3<t>	operator+(const Vec3<t>& v) const {
 		return Vec3<t>(x + v.x, y + v.y, z + v.z);
 	}
-	Vec3<t>& addition(const Vec3<t>& v1, const Vec3<t>& v2) {
+	inline Vec3<t>&	addition(const Vec3<t>& v1, const Vec3<t>& v2) {
 		x = v1.x + v2.x;
 		y = v1.y + v2.y;
 		z = v1.z + v2.z;
@@ -90,20 +95,20 @@ template <class t> struct Vec3 {
 	inline Vec3<t>	operator-(const Vec3<t>& v) const {
 		return Vec3<t>(x - v.x, y - v.y, z - v.z);
 	}
-	Vec3<t>& substract(const Vec3<t>& v1, const Vec3<t>& v2) {
+	inline Vec3<t>&	substract(const Vec3<t>& v1, const Vec3<t>& v2) {
 		x = v1.x - v2.x;
 		y = v1.y - v2.y;
 		z = v1.z - v2.z;
 		return *this;
 	}
 	inline Vec3<t>	operator*(float f) const { return Vec3<t>(x * f, y * f, z * f); }
-	Vec3<t>& product(float f)  { x *= f; y *= f; z *= f; return *this; }
-	inline t operator*(const Vec3<t>& v) const { return x * v.x + y * v.y + z * v.z;}
-	inline t product(const Vec3<t>& v) const { return x * v.x + y * v.y + z * v.z;}
-	inline float norm () const {
+	inline Vec3<t>&	product(float f)  { x *= f; y *= f; z *= f; return *this; }
+	inline t		operator*(const Vec3<t>& v) const { return x * v.x + y * v.y + z * v.z;}
+	inline t		product(const Vec3<t>& v) const { return x * v.x + y * v.y + z * v.z;}
+	inline float 	norm () const {
 		return std::sqrt(x * x + y * y + z * z);
 	}
-	Vec3<t>& normalize(t l=1) {
+	inline Vec3<t>&	normalize(t l=1) {
 		t _norm = norm();
 		if (_norm != 0) {
 			*this = (*this) * (l / _norm);
@@ -111,28 +116,23 @@ template <class t> struct Vec3 {
 		return *this;
 	}
 	inline Vec3<t>& lookatDir(const LookatAuxiliary<t>& aux) {
-		t _x = *this * aux.right, _y = *this * aux.up, _z = *this * aux.dir;
-		x = _x; y = _y; z = _z;
-		this->normalize();
-		return *this;
-	}
-	inline Vec3<t>& lookatPt(const Vec3<t>& eyePt, const LookatAuxiliary<t>& aux) {
-		substract(*this, eyePt);
-		t _x = *this * aux.right, _y = *this * aux.up, _z = *this * aux.dir;
-		x = _x; y = _y; z = _z;
-		return *this;
-	}
-	Vec3<t>& turnAroundX(float angle) {
-		if ( !(angle == 0 || (y == 0 && z == 0)) ) {
-			float sin = std::sin(angle), cos = std::cos(angle);
-			float _y = y * cos - z * sin;
-			float _z = y * sin + z * cos;
-			y = _y; z = _z;
+		if ( !isNull() && !isInf() ) {
+			t _x = *this * aux.right, _y = *this * aux.up, _z = *this * aux.dir;
+			x = _x; y = _y; z = _z;
+			this->normalize();
 		}
 		return *this;
 	}
-	Vec3<t>& turnAroundY(float angle) {
-		if ( !(angle == 0 || (x == 0 && z == 0)) ) {
+	inline Vec3<t>& lookatPt(const Vec3<t>& eyePt, const LookatAuxiliary<t>& aux) {
+		if (!isInf()) {
+			substract(*this, eyePt);
+			t _x = *this * aux.right, _y = *this * aux.up, _z = *this * aux.dir;
+			x = _x; y = _y; z = _z;
+		}
+		return *this;
+	}
+	inline Vec3<t>& turnAroundY(float angle) {
+		if ( !(angle == 0 || (x == 0 && z == 0) || x == INFINITY || z == INFINITY) ) {
 			float sin = std::sin(angle), cos = std::cos(angle);
 			float _z = z * cos - x * sin;
 			float _x = z * sin + x * cos;
@@ -140,8 +140,8 @@ template <class t> struct Vec3 {
 		}
 		return *this;
 	}
-	Vec3<t>& turnAroundZ(float angle) {
-		if ( !(angle == 0 || (x == 0 && y == 0)) ) {
+	inline Vec3<t>& turnAroundZ(float angle) {
+		if ( !(angle == 0 || (x == 0 && y == 0) || x == INFINITY || y == INFINITY) ) {
 			float sin = std::sin(angle), cos = std::cos(angle);
 			float _x = x * cos - y * sin;
 			float _y = x * sin + y * cos;
@@ -149,9 +149,10 @@ template <class t> struct Vec3 {
 		}
 		return *this;
 	}
-	inline bool isNull(void) const { return x == 0 && y == 0 && z == 0;  }
-	inline void toNull(void) { x = 0; y = 0; z = 0;  }
-	inline bool isInf(void) const { return x == INFINITY || y == INFINITY || z == INFINITY;  }
+	inline bool		isNull(void) const { return x == 0 && y == 0 && z == 0;  }
+	inline void		toNull(void) { x = 0; y = 0; z = 0;  }
+	inline bool		isInf(void) const { return x == INFINITY || y == INFINITY || z == INFINITY;  }
+	inline void		toInf(void) { x = INFINITY; y = INFINITY; z = INFINITY;  }
 	template <class > friend std::ostream& operator<<(std::ostream& s, Vec3<t>& v);
 	template <class > friend std::istringstream& operator>>(std::istringstream& is, Vec3<t>& v);
 };
@@ -194,10 +195,10 @@ template <class t> struct LookatAuxiliary {
 	~LookatAuxiliary(void) {}
 };
 
-typedef Vec2<float>				Vec2f;
-typedef Vec2<int>				Vec2i;
-typedef Vec3<float>				Vec3f;
-typedef Vec3<int>				Vec3i;
+typedef Vec2<float> 			Vec2f;
+typedef Vec2<int>   			Vec2i;
+typedef Vec3<float> 			Vec3f;
+typedef Vec3<int>   			Vec3i;
 typedef LookatAuxiliary<float>	LookatAux;
 
 struct Position {
@@ -210,14 +211,28 @@ struct Position {
 	Position& operator=(const Position& other);
 };
 
+class Lookat : public Position {
+protected:
+	float _roll;
+public:
+	Lookat(void);
+	~Lookat(void);
+	Lookat(const Vec3f& point, const Vec3f& norm, float roll = 0);
+	Lookat(const Position& pos, float roll = 0);
+	Lookat(const Lookat& other);
+	Lookat operator=(const Lookat& other);
+	float	get_roll(void);
+	void	set_roll(float roll);
+	Lookat& lookAt(const Position& eye);
+	Lookat& lookAt(const Position& eye, const LookatAux& aux);
+};
 
 // Intersections, normals, rays
 
 Vec3f reflectRay(const Vec3f& norm, const Vec3f& dir);
 
 bool raySphereIntersection(const Vec3f& rayDir,
-						   const Vec3f& rayPov,
-						   const Vec3f& center,
+						   const Vec3f& pov_center,
 						   float sqrRadius,
 						   float& distance,
 						   Hit rayHit = FRONT);
@@ -231,5 +246,10 @@ bool rayPlaneIntersection(const Vec3f& rayPov,
 						  const Vec3f& point,
 						  const Vec3f& norm,
 						  float& distance);
+
+
+
+
+
 
 #endif
