@@ -66,6 +66,7 @@ protected:
 	Position			_pos;
 	float				_roll;	// Camera tilt (aviation term 'roll') relative to its optical axis (z-axis)
 	float				_flybyRadius;
+	int					_sm;
 public:
 	Camera(const MlxImage& img);
 	~Camera(void);
@@ -75,8 +76,10 @@ public:
 	float	get_rollDegree(void) const;
 	float	get_roll(void) const;
 	float	get_flybyRadius(void) const;
+	int		get_sm(void) const;
 	void	set_pos(const Position& pos);
 	void	set_flybyRadius(float flybyRadius);
+	void	set_sm(int sm);
 	void	initMatrix(void);
 	void	resetMatrix(void);
 	void	takePicture(MlxImage& img);

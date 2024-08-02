@@ -141,9 +141,10 @@ bool Matrix::set_fovDegree(float degree) { return _fov.set_degree(degree); }
 Camera::Camera(const MlxImage& img) :
 _pos(Vec3f(), Vec3f(0,0,1)),
 _roll(0),
-_flybyRadius(0)
-{	_width = img.get_width();
-	_height = img.get_height();
+_flybyRadius(0),
+_sm(SMOOTHING_FACTOR)
+{	_width = img.get_width() * _sm;
+	_height = img.get_height() * _sm;
 	_bytespp = img.get_bytespp();
 	_mult = 2. / _width;
 	initMatrix();
@@ -164,6 +165,7 @@ Camera& Camera::operator=(const Camera& other) {
 		_pos = other._pos;
 		_roll = other._roll;
 		_flybyRadius = other._flybyRadius;
+		_sm = other._sm;
 	}
 	return *this;
 }
@@ -176,9 +178,13 @@ float Camera::get_roll(void) const { return _roll; }
 
 float Camera::get_flybyRadius(void) const { return _flybyRadius; }
 
+int	 Camera::get_sm(void) const { return _sm; }
+
 void Camera::set_pos(const Position& pos) { _pos = pos; }
 
 void Camera::set_flybyRadius(float flybyRadius) { _flybyRadius = flybyRadius; }
+
+void Camera::set_sm(int sm) { _sm = sm; }
 
 void Camera::initMatrix(void) {
 	Vec2i	mPos; // pixel xy-coordinate on the monitor (width*height pixels, xy(0,0) in the upper left corner, Y-axis direction down);
@@ -203,11 +209,37 @@ void Camera::resetMatrix(void) {
 void Camera::takePicture(MlxImage& img) {
 	char* data = img.get_data();
 	if (data) {
-		auto End = matrix.end();
-		for (auto pixel = matrix.begin(); pixel != End; ++pixel) {
-			memcpy(data, pixel->ray.color.raw, _bytespp);
-			data += _bytespp;
-			pixel->ray.color.val = 0;
+		if (_sm == 1) {
+			auto End = matrix.end();
+			for (auto pixel = matrix.begin(); pixel != End; ++pixel) {
+				memcpy(data, pixel->ray.color.raw, _bytespp);
+				data += _bytespp;
+				pixel->ray.color.val = 0;
+			}
+		} else {
+			int k = _sm * _sm;
+			for (int y = 0; y < _height; y += _sm) {
+				for (int x = 0; x < _width; x += _sm) {
+					unsigned char raw[4];
+					int a = 0, r = 0, g = 0, b = 0;
+					for (int j = 0; j < _sm; j++) {
+						int idx = x + (y + j) * _width;
+						for (int i = 0; i < _sm; i++, idx++) {
+							a += matrix[idx].ray.color.a;
+							r += matrix[idx].ray.color.r;
+							g += matrix[idx].ray.color.g;
+							b += matrix[idx].ray.color.b;
+							matrix[idx].ray.color.val = 0;
+						}
+					}
+					raw[0] = b / k;
+					raw[1] = g / k;
+					raw[2] = r / k;
+					raw[3] = a / k;
+					memcpy(data, raw, _bytespp);
+					data += _bytespp;
+				}
+			}
 		}
 	}
 }

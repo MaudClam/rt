@@ -10,8 +10,6 @@
 
 # include "Header.h"
 
-# define RECURSIONS	3
-
 class	A_Scenery;
 class	MlxImage;
 class	Camera;

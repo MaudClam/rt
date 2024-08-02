@@ -19,11 +19,13 @@
 # include "Light.hpp"
 # include "camera.hpp"
 
-# define SUCCESS		0
-# define ERROR			-1
-# define DEBUG_MODE		true
-# define DEBUG_KEYS		false
-# define DEBUG_MOUSE	false
+# define SUCCESS			0
+# define ERROR				-1
+# define DEBUG_MODE			true
+# define DEBUG_KEYS			false
+# define DEBUG_MOUSE		false
+# define RECURSIONS			3
+# define SMOOTHING_FACTOR 	1
 
 class MlxImage;
 struct Scene;
