@@ -60,8 +60,9 @@ std::istringstream& operator>>(std::istringstream& is, Fov& fov) {
 
 // struct Pixel
 
-Pixel::Pixel(const Vec2f& cPos, float tan, const Position& pos) : ray(), cPos(cPos) {
-	reset(tan, pos);
+Pixel::Pixel(const Vec2f& cPos, float tan, const Vec3f& pov, const LookatAux& aux) :
+ray(), cPos(cPos) {
+	reset(tan, pov, aux);
 }
 
 Pixel::~Pixel(void) {}
@@ -79,11 +80,27 @@ Pixel& Pixel::operator=(const Pixel& other) {
 	return *this;
 }
 
-void Pixel::reset(float tan, const Position& pos) {
-	ray.pov = pos.p;
+void Pixel::reset(float tan, const Vec3f& pov, const LookatAux& aux) {
+	resetFov(tan);
+	resetPov(pov);
+	resetDir(aux);
+}
+
+void Pixel::resetPov(const Vec3f& pov) {
+	ray.pov = pov;
+}
+
+void Pixel::resetFov(float tan) {
 	ray.dir.x = cPos.x * tan; ray.dir.y = cPos.y * tan; ray.dir.z = 1;
 	ray.dir.normalize();
-	ray.dist = INFINITY;
+}
+
+void Pixel::resetDir(const LookatAux& aux) {
+	ray.dir.lookatDir(aux);
+}
+
+void Pixel::resetRoll(float roll) {
+	(void)roll;
 }
 
 
@@ -187,22 +204,24 @@ void Camera::set_flybyRadius(float flybyRadius) { _flybyRadius = flybyRadius; }
 void Camera::set_sm(int sm) { _sm = sm; }
 
 void Camera::initMatrix(void) {
-	Vec2i	mPos; // pixel xy-coordinate on the monitor (width*height pixels, xy(0,0) in the upper left corner, Y-axis direction down);
-	Vec2f	cPos; // pixel xy-coordinate on the canvas (width=1, xy(0,0) in the center, XY-axes up and right directions)
+	Vec2i		mPos; // pixel xy-coordinate on the monitor (width*height pixels, xy(0,0) in the upper left corner, Y-axis direction down);
+	Vec2f		cPos; // pixel xy-coordinate on the canvas (width=1, xy(0,0) in the center, XY-axes up and right directions)
+	LookatAux	aux(_pos.n);
 	matrix.reserve(_width * _height);
 	for (mPos.y = 0; mPos.y < _height; mPos.y++) {
 		for (mPos.x = 0; mPos.x < _width; mPos.x++) {
 			cPos.x = mPos.x; cPos.y = mPos.y;
 			cPos = cPos.toRt(_width, _height) * _mult;
-			matrix.push_back( Pixel(cPos, _fov.get_tan(), _pos) );
+			matrix.push_back( Pixel(cPos, _fov.get_tan(), _pos.p, aux) );
 		}
 	}
 }
 
 void Camera::resetMatrix(void) {
 	auto End = matrix.end();
+	LookatAux	aux(_pos.n);
 	for (auto pixel = matrix.begin(); pixel != End; ++pixel) {
-		pixel->reset(_fov.get_tan(), _pos);
+		pixel->reset(_fov.get_tan(), _pos.p, aux);
 	}
 }
 

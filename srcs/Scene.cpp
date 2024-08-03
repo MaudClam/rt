@@ -85,8 +85,11 @@ int  Scene::parsing(int ac, char** av) {
 
 // ============
 
-	set_any( std::istringstream("c     1,1,-1         0,0,1      60 ") );
-	set_any( std::istringstream("c     4,0,4         -1,0,0      60 ") );
+	set_any( std::istringstream("c     0,0,-2         0,0,1      60 ") );
+	set_any( std::istringstream("c     5,0,3         -1,0,0      60 ") );
+	set_any( std::istringstream("c     0,0,8         0,0,-1      60 ") );
+	set_any( std::istringstream("c     -5,0,3         1,0,0      60 ") );
+	set_any( std::istringstream("c     0,4,2         0,-1,0      60 ") );
 	set_any( std::istringstream("A 0.2	255,255,250") );
 	set_any( std::istringstream("l     2,1,0    0.6 " + img.white.rrggbb() + "  0,0,0 ") );
 	set_any( std::istringstream("l     inf,0,0  0.2 " + img.white.rrggbb() + "  1,4,4 ") );
@@ -337,23 +340,19 @@ void Scene::rotateCamera(int ctrl) {
 	Position	pos(cam.get_pos());
 	switch (ctrl) {
 		case YAW_RIGHT: {
-			pos.n.z += std::cos(radian(STEP_ROTATION));
-			pos.n.x += std::sin(radian(STEP_ROTATION));
+			pos.n.turnAroundY(radian(STEP_ROTATION));
 			break;
 		}
 		case YAW_LEFT: {
-			pos.n.z -= std::cos(radian(STEP_ROTATION));
-			pos.n.x -= std::sin(radian(STEP_ROTATION));
+			pos.n.turnAroundY(radian(-STEP_ROTATION));
 			break;
 		}
 		case PITCH_UP: {
-			pos.n.z += std::cos(radian(STEP_ROTATION));
-			pos.n.y += std::sin(radian(STEP_ROTATION));
+			pos.n.turnAroundX(radian(-STEP_ROTATION));
 			break;
 		}
 		case PITCH_DOWN: {
-			pos.n.z -= std::cos(radian(-STEP_ROTATION));
-			pos.n.y -= std::sin(radian(-STEP_ROTATION));
+			pos.n.turnAroundX(radian(STEP_ROTATION));
 			break;
 		}
 		case ROLL_RIGHT: {
@@ -375,7 +374,7 @@ void Scene::rotateCamera(int ctrl) {
 void Scene::calculateFlybyRadius(void) {
 	Camera&		cam(cameras[_currentCamera]);
 	Position	pos = cam.get_pos();
-	float		tan = cam.get_fovTan();
+//	float		tan = cam.get_fovTan();
 	float		back = 0;
 	float		front = INFINITY;
 
@@ -388,7 +387,7 @@ void Scene::calculateFlybyRadius(void) {
 					front = pixel->ray.dist;
 				}
 			}
-			pixel->reset(tan, pos);
+//			pixel->reset(tan, pos);
 			if ( (*obj)->intersection(pixel->ray, BACK) ) {
 				if ( back < pixel->ray.dist && pixel->ray.dist < FLYBY_RADIUS_MAX) {
 					back = pixel->ray.dist;

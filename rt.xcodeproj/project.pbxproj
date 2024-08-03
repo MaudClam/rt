@@ -56,10 +56,10 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
-		665241CD2C58174000BD3A64 /* colortest */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; name = colortest; path = "/Users/uru/Library/Mobile Documents/com~apple~CloudDocs/42_Projects/rt/build/Debug/colortest"; sourceTree = "<absolute>"; };
-		665241CE2C58174000BD3A64 /* geometrytest */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; name = geometrytest; path = "/Users/uru/Library/Mobile Documents/com~apple~CloudDocs/42_Projects/rt/build/Debug/geometrytest"; sourceTree = "<absolute>"; };
 		665241D02C5BA6E700BD3A64 /* Ray.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = Ray.cpp; sourceTree = "<group>"; };
 		665241D12C5BA6E700BD3A64 /* Ray.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; path = Ray.hpp; sourceTree = "<group>"; };
+		665241DB2C5C29E500BD3A64 /* colortest */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; name = colortest; path = "/Users/uru/Library/Mobile Documents/com~apple~CloudDocs/42_Projects/rt/build/Debug/colortest"; sourceTree = "<absolute>"; };
+		665241DC2C5C29E500BD3A64 /* geometrytest */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; name = geometrytest; path = "/Users/uru/Library/Mobile Documents/com~apple~CloudDocs/42_Projects/rt/build/Debug/geometrytest"; sourceTree = "<absolute>"; };
 		6659C4E12C399E8A00CC7FAB /* MlxImage.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = MlxImage.cpp; sourceTree = "<group>"; };
 		6659C4E22C399E8A00CC7FAB /* MlxImage.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; path = MlxImage.hpp; sourceTree = "<group>"; };
 		6659C4E52C39A8B200CC7FAB /* OpenGL.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = OpenGL.framework; path = System/Library/Frameworks/OpenGL.framework; sourceTree = SDKROOT; };
@@ -206,7 +206,7 @@
 			);
 			name = colortest;
 			productName = colortest;
-			productReference = 665241CD2C58174000BD3A64 /* colortest */;
+			productReference = 665241DB2C5C29E500BD3A64 /* colortest */;
 			productType = "com.apple.product-type.tool";
 		};
 		6661C2492C380BFE00D58CDC /* geometrytest */ = {
@@ -223,7 +223,7 @@
 			);
 			name = geometrytest;
 			productName = geometrytest;
-			productReference = 665241CE2C58174000BD3A64 /* geometrytest */;
+			productReference = 665241DC2C5C29E500BD3A64 /* geometrytest */;
 			productType = "com.apple.product-type.tool";
 		};
 /* End PBXNativeTarget section */

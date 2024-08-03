@@ -30,11 +30,15 @@ public:
 struct Pixel {
 	Ray		ray;
 	Vec2f	cPos;	// relative xy-coordinate on RT canvas of width 1
-	Pixel(const Vec2f& cPos, float tan, const Position& pos);
+	Pixel(const Vec2f& cPos, float tan, const Vec3f& pov, const LookatAux& aux);
 	~Pixel(void);
 	Pixel(const Pixel& other);
 	Pixel& operator=(const Pixel& other);
-	void reset(float tan, const Position& pos);
+	void reset(float tan, const Vec3f& pov, const LookatAux& aux);
+	void resetPov(const Vec3f& pov);
+	void resetFov(float tan);
+	void resetDir(const LookatAux& aux);
+	void resetRoll(float roll);
 };
 	
 class Matrix {

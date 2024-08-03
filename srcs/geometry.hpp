@@ -110,13 +110,13 @@ template <class t> struct Vec3 {
 		}
 		return *this;
 	}
-	inline Vec3<t>& lookatDir(const LookatAuxiliary<t>& aux) {
+	Vec3<t>& lookatDir(const LookatAuxiliary<t>& aux) {
 		t _x = *this * aux.right, _y = *this * aux.up, _z = *this * aux.dir;
 		x = _x; y = _y; z = _z;
 		this->normalize();
 		return *this;
 	}
-	inline Vec3<t>& lookatPt(const Vec3<t>& eyePt, const LookatAuxiliary<t>& aux) {
+	Vec3<t>& lookatPt(const Vec3<t>& eyePt, const LookatAuxiliary<t>& aux) {
 		substract(*this, eyePt);
 		t _x = *this * aux.right, _y = *this * aux.up, _z = *this * aux.dir;
 		x = _x; y = _y; z = _z;
@@ -125,11 +125,14 @@ template <class t> struct Vec3 {
 	Vec3<t>& turnAroundX(float angle) {
 		if ( !(angle == 0 || (y == 0 && z == 0)) ) {
 			float sin = std::sin(angle), cos = std::cos(angle);
-			float _y = y * cos - z * sin;
-			float _z = y * sin + z * cos;
+			float _z = z * cos - y * sin;
+			float _y = z * sin + y * cos;
 			y = _y; z = _z;
 		}
 		return *this;
+	}
+	inline Vec3<t> turnAround_X(float angle) {
+		return Vec3<t>(*this).turnAroundX(angle);
 	}
 	Vec3<t>& turnAroundY(float angle) {
 		if ( !(angle == 0 || (x == 0 && z == 0)) ) {
@@ -140,6 +143,9 @@ template <class t> struct Vec3 {
 		}
 		return *this;
 	}
+	inline Vec3<t> turnAround_Y(float angle) {
+		return Vec3<t>(*this).turnAroundY(angle);
+	}
 	Vec3<t>& turnAroundZ(float angle) {
 		if ( !(angle == 0 || (x == 0 && y == 0)) ) {
 			float sin = std::sin(angle), cos = std::cos(angle);
@@ -148,6 +154,9 @@ template <class t> struct Vec3 {
 			x = _x; y = _y;
 		}
 		return *this;
+	}
+	inline Vec3<t> turnAround_Z(float angle) {
+		return Vec3<t>(*this).turnAroundZ(angle);
 	}
 	inline bool isNull(void) const { return x == 0 && y == 0 && z == 0;  }
 	inline void toNull(void) { x = 0; y = 0; z = 0;  }
@@ -184,10 +193,12 @@ template <class t> struct LookatAuxiliary {
 	Vec3<t> dir;
 	Vec3<t> up;
 	Vec3<t> right;
-	LookatAuxiliary(const Vec3<t>& eyeDir) : dir(eyeDir), up(), right(0,-1,0) {
+	LookatAuxiliary(const Vec3<t>& eyeDir) : dir(eyeDir), up(), right(0,-1,0)
+	{
 		if ( dir.x == 0 && (dir.y == -1 || dir.y == 1) && dir.z == 0) {
-			right.y = 0; right.z = -1;
+			right.y = 0; right.z = 1;
 		}
+		dir.x = -dir.x;
 		right.product(dir, right); right.normalize();
 		up.product(dir, right); up.normalize();
 	}
