@@ -307,52 +307,56 @@ void Scene::changeCameraFOV(int ctrl) {
 }
 
 void Scene::moveCamera(int ctrl) {
-	Camera& cam(cameras[_currentCamera]);
+	Camera&  cam(cameras[_currentCamera]);
+	Position shift(Vec3f(0,0,0),Vec3f(0,0,1));
 	Position pos(cam.get_pos());
 	switch (ctrl) {
 		case MOVE_RIGHT:
-			pos.p.x += STEP_MOVE;
+			shift.p.x = STEP_MOVE;
 			break;
 		case MOVE_LEFT:
-			pos.p.x -= STEP_MOVE;
+			shift.p.x = -STEP_MOVE;
 			break;
 		case MOVE_UP:
-			pos.p.y += STEP_MOVE;
+			shift.p.y = STEP_MOVE;
 			break;
 		case MOVE_DOWN:
-			pos.p.y -= STEP_MOVE;
+			shift.p.y = -STEP_MOVE;
 			break;
 		case MOVE_FORWARD:
-			pos.p.z += STEP_MOVE;
+			shift.p.z = STEP_MOVE;
 			break;
 		case MOVE_BACKWARD:
-			pos.p.z -= STEP_MOVE;
+			shift.p.z = -STEP_MOVE;
 			break;
 		default:
 			break;
 	}
+	shift.lookatShift(pos.n);
+	pos.p = pos.p + shift.p;
 	cam.reset_pos(pos);
 	rt();
 }
 
 void Scene::rotateCamera(int ctrl) {
-	Camera&		cam(cameras[_currentCamera]);
-	Position	pos(cam.get_pos());
+	Camera&  cam(cameras[_currentCamera]);
+	Position pos(cam.get_pos());
+	Position shift(Vec3f(0,0,0),Vec3f(0,0,1));
 	switch (ctrl) {
 		case YAW_RIGHT: {
-			pos.n.turnAroundY(radian(STEP_ROTATION));
+			shift.n.turnAroundY(radian(STEP_ROTATION));
 			break;
 		}
 		case YAW_LEFT: {
-			pos.n.turnAroundY(radian(-STEP_ROTATION));
+			shift.n.turnAroundY(radian(-STEP_ROTATION));
 			break;
 		}
 		case PITCH_UP: {
-			pos.n.turnAroundX(radian(-STEP_ROTATION));
+			shift.n.turnAroundX(radian(STEP_ROTATION));
 			break;
 		}
 		case PITCH_DOWN: {
-			pos.n.turnAroundX(radian(STEP_ROTATION));
+			shift.n.turnAroundX(radian(-STEP_ROTATION));
 			break;
 		}
 		case ROLL_RIGHT: {
@@ -366,7 +370,8 @@ void Scene::rotateCamera(int ctrl) {
 		default:
 			return;
 	}
-//	pos.n.normalize();
+	shift.lookatShift(pos.n);
+	pos.n.addition(pos.n,shift.n).normalize();
 	cam.reset_pos(pos);
 	rt();
 }

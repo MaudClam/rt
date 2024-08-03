@@ -219,6 +219,9 @@ struct Position {
 	Position(const Vec3f& point, const Vec3f& norm);
 	Position(const Position& other);
 	Position& operator=(const Position& other);
+	Position& lookat(const Position& eye);
+	Position& lookatShift(const Vec3f& eyeDir);
+	Position& lookat(const Position& eye, const LookatAux& aux);
 };
 
 

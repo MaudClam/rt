@@ -26,6 +26,27 @@ Position& Position::operator=(const Position& other) {
 	return *this;
 };
 
+Position& Position::lookat(const Position& eye) {
+	LookatAux aux(eye.n);
+	lookat(eye, aux);
+	return *this;
+}
+
+Position& Position::lookatShift(const Vec3f& eyeDir) {
+	LookatAux aux(eyeDir);
+	n.lookatDir(aux);
+	p.lookatPt(Vec3f(), aux);
+	return *this;
+}
+
+
+Position& Position::lookat(const Position& eye, const LookatAux& aux) {
+	n.lookatDir(aux);
+	p.lookatPt(eye.p, aux);
+	return *this;
+}
+
+
 
 // Non member functions
 
