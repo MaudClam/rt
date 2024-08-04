@@ -60,47 +60,67 @@ std::istringstream& operator>>(std::istringstream& is, Fov& fov) {
 
 // struct Pixel
 
-Pixel::Pixel(const Vec2f& cPos, float tan, const Vec3f& pov, const LookatAux& aux) :
-ray(), cPos(cPos) {
-	reset(tan, pov, aux);
+Pixel::Pixel(const Vec3f& cPos, int sm, float tan, const Vec3f& pov) :
+rays(), cPos(cPos), color() {
+	reset(sm, tan, pov);
 }
 
 Pixel::~Pixel(void) {}
 
 Pixel::Pixel(const Pixel& other) :
-ray(other.ray),
-cPos(other.cPos)
+rays(other.rays),
+cPos(other.cPos),
+color(other.color)
 {}
 
 Pixel& Pixel::operator=(const Pixel& other) {
 	if (this != &other) {
-		ray = other.ray;
+		rays = other.rays;
 		cPos = other.cPos;
+		color = other.color;
 	}
 	return *this;
 }
 
-void Pixel::reset(float tan, const Vec3f& pov, const LookatAux& aux) {
-	resetFov(tan);
-	resetPov(pov);
-	resetDir(aux);
+void Pixel::reset(int sm, float tan, const Vec3f& pov) {
+	rays.clear();
+	rays.reserve(sm * sm);
+	int sqrSm = sm * sm;
+	for (int i = 0; i < sqrSm; i++) {
+		rays.push_back(Ray());
+	}
+	restoreRays(sm, tan, pov);
 }
 
-void Pixel::resetPov(const Vec3f& pov) {
-	ray.pov = pov;
+void Pixel::restoreRays(int sm, float tan, const Vec3f& pov) {
+	auto ray = rays.begin(), end = rays.end();
+	for (int j = 0; j < sm; j++) {
+		for (int i = 0; i < sm && ray != end; i++, ++ray) {
+			ray->dir.x = (cPos.x + i * cPos.z) * tan;
+			ray->dir.y = (cPos.y + j * cPos.z) * tan;
+			ray->dir.z = 1;
+			ray->dir.normalize();
+			ray->pov = pov;
+		}
+	}
 }
 
-void Pixel::resetFov(float tan) {
-	ray.dir.x = cPos.x * tan; ray.dir.y = cPos.y * tan; ray.dir.z = 1;
-	ray.dir.normalize();
-}
-
-void Pixel::resetDir(const LookatAux& aux) {
-	ray.dir.lookatDir(aux);
-}
-
-void Pixel::resetRoll(float roll) {
-	(void)roll;
+void Pixel::averageColor(void) {
+	int k = (int)rays.size();
+	if (k) {
+		int a = 0, r = 0, g = 0, b = 0;
+		for (auto ray = rays.begin(), end = rays.end(); ray != end; ++ray) {
+			a += ray->color.a;
+			r += ray->color.r;
+			g += ray->color.g;
+			b += ray->color.b;
+			ray->color.val = 0;
+		}
+		color.b = b / k;
+		color.g = g / k;
+		color.r = r / k;
+		color.a = a / k;
+	}
 }
 
 
@@ -112,6 +132,7 @@ _height(0),
 _bytespp(0),
 _mult(0),
 _fov(),
+_sm(SMOOTHING_FACTOR),
 matrix()
 {}
 
@@ -123,6 +144,7 @@ _height(other._height),
 _bytespp(other._bytespp),
 _mult(other._mult),
 _fov(other._fov),
+_sm(other._sm),
 matrix(other.matrix)
 {}
 
@@ -133,6 +155,7 @@ Matrix& Matrix::operator=(const Matrix& other) {
 		_bytespp = other._bytespp;
 		_mult = other._mult;
 		_fov = other._fov;
+		_sm = other._sm;
 		matrix = other.matrix;
 	}
 	return *this;
@@ -150,6 +173,8 @@ float Matrix::get_fovDegree(void) { return _fov.get_degree(); }
 
 float Matrix::get_fovTan(void) { return _fov.get_tan(); }
 
+int   Matrix::get_sm(void) { return _sm; }
+
 bool Matrix::set_fovDegree(float degree) { return _fov.set_degree(degree); }
 
 
@@ -158,13 +183,11 @@ bool Matrix::set_fovDegree(float degree) { return _fov.set_degree(degree); }
 Camera::Camera(const MlxImage& img) :
 _pos(Vec3f(), Vec3f(0,0,1)),
 _roll(0),
-_flybyRadius(0),
-_sm(SMOOTHING_FACTOR)
-{	_width = img.get_width() * _sm;
-	_height = img.get_height() * _sm;
+_flybyRadius(0)
+{	_width = img.get_width();
+	_height = img.get_height();
 	_bytespp = img.get_bytespp();
 	_mult = 2. / _width;
-	initMatrix();
 }
 
 Camera::~Camera(void) {}
@@ -201,71 +224,43 @@ void Camera::set_pos(const Position& pos) { _pos = pos; }
 
 void Camera::set_flybyRadius(float flybyRadius) { _flybyRadius = flybyRadius; }
 
-void Camera::set_sm(int sm) { _sm = sm; }
-
 void Camera::initMatrix(void) {
-	Vec2i		mPos; // pixel xy-coordinate on the monitor (width*height pixels, xy(0,0) in the upper left corner, Y-axis direction down);
-	Vec2f		cPos; // pixel xy-coordinate on the canvas (width=1, xy(0,0) in the center, XY-axes up and right directions)
-	LookatAux	aux(_pos.n);
+	Vec2i	mPos; // pixel xy-coordinate on the monitor (width*height pixels, xy(0,0) in the upper left corner, Y-axis direction down);
+	Vec3f	cPos; // pixel xy-coordinate on the canvas (width=1, xy(0,0) in the center, XY-axes up and right directions)
+	float	sm_mult = 1. / _sm;
+	float	tan = _fov.get_tan();
 	matrix.reserve(_width * _height);
 	for (mPos.y = 0; mPos.y < _height; mPos.y++) {
 		for (mPos.x = 0; mPos.x < _width; mPos.x++) {
-			cPos.x = mPos.x; cPos.y = mPos.y;
+			cPos.x = mPos.x;
+			cPos.y = mPos.y;
+			cPos.z = sm_mult;
 			cPos = cPos.toRt(_width, _height) * _mult;
-			matrix.push_back( Pixel(cPos, _fov.get_tan(), _pos.p, aux) );
+			matrix.push_back( Pixel(cPos, _sm, tan, _pos.p) );
 		}
 	}
 }
 
-void Camera::resetMatrix(void) {
-	auto End = matrix.end();
-	LookatAux	aux(_pos.n);
-	for (auto pixel = matrix.begin(); pixel != End; ++pixel) {
-		pixel->reset(_fov.get_tan(), _pos.p, aux);
+void	Camera::restoreRays(void) {
+	float tan = _fov.get_tan();
+	for (auto pixel = matrix.begin(), end = matrix.end(); pixel != end; ++pixel) {
+		pixel->restoreRays(_sm, tan, _pos.p);
 	}
 }
 
-void Camera::takePicture(MlxImage& img) {
-	char* data = img.get_data();
-	if (data) {
-		if (_sm == 1) {
-			auto End = matrix.end();
-			for (auto pixel = matrix.begin(); pixel != End; ++pixel) {
-				memcpy(data, pixel->ray.color.raw, _bytespp);
-				data += _bytespp;
-				pixel->ray.color.val = 0;
-			}
-		} else {
-			int k = _sm * _sm;
-			for (int y = 0; y < _height; y += _sm) {
-				for (int x = 0; x < _width; x += _sm) {
-					unsigned char raw[4];
-					int a = 0, r = 0, g = 0, b = 0;
-					for (int j = 0; j < _sm; j++) {
-						int idx = x + (y + j) * _width;
-						for (int i = 0; i < _sm; i++, idx++) {
-							a += matrix[idx].ray.color.a;
-							r += matrix[idx].ray.color.r;
-							g += matrix[idx].ray.color.g;
-							b += matrix[idx].ray.color.b;
-							matrix[idx].ray.color.val = 0;
-						}
-					}
-					raw[0] = b / k;
-					raw[1] = g / k;
-					raw[2] = r / k;
-					raw[3] = a / k;
-					memcpy(data, raw, _bytespp);
-					data += _bytespp;
-				}
-			}
-		}
+void	Camera::resetRays(void) {
+	float sm_mult = (1. / _sm) * _mult;
+	float tan = _fov.get_tan();
+	for (auto pixel = matrix.begin(), end = matrix.end(); pixel != end; ++pixel) {
+		pixel->cPos.z = sm_mult;
+		pixel->reset(_sm, tan, _pos.p);
 	}
 }
+
 
 bool Camera::reset_fovDegree(float degree) {
 	if (_fov.set_degree(degree)) {
-		resetMatrix();
+		restoreRays();
 		return true;
 	}
 	return false;
@@ -273,7 +268,12 @@ bool Camera::reset_fovDegree(float degree) {
 
 void Camera::reset_pos(const Position& pos) {
 	_pos = pos;
-	resetMatrix();
+	restoreRays();
+}
+
+void Camera::reset_smoothingFactor(int sm) {
+	_sm = sm;
+	resetRays();
 }
 
 void Camera::reset_roll(float roll) {
@@ -287,6 +287,18 @@ void Camera::reset_roll(float roll) {
 		_roll = radian(roll);
 	}
 	if (DEBUG) { std::cout << "roll: " << degree(_roll) << std::endl; }
+}
+
+void Camera::takePicture(MlxImage& img) {
+	char* data = img.get_data();
+	if (data) {
+		auto End = matrix.end();
+		for (auto pixel = matrix.begin(); pixel != End; ++pixel) {
+			memcpy(data, pixel->color.raw, _bytespp);
+			data += _bytespp;
+			pixel->color.val = 0;
+		}
+	}
 }
 
 
@@ -306,7 +318,7 @@ std::ostream& operator<<(std::ostream& o, Camera& camera) {
 std::istringstream& operator>>(std::istringstream& is, Camera& camera) {
 	is >> camera._pos.p >> camera._pos.n >> camera._fov;
 	camera._pos.n.normalize();
-	camera.resetMatrix();
+	camera.initMatrix();
 	return is;
 }
 

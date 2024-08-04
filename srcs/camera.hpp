@@ -28,17 +28,16 @@ public:
 };
 
 struct Pixel {
-	Ray		ray;
-	Vec2f	cPos;	// relative xy-coordinate on RT canvas of width 1
-	Pixel(const Vec2f& cPos, float tan, const Vec3f& pov, const LookatAux& aux);
+	std::vector<Ray>	rays;
+	Vec3f				cPos; // relative xy-coordinate on RT canvas of width 1
+	ARGBColor			color;
+	Pixel(const Vec3f& cPos, int smoothingFactor, float tan, const Vec3f& pov);
 	~Pixel(void);
 	Pixel(const Pixel& other);
 	Pixel& operator=(const Pixel& other);
-	void reset(float tan, const Vec3f& pov, const LookatAux& aux);
-	void resetPov(const Vec3f& pov);
-	void resetFov(float tan);
-	void resetDir(const LookatAux& aux);
-	void resetRoll(float roll);
+	void reset(int smoothingFactor, float tan, const Vec3f& pov);
+	void restoreRays(int smoothingFactor, float tan, const Vec3f& pov);
+	void averageColor(void);
 };
 	
 class Matrix {
@@ -48,6 +47,7 @@ protected:
 	int		_bytespp;
 	float	_mult;
 	Fov		_fov;
+	int		_sm;
 public:
 	std::vector<Pixel> matrix;
 	Matrix(void);
@@ -60,7 +60,8 @@ public:
 	Fov  get_fov(void);
 	float get_fovDegree(void);
 	float get_fovTan(void);
-	bool set_fovDegree(float degree);
+	int   get_sm(void);
+	bool  set_fovDegree(float degree);
 };
 
 class Camera : public Matrix {
@@ -70,7 +71,6 @@ protected:
 	Position			_pos;
 	float				_roll;	// Camera tilt (aviation term 'roll') relative to its optical axis (z-axis)
 	float				_flybyRadius;
-	int					_sm;
 public:
 	Camera(const MlxImage& img);
 	~Camera(void);
@@ -83,13 +83,14 @@ public:
 	int		get_sm(void) const;
 	void	set_pos(const Position& pos);
 	void	set_flybyRadius(float flybyRadius);
-	void	set_sm(int sm);
 	void	initMatrix(void);
-	void	resetMatrix(void);
-	void	takePicture(MlxImage& img);
+	void	restoreRays(void);
+	void	resetRays(void);
 	bool	reset_fovDegree(float degree);
 	void	reset_pos(const Position& pos);
+	void	reset_smoothingFactor(int smoothingFactor);
 	void	reset_roll(float roll);
+	void	takePicture(MlxImage& img);
 	friend	std::ostream& operator<<(std::ostream& o, Camera& camera);
 	friend	std::istringstream& operator>>(std::istringstream& is, Camera& camera);
 };

@@ -13,15 +13,6 @@ Ray::Ray(void) : pov(), dir(), dist(0), color(0) {}
 
 Ray::~Ray(void) {}
 
-Ray::Ray(const Position& pos) :
-pov(pos.p),
-dir(pos.n),
-norm(),
-dist(0),
-light(0),
-color(0)
-{}
-
 Ray::Ray(const Ray& other) :
 pov(other.pov),
 dir(other.dir),

@@ -212,14 +212,23 @@ int		keyDown(int key, void* param) {
 			}
 			default: break;
 		}
-} else {
-		switch (key) {
-			case KEY_ESCAPE:      _exit(*var.img, *var.scene, SUCCESS);  break;
-			case KEY_ARROW_RIGHT: var.scene->moveCamera(MOVE_RIGHT); break;
-			case KEY_ARROW_LEFT:  var.scene->moveCamera(MOVE_LEFT); break;
-			case KEY_ARROW_UP:    var.scene->moveCamera(MOVE_UP); break;
-			case KEY_ARROW_DOWN:  var.scene->moveCamera(MOVE_DOWN); break;
-			default: break;
+	} else if (var.img->holdKey == UNHOLD ) {
+		if (isNumericKey(key)) {
+			int smoothingFactor = numericKeyToNumber(key);
+			if (smoothingFactor > 0 && smoothingFactor < 5) {
+				Camera& cam = var.scene->cameras[var.scene->get_currentCamera()];
+				cam.reset_smoothingFactor( smoothingFactor );
+				var.scene->rt();
+			}
+		} else {
+			switch (key) {
+				case KEY_ESCAPE:      _exit(*var.img, *var.scene, SUCCESS);  break;
+				case KEY_ARROW_RIGHT: var.scene->moveCamera(MOVE_RIGHT); break;
+				case KEY_ARROW_LEFT:  var.scene->moveCamera(MOVE_LEFT); break;
+				case KEY_ARROW_UP:    var.scene->moveCamera(MOVE_UP); break;
+				case KEY_ARROW_DOWN:  var.scene->moveCamera(MOVE_DOWN); break;
+				default: break;
+			}
 		}
 	}
 	if (DEBUG_KEYS) { std::cout << "keyDown: " << key << " holdKey: " << var.img->holdKey << "\n"; }
