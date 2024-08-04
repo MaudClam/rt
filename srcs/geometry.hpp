@@ -195,12 +195,12 @@ template <class t> struct LookatAuxiliary {
 	Vec3<t> right;
 	LookatAuxiliary(const Vec3<t>& eyeDir) : dir(eyeDir), up(), right(0,-1,0)
 	{
+		dir.x = -dir.x;
 		if ( dir.x == 0 && (dir.y == -1 || dir.y == 1) && dir.z == 0) {
 			right.y = 0; right.z = 1;
 		}
-		dir.x = -dir.x;
-		right.product(dir, right); right.normalize();
-		up.product(dir, right); up.normalize();
+		right.product(dir,right).normalize();
+		up.product(dir,right).normalize();
 	}
 	~LookatAuxiliary(void) {}
 };
@@ -220,7 +220,6 @@ struct Position {
 	Position(const Position& other);
 	Position& operator=(const Position& other);
 	Position& lookat(const Position& eye);
-	Position& lookatShift(const Vec3f& eyeDir);
 	Position& lookat(const Position& eye, const LookatAux& aux);
 };
 
