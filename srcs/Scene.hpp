@@ -16,7 +16,7 @@ class	Camera;
 
 struct Scene {
 	const std::vector<std::string> nicks {
-		"R","A","c","l","sp"
+		"R","A","c","l","ls","ll","sp"
 	};
 	MlxImage&				img;
 	std::vector<A_Scenery*>	scenerys;

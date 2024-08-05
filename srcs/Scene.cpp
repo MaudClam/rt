@@ -91,8 +91,8 @@ int  Scene::parsing(int ac, char** av) {
 	set_any( std::istringstream("c     -5,0,3        1,0,0      60 ") );
 	set_any( std::istringstream("c     0,4,2         0,-1,0      60 ") );
 	set_any( std::istringstream("A 0.2	255,255,250") );
-	set_any( std::istringstream("l     2,1,0    0.6 " + img.white.rrggbb() + "  0,0,0 ") );
-	set_any( std::istringstream("l     inf,0,0  0.2 " + img.white.rrggbb() + "  1,4,4 ") );
+	set_any( std::istringstream("l     2,1,0    0.6 " + img.white.rrggbb()) );
+	set_any( std::istringstream("ls     1,4,4  0.2 " + img.white.rrggbb()) );
 	set_any( std::istringstream("sp    0,-1,3	2   " + img.red.rrggbb()   + " 500  0.2") );
 	set_any( std::istringstream("sp    2,0,4	2   " + img.blue.rrggbb()  + " 500  0.3") );
 	set_any( std::istringstream("sp    -2,0,4	2   " + img.green.rrggbb() + " 10  0.4") );
@@ -144,13 +144,34 @@ bool Scene::set_any(std::istringstream is) {
 			is >> cameras.back();
 			break;
 		}
-		case 3: {// c litght
+		case 3: {// l spotlight
 			Light* l = new Light();
+			l->set_nick(nicks[id]);
+			l->set_name("spotlight");
+			l->set_type(Light::SPOTLIGHT);
 			is >> *l;
 			set_scenery(l);
 			break;
 		}
-		case 4: {// sp sphere
+		case 4: {// ls sunlitght
+			Light* l = new Light();
+			l->set_nick(nicks[id]);
+			l->set_name("sunlight");
+			l->set_type(Light::SUNLIGHT);
+			is >> *l;
+			set_scenery(l);
+			break;
+		}
+		case 5: {// ll sunlight limited by plane
+			Light* l = new Light();
+			l->set_nick(nicks[id]);
+			l->set_name("sunlight limited by plane");
+			l->set_type(Light::SUNLIGHT_LIMITED);
+			is >> *l;
+			set_scenery(l);
+			break;
+		}
+		case 6: {// sp sphere
 			Sphere* sp = new Sphere;
 			is >> *sp;
 			set_scenery(sp);

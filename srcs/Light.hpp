@@ -11,12 +11,18 @@
 # include "A_Scenery.hpp"
 
 class Light : public A_Scenery {
-	Lighting	light;
+public:
+	enum Type { SPOTLIGHT, SUNLIGHT, SUNLIGHT_LIMITED };
+protected:
+	Type     _type;
+	Lighting _light;
 public:
 	Light(void);
 	~Light(void);
 	Light(const Light& other);
-	Light& operator=(const Lighting& other);
+	void set_nick(const std::string& nick);
+	void set_name(const std::string& name);
+	void set_type(Type type);
 	bool intersection(Ray& ray, Hit rayHit = FRONT) const;
 	void getNormal(Ray& ray) const;
 	bool lighting(Ray& ray) const;

@@ -19,7 +19,6 @@ public:
 	~Sphere(void);
 	Sphere(const Vec3f& center, float radius, const ARGBColor& color);
 	Sphere(const Sphere& other);
-	Sphere& operator=(const Sphere& other);
 	bool intersection(Ray& ray, Hit rayHit = FRONT) const;
 	void getNormal(Ray& ray) const;
 	bool lighting(Ray& ray) const;
