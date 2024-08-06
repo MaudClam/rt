@@ -13,8 +13,9 @@
 
 struct Ray {
 	Vec3f		pov;	// POV (point of view)
-	Vec3f		dir;	// ray direction vector (normalized)
-	Vec3f		norm;	// normal vector at the ray hit (normalized)
+	Vec3f		dir;	// normalized ray direction vector
+	Vec3f		camDir;	// normalized camera direction vector
+	Vec3f		norm;	// normalized normal vector from the ray hit point
 	float		dist;	// vdistance from pov to object
 	ARGBColor	light;
 	ARGBColor	color;
@@ -22,7 +23,14 @@ struct Ray {
 	~Ray(void);
 	Ray(const Ray& other);
 	Ray& operator=(const Ray& other);
-	void reflect(void);
+	Ray& changePov(void);
+	Ray& movePovByEpsilon(void);
+	Ray& reflect(const Ray& other);
+	Ray& collectLight(const ARGBColor& objColor, const ARGBColor& light);
+	Ray& collectLight(const ARGBColor& objColor);
+	Ray& collectSpecularLight(const ARGBColor& objColor, int specular);
+	Ray& collectReflectiveLight(ARGBColor& reflectColor, float reflective);
+
 };
 
 #endif /* RAY_HPP */

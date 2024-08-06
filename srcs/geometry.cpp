@@ -56,13 +56,6 @@ float degree(float radian) {
 
 // Intersections, normals, rays
 
-Vec3f reflectRay(const Vec3f& norm, const Vec3f& dir) {
-	Vec3f R(norm);
-	R.product(dir * norm * 2);
-	R.substract(R, dir).normalize();
-	return R;
-}
-
 bool raySphereIntersection(const Vec3f& rayDir,
 						   const Vec3f& rayPov,
 						   const Vec3f& center,
@@ -71,8 +64,16 @@ bool raySphereIntersection(const Vec3f& rayDir,
 						   Hit rayHit) {
 	Vec3f k;
 	k.substract(rayPov, center);
-	float b = rayDir * k;
 	float c = k * k - sqrRadius;
+	return _raySphereIntersection(rayDir, k, c, distance, rayHit);
+}
+
+bool _raySphereIntersection(const Vec3f& rayDir,
+							const Vec3f& k,
+							float c,
+							float& distance,
+							Hit rayHit) {
+	float b = rayDir * k;
 	float d = b * b - c;
 	if (d >= 0) {
 		float sqrt_d = std::sqrt(d);

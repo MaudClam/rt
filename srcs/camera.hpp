@@ -49,7 +49,7 @@ protected:
 	Fov		_fov;
 	int		_sm;
 public:
-	std::vector<Pixel> matrix;
+	std::vector<Pixel>	matrix;
 	Matrix(void);
 	~Matrix(void);
 	Matrix(const Matrix& other);
@@ -68,10 +68,14 @@ class Camera : public Matrix {
 protected:
 	const std::string	_name = "camera";
 	const std::string	_nick = "c";
+	Position			_base;
 	Position			_pos;
 	float				_roll;	// Camera tilt (aviation term 'roll') relative to its optical axis (z-axis)
 	float				_flybyRadius;
 public:
+	std::vector<A_Scenery*>	scenerys;
+	std::vector<A_Scenery*>	objsIdx;
+	std::vector<A_Scenery*>	lightsIdx;
 	Camera(const MlxImage& img);
 	~Camera(void);
 	Camera(const Camera& other);
@@ -81,15 +85,18 @@ public:
 	float	get_roll(void) const;
 	float	get_flybyRadius(void) const;
 	int		get_sm(void) const;
+	void	set_scenery(A_Scenery* scenery);
 	void	set_pos(const Position& pos);
+	void	set_posToBase(void);
 	void	set_flybyRadius(float flybyRadius);
 	void	initMatrix(void);
 	void	restoreRays(void);
 	void	resetRays(void);
 	bool	reset_fovDegree(float degree);
-	void	reset_pos(const Position& pos);
+	void	reset_pov(const Vec3f& pov);
 	void	reset_smoothingFactor(int smoothingFactor);
 	void	reset_roll(float roll);
+	void	lookatCamera(const Position& pos);
 	void	takePicture(MlxImage& img);
 	friend	std::ostream& operator<<(std::ostream& o, Camera& camera);
 	friend	std::istringstream& operator>>(std::istringstream& is, Camera& camera);

@@ -12,14 +12,11 @@
 		6659C4E62C39A8B200CC7FAB /* OpenGL.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 6659C4E52C39A8B200CC7FAB /* OpenGL.framework */; };
 		6659C4E82C39A8CD00CC7FAB /* AppKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 6659C4E72C39A8CD00CC7FAB /* AppKit.framework */; };
 		6661C21B2C38071100D58CDC /* main.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 6661C21A2C38071100D58CDC /* main.cpp */; settings = {COMPILER_FLAGS = "-Wall -Wextra -Werror"; }; };
-		6661C2452C380BC200D58CDC /* colortest.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 6661C2362C38092D00D58CDC /* colortest.cpp */; settings = {COMPILER_FLAGS = "-Wall -Wextra -Werror"; }; };
-		6661C2532C380C2800D58CDC /* geometrytest.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 6661C2382C380B7200D58CDC /* geometrytest.cpp */; settings = {COMPILER_FLAGS = "-Wall -Wextra -Werror"; }; };
 		667951722C41AD05009C1DDD /* Scene.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 667951702C41AD05009C1DDD /* Scene.cpp */; settings = {COMPILER_FLAGS = "-Wall -Wextra -Werror"; }; };
 		667951792C427BFD009C1DDD /* camera.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 667951772C427BFD009C1DDD /* camera.cpp */; settings = {COMPILER_FLAGS = "-Wall -Wextra -Werror"; }; };
 		6679517D2C46DF55009C1DDD /* geometry.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 6679517C2C46DF55009C1DDD /* geometry.cpp */; settings = {COMPILER_FLAGS = "-Wall -Wextra -Werror"; }; };
 		6679518B2C5216B7009C1DDD /* Light.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 667951892C5216B7009C1DDD /* Light.cpp */; settings = {COMPILER_FLAGS = "-Wall -Wextra -Werror"; }; };
 		667951922C5293BB009C1DDD /* ARGBColor.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 667951912C5293BB009C1DDD /* ARGBColor.cpp */; settings = {COMPILER_FLAGS = "-Wall -Wextra -Werror"; }; };
-		667951932C52FD48009C1DDD /* ARGBColor.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 667951912C5293BB009C1DDD /* ARGBColor.cpp */; settings = {COMPILER_FLAGS = "-Wall -Wextra -Werror"; }; };
 		66D1668D2C3B4243002E6F7E /* libmlx.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 66D1668C2C3B4243002E6F7E /* libmlx.a */; };
 		66D166C62C3C172F002E6F7E /* Sphere.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 66D166C42C3C172F002E6F7E /* Sphere.cpp */; settings = {COMPILER_FLAGS = "-Wall -Wextra -Werror"; }; };
 		66D166CA2C3D9281002E6F7E /* A_Scenery.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 66D166C82C3D9281002E6F7E /* A_Scenery.cpp */; settings = {COMPILER_FLAGS = "-Wall -Wextra -Werror"; }; };
@@ -35,31 +32,11 @@
 			);
 			runOnlyForDeploymentPostprocessing = 1;
 		};
-		6661C23C2C380B9A00D58CDC /* CopyFiles */ = {
-			isa = PBXCopyFilesBuildPhase;
-			buildActionMask = 2147483647;
-			dstPath = /usr/share/man/man1/;
-			dstSubfolderSpec = 0;
-			files = (
-			);
-			runOnlyForDeploymentPostprocessing = 1;
-		};
-		6661C2482C380BFE00D58CDC /* CopyFiles */ = {
-			isa = PBXCopyFilesBuildPhase;
-			buildActionMask = 2147483647;
-			dstPath = /usr/share/man/man1/;
-			dstSubfolderSpec = 0;
-			files = (
-			);
-			runOnlyForDeploymentPostprocessing = 1;
-		};
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
 		665241D02C5BA6E700BD3A64 /* Ray.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = Ray.cpp; sourceTree = "<group>"; };
 		665241D12C5BA6E700BD3A64 /* Ray.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; path = Ray.hpp; sourceTree = "<group>"; };
-		665241DB2C5C29E500BD3A64 /* colortest */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; name = colortest; path = "/Users/uru/Library/Mobile Documents/com~apple~CloudDocs/42_Projects/rt/build/Debug/colortest"; sourceTree = "<absolute>"; };
-		665241DC2C5C29E500BD3A64 /* geometrytest */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; name = geometrytest; path = "/Users/uru/Library/Mobile Documents/com~apple~CloudDocs/42_Projects/rt/build/Debug/geometrytest"; sourceTree = "<absolute>"; };
 		6659C4E12C399E8A00CC7FAB /* MlxImage.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = MlxImage.cpp; sourceTree = "<group>"; };
 		6659C4E22C399E8A00CC7FAB /* MlxImage.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; path = MlxImage.hpp; sourceTree = "<group>"; };
 		6659C4E52C39A8B200CC7FAB /* OpenGL.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = OpenGL.framework; path = System/Library/Frameworks/OpenGL.framework; sourceTree = SDKROOT; };
@@ -95,20 +72,6 @@
 				66D1668D2C3B4243002E6F7E /* libmlx.a in Frameworks */,
 				6659C4E82C39A8CD00CC7FAB /* AppKit.framework in Frameworks */,
 				6659C4E62C39A8B200CC7FAB /* OpenGL.framework in Frameworks */,
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
-		6661C23B2C380B9A00D58CDC /* Frameworks */ = {
-			isa = PBXFrameworksBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
-		6661C2472C380BFE00D58CDC /* Frameworks */ = {
-			isa = PBXFrameworksBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -192,40 +155,6 @@
 			productReference = 667951822C4D535C009C1DDD /* rt */;
 			productType = "com.apple.product-type.tool";
 		};
-		6661C23D2C380B9A00D58CDC /* colortest */ = {
-			isa = PBXNativeTarget;
-			buildConfigurationList = 6661C2422C380B9A00D58CDC /* Build configuration list for PBXNativeTarget "colortest" */;
-			buildPhases = (
-				6661C23A2C380B9A00D58CDC /* Sources */,
-				6661C23B2C380B9A00D58CDC /* Frameworks */,
-				6661C23C2C380B9A00D58CDC /* CopyFiles */,
-			);
-			buildRules = (
-			);
-			dependencies = (
-			);
-			name = colortest;
-			productName = colortest;
-			productReference = 665241DB2C5C29E500BD3A64 /* colortest */;
-			productType = "com.apple.product-type.tool";
-		};
-		6661C2492C380BFE00D58CDC /* geometrytest */ = {
-			isa = PBXNativeTarget;
-			buildConfigurationList = 6661C24E2C380BFE00D58CDC /* Build configuration list for PBXNativeTarget "geometrytest" */;
-			buildPhases = (
-				6661C2462C380BFE00D58CDC /* Sources */,
-				6661C2472C380BFE00D58CDC /* Frameworks */,
-				6661C2482C380BFE00D58CDC /* CopyFiles */,
-			);
-			buildRules = (
-			);
-			dependencies = (
-			);
-			name = geometrytest;
-			productName = geometrytest;
-			productReference = 665241DC2C5C29E500BD3A64 /* geometrytest */;
-			productType = "com.apple.product-type.tool";
-		};
 /* End PBXNativeTarget section */
 
 /* Begin PBXProject section */
@@ -236,12 +165,6 @@
 				LastUpgradeCheck = 1540;
 				TargetAttributes = {
 					6661C2162C38071100D58CDC = {
-						CreatedOnToolsVersion = 15.4;
-					};
-					6661C23D2C380B9A00D58CDC = {
-						CreatedOnToolsVersion = 15.4;
-					};
-					6661C2492C380BFE00D58CDC = {
 						CreatedOnToolsVersion = 15.4;
 					};
 				};
@@ -260,8 +183,6 @@
 			projectRoot = "";
 			targets = (
 				6661C2162C38071100D58CDC /* rt */,
-				6661C23D2C380B9A00D58CDC /* colortest */,
-				6661C2492C380BFE00D58CDC /* geometrytest */,
 			);
 		};
 /* End PBXProject section */
@@ -281,23 +202,6 @@
 				667951792C427BFD009C1DDD /* camera.cpp in Sources */,
 				66D166C62C3C172F002E6F7E /* Sphere.cpp in Sources */,
 				667951922C5293BB009C1DDD /* ARGBColor.cpp in Sources */,
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
-		6661C23A2C380B9A00D58CDC /* Sources */ = {
-			isa = PBXSourcesBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-				6661C2452C380BC200D58CDC /* colortest.cpp in Sources */,
-				667951932C52FD48009C1DDD /* ARGBColor.cpp in Sources */,
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
-		6661C2462C380BFE00D58CDC /* Sources */ = {
-			isa = PBXSourcesBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-				6661C2532C380C2800D58CDC /* geometrytest.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -447,46 +351,6 @@
 			};
 			name = Release;
 		};
-		6661C2432C380B9A00D58CDC /* Debug */ = {
-			isa = XCBuildConfiguration;
-			buildSettings = {
-				CODE_SIGN_STYLE = Automatic;
-				DEVELOPMENT_TEAM = 92PJT7J9M9;
-				ENABLE_HARDENED_RUNTIME = YES;
-				PRODUCT_NAME = "$(TARGET_NAME)";
-			};
-			name = Debug;
-		};
-		6661C2442C380B9A00D58CDC /* Release */ = {
-			isa = XCBuildConfiguration;
-			buildSettings = {
-				CODE_SIGN_STYLE = Automatic;
-				DEVELOPMENT_TEAM = 92PJT7J9M9;
-				ENABLE_HARDENED_RUNTIME = YES;
-				PRODUCT_NAME = "$(TARGET_NAME)";
-			};
-			name = Release;
-		};
-		6661C24F2C380BFE00D58CDC /* Debug */ = {
-			isa = XCBuildConfiguration;
-			buildSettings = {
-				CODE_SIGN_STYLE = Automatic;
-				DEVELOPMENT_TEAM = 92PJT7J9M9;
-				ENABLE_HARDENED_RUNTIME = YES;
-				PRODUCT_NAME = "$(TARGET_NAME)";
-			};
-			name = Debug;
-		};
-		6661C2502C380BFE00D58CDC /* Release */ = {
-			isa = XCBuildConfiguration;
-			buildSettings = {
-				CODE_SIGN_STYLE = Automatic;
-				DEVELOPMENT_TEAM = 92PJT7J9M9;
-				ENABLE_HARDENED_RUNTIME = YES;
-				PRODUCT_NAME = "$(TARGET_NAME)";
-			};
-			name = Release;
-		};
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
@@ -504,24 +368,6 @@
 			buildConfigurations = (
 				6661C21F2C38071100D58CDC /* Debug */,
 				6661C2202C38071100D58CDC /* Release */,
-			);
-			defaultConfigurationIsVisible = 0;
-			defaultConfigurationName = Release;
-		};
-		6661C2422C380B9A00D58CDC /* Build configuration list for PBXNativeTarget "colortest" */ = {
-			isa = XCConfigurationList;
-			buildConfigurations = (
-				6661C2432C380B9A00D58CDC /* Debug */,
-				6661C2442C380B9A00D58CDC /* Release */,
-			);
-			defaultConfigurationIsVisible = 0;
-			defaultConfigurationName = Release;
-		};
-		6661C24E2C380BFE00D58CDC /* Build configuration list for PBXNativeTarget "geometrytest" */ = {
-			isa = XCConfigurationList;
-			buildConfigurations = (
-				6661C24F2C380BFE00D58CDC /* Debug */,
-				6661C2502C380BFE00D58CDC /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;

@@ -14,12 +14,16 @@ class Sphere : public A_Scenery {
 protected:
 	float 	_radius;
 	float 	_sqrRadius;
+	Vec3f	_k;
+	float	_c;
 public:
 	Sphere(void);
 	~Sphere(void);
 	Sphere(const Vec3f& center, float radius, const ARGBColor& color);
 	Sphere(const Sphere& other);
-	bool intersection(Ray& ray, Hit rayHit = FRONT) const;
+	Sphere* clone(void) const;
+	void lookat(const Position& eye, const LookatAux& aux, const Vec3f& pov);
+	bool intersection(Ray& ray, bool notOptimize = true, Hit rayHit = FRONT) const;
 	void getNormal(Ray& ray) const;
 	bool lighting(Ray& ray) const;
 	virtual void output(std::ostringstream& os);

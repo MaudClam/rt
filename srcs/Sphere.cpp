@@ -34,11 +34,22 @@ Sphere::Sphere(const Sphere& other) : _radius(other._radius), _sqrRadius(_radius
 	reflective = other.reflective;
 }
 
-bool Sphere::intersection(Ray& ray, Hit rayHit) const {
-	if (raySphereIntersection(ray.dir, ray.pov, _pos.p, _sqrRadius, ray.dist, rayHit)) {
-		return true;
+Sphere* Sphere::clone(void) const {
+	Sphere* sphere = new Sphere(*this);
+	return sphere;
+}
+
+void Sphere::lookat(const Position& eye, const LookatAux& aux, const Vec3f& pov) {
+	_pos.lookat(eye, aux);
+	_k.substract(pov,_pos.p);
+	_c = _k * _k - _sqrRadius;
+}
+
+bool Sphere::intersection(Ray& ray, bool notOptimize, Hit rayHit) const {
+	if (notOptimize) {
+		return raySphereIntersection(ray.dir, ray.pov, _pos.p, _sqrRadius, ray.dist, rayHit);
 	}
-	return false;
+	return _raySphereIntersection(ray.dir, _k, _c, ray.dist, rayHit);
 }
 
 void Sphere::getNormal(Ray& ray) const {

@@ -181,9 +181,13 @@ bool Matrix::set_fovDegree(float degree) { return _fov.set_degree(degree); }
 // class Camera
 
 Camera::Camera(const MlxImage& img) :
-_pos(Vec3f(), Vec3f(0,0,1)),
+_base(BASE),
+_pos(_base),
 _roll(0),
-_flybyRadius(0)
+_flybyRadius(0),
+scenerys(),
+objsIdx(),
+lightsIdx()
 {	_width = img.get_width();
 	_height = img.get_height();
 	_bytespp = img.get_bytespp();
@@ -196,16 +200,20 @@ Camera::Camera(const Camera& other) { *this = other; }
 
 Camera& Camera::operator=(const Camera& other) {
 	if (this != &other) {
+		_base = other._base;
 		_width = other._width;
 		_height = other._height;
 		_bytespp = other._bytespp;
 		_mult = other._mult;
 		_fov = other._fov;
+		_sm = other._sm;
 		matrix = other.matrix;
 		_pos = other._pos;
 		_roll = other._roll;
 		_flybyRadius = other._flybyRadius;
-		_sm = other._sm;
+		scenerys = other.scenerys;
+		objsIdx = other.objsIdx;
+		lightsIdx = other.lightsIdx;
 	}
 	return *this;
 }
@@ -220,7 +228,18 @@ float Camera::get_flybyRadius(void) const { return _flybyRadius; }
 
 int	 Camera::get_sm(void) const { return _sm; }
 
+void Camera::set_scenery(A_Scenery* scenery) {
+	scenerys.push_back(scenery);
+	if ( scenerys.back()->get_isLight() == true ) {
+		lightsIdx.push_back(scenery);
+	} else {
+		objsIdx.push_back(scenery);
+	}
+}
+
 void Camera::set_pos(const Position& pos) { _pos = pos; }
+
+void Camera::set_posToBase(void) { _pos = _base; }
 
 void Camera::set_flybyRadius(float flybyRadius) { _flybyRadius = flybyRadius; }
 
@@ -241,14 +260,14 @@ void Camera::initMatrix(void) {
 	}
 }
 
-void	Camera::restoreRays(void) {
+void Camera::restoreRays(void) {
 	float tan = _fov.get_tan();
 	for (auto pixel = matrix.begin(), end = matrix.end(); pixel != end; ++pixel) {
 		pixel->restoreRays(_sm, tan, _pos.p);
 	}
 }
 
-void	Camera::resetRays(void) {
+void Camera::resetRays(void) {
 	float sm_mult = (1. / _sm) * _mult;
 	float tan = _fov.get_tan();
 	for (auto pixel = matrix.begin(), end = matrix.end(); pixel != end; ++pixel) {
@@ -256,7 +275,6 @@ void	Camera::resetRays(void) {
 		pixel->reset(_sm, tan, _pos.p);
 	}
 }
-
 
 bool Camera::reset_fovDegree(float degree) {
 	if (_fov.set_degree(degree)) {
@@ -266,8 +284,8 @@ bool Camera::reset_fovDegree(float degree) {
 	return false;
 }
 
-void Camera::reset_pos(const Position& pos) {
-	_pos = pos;
+void Camera::reset_pov(const Vec3f& pov) {
+	_pos.p = pov;
 	restoreRays();
 }
 
@@ -287,6 +305,15 @@ void Camera::reset_roll(float roll) {
 		_roll = radian(roll);
 	}
 	if (DEBUG) { std::cout << "roll: " << degree(_roll) << std::endl; }
+}
+
+void Camera::lookatCamera(const Position& pos) {
+	LookatAux aux(pos.n);
+	for (auto sc = scenerys.begin(), end = scenerys.end(); sc != end; ++sc) {
+		(*sc)->lookat(pos, aux, _base.p);
+	}
+	set_posToBase();
+	restoreRays();
 }
 
 void Camera::takePicture(MlxImage& img) {
@@ -318,7 +345,6 @@ std::ostream& operator<<(std::ostream& o, Camera& camera) {
 std::istringstream& operator>>(std::istringstream& is, Camera& camera) {
 	is >> camera._pos.p >> camera._pos.n >> camera._fov;
 	camera._pos.n.normalize();
-	camera.initMatrix();
 	return is;
 }
 

@@ -40,8 +40,9 @@ public:
 	bool set_any(std::istringstream is);
 	void set_scenery(A_Scenery* scenery);
 	void indexingScenerys(void);
+	void makeLookatsForCameras(void);
 	void raytrasing(void);
-	A_Scenery* nearestIntersection(Ray& ray);
+	A_Scenery* nearestIntersection(Ray& ray, bool notOptimize = true);
 	bool shadow(Ray& ray);
 	void trasingRay(Ray& ray, int recursion);
 	void rt(void);

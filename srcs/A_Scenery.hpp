@@ -29,7 +29,9 @@ public:
 	bool  get_isLight(void) const;
 	Position get_pos(void) const;
 	void set_pos(const Position& pos);
-	virtual bool intersection(Ray& ray, Hit rayHit = FRONT) const = 0;
+	virtual A_Scenery* clone(void) const = 0;
+	virtual void lookat(const Position& eye, const LookatAux& aux, const Vec3f& pov) = 0;
+	virtual bool intersection(Ray& ray, bool notOptimize = true, Hit rayHit = FRONT) const = 0;
 	virtual void getNormal(Ray& ray) const = 0;
 	virtual bool lighting(Ray& ray) const = 0;
 	virtual void output(std::ostringstream& os) = 0;

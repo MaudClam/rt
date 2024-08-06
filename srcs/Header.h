@@ -24,8 +24,9 @@
 # define DEBUG_MODE			true
 # define DEBUG_KEYS			false
 # define DEBUG_MOUSE		false
-# define RECURSIONS			3
+# define RECURSIONS			5
 # define SMOOTHING_FACTOR 	1
+# define BASE				Vec3f(0,0,0),Vec3f(0,0,1)
 
 class MlxImage;
 struct Scene;

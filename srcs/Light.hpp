@@ -15,15 +15,17 @@ public:
 	enum Type { SPOTLIGHT, SUNLIGHT, SUNLIGHT_LIMITED };
 protected:
 	Type     _type;
-	Lighting _light;
 public:
+	Lighting light;
 	Light(void);
 	~Light(void);
 	Light(const Light& other);
+	Light* clone(void) const;
 	void set_nick(const std::string& nick);
 	void set_name(const std::string& name);
 	void set_type(Type type);
-	bool intersection(Ray& ray, Hit rayHit = FRONT) const;
+	void lookat(const Position& eye, const LookatAux& aux, const Vec3f& pov);
+	bool intersection(Ray& ray, bool notOptimize = true, Hit rayHit = FRONT) const;
 	void getNormal(Ray& ray) const;
 	bool lighting(Ray& ray) const;
 	virtual void output(std::ostringstream& os);

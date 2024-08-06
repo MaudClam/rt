@@ -106,8 +106,14 @@ template <class t> struct Vec3 {
 	Vec3<t>& normalize(t l=1) {
 		t _norm = norm();
 		if (_norm != 0) {
-			*this = (*this) * (l / _norm);
+			product(l / _norm);
 		}
+		return *this;
+	}
+	Vec3<t>& reflect(const Vec3<t>& norm, const Vec3<t>& dir) {
+		*this = dir;
+		product(-1);
+		substract(norm * (*this * norm * 2), *this).normalize();
 		return *this;
 	}
 	Vec3<t>& lookatDir(const LookatAuxiliary<t>& aux) {
@@ -160,7 +166,6 @@ template <class t> struct Vec3 {
 	}
 	inline bool isNull(void) const { return x == 0 && y == 0 && z == 0;  }
 	inline void toNull(void) { x = 0; y = 0; z = 0;  }
-	inline bool isInf(void) const { return x == INFINITY || y == INFINITY || z == INFINITY;  }
 	Vec3<t>& toRt(int width, int height) { x -= width / 2; y = height / 2 - y - 1; return *this; }
 	template <class > friend std::ostream& operator<<(std::ostream& s, Vec3<t>& v);
 	template <class > friend std::istringstream& operator>>(std::istringstream& is, Vec3<t>& v);
@@ -196,7 +201,6 @@ template <class t> struct LookatAuxiliary {
 	Vec3<t> right;
 	LookatAuxiliary(const Vec3<t>& eyeDir) : dir(eyeDir), up(), right(0,-1,0)
 	{
-		dir.x = -dir.x;
 		if ( dir.x == 0 && (dir.y == -1 || dir.y == 1) && dir.z == 0) {
 			right.y = 0; right.z = 1;
 		}
@@ -227,14 +231,18 @@ struct Position {
 
 // Intersections, normals, rays
 
-Vec3f reflectRay(const Vec3f& norm, const Vec3f& dir);
-
 bool raySphereIntersection(const Vec3f& rayDir,
 						   const Vec3f& rayPov,
 						   const Vec3f& center,
 						   float sqrRadius,
 						   float& distance,
 						   Hit rayHit = FRONT);
+
+bool _raySphereIntersection(const Vec3f& rayDir,
+							const Vec3f& k,
+							float c,
+							float& distance,
+							Hit rayHit = FRONT);
 
 void normalToRaySphereIntersect(const Vec3f& intersectPt,
 								const Vec3f& center,
