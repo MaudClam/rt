@@ -198,19 +198,6 @@ void Scene::set_scenery(A_Scenery* scenery) {
 	}
 }
 
-void Scene::indexingScenerys(void) {
-	objsIdx.clear();
-	lightsIdx.clear();
-	auto End = scenerys.end();
-	for (auto scenery = scenerys.begin(); scenery != End; ++scenery) {
-		if ( (*scenery)->get_isLight() ) {
-			lightsIdx.push_back(*scenery);
-		} else {
-			objsIdx.push_back(*scenery);
-		}
-	}
-}
-
 void Scene::makeLookatsForCameras(void) {
 	for (auto cam = cameras.begin(), End = cameras.end(); cam != End; ++cam) {
 		LookatAux aux(cam->get_pos().n);
@@ -222,25 +209,17 @@ void Scene::makeLookatsForCameras(void) {
 	for (auto cam = cameras.begin(), End = cameras.end(); cam != End; ++cam) {
 		cam->lookatCamera(cam->get_pos());
 		cam->initMatrix();
+		cam->ambient = _ambient.light;
+		cam->space = _space.light;
 	}
 }
 
-void Scene::raytrasing(void) {
-	Camera&	cam(cameras[_currentCamera]);
-	for (auto pixel = cam.matrix.begin(), End = cam.matrix.end(); pixel != End; ++pixel) {
-		for (auto ray = pixel->rays.begin(), end = pixel->rays.end(); ray != end; ++ray) {
-			trasingRay(*ray, 0);
-		}
-		pixel->averageColor();
-	}
-}
-
-A_Scenery* Scene::nearestIntersection(Ray& ray, bool notOptimize) {
+A_Scenery* Scene::nearestIntersection(Ray& ray) {
 	A_Scenery*	nearestObj = NULL;
 	float		distance = INFINITY;
 	Camera&		cam(cameras[_currentCamera]);
 	for (auto obj = cam.scenerys.begin(), end = cam.scenerys.end(); obj != end; ++obj) {
-		if ( (*obj)->intersection(ray, notOptimize) ) {
+		if ( (*obj)->intersection(ray) ) {
 			if (distance > ray.dist) {
 				distance = ray.dist;
 				nearestObj = *obj;
@@ -253,51 +232,8 @@ A_Scenery* Scene::nearestIntersection(Ray& ray, bool notOptimize) {
 	return nearestObj;
 }
 
-bool Scene::shadow(Ray& ray) {
-	float distance = ray.dist;
-	ray.movePovByEpsilon();
-	Camera& cam(cameras[_currentCamera]);
-	for (auto obj = cam.scenerys.begin(), end = cam.scenerys.end(); obj != end; ++obj) {
-		if ( (*obj)->intersection(ray) ) {
-			if (ray.dist < distance) {
-				return true;
-			}
-		}
-	}
-	return false;
-}
-
-void Scene::trasingRay(Ray& ray, int recursion) {
-	if (recursion <= RECURSIONS) {
-		A_Scenery* obj = nearestIntersection(ray, recursion);
-		if (obj) {
-			if (recursion == 0) {
-				ray.camDir = ray.dir;
-			}
-			ray.collectLight(obj->color,_ambient.light);
-			ray.changePov();
-			obj->getNormal(ray);
-			Ray reflect;
-			reflect.reflect(ray);
-			Camera& cam(cameras[_currentCamera]);
-			for (auto light = cam.lightsIdx.begin(), end = cam.lightsIdx.end(); light != end; ++light) {
-				if ( (*light)->lighting(ray) && !shadow(ray) ) {
-					ray.collectLight(obj->color);
-					ray.collectSpecularLight(obj->color, obj->specular);
-				}
-			}
-			if (obj->reflective > 0) {
-				trasingRay(reflect, ++recursion);
-				ray.collectReflectiveLight(reflect.color, obj->reflective);
-			}
-		} else {
-			ray.color = _space.light;
-		}
-	}
-}
-
 void Scene::rt(void) {
-	raytrasing();
+	cameras[_currentCamera].rayTracing();
 	cameras[_currentCamera].takePicture(img);
 	mlx_put_image_to_window(img.get_mlx(), img.get_win(), img.get_image(), 0, 0);
 }

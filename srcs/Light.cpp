@@ -41,44 +41,62 @@ void Light::lookat(const Position& eye, const LookatAux& aux, const Vec3f& pov) 
 	_pos.lookat(eye, aux);
 }
 
-bool Light::intersection(Ray& ray, bool notOptimize, Hit rayHit) const {
+bool Light::intersection(Ray& ray, Hit rayHit) const {
 	(void)ray;
-	(void)notOptimize;
 	(void)rayHit;
 	return false;
 }
 
-void Light::getNormal(Ray& ray) const {
+void Light::calculateNormal(Ray& ray) const {
 	(void)ray;
 }
 
-bool Light::lighting(Ray& ray) const {
-	if (_type == SPOTLIGHT) {
-		ray.dist = ray.dir.substract(_pos.p, ray.pov).norm();
-		if (ray.dist != 0) (ray.dir.product(1 / ray.dist));// normalization
-		float k = ray.norm * ray.dir;
-		if (k > 0) {
-			ray.light = light.light;
-			ray.light.product(k);
-			return true;
+bool Light::lighting(Ray& ray, const A_Scenery& scenery, const a_scenerys_t& scenerys) const {
+	float k = 0;
+	switch (_type) {
+		case SPOTLIGHT: {
+			ray.dist = ray.dirToLight.substract(_pos.p, ray.pov).norm();
+			if (ray.dist != 0) (ray.dirToLight.product(1 / ray.dist));// optimal normalization
+			if ( (k = ray.dirToLight * ray.norm) <= 0) {
+				return false;
+			}
+			break;
 		}
-	} else if (_type == SUNLIGHT) {
-		float k = ray.norm * _pos.n;
-		if (k > 0) {
-			ray.dir = _pos.n;
+		case SUNLIGHT: {
+			if ( (k = _pos.n * ray.norm) <= 0) {
+				return false;
+			}
 			ray.dist = INFINITY;
-			ray.light = light.light;
-			ray.light.product(k);
-			return true;
+			ray.dirToLight = _pos.n;
+			break;
 		}
-	} else if (SUNLIGHT_LIMITED) {
-		float k = ray.norm * _pos.n;
-		if (k > 0) {
-			ray.dir = _pos.n;
-			rayPlaneIntersection(ray.pov, ray.dir, _pos.p, _pos.n, ray.dist);
-			ray.light = light.light;
-			ray.light.product(k);
-			return true;
+		case SUNLIGHT_LIMITED: {
+			if ( (k = _pos.n * ray.norm) <= 0) {
+				return false;
+			}
+			rayPlaneIntersection(ray.pov, _pos.n, _pos.p, ray.norm, ray.dist);
+			ray.dirToLight = _pos.n;
+			break;
+		}
+		default:
+			return false;
+	}
+	ray.movePovByEpsilon();
+	if ( shadow(ray,scenerys) ) {
+		return false;
+	}
+	ray.collectLight(scenery.color, light.light, k);
+	ray.collectSpecular(scenery.color, light.light, scenery.specular);
+	return true;
+}
+
+bool Light::shadow(Ray& ray, const a_scenerys_t& scenerys) const {
+	float distance = ray.dist;
+	for (auto scenery = scenerys.begin(), end = scenerys.end(); scenery != end; ++scenery) {
+		if ( (*scenery)->intersection(ray, FRONT_SHADOW) ) {
+			if (distance > ray.dist) {
+				return true;
+			}
 		}
 	}
 	return false;

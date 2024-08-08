@@ -39,15 +39,11 @@ void*	MlxImage::get_image(void) const { return image; }
 
 char*	MlxImage::get_data(void) const { return data; }
 
-Scene*	MlxImage::get_scene(void) const { return scene; }
-
 int		MlxImage::get_width(void) const { return width; }
 
 int		MlxImage::get_height(void) const { return height; }
 
 int		MlxImage::get_bytespp(void) const { return bytespp; }
-
-int		MlxImage::get_lineLen(void) const { return lineLen; }
 
 int		MlxImage::get_endian(void) const { return endian; }
 

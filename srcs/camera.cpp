@@ -187,7 +187,9 @@ _roll(0),
 _flybyRadius(0),
 scenerys(),
 objsIdx(),
-lightsIdx()
+lightsIdx(),
+ambient(),
+space()
 {	_width = img.get_width();
 	_height = img.get_height();
 	_bytespp = img.get_bytespp();
@@ -214,6 +216,8 @@ Camera& Camera::operator=(const Camera& other) {
 		scenerys = other.scenerys;
 		objsIdx = other.objsIdx;
 		lightsIdx = other.lightsIdx;
+		ambient = other.ambient;
+		space = other.space;
 	}
 	return *this;
 }
@@ -326,6 +330,52 @@ void Camera::takePicture(MlxImage& img) {
 			pixel->color.val = 0;
 		}
 	}
+}
+
+void Camera::rayTracing(void) {
+	for (auto pixel = matrix.begin(), End = matrix.end(); pixel != End; ++pixel) {
+		for (auto ray = pixel->rays.begin(), end = pixel->rays.end(); ray != end; ++ray) {
+			ray->recursion = 0;
+			traceRay(*ray);
+		}
+		pixel->averageColor();
+	}
+}
+
+int  Camera::traceRay(Ray& ray) {
+	if (ray.recursion > RECURSION_DEPTH) { return 0; }
+	A_Scenery* scenery = closestScenery(ray);
+	if (!scenery) { ray.color = space ; return space.val; }
+	ray.collectLight(scenery->color, ambient);
+	ray.changePov();
+	scenery->calculateNormal(ray);
+	for (auto light = lightsIdx.begin(), end = lightsIdx.end(); light != end; ++light) {
+		(*light)->lighting(ray, *scenery, scenerys);
+	}
+	int _color = ray.color.val;
+	if (scenery->reflective > 0) {
+		ray.reflect();
+		int _reflect = traceRay(ray);
+		_color = ray.collectReflect(_color, _reflect, scenery->reflective);
+	}
+	return _color;
+}
+
+A_Scenery* Camera::closestScenery(Ray& ray) {
+	A_Scenery*	closestScenery = NULL;
+	float		distance = INFINITY;
+	for (auto scenery = scenerys.begin(), end = scenerys.end(); scenery != end; ++scenery) {
+		if ( (*scenery)->intersection(ray) ) {
+			if (distance > ray.dist) {
+				distance = ray.dist;
+				closestScenery = *scenery;
+			}
+		}
+	}
+	if (closestScenery) {
+		ray.dist = distance;
+	}
+	return closestScenery;
 }
 
 

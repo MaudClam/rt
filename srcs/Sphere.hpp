@@ -23,9 +23,9 @@ public:
 	Sphere(const Sphere& other);
 	Sphere* clone(void) const;
 	void lookat(const Position& eye, const LookatAux& aux, const Vec3f& pov);
-	bool intersection(Ray& ray, bool notOptimize = true, Hit rayHit = FRONT) const;
-	void getNormal(Ray& ray) const;
-	bool lighting(Ray& ray) const;
+	bool intersection(Ray& ray, Hit rayHit = FRONT) const;
+	void calculateNormal(Ray& ray) const;
+	bool lighting(Ray& ray, const A_Scenery& scenery, const a_scenerys_t& scenerys) const;
 	virtual void output(std::ostringstream& os);
 	friend std::ostream& operator<<(std::ostream& o, Sphere& sp);
 	friend std::istringstream& operator>>(std::istringstream& is, Sphere& sp);

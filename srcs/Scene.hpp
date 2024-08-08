@@ -13,22 +13,23 @@
 class	A_Scenery;
 class	MlxImage;
 class	Camera;
+typedef std::vector<Camera>	cameras_t;
 
 struct Scene {
 	const std::vector<std::string> nicks {
 		"R","A","c","l","ls","ll","sp"
 	};
-	MlxImage&				img;
-	std::vector<A_Scenery*>	scenerys;
-	std::vector<A_Scenery*>	objsIdx;
-	std::vector<A_Scenery*>	lightsIdx;
-	std::vector<Camera>		cameras;
+	MlxImage&	img;
+	a_scenerys_t	scenerys;
+	a_scenerys_t	objsIdx;
+	a_scenerys_t	lightsIdx;
+	cameras_t	cameras;
 private:
-	Vec2i					_resolution;
-	std::string				_header;
-	Lighting				_ambient;
-	Lighting				_space;
-	int						_currentCamera;
+	Vec2i		_resolution;
+	std::string	_header;
+	Lighting	_ambient;
+	Lighting	_space;
+	int			_currentCamera;
 public:
 	Scene(MlxImage& img);
 	~Scene(void);
@@ -39,12 +40,8 @@ public:
 	bool set_currentCamera(int idx);
 	bool set_any(std::istringstream is);
 	void set_scenery(A_Scenery* scenery);
-	void indexingScenerys(void);
 	void makeLookatsForCameras(void);
-	void raytrasing(void);
-	A_Scenery* nearestIntersection(Ray& ray, bool notOptimize = true);
-	bool shadow(Ray& ray);
-	void trasingRay(Ray& ray, int recursion);
+	A_Scenery* nearestIntersection(Ray& ray);
 	void rt(void);
 	void selectCamera(int ctrl);
 	void changeCameraFOV(int ctrl);

@@ -73,9 +73,10 @@ protected:
 	float				_roll;	// Camera tilt (aviation term 'roll') relative to its optical axis (z-axis)
 	float				_flybyRadius;
 public:
-	std::vector<A_Scenery*>	scenerys;
-	std::vector<A_Scenery*>	objsIdx;
-	std::vector<A_Scenery*>	lightsIdx;
+	a_scenerys_t		scenerys;
+	a_scenerys_t		objsIdx;
+	a_scenerys_t		lightsIdx;
+	ARGBColor 			ambient, space;
 	Camera(const MlxImage& img);
 	~Camera(void);
 	Camera(const Camera& other);
@@ -98,6 +99,9 @@ public:
 	void	reset_roll(float roll);
 	void	lookatCamera(const Position& pos);
 	void	takePicture(MlxImage& img);
+	void	rayTracing(void);
+	int		traceRay(Ray& ray);
+	A_Scenery* closestScenery(Ray& ray);
 	friend	std::ostream& operator<<(std::ostream& o, Camera& camera);
 	friend	std::istringstream& operator>>(std::istringstream& is, Camera& camera);
 };

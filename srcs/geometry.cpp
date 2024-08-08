@@ -65,10 +65,10 @@ bool raySphereIntersection(const Vec3f& rayDir,
 	Vec3f k;
 	k.substract(rayPov, center);
 	float c = k * k - sqrRadius;
-	return _raySphereIntersection(rayDir, k, c, distance, rayHit);
+	return raySphereIntersection(rayDir, k, c, distance, rayHit);
 }
 
-bool _raySphereIntersection(const Vec3f& rayDir,
+bool raySphereIntersection(const Vec3f& rayDir,
 							const Vec3f& k,
 							float c,
 							float& distance,
@@ -107,15 +107,15 @@ void normalToRaySphereIntersect(const Vec3f& intersectPt, const Vec3f& center, V
 	normal.substract(intersectPt, center).normalize();
 }
 
-bool rayPlaneIntersection(const Vec3f& rayPov,
-						  const Vec3f& rayDir,
+bool rayPlaneIntersection(const Vec3f& pov,
+						  const Vec3f& dir,
 						  const Vec3f& point,
 						  const Vec3f& norm,
 						  float& distance) {
-	float k = rayDir * norm;
+	float k = dir * norm;
 	if ( !almostEqual(k, 0, EPSILON) ) {
 		Vec3f r;
-		r.substract(rayPov, point);
+		r.substract(pov, point);
 		float t = r.product(norm) / -k;
 		if (t > 0) {
 			distance = t;

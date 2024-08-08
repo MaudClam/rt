@@ -9,14 +9,24 @@
 
 // struct Ray
 
-Ray::Ray(void) : pov(), dir(), camDir(), dist(0), light(), color() {}
+Ray::Ray(void) :
+recursion(0),
+pov(),
+dir(),
+dirFromCam(),
+dirToLight(),
+dist(0),
+light(),
+color() {}
 
 Ray::~Ray(void) {}
 
 Ray::Ray(const Ray& other) :
+recursion(other.recursion),
 pov(other.pov),
 dir(other.dir),
-camDir(other.camDir),
+dirFromCam(other.dirFromCam),
+dirToLight(other.dirToLight),
 norm(other.norm),
 dist(other.dist),
 light(other.light),
@@ -25,9 +35,11 @@ color(other.color)
 
 Ray& Ray::operator=(const Ray& other) {
 	if (this != & other) {
+		recursion = other.recursion;
 		pov = other.pov;
 		dir = other.dir;
-		camDir = other.camDir;
+		dirFromCam = other.dirFromCam;
+		dirToLight = other.dirToLight;
 		norm = other.norm;
 		dist = other.dist;
 		light = other.light;
@@ -38,6 +50,9 @@ Ray& Ray::operator=(const Ray& other) {
 
 Ray& Ray::changePov(void) {
 	pov.addition( pov, dir * dist );
+	if (!recursion) {
+		dirFromCam = dir;
+	}
 	return *this;
 }
 
@@ -46,38 +61,32 @@ Ray& Ray::movePovByEpsilon(void) {
 	return *this;
 }
 
-Ray& Ray::reflect(const Ray& other) {
-	*this = other;
-	dir.reflect(norm, dir);
+Ray& Ray::reflect(void) {
+	dir.reflect(norm);
+	recursion++;
+	color.val = 0;
 	movePovByEpsilon();
 	return *this;
 }
 
-Ray& Ray::collectLight(const ARGBColor& objColor, const ARGBColor& light) {
-	this->light = light;
-	collectLight(objColor);
-	return *this;
-}
-
-Ray& Ray::collectLight(const ARGBColor& objColor) {
-	light.product(light, objColor);
+Ray& Ray::collectLight(const ARGBColor& sceneryColor, const ARGBColor& lightSource, float k) {
+	light = lightSource;
+	if (k != 1) {
+		light.product(k);
+	}
+	light.product(light, sceneryColor);
 	color.addition(color, light);
 	return *this;
 }
 
-Ray& Ray::collectSpecularLight(const ARGBColor& objColor, int specular) {
+Ray& Ray::collectSpecular(const ARGBColor& sceneryColor, const ARGBColor& lightSource, int specular) {
 	if (specular != -1) {
-		dir.reflect(norm, dir);
-		float k = dir * camDir;
+		dirToLight.reflect(norm);
+		float k = dirToLight * dirFromCam;
 		if (k > 0) {
 			k = std::pow(k, specular);
-			collectLight(objColor, light.product(k));
+			collectLight(sceneryColor, lightSource, k);
 		}
 	}
-	return *this;
-}
-
-Ray& Ray::collectReflectiveLight(ARGBColor& reflectColor, float reflective) {
-	color.addition(color.product(1 - reflective), reflectColor.product(reflective));
 	return *this;
 }

@@ -128,11 +128,9 @@ public:
 	void*	get_win(void) const;
 	void*	get_image(void) const;
 	char*	get_data(void) const;
-	Scene*	get_scene(void) const;
 	int		get_width(void) const;
 	int		get_height(void) const;
 	int		get_bytespp(void) const;
-	int		get_lineLen(void) const;
 	int		get_endian(void) const;
 	char*	get_pixelAddr(char* data, const Vec2i& v) const;
 	char*	get_pixelAddr(char* data, int x, int y) const;

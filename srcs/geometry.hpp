@@ -17,7 +17,7 @@
 # define PRECISION		1e-9
 # define EPSILON 		1e-3
 
-enum  Hit { FRONT, BACK, OUTLINE };
+enum  Hit { FRONT, BACK, OUTLINE, FRONT_SHADOW };
 bool  almostEqual(float a, float b, int precision = PRECISION);
 bool  almostEqual(double a, double b, int precision = PRECISION);
 float radian(float degree);
@@ -110,8 +110,7 @@ template <class t> struct Vec3 {
 		}
 		return *this;
 	}
-	Vec3<t>& reflect(const Vec3<t>& norm, const Vec3<t>& dir) {
-		*this = dir;
+	Vec3<t>& reflect(const Vec3<t>& norm) {
 		product(-1);
 		substract(norm * (*this * norm * 2), *this).normalize();
 		return *this;
@@ -238,7 +237,7 @@ bool raySphereIntersection(const Vec3f& rayDir,
 						   float& distance,
 						   Hit rayHit = FRONT);
 
-bool _raySphereIntersection(const Vec3f& rayDir,
+bool raySphereIntersection(const Vec3f& rayDir,
 							const Vec3f& k,
 							float c,
 							float& distance,
@@ -248,8 +247,8 @@ void normalToRaySphereIntersect(const Vec3f& intersectPt,
 								const Vec3f& center,
 								Vec3f& normal);
 
-bool rayPlaneIntersection(const Vec3f& rayPov,
-						  const Vec3f& rayDir,
+bool rayPlaneIntersection(const Vec3f& pov,
+						  const Vec3f& dir,
 						  const Vec3f& point,
 						  const Vec3f& norm,
 						  float& distance);

@@ -45,19 +45,25 @@ void Sphere::lookat(const Position& eye, const LookatAux& aux, const Vec3f& pov)
 	_c = _k * _k - _sqrRadius;
 }
 
-bool Sphere::intersection(Ray& ray, bool notOptimize, Hit rayHit) const {
-	if (notOptimize) {
-		return raySphereIntersection(ray.dir, ray.pov, _pos.p, _sqrRadius, ray.dist, rayHit);
+bool Sphere::intersection(Ray& ray, Hit rayHit) const {
+	if (rayHit == FRONT_SHADOW) {
+		rayHit = FRONT;
+		return raySphereIntersection(ray.dirToLight, ray.pov, _pos.p, _sqrRadius, ray.dist, rayHit);
 	}
-	return _raySphereIntersection(ray.dir, _k, _c, ray.dist, rayHit);
+	if (!ray.recursion) {
+		return raySphereIntersection(ray.dir, _k, _c, ray.dist, rayHit);
+	}
+	return raySphereIntersection(ray.dir, ray.pov, _pos.p, _sqrRadius, ray.dist, rayHit);
 }
 
-void Sphere::getNormal(Ray& ray) const {
+void Sphere::calculateNormal(Ray& ray) const {
 	normalToRaySphereIntersect(ray.pov, _pos.p, ray.norm);
 }
 
-bool Sphere::lighting(Ray& ray) const {
+bool Sphere::lighting(Ray& ray, const A_Scenery& scenery, const a_scenerys_t& scenerys) const {
 	(void)ray;
+	(void)scenery;
+	(void)scenerys;
 	return false;
 }
 
