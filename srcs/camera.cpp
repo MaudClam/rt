@@ -101,6 +101,7 @@ void Pixel::restoreRays(int sm, float tan, const Vec3f& pov) {
 			ray->dir.z = 1;
 			ray->dir.normalize();
 			ray->pov = pov;
+			ray->recursion = 0;
 		}
 	}
 }
@@ -334,7 +335,6 @@ void Camera::takePicture_lll(MlxImage& img) {
 void Camera::rayTracing_lll(void) {
 	for (auto pixel = matrix.begin(), End = matrix.end(); pixel != End; ++pixel) {
 		for (auto ray = pixel->rays.begin(), end = pixel->rays.end(); ray != end; ++ray) {
-			ray->recursion = 0;
 			traceRay(*ray);
 		}
 		pixel->averageColor();
@@ -344,7 +344,7 @@ void Camera::rayTracing_lll(void) {
 int  Camera::traceRay(Ray& ray) {
 	if (ray.recursion > RECURSION_DEPTH) { return 0; }
 	A_Scenery* scenery = closestScenery(ray);
-	if (!scenery) { ray.color = space ; return space.val; }
+	if (!scenery) { ray.color = space ; return ray.color.val; }
 	ray.collectLight(scenery->color, ambient);
 	ray.changePov();
 	scenery->calculateNormal(ray);
@@ -375,6 +375,35 @@ A_Scenery* Camera::closestScenery(Ray& ray) {
 		ray.dist = distance;
 	}
 	return closestScenery;
+}
+
+void Camera::calculateFlybyRadius(void) {
+	float	back = 0;
+	float	front = FLYBY_RADIUS_MAX;
+	for (auto pixel = matrix.begin(), END = matrix.end(); pixel != END; ++pixel) {
+		pixel->restoreRays(_sm, _fov.get_tan(), _pos.p);
+		for (auto ray = pixel->rays.begin(), End = pixel->rays.end(); ray != End; ++ray) {
+			for (auto sc = objsIdx.begin(), end = objsIdx.end(); sc != end; ++sc) {
+				if ( (*sc)->intersection(*ray) ) {
+					if (front > ray->dist) {
+						front = ray->dist;
+					}
+				}
+				if ( (*sc)->intersection(*ray, BACK) ) {
+					if (back < ray->dist && ray->dist < FLYBY_RADIUS_MAX) {
+						back = ray->dist;
+					}
+				}
+			}
+		}
+	}
+	if ( back > 0) {
+		_flybyRadius = (back - front) / 2 + front;
+		if (DEBUG_MODE) {
+			std::cout << "front: " << front << ", back: " << back;
+			std::cout << ", flybyRadius: " << _flybyRadius << std::endl;
+		}
+	}
 }
 
 

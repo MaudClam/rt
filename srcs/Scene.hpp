@@ -47,7 +47,6 @@ public:
 	void changeCameraFOV(int ctrl);
 	void moveCamera(int ctrl);
 	void rotateCamera(int ctrl);
-	void calculateFlybyRadius(void);
 	void flybyCamera(void);
 	friend std::ostream& operator<<(std::ostream& o, Scene& sc);
 };

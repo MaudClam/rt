@@ -101,6 +101,8 @@ public:
 	void	rayTracing_lll(void);
 	int		traceRay(Ray& ray);
 	A_Scenery* closestScenery(Ray& ray);
+	void	calculateFlybyRadius(void);
+
 	friend	std::ostream& operator<<(std::ostream& o, Camera& camera);
 	friend	std::istringstream& operator>>(std::istringstream& is, Camera& camera);
 };

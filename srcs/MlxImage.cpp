@@ -186,28 +186,6 @@ int		keyDown(int key, void* param) {
 			case KEY_MINUS:       var.scene->rotateCamera(ROLL_LEFT); break;
 			default: break;
 		}
-	} else if (var.img->holdKey == KEY_LEFT_CMD || var.img->holdKey == KEY_RIGHT_CMD) {
-		switch (key) {
-			case KEY_LEFT_CMD: {
-				if (var.img->flyby == FLYBY_OFF) {
-					var.img->flyby = FLYBY_CLOCKWISE;
-					var.scene->calculateFlybyRadius();
-				} else {
-					var.img->flyby = FLYBY_OFF;
-				}
-				break;
-			}
-			case KEY_RIGHT_CMD: {
-				if (var.img->flyby == FLYBY_OFF) {
-					var.img->flyby = FLYBY_COUNTER_CLOCKWISE;
-					var.scene->calculateFlybyRadius();
-				} else {
-					var.img->flyby = FLYBY_OFF;
-				}
-				break;
-			}
-			default: break;
-		}
 	} else if (var.img->holdKey == UNHOLD ) {
 		if (isNumericKey(key)) {
 			int smoothingFactor = numericKeyToNumber(key);
@@ -223,6 +201,16 @@ int		keyDown(int key, void* param) {
 				case KEY_ARROW_LEFT:  var.scene->moveCamera(MOVE_LEFT); break;
 				case KEY_ARROW_UP:    var.scene->moveCamera(MOVE_UP); break;
 				case KEY_ARROW_DOWN:  var.scene->moveCamera(MOVE_DOWN); break;
+				case KEY_SPACE: {
+					if (var.img->flyby == FLYBY_OFF) {
+						var.scene->cameras[var.scene->get_currentCamera()].calculateFlybyRadius();
+						var.img->flyby = FLYBY_COUNTER_CLOCKWISE;
+					} else if (var.img->flyby == FLYBY_COUNTER_CLOCKWISE) {
+						var.img->flyby = FLYBY_CLOCKWISE;
+					} else {
+						var.img->flyby = FLYBY_OFF;
+					}
+				}
 				default: break;
 			}
 		}

@@ -337,51 +337,18 @@ void Scene::rotateCamera(int ctrl) {
 	rt();
 }
 
-void Scene::calculateFlybyRadius(void) {
-//	Camera&		cam(cameras[_currentCamera]);
-//	Position	pos = cam.get_pos();
-////	float		tan = cam.get_fovTan();
-//	float		back = 0;
-//	float		front = INFINITY;
-//
-//	auto End = cam.matrix.end();
-//	for (auto pixel = cam.matrix.begin(); pixel != End; ++pixel) {
-//		auto end = objsIdx.end();
-//		for (auto obj = objsIdx.begin(); obj != end; ++obj) {
-//			if ( (*obj)->intersection(pixel->ray, FRONT) ) {
-//				if ( front > pixel->ray.dist ) {
-//					front = pixel->ray.dist;
-//				}
-//			}
-////			pixel->reset(tan, pos);
-//			if ( (*obj)->intersection(pixel->ray, BACK) ) {
-//				if ( back < pixel->ray.dist && pixel->ray.dist < FLYBY_RADIUS_MAX) {
-//					back = pixel->ray.dist;
-//				}
-//			}
-//		}
-//	}
-//	if ( back > 0) {
-//		float r = (back - front) / 2 + front;
-//		cam.set_flybyRadius(r);
-//		if (DEBUG_MODE) {
-//			std::cout << "front: " << front << ", back: " << back;
-//			std::cout << ", flybyRadius: " << r << std::endl;
-//		}
-//	}
-}
-
 void Scene::flybyCamera(void) {
-	Camera& cam(cameras[_currentCamera]);
+	Camera&		cam(cameras[_currentCamera]);
+	Position	pos(cam.get_pos());
 	float angle = radian(FLYBY_STEP / 10.), radius = cam.get_flybyRadius();
 	if (img.flyby == FLYBY_CLOCKWISE) {
 		angle = -angle;
 	}
-	Position pos(cam.get_pos());
 	pos.p.z += radius;
 	pos.p.turnAroundY(angle);
 	pos.n.turnAroundY(-angle).normalize();
 	pos.p.z -= radius;
+	cam.lookatCamera(pos);
 	rt();
 }
 
