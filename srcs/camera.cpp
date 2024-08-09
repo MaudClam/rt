@@ -264,14 +264,14 @@ void Camera::initMatrix(void) {
 	}
 }
 
-void Camera::restoreRays(void) {
+void Camera::restoreRays_lll(void) {
 	float tan = _fov.get_tan();
 	for (auto pixel = matrix.begin(), end = matrix.end(); pixel != end; ++pixel) {
 		pixel->restoreRays(_sm, tan, _pos.p);
 	}
 }
 
-void Camera::resetRays(void) {
+void Camera::resetRays_lll(void) {
 	float sm_mult = (1. / _sm) * _mult;
 	float tan = _fov.get_tan();
 	for (auto pixel = matrix.begin(), end = matrix.end(); pixel != end; ++pixel) {
@@ -280,59 +280,58 @@ void Camera::resetRays(void) {
 	}
 }
 
-bool Camera::reset_fovDegree(float degree) {
+bool Camera::resetFovDegree(float degree) {
 	if (_fov.set_degree(degree)) {
-		restoreRays();
+		restoreRays_lll();
 		return true;
 	}
 	return false;
 }
 
-void Camera::reset_pov(const Vec3f& pov) {
-	_pos.p = pov;
-	restoreRays();
-}
-
-void Camera::reset_smoothingFactor(int sm) {
+void Camera::resetSmoothingFactor(int sm) {
 	_sm = sm;
-	resetRays();
+	resetRays_lll();
 }
 
-void Camera::reset_roll(float roll) {
+void Camera::resetRoll(float roll) {
 	if (roll >= 90) {
-		_roll = radian(90);
+		roll = radian(90);
 	} else if (roll <= -90) {
-		_roll = radian(-90);
-	} else if (roll == 0) {
-		_roll = radian(0);
+		roll = radian(-90);
+	} else if ( almostEqual(roll, 0, EPSILON) ) {
+		roll = radian(0);
 	} else {
-		_roll = radian(roll);
+		roll = radian(roll);
 	}
+	float shiftRoll = roll - _roll;
+	_roll = roll;
+	for (auto sc = scenerys.begin(), end = scenerys.end(); sc != end; ++sc) {
+		(*sc)->roll(_pos.p, shiftRoll);
+	}
+	restoreRays_lll();
 	if (DEBUG) { std::cout << "roll: " << degree(_roll) << std::endl; }
 }
 
 void Camera::lookatCamera(const Position& pos) {
 	LookatAux aux(pos.n);
 	for (auto sc = scenerys.begin(), end = scenerys.end(); sc != end; ++sc) {
-		(*sc)->lookat(pos, aux, _base.p);
+		(*sc)->lookat(pos, aux, _base.p, _roll);
 	}
 	set_posToBase();
-	restoreRays();
+	restoreRays_lll();
 }
 
-void Camera::takePicture(MlxImage& img) {
+void Camera::takePicture_lll(MlxImage& img) {
 	char* data = img.get_data();
 	if (data) {
-		auto End = matrix.end();
-		for (auto pixel = matrix.begin(); pixel != End; ++pixel) {
+		for (auto pixel = matrix.begin(), end = matrix.end(); pixel != end; ++pixel) {
 			memcpy(data, pixel->color.raw, _bytespp);
 			data += _bytespp;
-			pixel->color.val = 0;
 		}
 	}
 }
 
-void Camera::rayTracing(void) {
+void Camera::rayTracing_lll(void) {
 	for (auto pixel = matrix.begin(), End = matrix.end(); pixel != End; ++pixel) {
 		for (auto ray = pixel->rays.begin(), end = pixel->rays.end(); ray != end; ++ray) {
 			ray->recursion = 0;

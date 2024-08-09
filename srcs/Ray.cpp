@@ -81,8 +81,7 @@ Ray& Ray::collectLight(const ARGBColor& sceneryColor, const ARGBColor& lightSour
 
 Ray& Ray::collectSpecular(const ARGBColor& sceneryColor, const ARGBColor& lightSource, int specular) {
 	if (specular != -1) {
-		dirToLight.reflect(norm);
-		float k = dirToLight * dirFromCam;
+		float k = dirToLight.reflect(norm) * dirFromCam;
 		if (k > 0) {
 			k = std::pow(k, specular);
 			collectLight(sceneryColor, lightSource, k);

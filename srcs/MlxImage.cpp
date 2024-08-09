@@ -213,7 +213,7 @@ int		keyDown(int key, void* param) {
 			int smoothingFactor = numericKeyToNumber(key);
 			if (smoothingFactor > 0 && smoothingFactor < 5) {
 				Camera& cam = var.scene->cameras[var.scene->get_currentCamera()];
-				cam.reset_smoothingFactor( smoothingFactor );
+				cam.resetSmoothingFactor( smoothingFactor );
 				var.scene->rt();
 			}
 		} else {

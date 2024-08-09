@@ -39,10 +39,18 @@ Sphere* Sphere::clone(void) const {
 	return sphere;
 }
 
-void Sphere::lookat(const Position& eye, const LookatAux& aux, const Vec3f& pov) {
-	_pos.lookat(eye, aux);
+void Sphere::lookat(const Position& eye, const LookatAux& aux, const Vec3f& pov, float roll) {
+	_pos.lookat(eye, aux, roll);
 	_k.substract(pov,_pos.p);
 	_c = _k * _k - _sqrRadius;
+}
+
+void Sphere::roll(const Vec3f& pov, float shiftRoll) {
+	if (shiftRoll != 0) {
+		_pos.roll(shiftRoll);
+		_k.substract(pov,_pos.p);
+		_c = _k * _k - _sqrRadius;
+	}
 }
 
 bool Sphere::intersection(Ray& ray, Hit rayHit) const {

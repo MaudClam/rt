@@ -22,7 +22,8 @@ public:
 	Sphere(const Vec3f& center, float radius, const ARGBColor& color);
 	Sphere(const Sphere& other);
 	Sphere* clone(void) const;
-	void lookat(const Position& eye, const LookatAux& aux, const Vec3f& pov);
+	void lookat(const Position& eye, const LookatAux& aux, const Vec3f& pov, float roll);
+	void roll(const Vec3f& pov, float shiftRoll);
 	bool intersection(Ray& ray, Hit rayHit = FRONT) const;
 	void calculateNormal(Ray& ray) const;
 	bool lighting(Ray& ray, const A_Scenery& scenery, const a_scenerys_t& scenerys) const;

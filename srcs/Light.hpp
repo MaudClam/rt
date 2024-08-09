@@ -24,7 +24,8 @@ public:
 	void set_nick(const std::string& nick);
 	void set_name(const std::string& name);
 	void set_type(Type type);
-	void lookat(const Position& eye, const LookatAux& aux, const Vec3f& pov);
+	void lookat(const Position& eye, const LookatAux& aux, const Vec3f& pov, float roll);
+	void roll(const Vec3f& pov, float shiftRoll);
 	bool intersection(Ray& ray, Hit rayHit = FRONT) const;
 	void calculateNormal(Ray& ray) const;
 	bool lighting(Ray& ray, const A_Scenery& scenery, const a_scenerys_t& scenerys) const;

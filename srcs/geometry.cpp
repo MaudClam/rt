@@ -26,17 +26,31 @@ Position& Position::operator=(const Position& other) {
 	return *this;
 };
 
-Position& Position::lookat(const Position& eye) {
+Position& Position::lookat(const Position& eye, float roll) {
 	LookatAux aux(eye.n);
-	lookat(eye, aux);
+	lookat(eye, aux, roll);
 	return *this;
 }
 
-Position& Position::lookat(const Position& eye, const LookatAux& aux) {
-	n.lookatDir(aux);
-	p.lookatPt(eye.p, aux);
+Position& Position::lookat(const Position& eye, const LookatAux& aux, float roll) {
+	if (roll == 0) {
+		n.lookatDir(aux);
+		p.lookatPt(eye.p, aux);
+	} else {
+		this->roll(-roll);
+		n.lookatDir(aux);
+		p.lookatPt(eye.p, aux);
+		this->roll(roll);
+	}
 	return *this;
 }
+
+Position& Position::roll(float roll) {
+	p.turnAroundZ(roll);
+	n.turnAroundZ(roll);
+	return *this;
+}
+
 
 
 

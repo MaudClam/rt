@@ -36,9 +36,14 @@ void Light::set_name(const std::string& name) { _name = name; }
 
 void Light::set_type(Type type) { _type = type; }
 
-void Light::lookat(const Position& eye, const LookatAux& aux, const Vec3f& pov) {
+void Light::lookat(const Position& eye, const LookatAux& aux, const Vec3f& pov, float roll) {
 	(void)pov;
-	_pos.lookat(eye, aux);
+	_pos.lookat(eye, aux, roll);
+}
+
+void Light::roll(const Vec3f& pov, float roll) {
+	(void)pov;
+	_pos.roll(roll);
 }
 
 bool Light::intersection(Ray& ray, Hit rayHit) const {

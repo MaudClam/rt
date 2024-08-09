@@ -118,7 +118,7 @@ int  Scene::get_currentCamera(void) { return _currentCamera;}
 bool Scene::set_currentCamera(int idx) {
 	if (idx >= 0 && idx < (int)cameras.size()) {
 		_currentCamera = idx;
-		cameras[_currentCamera].restoreRays();
+		cameras[_currentCamera].restoreRays_lll();
 		if (DEBUG_MODE) { std::cout << "currentCamera: " << _currentCamera << "\n";}
 		return true;
 	}
@@ -233,8 +233,8 @@ A_Scenery* Scene::nearestIntersection(Ray& ray) {
 }
 
 void Scene::rt(void) {
-	cameras[_currentCamera].rayTracing();
-	cameras[_currentCamera].takePicture(img);
+	cameras[_currentCamera].rayTracing_lll();
+	cameras[_currentCamera].takePicture_lll(img);
 	mlx_put_image_to_window(img.get_mlx(), img.get_win(), img.get_image(), 0, 0);
 }
 
@@ -264,11 +264,11 @@ void Scene::changeCameraFOV(int ctrl) {
 	float fovDegree = cam.get_fovDegree();
 	switch (ctrl) {
 		case INCREASE_FOV: {
-			if (cam.reset_fovDegree(fovDegree + STEP_FOV)) { rt(); }
+			if (cam.resetFovDegree(fovDegree + STEP_FOV)) { rt(); }
 			break;
 		}
 		case DECREASE_FOV: {
-			if (cam.reset_fovDegree(fovDegree - STEP_FOV)) { rt(); }
+			if (cam.resetFovDegree(fovDegree - STEP_FOV)) { rt(); }
 			break;
 		}
 		default:
@@ -299,7 +299,7 @@ void Scene::moveCamera(int ctrl) {
 			pos.p.z -= STEP_MOVE;
 			break;
 		default:
-			break;
+			return;
 	}
 	cam.lookatCamera(pos);
 	rt();
@@ -321,14 +321,17 @@ void Scene::rotateCamera(int ctrl) {
 		case PITCH_DOWN:
 			pos.n.turnAroundX(radian(STEP_ROTATION));
 			break;
-		case ROLL_RIGHT:
-			pos.n.turnAroundZ(radian(STEP_ROTATION));
-			break;
+		case ROLL_RIGHT: {
+			cam.resetRoll(cam.get_rollDegree() + STEP_ROTATION);
+			rt();
+			return;
+		}
 		case ROLL_LEFT:
-			pos.n.turnAroundZ(radian(-STEP_ROTATION));
-			break;
+			cam.resetRoll(cam.get_rollDegree() - STEP_ROTATION);
+			rt();
+			return;
 		default:
-			break;
+			return;
 	}
 	cam.lookatCamera(pos);
 	rt();
