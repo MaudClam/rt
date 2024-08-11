@@ -43,8 +43,6 @@
 		6659C4E72C39A8CD00CC7FAB /* AppKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AppKit.framework; path = System/Library/Frameworks/AppKit.framework; sourceTree = SDKROOT; };
 		6659C4EB2C39A8F700CC7FAB /* mlx.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = mlx.h; sourceTree = "<group>"; };
 		6661C21A2C38071100D58CDC /* main.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = main.cpp; sourceTree = "<group>"; };
-		6661C2362C38092D00D58CDC /* colortest.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = colortest.cpp; sourceTree = "<group>"; };
-		6661C2382C380B7200D58CDC /* geometrytest.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = geometrytest.cpp; sourceTree = "<group>"; };
 		667951702C41AD05009C1DDD /* Scene.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = Scene.cpp; sourceTree = "<group>"; };
 		667951712C41AD05009C1DDD /* Scene.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; path = Scene.hpp; sourceTree = "<group>"; };
 		667951772C427BFD009C1DDD /* camera.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = camera.cpp; sourceTree = "<group>"; };
@@ -94,17 +92,7 @@
 				6659C4E42C39A8B200CC7FAB /* Frameworks */,
 				667951822C4D535C009C1DDD /* rt */,
 				6679518D2C5217A4009C1DDD /* srcs */,
-				6661C23F2C380B9A00D58CDC /* tests */,
 			);
-			sourceTree = "<group>";
-		};
-		6661C23F2C380B9A00D58CDC /* tests */ = {
-			isa = PBXGroup;
-			children = (
-				6661C2382C380B7200D58CDC /* geometrytest.cpp */,
-				6661C2362C38092D00D58CDC /* colortest.cpp */,
-			);
-			path = tests;
 			sourceTree = "<group>";
 		};
 		6679518D2C5217A4009C1DDD /* srcs */ = {
