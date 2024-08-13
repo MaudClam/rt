@@ -15,7 +15,7 @@ Light::Light(void) {
 
 Light::~Light(void) {}
 
-Light::Light(const Light& other) : _type(other._type), light(other.light) {
+Light::Light(const Light& other) : A_Scenery(other), _type(other._type), light(other.light) {
 	_name = other._name;
 	_nick = other._nick;
 	_isLight = other._isLight;

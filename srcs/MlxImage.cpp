@@ -113,7 +113,9 @@ void	MlxImage::init(const std::string& header, const Vec2i& resolution) {
 
 	mlx_hook(win, ON_DESTROY, 0, destroyNotify, NULL);
 	mlx_hook(win, ON_KEYDOWN, 0, keyDown, NULL);
+//	mlx_hook(win, ON_KEYDOWN, 1L<<0, keyDown, NULL);
 	mlx_hook(win, ON_KEYUP, 0, keyUp, NULL);
+//	mlx_hook(win, ON_KEYUP, 1L<<1, keyUp, NULL);
 	mlx_hook(win, ON_MOUSEDOWN, 0, mouseKeyDown, NULL);
 	mlx_hook(win, ON_MOUSEUP, 0, mouseKeyUp, NULL);
 	mlx_hook(win, ON_MOUSEMOVE, 0, mouseMove, NULL);
@@ -160,6 +162,9 @@ int		destroyNotify(int button, void* param) {
 }
 
 int		keyDown(int key, void* param) {
+	if (DEBUG_KEYS == true) {
+		std::cout << "keyDown: " << key << std::endl;
+	}
 	(void)param;
 	if (isHoldKey(key)) var.img->holdKey = key;
 	if (var.img->holdKey == KEY_LEFT_ALT || var.img->holdKey == KEY_RIGHT_ALT) {
@@ -215,16 +220,21 @@ int		keyDown(int key, void* param) {
 			}
 		}
 	}
-	if (DEBUG_KEYS) { std::cout << "keyDown: " << key << " holdKey: " << var.img->holdKey << "\n"; }
+//	if (DEBUG_KEYS) { std::cout << "keyDown: " << key << " holdKey: " << var.img->holdKey << "\n"; }
+//	if (DEBUG_KEYS) { std::cout << "keyDown: " << key << "\n"; }
 	return 0;
 }
 
 int		keyUp(int key, void* param) {
 	(void)param;
+	if (DEBUG_KEYS == true) {
+		std::cout << "keyUp: " << key << std::endl;
+	}
 	if (var.img->holdKey == key) {
 		var.img->holdKey = UNHOLD;
 	}
-	if (DEBUG_KEYS) { std::cout << "keyUp: " << key << " holdKey: " << var.img->holdKey  << "\n"; }
+//	if (DEBUG_KEYS) { std::cout << "keyUp: " << key << " holdKey: " << var.img->holdKey  << "\n"; }
+//	if (DEBUG_KEYS) { std::cout << "keyUp: " << key << "\n"; }
 	return 0;
 }
 

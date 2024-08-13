@@ -110,7 +110,7 @@ int  Scene::parsing(int ac, char** av) {
 		_currentCamera = 1;
 	}
 	makeLookatsForCameras();
-	if (DEBUG) { std::cout << *this; }
+	if (DEBUG_MODE) { std::cout << *this; }
 	return SUCCESS;
 }
 
@@ -265,11 +265,11 @@ void Scene::changeCameraFOV(int ctrl) {
 	float fovDegree = cam.get_fovDegree();
 	switch (ctrl) {
 		case INCREASE_FOV: {
-			if (cam.resetFovDegree(fovDegree + STEP_FOV)) { rt(); }
+			if (cam.resetFovDegree(fovDegree + (float)STEP_FOV)) { rt(); }
 			break;
 		}
 		case DECREASE_FOV: {
-			if (cam.resetFovDegree(fovDegree - STEP_FOV)) { rt(); }
+			if (cam.resetFovDegree(fovDegree - (float)STEP_FOV)) { rt(); }
 			break;
 		}
 		default:
@@ -282,22 +282,22 @@ void Scene::moveCamera(int ctrl) {
 	Position  pos(cam.get_pos());
 	switch (ctrl) {
 		case MOVE_RIGHT:
-			pos.p.x += STEP_MOVE;
+			pos.p.x += (float)STEP_MOVE;
 			break;
 		case MOVE_LEFT:
-			pos.p.x -= STEP_MOVE;
+			pos.p.x -= (float)STEP_MOVE;
 			break;
 		case MOVE_UP:
-			pos.p.y += STEP_MOVE;
+			pos.p.y += (float)STEP_MOVE;
 			break;
 		case MOVE_DOWN:
-			pos.p.y -= STEP_MOVE;
+			pos.p.y -= (float)STEP_MOVE;
 			break;
 		case MOVE_FORWARD:
-			pos.p.z += STEP_MOVE;
+			pos.p.z += (float)STEP_MOVE;
 			break;
 		case MOVE_BACKWARD:
-			pos.p.z -= STEP_MOVE;
+			pos.p.z -= (float)STEP_MOVE;
 			break;
 		default:
 			return;
@@ -323,12 +323,12 @@ void Scene::rotateCamera(int ctrl) {
 			pos.n.turnAroundX(radian(STEP_ROTATION));
 			break;
 		case ROLL_RIGHT: {
-			cam.resetRoll(cam.get_rollDegree() + STEP_ROTATION);
+			cam.resetRoll(cam.get_rollDegree() + (float)STEP_ROTATION);
 			rt();
 			return;
 		}
 		case ROLL_LEFT:
-			cam.resetRoll(cam.get_rollDegree() - STEP_ROTATION);
+			cam.resetRoll(cam.get_rollDegree() - (float)STEP_ROTATION);
 			rt();
 			return;
 		default:
@@ -341,7 +341,7 @@ void Scene::rotateCamera(int ctrl) {
 void Scene::flybyCamera(void) {
 	Camera&		cam(cameras[_currentCamera]);
 	Position	pos(cam.get_pos());
-	float angle = radian(FLYBY_STEP / 10.), radius = cam.get_flybyRadius();
+	float angle = radian((float)FLYBY_STEP / 10.), radius = cam.get_flybyRadius();
 	if (img.flyby == FLYBY_CLOCKWISE) {
 		angle = -angle;
 	}

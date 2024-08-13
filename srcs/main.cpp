@@ -14,6 +14,9 @@ int main(int ac, char** av) {
 	Scene		scene(img);
 	var.img		= &img;
 	var.scene	= &scene;
+	if (DEBUG_MODE) {
+		std::cout << ON_KEYDOWN << std::endl;
+	}
 	int error	= scene.parsing(ac, av);
 	if (error != SUCCESS) {
 		return error;

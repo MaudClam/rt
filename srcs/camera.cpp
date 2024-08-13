@@ -203,7 +203,7 @@ space()
 
 Camera::~Camera(void) {}
 
-Camera::Camera(const Camera& other) { *this = other; }
+Camera::Camera(const Camera& other) : Matrix(other) { *this = other; }
 
 Camera& Camera::operator=(const Camera& other) {
 	if (this != &other) {
@@ -314,7 +314,7 @@ void Camera::resetRoll(float roll) {
 		(*sc)->roll(_pos.p, shiftRoll);
 	}
 	restoreRays_lll();
-	if (DEBUG) { std::cout << "roll: " << degree(_roll) << std::endl; }
+	if (DEBUG_MODE) { std::cout << "roll: " << degree(_roll) << std::endl; }
 }
 
 void Camera::lookatCamera(const Position& pos) {
@@ -400,7 +400,7 @@ void Camera::calculateFlybyRadius(void) {
 				}
 				ray->hit = BACK;
 				if ( (*sc)->intersection(*ray) ) {
-					if (back < ray->dist && ray->dist < FLYBY_RADIUS_MAX) {
+					if (back < ray->dist && ray->dist < (float)FLYBY_RADIUS_MAX) {
 						back = ray->dist;
 					}
 				}

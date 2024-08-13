@@ -18,12 +18,13 @@
 # include "Scene.hpp"
 # include "Light.hpp"
 # include "camera.hpp"
+# include <cstring>
 
 # define SUCCESS			0
 # define ERROR				-1
 # define DEBUG_MODE			true
-# define DEBUG_KEYS			false
-# define DEBUG_MOUSE		false
+# define DEBUG_KEYS			true
+# define DEBUG_MOUSE		true
 # define RECURSION_DEPTH	5
 # define SMOOTHING_FACTOR 	1
 # define BASE				Vec3f(0,0,0),Vec3f(0,0,1)

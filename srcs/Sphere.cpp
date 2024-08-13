@@ -24,7 +24,7 @@ _radius(radius), _sqrRadius(radius * radius) {
 	this->color = color;
 }
 
-Sphere::Sphere(const Sphere& other) : _radius(other._radius), _sqrRadius(_radius * _radius){
+Sphere::Sphere(const Sphere& other) : A_Scenery(other), _radius(other._radius), _sqrRadius(_radius * _radius){
 	_name = other._name;
 	_nick = other._nick;
 	_isLight = other._isLight;
