@@ -348,7 +348,7 @@ void Camera::rayTracing_lll(void) {
 void  Camera::traceRay(Ray& ray) {
 	if (ray.recursion > RECURSION_DEPTH) { return; }
 	A_Scenery* scenery = closestScenery(ray);
-	if (!scenery && ray.hit != OUTSIDE) { ray.color = space ; return; }
+	if (!scenery) { ray.color = space ; return; }
 	ray.changePov();
 	ray.collectLight(scenery->color, ambient);
 	scenery->calculateNormal(ray);
