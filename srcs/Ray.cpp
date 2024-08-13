@@ -101,8 +101,11 @@ Ray& Ray::collectShine(const ARGBColor& sceneryColor, const ARGBColor& lightSour
 	return *this;
 }
 
-Ray& Ray::collectReflect(int _color, ARGBColor& reflect, float reflective) {
+Ray& Ray::collectReflect(int _color, int _shine, float reflective) {
+	float diffusion = 1 - reflective;
 	light.val = _color;
-	reflect.addition(reflect.product(reflective), light.product(1 - reflective));
+	color.addition(color.product(reflective), light.product(diffusion));
+	light.val = _shine;
+	shine.addition(shine.product(reflective), light.product(diffusion));
 	return *this;
 }

@@ -32,7 +32,7 @@ struct Ray {
 	Ray& reflect(void);
 	Ray& collectLight(const ARGBColor& sceneryColor, const ARGBColor& lightSource, float k = 1);
 	Ray& collectShine(const ARGBColor& sceneryColor, const ARGBColor& lightSource, int specular);
-	Ray& collectReflect(int _color, ARGBColor& reflect, float reflective);
+	Ray& collectReflect(int _color, int _shine, float reflective);
 };
 
 #endif /* RAY_HPP */

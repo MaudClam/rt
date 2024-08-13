@@ -360,8 +360,7 @@ void  Camera::traceRay(Ray& ray) {
 		int _shine = ray.shine.val;
 		ray.reflect();
 		traceRay(ray);
-		ray.collectReflect(_color, ray.color, scenery->reflective);
-		ray.collectReflect(_shine, ray.shine, scenery->reflective);
+		ray.collectReflect(_color, _shine, scenery->reflective);
 	}
 }
 
