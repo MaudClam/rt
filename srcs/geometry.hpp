@@ -17,7 +17,7 @@
 # define PRECISION		1e-9
 # define EPSILON 		1e-3
 
-enum  Hit { FRONT, BACK, OUTLINE, FRONT_SHADOW };
+enum  Hit { FRONT, BACK, OUTLINE, FRONT_SHADOW, INSIDE, OUTSIDE };
 bool  almostEqual(float a, float b, int precision = PRECISION);
 bool  almostEqual(double a, double b, int precision = PRECISION);
 float radian(float degree);
@@ -236,13 +236,13 @@ bool raySphereIntersection(const Vec3f& rayDir,
 						   const Vec3f& center,
 						   float sqrRadius,
 						   float& distance,
-						   Hit rayHit = FRONT);
+						   Hit& rayHit);
 
 bool raySphereIntersection(const Vec3f& rayDir,
 							const Vec3f& k,
 							float c,
 							float& distance,
-							Hit rayHit = FRONT);
+							Hit& rayHit);
 
 void normalToRaySphereIntersect(const Vec3f& intersectPt,
 								const Vec3f& center,

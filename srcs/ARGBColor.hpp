@@ -37,13 +37,13 @@ struct ARGBColor {
 	ARGBColor(int v, int bpp = ARGB);
 	ARGBColor(const ARGBColor& c);
 	ARGBColor& operator=(const ARGBColor& c);
-	ARGBColor operator+(const ARGBColor& c) const;
+	inline ARGBColor operator+(const ARGBColor& c) const { return ARGBColor().addition(*this, c); }
 	ARGBColor& addition(const ARGBColor& c1, const ARGBColor& c2);
-	ARGBColor operator-(const ARGBColor& c) const;
+	inline ARGBColor operator-(const ARGBColor& c) const { return ARGBColor(*this).substract(*this, c); }
 	ARGBColor& substract(const ARGBColor& c1, const ARGBColor& c2);
-	ARGBColor operator*(const ARGBColor& c) const;
+	inline ARGBColor operator*(const ARGBColor& c) const { return ARGBColor(*this).product(*this, c); }
 	ARGBColor& product(const ARGBColor& c1, const ARGBColor& c2);
-	ARGBColor operator*(float f) const;
+	inline ARGBColor operator*(float f) const { return ARGBColor(*this).product(f); }
 	ARGBColor& product(float f);
 	ARGBColor& negative(void);
 	std::string rrggbb(void) const;

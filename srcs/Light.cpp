@@ -46,9 +46,8 @@ void Light::roll(const Vec3f& pov, float roll) {
 	_pos.roll(roll);
 }
 
-bool Light::intersection(Ray& ray, Hit rayHit) const {
+bool Light::intersection(Ray& ray) const {
 	(void)ray;
-	(void)rayHit;
 	return false;
 }
 
@@ -91,14 +90,15 @@ bool Light::lighting(Ray& ray, const A_Scenery& scenery, const a_scenerys_t& sce
 		return false;
 	}
 	ray.collectLight(scenery.color, light.light, k);
-	ray.collectSpecular(scenery.color, light.light, scenery.specular);
+	ray.collectShine(scenery.color, light.light, scenery.specular);
 	return true;
 }
 
 bool Light::shadow(Ray& ray, const a_scenerys_t& scenerys) const {
 	float distance = ray.dist;
 	for (auto scenery = scenerys.begin(), end = scenerys.end(); scenery != end; ++scenery) {
-		if ( (*scenery)->intersection(ray, FRONT_SHADOW) ) {
+		ray.hit = FRONT_SHADOW;
+		if ( (*scenery)->intersection(ray) ) {
 			if (distance > ray.dist) {
 				return true;
 			}

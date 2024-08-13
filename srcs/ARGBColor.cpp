@@ -51,20 +51,12 @@ ARGBColor& ARGBColor::operator=(const ARGBColor& c) {
 	return *this;
 }
 
-ARGBColor ARGBColor::operator+(const ARGBColor& c) const {
-	return ARGBColor().addition(*this, c);
-}
-
 ARGBColor& ARGBColor::addition(const ARGBColor& c1, const ARGBColor& c2) {
 	for (int i = 0; i < 4; ++i) {
 		int tmp = c1.raw[i] + c2.raw[i];
 		raw[i] = i2limits(tmp, 0, 255);
 	}
 	return *this;
-}
-
-ARGBColor ARGBColor::operator-(const ARGBColor& c) const {
-	return ARGBColor(*this).substract(*this, c);
 }
 
 ARGBColor& ARGBColor::substract(const ARGBColor& c1, const ARGBColor& c2) {
@@ -74,19 +66,11 @@ ARGBColor& ARGBColor::substract(const ARGBColor& c1, const ARGBColor& c2) {
 	return *this;
 }
 
-ARGBColor ARGBColor::operator*(const ARGBColor& c) const {
-	return ARGBColor(*this).product(*this, c);
-}
-
 ARGBColor& ARGBColor::product(const ARGBColor& c1, const ARGBColor& c2) {
 	for (int i = 0; i < 4; ++i) {
 		raw[i] = c1.raw[i] * c2.raw[i] * 0.003922;
 	}
 	return *this;
-}
-
-ARGBColor ARGBColor::operator*(float f) const {
-	return ARGBColor(*this).product(f);
 }
 
 ARGBColor& ARGBColor::product(float f) {

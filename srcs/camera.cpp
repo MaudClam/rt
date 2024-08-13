@@ -111,11 +111,15 @@ void Pixel::averageColor(void) {
 	if (k) {
 		int a = 0, r = 0, g = 0, b = 0;
 		for (auto ray = rays.begin(), end = rays.end(); ray != end; ++ray) {
+			if (ray->shine.val != 0) {
+				ray->color.addition(ray->color, ray->shine);
+			}
 			a += ray->color.a;
 			r += ray->color.r;
 			g += ray->color.g;
 			b += ray->color.b;
-			ray->color.val = 0;
+			ray->shine = 0;
+			ray->color = 0;
 		}
 		color.b = b / k;
 		color.g = g / k;
@@ -341,38 +345,43 @@ void Camera::rayTracing_lll(void) {
 	}
 }
 
-int  Camera::traceRay(Ray& ray) {
-	if (ray.recursion > RECURSION_DEPTH) { return 0; }
+void  Camera::traceRay(Ray& ray) {
+	if (ray.recursion > RECURSION_DEPTH) { return; }
 	A_Scenery* scenery = closestScenery(ray);
-	if (!scenery) { ray.color = space ; return ray.color.val; }
-	ray.collectLight(scenery->color, ambient);
+	if (!scenery && ray.hit != OUTSIDE) { ray.color = space ; return; }
 	ray.changePov();
+	ray.collectLight(scenery->color, ambient);
 	scenery->calculateNormal(ray);
 	for (auto light = lightsIdx.begin(), end = lightsIdx.end(); light != end; ++light) {
 		(*light)->lighting(ray, *scenery, scenerys);
 	}
-	int _color = ray.color.val;
 	if (scenery->reflective > 0) {
+		int _color = ray.color.val;
+		int _shine = ray.shine.val;
 		ray.reflect();
-		int _reflect = traceRay(ray);
-		_color = ray.collectReflect(_color, _reflect, scenery->reflective);
+		traceRay(ray);
+		ray.collectReflect(_color, ray.color, scenery->reflective);
+		ray.collectReflect(_shine, ray.shine, scenery->reflective);
 	}
-	return _color;
 }
 
 A_Scenery* Camera::closestScenery(Ray& ray) {
 	A_Scenery*	closestScenery = NULL;
 	float		distance = INFINITY;
+	Hit			rayHit = FRONT;
 	for (auto scenery = scenerys.begin(), end = scenerys.end(); scenery != end; ++scenery) {
+		ray.hit = FRONT;
 		if ( (*scenery)->intersection(ray) ) {
 			if (distance > ray.dist) {
 				distance = ray.dist;
+				rayHit = ray.hit;
 				closestScenery = *scenery;
 			}
 		}
 	}
 	if (closestScenery) {
 		ray.dist = distance;
+		ray.hit = rayHit;
 	}
 	return closestScenery;
 }
@@ -384,12 +393,14 @@ void Camera::calculateFlybyRadius(void) {
 		pixel->restoreRays(_sm, _fov.get_tan(), _pos.p);
 		for (auto ray = pixel->rays.begin(), End = pixel->rays.end(); ray != End; ++ray) {
 			for (auto sc = objsIdx.begin(), end = objsIdx.end(); sc != end; ++sc) {
+				ray->hit = FRONT;
 				if ( (*sc)->intersection(*ray) ) {
 					if (front > ray->dist) {
 						front = ray->dist;
 					}
 				}
-				if ( (*sc)->intersection(*ray, BACK) ) {
+				ray->hit = BACK;
+				if ( (*sc)->intersection(*ray) ) {
 					if (back < ray->dist && ray->dist < FLYBY_RADIUS_MAX) {
 						back = ray->dist;
 					}

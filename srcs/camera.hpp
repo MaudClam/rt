@@ -99,7 +99,7 @@ public:
 	void	lookatCamera(const Position& pos);
 	void	takePicture_lll(MlxImage& img);
 	void	rayTracing_lll(void);
-	int		traceRay(Ray& ray);
+	void	traceRay(Ray& ray);
 	A_Scenery* closestScenery(Ray& ray);
 	void	calculateFlybyRadius(void);
 

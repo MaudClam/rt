@@ -20,7 +20,9 @@ struct Ray {
 	Vec3f		norm;		// normalized normal vector from the ray hit point
 	float		dist;		// vdistance from pov to object
 	ARGBColor	light;
+	ARGBColor	shine;
 	ARGBColor	color;
+	Hit			hit;
 	Ray(void);
 	~Ray(void);
 	Ray(const Ray& other);
@@ -29,15 +31,8 @@ struct Ray {
 	Ray& movePovByEpsilon(void);
 	Ray& reflect(void);
 	Ray& collectLight(const ARGBColor& sceneryColor, const ARGBColor& lightSource, float k = 1);
-	Ray& collectSpecular(const ARGBColor& sceneryColor, const ARGBColor& lightSource, int specular);
-	inline int collectReflect(int _color, int reflect, float reflective) {
-		color.val = _color;
-		light.val = reflect;
-		color.addition(color.product(1 - reflective), light.product(reflective));
-		return color.val;
-
-	}
-
+	Ray& collectShine(const ARGBColor& sceneryColor, const ARGBColor& lightSource, int specular);
+	Ray& collectReflect(int _color, ARGBColor& reflect, float reflective);
 };
 
 #endif /* RAY_HPP */

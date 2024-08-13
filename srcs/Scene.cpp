@@ -97,6 +97,7 @@ int  Scene::parsing(int ac, char** av) {
 	set_any( std::istringstream("c     0,4,2         0,-1,0      60 ") );
 	set_any( std::istringstream("A 0.2	255,255,250") );
 	set_any( std::istringstream("l     2,1,0    0.6 " + img.white.rrggbb()) );
+	set_any( std::istringstream("l    4000,-5001,0    0.6 " + img.white.rrggbb()) );
 	set_any( std::istringstream("ls     1,4,4  0.2 " + img.white.rrggbb()) );
 	set_any( std::istringstream("sp    0,-1,3	2   " + img.red.rrggbb()   + " 500  0.2") );
 	set_any( std::istringstream("sp    2,0,4	2   " + img.blue.rrggbb()  + " 500  0.3") );

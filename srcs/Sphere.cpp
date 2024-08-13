@@ -53,19 +53,23 @@ void Sphere::roll(const Vec3f& pov, float shiftRoll) {
 	}
 }
 
-bool Sphere::intersection(Ray& ray, Hit rayHit) const {
-	if (rayHit == FRONT_SHADOW) {
-		rayHit = FRONT;
-		return raySphereIntersection(ray.dirToLight, ray.pov, _pos.p, _sqrRadius, ray.dist, rayHit);
+bool Sphere::intersection(Ray& ray) const {
+	if (ray.hit == FRONT_SHADOW) {
+		ray.hit = FRONT;
+		return raySphereIntersection(ray.dirToLight, ray.pov, _pos.p, _sqrRadius, ray.dist, ray.hit);
 	}
 	if (!ray.recursion) {
-		return raySphereIntersection(ray.dir, _k, _c, ray.dist, rayHit);
+		return raySphereIntersection(ray.dir, _k, _c, ray.dist, ray.hit);
 	}
-	return raySphereIntersection(ray.dir, ray.pov, _pos.p, _sqrRadius, ray.dist, rayHit);
+	return raySphereIntersection(ray.dir, ray.pov, _pos.p, _sqrRadius, ray.dist, ray.hit);
 }
 
 void Sphere::calculateNormal(Ray& ray) const {
-	normalToRaySphereIntersect(ray.pov, _pos.p, ray.norm);
+	if (ray.hit == INSIDE) {
+		normalToRaySphereIntersect(_pos.p, ray.pov, ray.norm);
+	} else {
+		normalToRaySphereIntersect(ray.pov, _pos.p, ray.norm);
+	}
 }
 
 bool Sphere::lighting(Ray& ray, const A_Scenery& scenery, const a_scenerys_t& scenerys) const {

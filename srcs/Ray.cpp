@@ -17,7 +17,10 @@ dirFromCam(),
 dirToLight(),
 dist(0),
 light(),
-color() {}
+shine(),
+color(),
+hit(FRONT)
+{}
 
 Ray::~Ray(void) {}
 
@@ -30,7 +33,9 @@ dirToLight(other.dirToLight),
 norm(other.norm),
 dist(other.dist),
 light(other.light),
-color(other.color)
+shine(other.shine),
+color(other.color),
+hit(other.hit)
 {}
 
 Ray& Ray::operator=(const Ray& other) {
@@ -43,7 +48,9 @@ Ray& Ray::operator=(const Ray& other) {
 		norm = other.norm;
 		dist = other.dist;
 		light = other.light;
+		shine = other.shine;
 		color = other.color;
+		hit = other.hit;
 	}
 	return *this;
 }
@@ -64,8 +71,9 @@ Ray& Ray::movePovByEpsilon(void) {
 Ray& Ray::reflect(void) {
 	dir.reflect(norm);
 	recursion++;
-	color.val = 0;
 	movePovByEpsilon();
+	color = 0;
+	shine = 0;
 	return *this;
 }
 
@@ -79,13 +87,22 @@ Ray& Ray::collectLight(const ARGBColor& sceneryColor, const ARGBColor& lightSour
 	return *this;
 }
 
-Ray& Ray::collectSpecular(const ARGBColor& sceneryColor, const ARGBColor& lightSource, int specular) {
+Ray& Ray::collectShine(const ARGBColor& sceneryColor, const ARGBColor& lightSource, int specular) {
 	if (specular != -1) {
 		float k = dirToLight.reflect(norm) * dirFromCam;
 		if (k > 0) {
 			k = std::pow(k, specular);
-			collectLight(sceneryColor, lightSource, k);
+			light = lightSource;
+			light.product(k);
+			light.product(light, sceneryColor);
+			shine.addition(shine, light);
 		}
 	}
+	return *this;
+}
+
+Ray& Ray::collectReflect(int _color, ARGBColor& reflect, float reflective) {
+	light.val = _color;
+	reflect.addition(reflect.product(reflective), light.product(1 - reflective));
 	return *this;
 }

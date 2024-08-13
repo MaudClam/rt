@@ -75,7 +75,7 @@ bool raySphereIntersection(const Vec3f& rayDir,
 						   const Vec3f& center,
 						   float sqrRadius,
 						   float& distance,
-						   Hit rayHit) {
+						   Hit& rayHit) {
 	Vec3f k;
 	k.substract(rayPov, center);
 	float c = k * k - sqrRadius;
@@ -86,7 +86,7 @@ bool raySphereIntersection(const Vec3f& rayDir,
 							const Vec3f& k,
 							float c,
 							float& distance,
-							Hit rayHit) {
+							Hit& rayHit) {
 	float b = rayDir * k;
 	float d = b * b - c;
 	if (d >= 0) {
@@ -96,20 +96,31 @@ bool raySphereIntersection(const Vec3f& rayDir,
 		float min_t = std::min(t1,t2);
 		float max_t = std::max(t1,t2);
 		if (rayHit == FRONT) {
-			float t = min_t >= 0 ? min_t : max_t;
-			if (t > 0) {
-				distance = t;
-				return true;
+			if (min_t >= 0) {
+				distance = min_t;
+				if (distance > 0) {
+					rayHit = OUTSIDE;
+					return true;
+				}
+			} else {
+				distance = max_t;
+				if (distance > 0) {
+					rayHit = INSIDE;
+					return true;
+				}
 			}
 		} else if (rayHit == BACK) {
 			if (max_t > 0) {
 				distance = max_t;
-				return true;
+				if (distance > 0) {
+					rayHit = INSIDE;
+					return true;
+				}
 			}
 		} else if (rayHit == OUTLINE && almostEqual(d, 0, EPSILON)) {
-			float t = min_t >= 0 ? min_t : max_t;
-			if (t > 0) {
-				distance = t;
+			distance = min_t >= 0 ? min_t : max_t;
+			if (distance > 0) {
+				rayHit = OUTSIDE;
 				return true;
 			}
 		}
