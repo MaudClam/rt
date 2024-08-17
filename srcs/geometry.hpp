@@ -18,8 +18,7 @@
 # define EPSILON 		1e-3
 
 enum  Hit { FRONT, BACK, OUTLINE, FRONT_SHADOW, INSIDE, OUTSIDE };
-bool  almostEqual(float a, float b, int precision = PRECISION);
-bool  almostEqual(double a, double b, int precision = PRECISION);
+bool  almostEqual(float a, float b, float precision = PRECISION);
 float radian(float degree);
 float degree(float radian);
 

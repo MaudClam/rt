@@ -411,7 +411,7 @@ void Camera::calculateFlybyRadius(void) {
 		_flybyRadius = (back - front) / 2 + front;
 		if (DEBUG_MODE) {
 			std::cout << "front: " << front << ", back: " << back;
-			std::cout << ", flybyRadius: " << _flybyRadius << std::endl;
+			std::cout << ", f03lybyRadius: " << _flybyRadius << std::endl;
 		}
 	}
 }

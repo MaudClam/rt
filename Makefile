@@ -32,15 +32,16 @@ HEADERS	= ${HEADER_DIR}/Header.h \
 		  ${HEADER_DIR}/Scene.hpp \
 		  ${HEADER_DIR}/Sphere.hpp 
 
+CPPFLAGS = -std=c++2a
+
 ifeq ($(shell uname -s), Linux)
 	MLX_DIR = mlx_linux
 	MLX_LIB = -L/usr/lib -Lmlx_linux
 	LIB_FLAGS = -lmlx_Linux -lXext -lX11 -lm -lz
-	CPPFLAGS = -std=c++2a
 
 else
 	MLX_DIR = mlx
-	MLX_LIB = -framework OpenGL -framework AppKit
+	MLX_LIB = -framework OpenGL -framework AppKit -Lmlx
 	LIB_FLAGS = -lmlx -lm
 
 endif
