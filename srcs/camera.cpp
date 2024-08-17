@@ -345,28 +345,46 @@ void Camera::rayTracing_lll(void) {
 	}
 }
 
-void  Camera::traceRay(Ray& ray) {
-	if (ray.recursion > RECURSION_DEPTH) { return; }
+void  Camera::traceRay(Ray& ray, int r) {
+	if (r > RECURSION_DEPTH) { return; }
+	ray.recursion = r;
 	A_Scenery* scenery = closestScenery(ray);
 	if (!scenery) { ray.color = space ; return; }
-	ray.changePov();
 	ray.collectLight(scenery->color, ambient);
-	scenery->calculateNormal(ray);
 	for (auto light = lightsIdx.begin(), end = lightsIdx.end(); light != end; ++light) {
-		(*light)->lighting(ray, *scenery, scenerys);
+		float k = (*light)->lighting(ray, *scenery, scenerys);
+		if (k) {
+			ray.collectLight(scenery->color, ray.light, k);
+			ray.collectShine(scenery->color, ray.light, scenery->specular);
+		}
 	}
 	if (scenery->reflective > 0) {
 		int _color = ray.color.val;
 		int _shine = ray.shine.val;
 		ray.reflect();
-		traceRay(ray);
-		ray.collectReflect(_color, _shine, scenery->reflective);
+		traceRay(ray, ++r);
+		ray.collectReflectiveLight(_color, _shine, scenery->reflective);
+	}
+	if (scenery->refractive > 0) {
+		int _color = ray.color.val;
+		if (ray.refract(scenery->n, OUTSIDE)) {
+			scenery->intersection(ray);
+			ray.changePov();
+			ray.hit = OUTSIDE;
+			scenery->calculateNormal(ray);
+			ray.dist -= EPSILON;
+			if (ray.refract(scenery->n, INSIDE)) {
+				r = 0;
+				traceRay(ray, ++r);
+				ray.collectRefractiveLight(scenery->color, _color, scenery->refractive);
+			}
+		}
 	}
 }
 
 A_Scenery* Camera::closestScenery(Ray& ray) {
 	A_Scenery*	closestScenery = NULL;
-	float		distance = INFINITY;
+	float		distance = _INFINITY;
 	Hit			rayHit = FRONT;
 	for (auto scenery = scenerys.begin(), end = scenerys.end(); scenery != end; ++scenery) {
 		ray.hit = FRONT;
@@ -381,6 +399,11 @@ A_Scenery* Camera::closestScenery(Ray& ray) {
 	if (closestScenery) {
 		ray.dist = distance;
 		ray.hit = rayHit;
+		ray.changePov();
+		closestScenery->calculateNormal(ray);
+		if (closestScenery->refractive > 0) {
+			ray.saveHitPosition();
+		}
 	}
 	return closestScenery;
 }
@@ -425,7 +448,7 @@ std::ostream& operator<<(std::ostream& o, Camera& camera) {
 	os << " " << camera._pos.p;
 	os << " " << camera._pos.n;
 	os << " " << std::setw(4) << camera._fov.get_degree();
-	o << std::setw(46) << std::left << os.str();
+	o << std::setw(56) << std::left << os.str();
 	o << " #" << camera._name;
 	return o;
 }

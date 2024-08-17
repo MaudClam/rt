@@ -18,7 +18,6 @@ struct Var;
 struct Scene;
 
 enum {
-	UNHOLD				= -1,
 	ON_KEYDOWN			= 2,
 	ON_KEYUP			= 3,
 	ON_MOUSEDOWN		= 4,
@@ -62,10 +61,11 @@ enum {
 };
 
 enum Controls {
-	NEXT				= -4,
-	PREVIOUS			= -3,
-	INCREASE_FOV		= -2,
-	DECREASE_FOV		= -1,
+	UNHOLD				= -1,
+	NEXT,
+	PREVIOUS,
+	INCREASE_FOV,
+	DECREASE_FOV,
 	STEP_FOV			= 1,
 	MOVE_RIGHT,
 	MOVE_LEFT,

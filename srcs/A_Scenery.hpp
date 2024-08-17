@@ -25,6 +25,8 @@ public:
 	ARGBColor	color;
 	int			specular;	// in range [-1,1000]
 	float		reflective;	// in range [0,1]
+	float		refractive; // u in range [0,1]
+	float		n;			// refractive index relative to air
 	A_Scenery(void);
 	virtual ~A_Scenery(void);
 	A_Scenery(const A_Scenery& other);
@@ -37,7 +39,7 @@ public:
 	virtual void roll(const Vec3f& pov, float shiftRoll) = 0;
 	virtual bool intersection(Ray& ray) const = 0;
 	virtual void calculateNormal(Ray& ray) const = 0;
-	virtual bool lighting(Ray& ray, const A_Scenery& scenery, const a_scenerys_t& scenerys) const = 0;
+	virtual float lighting(Ray& ray, const A_Scenery& scenery, const a_scenerys_t& scenerys) const = 0;
 	virtual void output(std::ostringstream& os) = 0;
 	friend std::ostream& operator<<(std::ostream& o, A_Scenery& s);
 };

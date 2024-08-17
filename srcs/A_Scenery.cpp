@@ -17,7 +17,9 @@ _isLight(false),
 _pos(),
 color(),
 specular(-1),
-reflective(0)
+reflective(0),
+refractive(0),
+n(1)
 {}
 
 A_Scenery::~A_Scenery(void) {}
@@ -29,7 +31,9 @@ _isLight(other._isLight),
 _pos(other._pos),
 color(other.color),
 specular(other.specular),
-reflective(other.reflective)
+reflective(other.reflective),
+refractive(other.refractive),
+n(other.n)
 {}
 
 std::string A_Scenery::get_nick(void) const { return _nick; }

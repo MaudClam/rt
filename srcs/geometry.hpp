@@ -16,12 +16,15 @@
 
 # define PRECISION		1e-9
 # define EPSILON 		1e-3
+# define _INFINITY		1000
 
-enum  Hit { FRONT, BACK, OUTLINE, FRONT_SHADOW, INSIDE, OUTSIDE };
-bool  almostEqual(float a, float b, int precision = PRECISION);
-bool  almostEqual(double a, double b, int precision = PRECISION);
-float radian(float degree);
-float degree(float radian);
+enum 	Hit { FRONT, BACK, OUTLINE, FRONT_SHADOW, INSIDE, OUTSIDE };
+bool 	almostEqual(float a, float b, int precision = PRECISION);
+bool 	almostEqual(double a, double b, int precision = PRECISION);
+float	round_(float num, float prcs = EPSILON);
+double	round_(double num, double prcs = EPSILON);
+float	radian(float degree);
+float	degree(float radian);
 
 template <class t> struct Vec2 {
 	union {
@@ -114,6 +117,21 @@ template <class t> struct Vec3 {
 		product(-1);
 		substract(norm * (*this * norm * 2), *this).normalize();
 		return *this;
+	}
+	inline bool refract(Vec3<t> normal, float a_matIOR) {
+		float eta = 1. / a_matIOR; // eta = in_IOR/out_IOR
+		float cos_theta = -1 * (normal * *this);
+		if(cos_theta < 0.) {
+			cos_theta *= -1 ;
+			normal.product(-1);
+			eta = 1. / eta;
+			eta = round_(eta);
+		  }
+		float k = 1. - eta * eta * (1. - cos_theta * cos_theta);
+		if(k > 0) {
+			this->addition( this->product(eta), normal * (eta * cos_theta - std::sqrt(k)) ).normalize();
+		}
+		return (k > 0);
 	}
 	Vec3<t>& lookatDir(const LookatAuxiliary<t>& aux) {
 		t _x = *this * aux.right, _y = *this * aux.up, _z = *this * aux.dir;

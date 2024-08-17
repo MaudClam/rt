@@ -97,10 +97,9 @@ int  Scene::parsing(int ac, char** av) {
 	set_any( std::istringstream("c     0,4,2         0,-1,0      60 ") );
 	set_any( std::istringstream("A 0.2	255,255,250") );
 	set_any( std::istringstream("l     2,1,0    0.6 " + img.white.rrggbb()) );
-	set_any( std::istringstream("l    4000,-5001,0    0.6 " + img.white.rrggbb()) );
-	set_any( std::istringstream("ls     1,4,4  0.2 " + img.white.rrggbb()) );
+	set_any( std::istringstream("ls    1,4,4  0.2 " + img.white.rrggbb()) );
 	set_any( std::istringstream("sp    0,-1,3	2   " + img.red.rrggbb()   + " 500  0.2") );
-	set_any( std::istringstream("sp    2,0,4	2   " + img.blue.rrggbb()  + " 500  0.3") );
+	set_any( std::istringstream("sp    2,0,4	2   " + img.white.rrggbb()  + " 10 0.9 0.5 1.33") );
 	set_any( std::istringstream("sp    -2,0,4	2   " + img.green.rrggbb() + " 10   0.4") );
 	set_any( std::istringstream("sp 0,-5001,0 10000 " + img.yellow.rrggbb()+ " 1000 0.5") );
 
@@ -217,7 +216,7 @@ void Scene::makeLookatsForCameras(void) {
 
 A_Scenery* Scene::nearestIntersection(Ray& ray) {
 	A_Scenery*	nearestObj = NULL;
-	float		distance = INFINITY;
+	float		distance = _INFINITY;
 	Camera&		cam(cameras[_currentCamera]);
 	for (auto obj = cam.scenerys.begin(), end = cam.scenerys.end(); obj != end; ++obj) {
 		if ( (*obj)->intersection(ray) ) {
@@ -360,7 +359,7 @@ std::ostream& operator<<(std::ostream& o, Scene& sc) {
 	std::ostringstream os;
 	o  << "R " << std::setw(5) << sc._resolution << " " << sc._header << std::endl;
 	os << "A  " << std::setw(32) << sc._ambient;
-	o << std::setw(46) << std::left << os.str();
+	o << std::setw(56) << std::left << os.str();
 	o << " #ambient liting" << std::endl;
 	for (auto light = sc.lightsIdx.begin(); light != sc.lightsIdx.end(); ++light) {
 		o << *(*light) << std::endl;

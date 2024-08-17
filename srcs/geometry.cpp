@@ -60,6 +60,14 @@ bool almostEqual(float a, float b, int precision) { return std::fabs(a - b) < pr
 
 bool almostEqual(double a, double b, int precision) { return std::fabs(a - b) < precision; }
 
+float round_(float num, float prcs) {
+	return std::round(num / prcs) * prcs;
+}
+
+double round_(double num, double prcs) {
+	return std::round(num / prcs) * prcs;
+}
+
 float radian(float degree) {
 	return (degree * std::numbers::pi / 180.);
 }
