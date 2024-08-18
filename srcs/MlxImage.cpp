@@ -6,7 +6,7 @@
 //
 
 //#include "MlxImage.hpp"
-#include "../SPEC_HEADER_DIR/MlxImage.hpp" //linuxHeader or macHeader
+#include "../linuxHeader/MlxImage.hpp" //linuxHeader or macHeader
 
 extern Var var;
 
@@ -113,17 +113,22 @@ void	MlxImage::init(const std::string& header, const Vec2i& resolution) {
 	bytespp = bitsPerPixel / 8;
 
 //	mlx_hook(win, ON_DESTROY, 0, destroyNotify, NULL);
-	mlx_hook(win, ON_DESTROY, 1L<<17, destroyNotify, NULL);
+	mlx_hook(win, ON_DESTROY, 1L<<17, (int (*)(int, void*))destroyNotify, NULL);
+
 //	mlx_hook(win, ON_KEYDOWN, 0, keyDown, NULL);
-	mlx_hook(win, ON_KEYDOWN, 1L<<0, keyDown, NULL);
+	mlx_hook(win, ON_KEYDOWN, 1L<<0, (int (*)(int, void*))keyDown, NULL);
+
 //	mlx_hook(win, ON_KEYUP, 0, keyUp, NULL);
-	mlx_hook(win, ON_KEYUP, 1L<<1, keyUp, NULL);
+	mlx_hook(win, ON_KEYUP, 1L<<1, (int (*)(int, void*))keyUp, NULL);
+
 //	mlx_hook(win, ON_MOUSEDOWN, 0, mouseKeyDown, NULL);
-	mlx_hook(win, ON_MOUSEDOWN, 1L<<2, mouseKeyDown, NULL);
+	mlx_hook(win, ON_MOUSEDOWN, 1L<<2, (int (*)(int, void*))mouseKeyDown, NULL);
+
 //	mlx_hook(win, ON_MOUSEUP, 0, mouseKeyUp, NULL);
-	mlx_hook(win, ON_MOUSEUP, 1L<<3, mouseKeyUp, NULL);
+	mlx_hook(win, ON_MOUSEUP, 1L<<3, (int (*)(int, void*))mouseKeyUp, NULL);
+
+//	mlx_hook(win, ON_MOUSEMOVE, 1L<<6, (int (*)(int, void*))mouseMove, NULL);
 //	mlx_hook(win, ON_MOUSEMOVE, 0, mouseMove, NULL);
-	mlx_hook(win, ON_MOUSEMOVE, 1L<<6, mouseMove, NULL);
 }
 
 void	MlxImage::freePointers(void) {
