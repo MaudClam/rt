@@ -13,7 +13,7 @@
 # include "ARGBColor.hpp"
 # include "Ray.hpp"
 //#include "MlxImage.hpp"
-# include "../linuxHeader/MlxImage.hpp"
+# include "../SPEC_HEADER_DIR/MlxImage.hpp"
 # include "A_Scenery.hpp"
 # include "Sphere.hpp"
 # include "Scene.hpp"

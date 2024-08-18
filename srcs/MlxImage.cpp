@@ -6,7 +6,7 @@
 //
 
 //#include "MlxImage.hpp"
-#include "../linuxHeader/MlxImage.hpp" //linuxHeader or macHeader
+#include "../SPEC_HEADER_DIR/MlxImage.hpp" //linuxHeader or macHeader
 
 extern Var var;
 
