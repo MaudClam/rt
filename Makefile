@@ -51,7 +51,7 @@ CPPFLAGS = -std=c++2a
 all: ${NAME}
 
 ${OBJ_DIR}/%.o: %.cpp ${HEADERS}
-	sed -i '' -e "s/SPEC_HEADER_DIR/${SPEC_HEADER_DIR}/g" srcs/*
+	-sed -i '' -e 's/SPEC_HEADER_DIR/${SPEC_HEADER_DIR}/g' srcs/*
 	mkdir -p ${@D}
 	g++ ${CPPFLAGS} -Wall -Wextra -Werror -I${HEADER_DIR} -I${SPEC_HEADER_DIR} -I${MLX_DIR} -o ${subst /${SRC_DIR},,$@} -c $<
 
