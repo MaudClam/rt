@@ -91,18 +91,21 @@ public:
 	void	set_posToBase(void);
 	void	set_flybyRadius(float flybyRadius);
 	void	initMatrix(void);
-	void	restoreRays_lll(void);
-	void	resetRays_lll(void);
+	void	restoreRays_lll(unsigned long begin, unsigned long end);
+	static void restoreRays(Camera* camera, unsigned long begin, unsigned long end);
+	void	resetRays_lll(unsigned long begin, unsigned long end);
+	static void resetRays(Camera* camera, unsigned long begin, unsigned long end);
 	bool	resetFovDegree(float degree);
 	void	resetSmoothingFactor(int smoothingFactor);
 	void	resetRoll(float roll);
 	void	lookatCamera(const Position& pos);
-	void	takePicture_lll(MlxImage& img);
-	void	rayTracing_lll(void);
+	void	takePicture_lll(MlxImage& img, unsigned long begin, unsigned long end);
+	static void	takePicture(Camera* camera, MlxImage& img, unsigned long begin, unsigned long end);
+	void	rayTracing_lll(unsigned long begin, unsigned long end);
+	static void	rayTracing(Camera* camera, unsigned long begin, unsigned long end);
 	void	traceRay(Ray& ray);
 	A_Scenery* closestScenery(Ray& ray);
 	void	calculateFlybyRadius(void);
-
 	friend	std::ostream& operator<<(std::ostream& o, Camera& camera);
 	friend	std::istringstream& operator>>(std::istringstream& is, Camera& camera);
 };

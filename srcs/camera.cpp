@@ -182,7 +182,6 @@ int   Matrix::get_sm(void) { return _sm; }
 
 bool Matrix::set_fovDegree(float degree) { return _fov.set_degree(degree); }
 
-
 // class Camera
 
 Camera::Camera(const MlxImage& img) :
@@ -269,17 +268,25 @@ void Camera::initMatrix(void) {
 	}
 }
 
-void Camera::restoreRays_lll(void) {
+void Camera::restoreRays(Camera* camera, unsigned long begin, unsigned long end) {
+	camera->restoreRays_lll(begin, end);
+}
+
+void Camera::resetRays(Camera* camera, unsigned long begin, unsigned long end) {
+	camera->resetRays_lll(begin, end);
+}
+
+void Camera::restoreRays_lll(unsigned long begin, unsigned long end) {
 	float tan = _fov.get_tan();
-	for (auto pixel = matrix.begin(), end = matrix.end(); pixel != end; ++pixel) {
+	for (auto pixel = matrix.begin() + begin, _end = matrix.begin() + end; pixel != _end; ++pixel) {
 		pixel->restoreRays(_sm, tan, _pos.p);
 	}
 }
 
-void Camera::resetRays_lll(void) {
+void Camera::resetRays_lll(unsigned long begin, unsigned long end) {
 	float sm_mult = (1. / _sm) * _mult;
 	float tan = _fov.get_tan();
-	for (auto pixel = matrix.begin(), end = matrix.end(); pixel != end; ++pixel) {
+	for (auto pixel = matrix.begin() + begin, _end = matrix.begin() + end; pixel != _end; ++pixel) {
 		pixel->cPos.z = sm_mult;
 		pixel->reset(_sm, tan, _pos.p);
 	}
@@ -287,7 +294,23 @@ void Camera::resetRays_lll(void) {
 
 bool Camera::resetFovDegree(float degree) {
 	if (_fov.set_degree(degree)) {
-		restoreRays_lll();
+		unsigned long size = this->matrix.size();
+		unsigned long begin, end;
+		std::thread th[NUM_THREADS];
+		for (int i = 0; i < NUM_THREADS; i++) {
+			begin = i * size / NUM_THREADS;
+			if (i == NUM_THREADS - 1) {
+				end = size;
+			} else {
+				end = size / NUM_THREADS * (i + 1);
+			}
+			std::cout << "begin: " << begin << " end: " << end << std::endl;
+			th[i] = std::thread([this, begin, end](){restoreRays(this, begin, end);});
+		}
+		for (int i = 0; i < NUM_THREADS; i++) {
+			th[i].join();
+		}
+//		restoreRays_lll(1, 2);
 		return true;
 	}
 	return false;
@@ -295,7 +318,23 @@ bool Camera::resetFovDegree(float degree) {
 
 void Camera::resetSmoothingFactor(int sm) {
 	_sm = sm;
-	resetRays_lll();
+	unsigned long size = this->matrix.size();
+	unsigned long begin, end;
+	std::thread th[NUM_THREADS];
+	for (int i = 0; i < NUM_THREADS; i++) {
+		begin = i * size / NUM_THREADS;
+		if (i == NUM_THREADS - 1) {
+			end = size;
+		} else {
+			end = size / NUM_THREADS * (i + 1);
+		}
+		std::cout << "begin: " << begin << " end: " << end << std::endl;
+		th[i] = std::thread([this, begin, end](){resetRays(this, begin, end);});
+	}
+	for (int i = 0; i < NUM_THREADS; i++) {
+		th[i].join();
+	}
+//	resetRays_lll();
 }
 
 void Camera::resetRoll(float roll) {
@@ -313,7 +352,23 @@ void Camera::resetRoll(float roll) {
 	for (auto sc = scenerys.begin(), end = scenerys.end(); sc != end; ++sc) {
 		(*sc)->roll(_pos.p, shiftRoll);
 	}
-	restoreRays_lll();
+	unsigned long size = this->matrix.size();
+	unsigned long begin, end;
+	std::thread th[NUM_THREADS];
+	for (int i = 0; i < NUM_THREADS; i++) {
+		begin = i * size / NUM_THREADS;
+		if (i == NUM_THREADS - 1) {
+			end = size;
+		} else {
+			end = size / NUM_THREADS * (i + 1);
+		}
+		std::cout << "begin: " << begin << " end: " << end << std::endl;
+		th[i] = std::thread([this, begin, end](){restoreRays(this, begin, end);});
+	}
+	for (int i = 0; i < NUM_THREADS; i++) {
+		th[i].join();
+	}
+//	restoreRays_lll(1, 2);
 	if (DEBUG_MODE) { std::cout << "roll: " << degree(_roll) << std::endl; }
 }
 
@@ -323,26 +378,51 @@ void Camera::lookatCamera(const Position& pos) {
 		(*sc)->lookat(pos, aux, _base.p, _roll);
 	}
 	set_posToBase();
-	restoreRays_lll();
+	unsigned long size = this->matrix.size();
+	unsigned long begin, end;
+	std::thread th[NUM_THREADS];
+	for (int i = 0; i < NUM_THREADS; i++) {
+		begin = i * size / NUM_THREADS;
+		if (i == NUM_THREADS - 1) {
+			end = size;
+		} else {
+			end = size / NUM_THREADS * (i + 1);
+		}
+		std::cout << "begin: " << begin << " end: " << end << std::endl;
+		th[i] = std::thread([this, begin, end](){restoreRays(this, begin, end);});
+	}
+	for (int i = 0; i < NUM_THREADS; i++) {
+		th[i].join();
+	}
+//	restoreRays_lll(1, 2);
 }
 
-void Camera::takePicture_lll(MlxImage& img) {
+void Camera::takePicture_lll(MlxImage& img, unsigned long begin, unsigned long end) {
 	char* data = img.get_data();
 	if (data) {
-		for (auto pixel = matrix.begin(), end = matrix.end(); pixel != end; ++pixel) {
+		data += _bytespp * begin;
+		for (auto pixel = matrix.begin() + begin, _end = matrix.begin() + end; pixel != _end; ++pixel) {
 			memcpy(data, pixel->color.raw, _bytespp);
 			data += _bytespp;
 		}
 	}
 }
 
-void Camera::rayTracing_lll(void) {
-	for (auto pixel = matrix.begin(), End = matrix.end(); pixel != End; ++pixel) {
-		for (auto ray = pixel->rays.begin(), end = pixel->rays.end(); ray != end; ++ray) {
+void Camera::takePicture(Camera* camera, MlxImage& img, unsigned long begin, unsigned long end) {
+	camera->takePicture_lll(img, begin, end);
+}
+
+void Camera::rayTracing_lll(unsigned long begin, unsigned long end) {
+	for (auto pixel = matrix.begin() + begin, End = matrix.begin() + end; pixel != End; ++pixel) {
+		for (auto ray = pixel->rays.begin(), _end = pixel->rays.end(); ray != _end; ++ray) {
 			traceRay(*ray);
 		}
 		pixel->averageColor();
 	}
+}
+
+void Camera::rayTracing(Camera* camera, unsigned long begin, unsigned long end) {
+	camera->rayTracing_lll(begin, end);
 }
 
 void  Camera::traceRay(Ray& ray) {

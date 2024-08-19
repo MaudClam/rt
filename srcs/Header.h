@@ -12,14 +12,15 @@
 # include "geometry.hpp"
 # include "ARGBColor.hpp"
 # include "Ray.hpp"
-//#include "MlxImage.hpp"
-# include "../SPEC_HEADER_DIR/MlxImage.hpp"
+#include "MlxImage.hpp"
+//# include "../macHeader/MlxImage.hpp"
 # include "A_Scenery.hpp"
 # include "Sphere.hpp"
 # include "Scene.hpp"
 # include "Light.hpp"
 # include "camera.hpp"
 # include <cstring>
+# include <thread>
 
 # define SUCCESS			0
 # define ERROR				-1
@@ -29,6 +30,7 @@
 # define RECURSION_DEPTH	5
 # define SMOOTHING_FACTOR 	1
 # define BASE				Vec3f(0,0,0),Vec3f(0,0,1)
+# define NUM_THREADS		2000
 
 class MlxImage;
 struct Scene;

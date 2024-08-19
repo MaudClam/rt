@@ -46,7 +46,7 @@ HEADERS	= ${HEADER_DIR}/Header.h \
 		  ${HEADER_DIR}/Scene.hpp \
 		  ${HEADER_DIR}/Sphere.hpp 
 
-CPPFLAGS = -std=c++2a
+CPPFLAGS = -std=c++2b
 
 all: ${NAME}
 

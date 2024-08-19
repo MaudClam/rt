@@ -8,6 +8,7 @@
 #include "Scene.hpp"
 
 
+
 // Class Scene
 
 Scene::Scene(MlxImage& img) :
@@ -119,7 +120,24 @@ int  Scene::get_currentCamera(void) { return _currentCamera;}
 bool Scene::set_currentCamera(int idx) {
 	if (idx >= 0 && idx < (int)cameras.size()) {
 		_currentCamera = idx;
-		cameras[_currentCamera].restoreRays_lll();
+		Camera* cCam = &cameras[_currentCamera];
+		unsigned long size = cameras[_currentCamera].matrix.size();
+		unsigned long begin, end;
+		std::thread th[NUM_THREADS];
+		for (int i = 0; i < NUM_THREADS; i++) {
+			begin = i * size / NUM_THREADS;
+			if (i == NUM_THREADS - 1) {
+				end = size;
+			} else {
+				end = size / NUM_THREADS * (i + 1);
+			}
+			std::cout << "begin: " << begin << " end: " << end << std::endl;
+			th[i] = std::thread([cCam, begin, end](){Camera::restoreRays(cCam, begin, end);});
+		}
+		for (int i = 0; i < NUM_THREADS; i++) {
+			th[i].join();
+		}
+//		cameras[_currentCamera].restoreRays_lll();
 		if (DEBUG_MODE) { std::cout << "currentCamera: " << _currentCamera << "\n";}
 		return true;
 	}
@@ -234,8 +252,38 @@ A_Scenery* Scene::nearestIntersection(Ray& ray) {
 }
 
 void Scene::rt(void) {
-	cameras[_currentCamera].rayTracing_lll();
-	cameras[_currentCamera].takePicture_lll(img);
+	unsigned long size = cameras[_currentCamera].matrix.size();
+	unsigned long begin, end;
+	std::thread th[NUM_THREADS];
+	Camera* cCam = &cameras[_currentCamera];
+	for (int i = 0; i < NUM_THREADS; i++) {
+		begin = i * size / NUM_THREADS;
+		if (i == NUM_THREADS - 1) {
+			end = size;
+		} else {
+			end = size / NUM_THREADS * (i + 1);
+		}
+		std::cout << "begin: " << begin << " end: " << end << std::endl;
+		th[i] = std::thread([cCam, begin, end](){Camera::rayTracing(cCam, begin, end);});
+	}
+	for (int i = 0; i < NUM_THREADS; i++) {
+		th[i].join();
+	}
+//	cameras[_currentCamera].rayTracing_lll();
+	for (int i = 0; i < NUM_THREADS; i++) {
+		begin = i * size / NUM_THREADS;
+		if (i == NUM_THREADS - 1) {
+			end = size;
+		} else {
+			end = size / NUM_THREADS * (i + 1);
+		}
+		std::cout << "begin: " << begin << " end: " << end << std::endl;
+		th[i] = std::thread([cCam, this, begin, end](){Camera::takePicture(cCam, this->img, begin, end);});
+	}
+	for (int i = 0; i < NUM_THREADS; i++) {
+		th[i].join();
+	}
+//	cameras[_currentCamera].takePicture_lll(img);
 	mlx_put_image_to_window(img.get_mlx(), img.get_win(), img.get_image(), 0, 0);
 }
 

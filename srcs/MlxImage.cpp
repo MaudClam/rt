@@ -5,8 +5,8 @@
 //  Created by uru on 06/07/2024.
 //
 
-//#include "MlxImage.hpp"
-#include "../SPEC_HEADER_DIR/MlxImage.hpp" //linuxHeader or macHeader
+#include "MlxImage.hpp"
+//#include "../macHeader/MlxImage.hpp" //linuxHeader or macHeader
 
 extern Var var;
 
