@@ -55,8 +55,7 @@ void Light::calculateNormal(Ray& ray) const {
 	(void)ray;
 }
 
-float Light::lighting(Ray& ray, const A_Scenery& scenery, const a_scenerys_t& scenerys) const {
-	(void)scenery;
+float Light::lighting(Ray& ray) const {
 	float k = 0;
 	switch (_type) {
 		case SPOTLIGHT: {
@@ -85,10 +84,6 @@ float Light::lighting(Ray& ray, const A_Scenery& scenery, const a_scenerys_t& sc
 		}
 		default:
 			return 0;
-	}
-	ray.movePovByNormal(EPSILON);
-	if ( shadow(ray, scenerys) ) {
-		return 0;
 	}
 	ray.light = light.light;
 	return k;

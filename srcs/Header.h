@@ -24,7 +24,7 @@
 # define DEBUG_MODE			true
 # define DEBUG_KEYS			false
 # define DEBUG_MOUSE		false
-# define RECURSION_DEPTH	5
+# define RECURSION_DEPTH	25
 # define SMOOTHING_FACTOR 	1
 # define BASE				Vec3f(0,0,0),Vec3f(0,0,1)
 

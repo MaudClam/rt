@@ -69,7 +69,7 @@ Scene& Scene::operator=(const Scene& other) {
 
 int  Scene::parsing(int ac, char** av) {
 	(void)ac; (void)av;
-	set_any( std::istringstream("R 600 600	RayTrasing") );
+	set_any( std::istringstream("R 400 400	RayTrasing") );
 	std::string header(_header + " " + std::to_string(_resolution.x) + "x" + std::to_string(_resolution.y));
 	img.init(header, _resolution);
 	cameras.push_back(Camera(img));// default camera '0'
@@ -98,9 +98,10 @@ int  Scene::parsing(int ac, char** av) {
 	set_any( std::istringstream("A 0.2	255,255,250") );
 	set_any( std::istringstream("l     2,1,0    0.6 " + img.white.rrggbb()) );
 	set_any( std::istringstream("ls    1,4,4  0.2 " + img.white.rrggbb()) );
-	set_any( std::istringstream("sp    0,-1,3	2   " + img.red.rrggbb()   + " 500  0.2") );
-	set_any( std::istringstream("sp    2,0,4	2   " + img.white.rrggbb()  + " 10 0.9 0.5 1.33") );
-	set_any( std::istringstream("sp    -2,0,4	2   " + img.green.rrggbb() + " 10   0.4") );
+	set_any( std::istringstream("sp    0,-1,3	2   " + img.red.rrggbb()   + " 500  0.2 0 1.33") );
+	set_any( std::istringstream("sp    2,0,4	2   " + img.white.rrggbb()  + " 10 0.7 0 1.33") );
+//	set_any( std::istringstream("sp    -2,0,4	2   " + img.green.rrggbb() + " 10   0.4 0 1.33") );
+	set_any( std::istringstream("sp    -2,0,4	2   255,0,0 10   0.3 0.9 1.33") );
 	set_any( std::istringstream("sp 0,-5001,0 10000 " + img.yellow.rrggbb()+ " 1000 0.5") );
 
 //	===========

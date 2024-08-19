@@ -100,7 +100,11 @@ public:
 	void	takePicture_lll(MlxImage& img);
 	void	rayTracing_lll(void);
 	void	traceRay(Ray& ray, int r = 0);
-	A_Scenery* closestScenery(Ray& ray);
+	void	refracions(Ray& ray, const A_Scenery& scenery, int& r);
+	void	reflections(Ray& ray, const A_Scenery& scenery, int& r);
+	void	lightings(Ray& ray, const A_Scenery& scenery);
+	bool	transparentShadow(Ray& ray);
+	A_Scenery* closestScenery(Ray& ray, float distance, Hit hit = FRONT);
 	void	calculateFlybyRadius(void);
 
 	friend	std::ostream& operator<<(std::ostream& o, Camera& camera);

@@ -56,9 +56,7 @@ Position& Position::roll(float roll) {
 
 // Non member functions
 
-bool almostEqual(float a, float b, int precision) { return std::fabs(a - b) < precision; }
-
-bool almostEqual(double a, double b, int precision) { return std::fabs(a - b) < precision; }
+bool almostEqual(float a, float b, float precision) { return std::fabs(a - b) < precision; }
 
 float round_(float num, float prcs) {
 	return std::round(num / prcs) * prcs;

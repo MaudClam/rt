@@ -19,8 +19,7 @@
 # define _INFINITY		1000
 
 enum 	Hit { FRONT, BACK, OUTLINE, FRONT_SHADOW, INSIDE, OUTSIDE };
-bool 	almostEqual(float a, float b, int precision = PRECISION);
-bool 	almostEqual(double a, double b, int precision = PRECISION);
+bool 	almostEqual(float a, float b, float precision = PRECISION);
 float	round_(float num, float prcs = EPSILON);
 double	round_(double num, double prcs = EPSILON);
 float	radian(float degree);

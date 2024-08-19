@@ -79,10 +79,8 @@ void Sphere::calculateNormal(Ray& ray) const {
 	}
 }
 
-float Sphere::lighting(Ray& ray, const A_Scenery& scenery, const a_scenerys_t& scenerys) const {
+float Sphere::lighting(Ray& ray) const {
 	(void)ray;
-	(void)scenery;
-	(void)scenerys;
 	return 0;
 }
 
