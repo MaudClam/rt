@@ -19,17 +19,17 @@ struct Scene {
 	const std::vector<std::string> nicks {
 		"R","A","c","l","ls","ll","sp"
 	};
-	MlxImage&	img;
+	MlxImage&		img;
 	a_scenerys_t	scenerys;
 	a_scenerys_t	objsIdx;
 	a_scenerys_t	lightsIdx;
-	cameras_t	cameras;
+	cameras_t		cameras;
 private:
-	Vec2i		_resolution;
-	std::string	_header;
-	Lighting	_ambient;
-	Lighting	_space;
-	int			_currentCamera;
+	Vec2i			_resolution;
+	std::string		_header;
+	Lighting		_ambient;
+	Lighting		_space;
+	int				_currentCamera;
 public:
 	Scene(MlxImage& img);
 	~Scene(void);

@@ -194,7 +194,8 @@ scenerys(),
 objsIdx(),
 lightsIdx(),
 ambient(),
-space()
+space(),
+recursionDepth(RECURSION_DEPTH)
 {	_width = img.get_width();
 	_height = img.get_height();
 	_bytespp = img.get_bytespp();
@@ -223,6 +224,7 @@ Camera& Camera::operator=(const Camera& other) {
 		lightsIdx = other.lightsIdx;
 		ambient = other.ambient;
 		space = other.space;
+		recursionDepth = other.recursionDepth;
 	}
 	return *this;
 }
@@ -346,7 +348,7 @@ void Camera::rayTracing_lll(void) {
 }
 
 void  Camera::traceRay(Ray& ray, int r) {
-	if (r > RECURSION_DEPTH) { return; }
+	if (r > recursionDepth) { return; }
 	ray.recursion = r;
 	A_Scenery* scenery = closestScenery(ray, _INFINITY);
 	if (!scenery) { ray.color = space ; return; }
@@ -370,7 +372,7 @@ void Camera::refracions(Ray& ray, const A_Scenery& scenery, int& r) {
 			scenery.calculateNormal(ray);
 			if (ray.dir.refract(ray.norm, scenery.n)) {
 				ray.movePovByNormal(EPSILON);
-				traceRay(ray, ++r);
+				traceRay(ray, r);
 			}
 		}
 		ray.collectRefractiveLight(scenery.color, _color, scenery.refractive);
@@ -393,7 +395,7 @@ void Camera::reflections(Ray& ray, const A_Scenery& scenery, int& r) {
 		ray.collectReflectiveLight(_color, _shine, scenery.reflective);
 	}
 }
-
+		
 void Camera::lightings(Ray& ray, const A_Scenery& scenery) {
 	ray.light = ambient;
 	ray.collectLight(scenery.color);
@@ -403,7 +405,7 @@ void Camera::lightings(Ray& ray, const A_Scenery& scenery) {
 			A_Scenery* shadow = closestScenery(ray, ray.dist, FRONT_SHADOW);
 			if (shadow) {
 				if (shadow->refractive > 0) {
-					int r = RECURSION_DEPTH - 1;
+					int r = recursionDepth;
 					Ray sh_ray;
 					sh_ray.partRestore(ray);
 					sh_ray.dir = ray.dirToLight;
@@ -417,51 +419,6 @@ void Camera::lightings(Ray& ray, const A_Scenery& scenery) {
 			}
 		}
 	}
-}
-
-bool Camera::transparentShadow(Ray& ray) {
-	A_Scenery*	closestScenery = NULL;
-	float		distance = ray.dist;
-	for (auto scenery = scenerys.begin(), end = scenerys.end(); scenery != end; ++scenery) {
-		ray.hit = FRONT_SHADOW;
-		if ( (*scenery)->intersection(ray) ) {
-			if (distance > ray.dist) {
-				distance = ray.dist;
-				closestScenery = *scenery;
-			}
-		}
-	}
-	if (closestScenery) {
-		if (closestScenery->refractive > 0) {
-			int _color = ray.color.val;
-			int _light = ray.light.val;
-			ray.color = 0;
-			Ray tmp(ray);
-			ray.dir = ray.dirToLight;
-			if (ray.dir.refract(ray.norm, closestScenery->n)) {
-				ray.movePovByNormal(-2 * EPSILON);
-				closestScenery->intersection(ray);
-				ray.changePov();
-				ray.hit = OUTSIDE;
-				closestScenery->calculateNormal(ray);
-				if (ray.dir.refract(ray.norm, closestScenery->n)) {
-					traceRay(ray, RECURSION_DEPTH);
-					ray.collectRefractiveLight(closestScenery->color, _color, closestScenery->refractive);
-					ray.partRestore(tmp);
-					ray.light = _light;
-//					ray.color.val = _color;
-					return false;
-				}
-			}
-			ray.partRestore(tmp);
-			ray.light = _light;
-//			ray.color.val = _color;
-			return true;
-		}
-		return true;
-	}
-	return false;
-
 }
 
 A_Scenery* Camera::closestScenery(Ray& ray, float distance, Hit hit) {
@@ -535,5 +492,3 @@ std::istringstream& operator>>(std::istringstream& is, Camera& camera) {
 	return is;
 }
 
-
-// Non member functions

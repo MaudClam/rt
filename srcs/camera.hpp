@@ -77,6 +77,7 @@ public:
 	a_scenerys_t		objsIdx;
 	a_scenerys_t		lightsIdx;
 	ARGBColor 			ambient, space;
+	int					recursionDepth;
 	Camera(const MlxImage& img);
 	~Camera(void);
 	Camera(const Camera& other);
@@ -103,7 +104,6 @@ public:
 	void	refracions(Ray& ray, const A_Scenery& scenery, int& r);
 	void	reflections(Ray& ray, const A_Scenery& scenery, int& r);
 	void	lightings(Ray& ray, const A_Scenery& scenery);
-	bool	transparentShadow(Ray& ray);
 	A_Scenery* closestScenery(Ray& ray, float distance, Hit hit = FRONT);
 	void	calculateFlybyRadius(void);
 

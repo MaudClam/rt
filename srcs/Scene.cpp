@@ -200,11 +200,15 @@ void Scene::set_scenery(A_Scenery* scenery) {
 }
 
 void Scene::makeLookatsForCameras(void) {
+	bool refractionsPresence = false;
 	for (auto cam = cameras.begin(), End = cameras.end(); cam != End; ++cam) {
 		LookatAux aux(cam->get_pos().n);
 		for (auto sc = scenerys.begin(), end = scenerys.end(); sc != end; ++sc) {
 			A_Scenery* clone = (*sc)->clone();
 			cam->set_scenery(clone);
+			if (!refractionsPresence && (*sc)->refractive > 0) {
+				refractionsPresence = true;
+			}
 		}
 	}
 	for (auto cam = cameras.begin(), End = cameras.end(); cam != End; ++cam) {
@@ -212,6 +216,9 @@ void Scene::makeLookatsForCameras(void) {
 		cam->initMatrix();
 		cam->ambient = _ambient.light;
 		cam->space = _space.light;
+		if (refractionsPresence) {
+			cam->recursionDepth *= cam->recursionDepth;
+		}
 	}
 }
 
