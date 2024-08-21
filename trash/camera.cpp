@@ -29,7 +29,7 @@ float Fov::get_degree(void) const { return _degree; }
 float Fov::get_tan(void) const { return _tan; }
 
 bool Fov::set_degree(float degree) {
-	if (degree >= 0 && degree <= 180) {
+	if (degree >= 0 && degree <= 180 && !almostEqual(degree, _degree, EPSILON)) {
 		_degree = degree;
 		_tan = std::tan( radian(_degree / 2) );
 		return true;
@@ -182,7 +182,6 @@ int   Matrix::get_sm(void) { return _sm; }
 
 bool Matrix::set_fovDegree(float degree) { return _fov.set_degree(degree); }
 
-
 // class Camera
 
 Camera::Camera(const MlxImage& img) :
@@ -194,8 +193,7 @@ scenerys(),
 objsIdx(),
 lightsIdx(),
 ambient(),
-space(),
-recursionDepth(RECURSION_DEPTH)
+space()
 {	_width = img.get_width();
 	_height = img.get_height();
 	_bytespp = img.get_bytespp();
@@ -204,7 +202,7 @@ recursionDepth(RECURSION_DEPTH)
 
 Camera::~Camera(void) {}
 
-Camera::Camera(const Camera& other) { *this = other; }
+Camera::Camera(const Camera& other) : Matrix(other) { *this = other; }
 
 Camera& Camera::operator=(const Camera& other) {
 	if (this != &other) {
@@ -224,7 +222,6 @@ Camera& Camera::operator=(const Camera& other) {
 		lightsIdx = other.lightsIdx;
 		ambient = other.ambient;
 		space = other.space;
-		recursionDepth = other.recursionDepth;
 	}
 	return *this;
 }
@@ -307,11 +304,13 @@ bool Camera::resetFovDegree(float degree) {
 			} else {
 				end = size / NUM_THREADS * (i + 1);
 			}
+			std::cout << "begin: " << begin << " end: " << end << std::endl;
 			th[i] = std::thread([this, begin, end](){restoreRays(this, begin, end);});
 		}
 		for (int i = 0; i < NUM_THREADS; i++) {
 			th[i].join();
 		}
+//		restoreRays_lll(1, 2);
 		return true;
 	}
 	return false;
@@ -329,11 +328,13 @@ void Camera::resetSmoothingFactor(int sm) {
 		} else {
 			end = size / NUM_THREADS * (i + 1);
 		}
+		std::cout << "begin: " << begin << " end: " << end << std::endl;
 		th[i] = std::thread([this, begin, end](){resetRays(this, begin, end);});
 	}
 	for (int i = 0; i < NUM_THREADS; i++) {
 		th[i].join();
 	}
+//	resetRays_lll();
 }
 
 void Camera::resetRoll(float roll) {
@@ -361,12 +362,14 @@ void Camera::resetRoll(float roll) {
 		} else {
 			end = size / NUM_THREADS * (i + 1);
 		}
+		std::cout << "begin: " << begin << " end: " << end << std::endl;
 		th[i] = std::thread([this, begin, end](){restoreRays(this, begin, end);});
 	}
 	for (int i = 0; i < NUM_THREADS; i++) {
 		th[i].join();
 	}
-	if (DEBUG) { std::cout << "roll: " << degree(_roll) << std::endl; }
+//	restoreRays_lll(1, 2);
+	if (DEBUG_MODE) { std::cout << "roll: " << degree(_roll) << std::endl; }
 }
 
 void Camera::lookatCamera(const Position& pos) {
@@ -385,11 +388,13 @@ void Camera::lookatCamera(const Position& pos) {
 		} else {
 			end = size / NUM_THREADS * (i + 1);
 		}
+		std::cout << "begin: " << begin << " end: " << end << std::endl;
 		th[i] = std::thread([this, begin, end](){restoreRays(this, begin, end);});
 	}
 	for (int i = 0; i < NUM_THREADS; i++) {
 		th[i].join();
 	}
+//	restoreRays_lll(1, 2);
 }
 
 void Camera::takePicture_lll(MlxImage& img, unsigned long begin, unsigned long end) {
@@ -420,85 +425,31 @@ void Camera::rayTracing(Camera* camera, unsigned long begin, unsigned long end) 
 	camera->rayTracing_lll(begin, end);
 }
 
-void  Camera::traceRay(Ray& ray, int r) {
-	if (r > recursionDepth) { return; }
-	ray.recursion = r;
-	A_Scenery* scenery = closestScenery(ray, _INFINITY);
+void  Camera::traceRay(Ray& ray) {
+	if (ray.recursion > RECURSION_DEPTH) { return; }
+	A_Scenery* scenery = closestScenery(ray);
 	if (!scenery) { ray.color = space ; return; }
 	ray.changePov();
+	ray.collectLight(scenery->color, ambient);
 	scenery->calculateNormal(ray);
-	ray.movePovByNormal(EPSILON);
-	lightings(ray, *scenery);
-	reflections(ray, *scenery, r);
-	refracions(ray, *scenery, r);
-}
-
-void Camera::refracions(Ray& ray, const A_Scenery& scenery, int& r) {
-	if (scenery.refractive > 0) {
-		int _color = ray.color.val;
-		ray.color = 0;
-		if (ray.dir.refract(ray.norm, scenery.n)) {
-			ray.movePovByNormal(-2 * EPSILON);
-			scenery.intersection(ray);
-			ray.changePov();
-			ray.hit = OUTSIDE;
-			scenery.calculateNormal(ray);
-			if (ray.dir.refract(ray.norm, scenery.n)) {
-				ray.movePovByNormal(EPSILON);
-				traceRay(ray, r);
-			}
-		}
-		ray.collectRefractiveLight(scenery.color, _color, scenery.refractive);
-	}
-}
-
-void Camera::reflections(Ray& ray, const A_Scenery& scenery, int& r) {
-	if (scenery.reflective > 0) {
-		int _color = ray.color.val, _shine = ray.shine.val;
-		ray.color = ray.shine = 0;
-		if (scenery.refractive > 0) {
-			Ray tmp(ray);
-			ray.dir.reflect(ray.norm);
-			traceRay(ray, ++r);
-			ray.partRestore(tmp);
-		} else {
-			ray.dir.reflect(ray.norm);
-			traceRay(ray, ++r);
-		}
-		ray.collectReflectiveLight(_color, _shine, scenery.reflective);
-	}
-}
-		
-void Camera::lightings(Ray& ray, const A_Scenery& scenery) {
-	ray.light = ambient;
-	ray.collectLight(scenery.color);
 	for (auto light = lightsIdx.begin(), end = lightsIdx.end(); light != end; ++light) {
-		float k = (*light)->lighting(ray);
-		if (k) {
-			A_Scenery* shadow = closestScenery(ray, ray.dist, FRONT_SHADOW);
-			if (shadow) {
-				if (shadow->refractive > 0) {
-					int r = recursionDepth;
-					Ray sh_ray;
-					sh_ray.partRestore(ray);
-					sh_ray.dir = ray.dirToLight;
-					refracions(sh_ray, *shadow, r);
-					ray.collectRefractiveLight(shadow->color, sh_ray.color.val, shadow->refractive);
-				}
-			}  else {
-				ray.collectLight(scenery.color, k);
-				ray.collectShine(scenery.specular);
-
-			}
-		}
+		(*light)->lighting(ray, *scenery, scenerys);
+	}
+	if (scenery->reflective > 0) {
+		int _color = ray.color.val;
+		int _shine = ray.shine.val;
+		ray.reflect();
+		traceRay(ray);
+		ray.collectReflect(_color, _shine, scenery->reflective);
 	}
 }
 
-A_Scenery* Camera::closestScenery(Ray& ray, float distance, Hit hit) {
+A_Scenery* Camera::closestScenery(Ray& ray) {
 	A_Scenery*	closestScenery = NULL;
-	Hit			rayHit = hit;
+	float		distance = INFINITY;
+	Hit			rayHit = FRONT;
 	for (auto scenery = scenerys.begin(), end = scenerys.end(); scenery != end; ++scenery) {
-		ray.hit = hit;
+		ray.hit = FRONT;
 		if ( (*scenery)->intersection(ray) ) {
 			if (distance > ray.dist) {
 				distance = ray.dist;
@@ -529,7 +480,7 @@ void Camera::calculateFlybyRadius(void) {
 				}
 				ray->hit = BACK;
 				if ( (*sc)->intersection(*ray) ) {
-					if (back < ray->dist && ray->dist < FLYBY_RADIUS_MAX) {
+					if (back < ray->dist && ray->dist < (float)FLYBY_RADIUS_MAX) {
 						back = ray->dist;
 					}
 				}
@@ -540,7 +491,7 @@ void Camera::calculateFlybyRadius(void) {
 		_flybyRadius = (back - front) / 2 + front;
 		if (DEBUG_MODE) {
 			std::cout << "front: " << front << ", back: " << back;
-			std::cout << ", flybyRadius: " << _flybyRadius << std::endl;
+			std::cout << ", f03lybyRadius: " << _flybyRadius << std::endl;
 		}
 	}
 }
@@ -554,7 +505,7 @@ std::ostream& operator<<(std::ostream& o, Camera& camera) {
 	os << " " << camera._pos.p;
 	os << " " << camera._pos.n;
 	os << " " << std::setw(4) << camera._fov.get_degree();
-	o << std::setw(56) << std::left << os.str();
+	o << std::setw(46) << std::left << os.str();
 	o << " #" << camera._name;
 	return o;
 }
@@ -565,3 +516,5 @@ std::istringstream& operator>>(std::istringstream& is, Camera& camera) {
 	return is;
 }
 
+
+// Non member functions

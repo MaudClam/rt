@@ -69,7 +69,7 @@ Scene& Scene::operator=(const Scene& other) {
 
 int  Scene::parsing(int ac, char** av) {
 	(void)ac; (void)av;
-	set_any( std::istringstream("R 400 400	RayTrasing") );
+	set_any( std::istringstream("R 800 600	RayTrasing") );
 	std::string header(_header + " " + std::to_string(_resolution.x) + "x" + std::to_string(_resolution.y));
 	img.init(header, _resolution);
 	cameras.push_back(Camera(img));// default camera '0'
@@ -101,7 +101,7 @@ int  Scene::parsing(int ac, char** av) {
 	set_any( std::istringstream("sp    0,-1,3	2   " + img.red.rrggbb()   + " 500  0.2 0 1.33") );
 	set_any( std::istringstream("sp    2,0,4	2   " + img.white.rrggbb()  + " 10 0.7 0 1.33") );
 //	set_any( std::istringstream("sp    -2,0,4	2   " + img.green.rrggbb() + " 10   0.4 0 1.33") );
-	set_any( std::istringstream("sp    -2,0,4	2   255,0,0 10   0.3 0.9 1.33") );
+	set_any( std::istringstream("sp    -2,0,4	2   255,0,0 10   0.3 0 1.33") );
 	set_any( std::istringstream("sp 0,-5001,0 10000 " + img.yellow.rrggbb()+ " 1000 0.5") );
 
 //	===========
@@ -119,7 +119,22 @@ int  Scene::get_currentCamera(void) { return _currentCamera;}
 bool Scene::set_currentCamera(int idx) {
 	if (idx >= 0 && idx < (int)cameras.size()) {
 		_currentCamera = idx;
-		cameras[_currentCamera].restoreRays_lll();
+		Camera* cCam = &cameras[_currentCamera];
+		unsigned long size = cameras[_currentCamera].matrix.size();
+		unsigned long begin, end;
+		std::thread th[NUM_THREADS];
+		for (int i = 0; i < NUM_THREADS; i++) {
+			begin = i * size / NUM_THREADS;
+			if (i == NUM_THREADS - 1) {
+				end = size;
+			} else {
+				end = size / NUM_THREADS * (i + 1);
+			}
+			th[i] = std::thread([cCam, begin, end](){Camera::restoreRays(cCam, begin, end);});
+		}
+		for (int i = 0; i < NUM_THREADS; i++) {
+			th[i].join();
+		}
 		if (DEBUG_MODE) { std::cout << "currentCamera: " << _currentCamera << "\n";}
 		return true;
 	}
@@ -241,8 +256,34 @@ A_Scenery* Scene::nearestIntersection(Ray& ray) {
 }
 
 void Scene::rt(void) {
-	cameras[_currentCamera].rayTracing_lll();
-	cameras[_currentCamera].takePicture_lll(img);
+	unsigned long size = cameras[_currentCamera].matrix.size();
+	unsigned long begin, end;
+	std::thread th[NUM_THREADS];
+	Camera* cCam = &cameras[_currentCamera];
+	for (int i = 0; i < NUM_THREADS; i++) {
+		begin = i * size / NUM_THREADS;
+		if (i == NUM_THREADS - 1) {
+			end = size;
+		} else {
+			end = size / NUM_THREADS * (i + 1);
+		}
+		th[i] = std::thread([cCam, begin, end](){Camera::rayTracing(cCam, begin, end);});
+	}
+	for (int i = 0; i < NUM_THREADS; i++) {
+		th[i].join();
+	}
+	for (int i = 0; i < NUM_THREADS; i++) {
+		begin = i * size / NUM_THREADS;
+		if (i == NUM_THREADS - 1) {
+			end = size;
+		} else {
+			end = size / NUM_THREADS * (i + 1);
+		}
+		th[i] = std::thread([cCam, this, begin, end](){Camera::takePicture(cCam, this->img, begin, end);});
+	}
+	for (int i = 0; i < NUM_THREADS; i++) {
+		th[i].join();
+	}
 	mlx_put_image_to_window(img.get_mlx(), img.get_win(), img.get_image(), 0, 0);
 }
 

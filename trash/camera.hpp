@@ -77,7 +77,6 @@ public:
 	a_scenerys_t		objsIdx;
 	a_scenerys_t		lightsIdx;
 	ARGBColor 			ambient, space;
-	int					recursionDepth;
 	Camera(const MlxImage& img);
 	~Camera(void);
 	Camera(const Camera& other);
@@ -104,13 +103,9 @@ public:
 	static void	takePicture(Camera* camera, MlxImage& img, unsigned long begin, unsigned long end);
 	void	rayTracing_lll(unsigned long begin, unsigned long end);
 	static void	rayTracing(Camera* camera, unsigned long begin, unsigned long end);
-	void	traceRay(Ray& ray, int r = 0);
-	void	refracions(Ray& ray, const A_Scenery& scenery, int& r);
-	void	reflections(Ray& ray, const A_Scenery& scenery, int& r);
-	void	lightings(Ray& ray, const A_Scenery& scenery);
-	A_Scenery* closestScenery(Ray& ray, float distance, Hit hit = FRONT);
+	void	traceRay(Ray& ray);
+	A_Scenery* closestScenery(Ray& ray);
 	void	calculateFlybyRadius(void);
-
 	friend	std::ostream& operator<<(std::ostream& o, Camera& camera);
 	friend	std::istringstream& operator>>(std::istringstream& is, Camera& camera);
 };
