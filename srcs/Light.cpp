@@ -20,6 +20,7 @@ Light::Light(const Light& other) : _type(other._type), light(other.light) {
 	_nick = other._nick;
 	_isLight = other._isLight;
 	_pos = other._pos;
+	combineType = other.combineType;
 	color = other.color;
 	specular = other.specular;
 	reflective = other.reflective;

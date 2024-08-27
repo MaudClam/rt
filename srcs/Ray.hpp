@@ -27,6 +27,7 @@ struct Ray {
 	~Ray(void);
 	Ray(const Ray& other);
 	Ray& operator=(const Ray& other);
+	Ray& set_hit(Hit hit);
 	Ray& changePov(void);
 	Ray& movePovByNormal(float distance);
 	Ray& partRestore(const Ray& other);

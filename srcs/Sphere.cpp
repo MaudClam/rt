@@ -35,10 +35,11 @@ _c(other._c)
 	_isLight = other._isLight;
 	_pos = other._pos;
 	color = other.color;
+	combineType = other.combineType;
 	specular = other.specular;
 	reflective = other.reflective;
 	refractive = other.refractive;
-	n = other.n;
+	a_matIOR = other.a_matIOR;
 }
 
 Sphere* Sphere::clone(void) const {
@@ -99,7 +100,7 @@ std::ostream& operator<<(std::ostream& o, Sphere& sp) {
 	os << " " << std::setw(4) << std::right << sp.specular;
 	os << " " << std::setw(4) << std::right << sp.reflective;
 	os << " " << std::setw(4) << std::right << sp.refractive;
-	os << " " << std::setw(4) << std::right << sp.n;
+	os << " " << std::setw(4) << std::right << sp.a_matIOR;
 	o  << std::setw(54) << std::left << os.str();
 	o  << " #" << sp._name;
 	return o;
@@ -107,7 +108,7 @@ std::ostream& operator<<(std::ostream& o, Sphere& sp) {
 
 std::istringstream& operator>>(std::istringstream& is, Sphere& sp) {
 	is >> sp._pos.p >> sp._radius;
-	is >> sp.color >> sp.specular >> sp.reflective >> sp.refractive >> sp.n;
+	is >> sp.color >> sp.specular >> sp.reflective >> sp.refractive >> sp.a_matIOR;
 	sp._radius /= 2;
 	sp._sqrRadius = sp._radius * sp._radius;
 	sp.specular = i2limits(sp.specular, -1, 1000);

@@ -19,6 +19,7 @@
 # define _INFINITY		1000
 
 enum 	Hit { FRONT, BACK, OUTLINE, FRONT_SHADOW, INSIDE, OUTSIDE };
+enum	CombineType { END=0, UNION, SUBTRACTION, INTERSECTION, XOR };
 bool 	almostEqual(float a, float b, float precision = PRECISION);
 float	round_(float num, float prcs = EPSILON);
 double	round_(double num, double prcs = EPSILON);
@@ -244,6 +245,14 @@ struct Position {
 	Position& lookat(const Position& eye, const LookatAux& aux, float roll = 0);
 	Position& roll(float roll);
 };
+
+// Primitive combinations
+
+float opUnion( float d1, float d2 );
+float opSubtraction( float d1, float d2 );
+float opIntersection( float d1, float d2 );
+float opXor( float d1, float d2 );
+float combine( float d1, float d2, CombineType type );
 
 
 // Intersections, normals, rays

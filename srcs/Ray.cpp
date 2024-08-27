@@ -56,6 +56,11 @@ Ray& Ray::operator=(const Ray& other) {
 	return *this;
 }
 
+Ray& Ray::set_hit(Hit hit) {
+	this->hit = hit;
+	return *this;
+}
+
 Ray& Ray::changePov(void) {
 	pov.addition( pov, dir * dist );
 	if (!recursion) {

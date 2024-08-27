@@ -437,13 +437,13 @@ void Camera::refracions(Ray& ray, const A_Scenery& scenery, int& r) {
 	if (scenery.refractive > 0) {
 		int _color = ray.color.val;
 		ray.color = 0;
-		if (ray.dir.refract(ray.norm, scenery.n)) {
+		if (ray.dir.refract(ray.norm, scenery.a_matIOR)) {
 			ray.movePovByNormal(-2 * EPSILON);
 			scenery.intersection(ray);
 			ray.changePov();
 			ray.hit = OUTSIDE;
 			scenery.calculateNormal(ray);
-			if (ray.dir.refract(ray.norm, scenery.n)) {
+			if (ray.dir.refract(ray.norm, scenery.a_matIOR)) {
 				ray.movePovByNormal(EPSILON);
 				traceRay(ray, r);
 			}
@@ -498,12 +498,26 @@ A_Scenery* Camera::closestScenery(Ray& ray, float distance, Hit hit) {
 	A_Scenery*	closestScenery = NULL;
 	Hit			rayHit = hit;
 	for (auto scenery = scenerys.begin(), end = scenerys.end(); scenery != end; ++scenery) {
-		ray.hit = hit;
-		if ( (*scenery)->intersection(ray) ) {
-			if (distance > ray.dist) {
+		if ( (*scenery)->combineType == END) {
+			if ( (*scenery)->intersection(ray.set_hit(hit)) && distance > ray.dist ) {
 				distance = ray.dist;
 				rayHit = ray.hit;
 				closestScenery = *scenery;
+			}
+		} else {
+			Combine	combine(ray, *scenery, hit);
+			while ( scenery != end && (*scenery)->combineType != END ) {
+				if ( ++scenery != end ) {
+					combine.nextPrimitive(*scenery);
+				}
+			}
+			if ( combine.get_result() && distance > ray.dist ) {
+				distance = ray.dist;
+				rayHit = ray.hit;
+				closestScenery = combine.get_result();
+			}
+			if (scenery == end) {
+				break;
 			}
 		}
 	}

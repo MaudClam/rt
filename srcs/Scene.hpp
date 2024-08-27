@@ -41,7 +41,6 @@ public:
 	bool set_any(std::istringstream is);
 	void set_scenery(A_Scenery* scenery);
 	void makeLookatsForCameras(void);
-	A_Scenery* nearestIntersection(Ray& ray);
 	void rt(void);
 	void selectCamera(int ctrl);
 	void changeCameraFOV(int ctrl);

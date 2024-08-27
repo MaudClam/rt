@@ -74,6 +74,39 @@ float degree(float radian) {
 	return (radian * 180. / std::numbers::pi);
 }
 
+
+// Primitive combinations
+
+float opUnion( float d1, float d2 ) {
+	return std::min(d1,d2);
+}
+
+float opSubtraction( float d1, float d2 ) {
+	return std::max(-d1,d2);
+}
+
+float opIntersection( float d1, float d2 ) {
+	return std::max(d1,d2);
+}
+
+float opXor(float d1, float d2 ) {
+	return std::max(std::min(d1,d2),-std::max(d1,d2));
+}
+
+float combine( float d1, float d2, CombineType type ) {
+	if (type == UNION) {
+		return opUnion(d1, d2);
+	} else if (type == SUBTRACTION) {
+		return opSubtraction(d1, d2);
+	} else if (type == INTERSECTION) {
+		return opIntersection(d1, d2);
+	} else if (type == XOR) {
+		return opXor(d1, d2);
+	}
+	return d2;
+}
+
+
 // Intersections, normals, rays
 
 bool raySphereIntersection(const Vec3f& rayDir,
