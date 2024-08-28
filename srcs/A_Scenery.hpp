@@ -29,6 +29,7 @@ struct Combine {
 	Combine& operator=(const Combine& other);
 	Combine& nextPrimitive(A_Scenery* scenery);
 	Combine& chooseSurface(void);
+	Combine& replace(void);
 	inline A_Scenery* get_result(void) {
 		ray.dist = d1;
 		ray.hit = h1;

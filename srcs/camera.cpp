@@ -497,7 +497,8 @@ void Camera::lightings(Ray& ray, const A_Scenery& scenery) {
 A_Scenery* Camera::closestScenery(Ray& ray, float distance, Hit hit) {
 	A_Scenery*	closestScenery = NULL;
 	Hit			rayHit = hit;
-	for (auto scenery = scenerys.begin(), end = scenerys.end(); scenery != end; ++scenery) {
+	auto 		scenery = scenerys.begin(), end = scenerys.end();
+	while (scenery != end) {
 		if ( (*scenery)->combineType == END) {
 			if ( (*scenery)->intersection(ray.set_hit(hit)) && distance > ray.dist ) {
 				distance = ray.dist;
@@ -507,7 +508,8 @@ A_Scenery* Camera::closestScenery(Ray& ray, float distance, Hit hit) {
 		} else {
 			Combine	combine(ray, *scenery, hit);
 			while ( scenery != end && (*scenery)->combineType != END ) {
-				if ( ++scenery != end ) {
+				++scenery;
+				if ( scenery != end ) {
 					combine.nextPrimitive(*scenery);
 				}
 			}
@@ -516,10 +518,8 @@ A_Scenery* Camera::closestScenery(Ray& ray, float distance, Hit hit) {
 				rayHit = ray.hit;
 				closestScenery = combine.get_result();
 			}
-			if (scenery == end) {
-				break;
-			}
 		}
+		if (scenery != end) ++scenery;
 	}
 	if (closestScenery) {
 		ray.dist = distance;

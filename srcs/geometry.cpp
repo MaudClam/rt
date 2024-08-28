@@ -137,24 +137,22 @@ bool raySphereIntersection(const Vec3f& rayDir,
 		if (rayHit == FRONT) {
 			if (min_t >= 0) {
 				distance = min_t;
-				if (distance > 0) {
+				if ( almostEqual(distance, 0, EPSILON) ) {
+					rayHit = OUTLINE;
+				} else {
 					rayHit = OUTSIDE;
-					return true;
 				}
-			} else {
+				return true;
+			} else if (max_t > 0) {
 				distance = max_t;
-				if (distance > 0) {
-					rayHit = INSIDE;
-					return true;
-				}
+				rayHit = INSIDE;
+				return true;
 			}
 		} else if (rayHit == BACK) {
 			if (max_t > 0) {
 				distance = max_t;
-				if (distance > 0) {
-					rayHit = INSIDE;
-					return true;
-				}
+				rayHit = INSIDE;
+				return true;
 			}
 		} else if (rayHit == OUTLINE && almostEqual(d, 0, EPSILON)) {
 			distance = min_t >= 0 ? min_t : max_t;

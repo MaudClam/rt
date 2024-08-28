@@ -62,6 +62,7 @@ Combine& Combine::operator=(const Combine& other) {
 
 Combine& Combine::nextPrimitive(A_Scenery* scenery) {
 	s2 = scenery;
+	t2 = scenery->combineType;
 	if ( s2->intersection(ray.set_hit(hit)) ) {
 		d2 = ray.dist;
 		h2 = ray.hit;
@@ -73,15 +74,36 @@ Combine& Combine::nextPrimitive(A_Scenery* scenery) {
 }
 
 Combine& Combine::chooseSurface(void) {
-	if ( std::abs(d2) == std::abs(combine(d1, d2, t1)) ) {
-		d1 = d2;
-		s1 = s2;
-		h1 = h2;
+	if (t1 == UNION) {
+		if (!s1 && s2) {
+			replace();
+		} else if (s1 && s2) {
+			if (d1 > d2) // min
+				replace();
+		}
+	} else if (t1 == INTERSECTION) {
+		if (s1 && s2) {
+			if (h1 == OUTSIDE) {
+				if (d1 < d2) // max
+					replace();
+			} else {
+				if (d1 > d2) // min
+					replace();
+			}
+		} else {
+			s1 = NULL;
+		}
 	}
 	t1 = t2;
 	return *this;
 }
 
+Combine& Combine::replace(void) {
+	d1 = d2;
+	s1 = s2;
+	h1 = h2;
+	return *this;
+}
 
 // class A_Scenery
 
