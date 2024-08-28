@@ -120,21 +120,7 @@ bool Scene::set_currentCamera(int idx) {
 	if (idx >= 0 && idx < (int)cameras.size()) {
 		_currentCamera = idx;
 		Camera* cCam = &cameras[_currentCamera];
-		unsigned long size = cameras[_currentCamera].matrix.size();
-		unsigned long begin, end;
-		std::thread th[NUM_THREADS];
-		for (int i = 0; i < NUM_THREADS; i++) {
-			begin = i * size / NUM_THREADS;
-			if (i == NUM_THREADS - 1) {
-				end = size;
-			} else {
-				end = size / NUM_THREADS * (i + 1);
-			}
-			th[i] = std::thread([cCam, begin, end](){Camera::restoreRays(cCam, begin, end);});
-		}
-		for (int i = 0; i < NUM_THREADS; i++) {
-			th[i].join();
-		}
+		cCam->runThreadRoutine(RESTORE_RAYS);
 		if (DEBUG_MODE) { std::cout << "currentCamera: " << _currentCamera << "\n";}
 		return true;
 	}
@@ -256,34 +242,9 @@ A_Scenery* Scene::nearestIntersection(Ray& ray) {
 }
 
 void Scene::rt(void) {
-	unsigned long size = cameras[_currentCamera].matrix.size();
-	unsigned long begin, end;
-	std::thread th[NUM_THREADS];
 	Camera* cCam = &cameras[_currentCamera];
-	for (int i = 0; i < NUM_THREADS; i++) {
-		begin = i * size / NUM_THREADS;
-		if (i == NUM_THREADS - 1) {
-			end = size;
-		} else {
-			end = size / NUM_THREADS * (i + 1);
-		}
-		th[i] = std::thread([cCam, begin, end](){Camera::rayTracing(cCam, begin, end);});
-	}
-	for (int i = 0; i < NUM_THREADS; i++) {
-		th[i].join();
-	}
-	for (int i = 0; i < NUM_THREADS; i++) {
-		begin = i * size / NUM_THREADS;
-		if (i == NUM_THREADS - 1) {
-			end = size;
-		} else {
-			end = size / NUM_THREADS * (i + 1);
-		}
-		th[i] = std::thread([cCam, this, begin, end](){Camera::takePicture(cCam, this->img, begin, end);});
-	}
-	for (int i = 0; i < NUM_THREADS; i++) {
-		th[i].join();
-	}
+	cCam->runThreadRoutine(RAY_TRACING);
+	cCam->runThreadRoutine(TAKE_PICTURE, &this->img);
 	mlx_put_image_to_window(img.get_mlx(), img.get_win(), img.get_image(), 0, 0);
 }
 
