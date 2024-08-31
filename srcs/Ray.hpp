@@ -18,7 +18,7 @@ struct Ray {
 	Vec3f		dirFromCam;	// normalized camera direction vector
 	Vec3f		dirToLight;	// normalized direction vector to light
 	Vec3f		norm;		// normalized normal vector from the ray hit point
-	float		dist;		// distance from pov to object
+	float		dist,d1,d2;	// distance from pov to object
 	ARGBColor	light;
 	ARGBColor	shine;
 	ARGBColor	color;

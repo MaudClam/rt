@@ -21,6 +21,8 @@
 enum 	Hit { FRONT, BACK, OUTLINE, FRONT_SHADOW, INSIDE, OUTSIDE };
 enum	CombineType { END=0, UNION, SUBTRACTION, INTERSECTION, XOR };
 bool 	almostEqual(float a, float b, float precision = PRECISION);
+bool 	almostMore(float a, float b, float precision = PRECISION);
+bool 	almostLess(float a, float b, float precision = PRECISION);
 float	round_(float num, float prcs = EPSILON);
 double	round_(double num, double prcs = EPSILON);
 float	radian(float degree);
@@ -262,12 +264,16 @@ bool raySphereIntersection(const Vec3f& rayDir,
 						   const Vec3f& center,
 						   float sqrRadius,
 						   float& distance,
+						   float& min_t,
+						   float& max_t,
 						   Hit& rayHit);
 
 bool raySphereIntersection(const Vec3f& rayDir,
 							const Vec3f& k,
 							float c,
-							float& distance,
+						   float& distance,
+						   float& min_t,
+						   float& max_t,
 							Hit& rayHit);
 
 void normalToRaySphereIntersect(const Vec3f& intersectPt,

@@ -58,6 +58,10 @@ Position& Position::roll(float roll) {
 
 bool almostEqual(float a, float b, float precision) { return std::fabs(a - b) < precision; }
 
+bool almostMore(float a, float b, float precision) { return a - b > precision; }
+
+bool almostLess(float a, float b, float precision) { return b - a > precision; }
+
 float round_(float num, float prcs) {
 	return std::round(num / prcs) * prcs;
 }
@@ -114,26 +118,30 @@ bool raySphereIntersection(const Vec3f& rayDir,
 						   const Vec3f& center,
 						   float sqrRadius,
 						   float& distance,
+						   float& min_t,
+						   float& max_t,
 						   Hit& rayHit) {
 	Vec3f k;
 	k.substract(rayPov, center);
 	float c = k * k - sqrRadius;
-	return raySphereIntersection(rayDir, k, c, distance, rayHit);
+	return raySphereIntersection(rayDir, k, c, distance, min_t, max_t, rayHit);
 }
 
 bool raySphereIntersection(const Vec3f& rayDir,
-							const Vec3f& k,
-							float c,
-							float& distance,
-							Hit& rayHit) {
+						   const Vec3f& k,
+						   float c,
+						   float& distance,
+						   float& min_t,
+						   float& max_t,
+						   Hit& rayHit) {
 	float b = rayDir * k;
 	float d = b * b - c;
 	if (d >= 0) {
 		float sqrt_d = std::sqrt(d);
 		float t1 = -b + sqrt_d;
 		float t2 = -b - sqrt_d;
-		float min_t = std::min(t1,t2);
-		float max_t = std::max(t1,t2);
+		min_t = std::min(t1,t2);
+		max_t = std::max(t1,t2);
 		if (rayHit == FRONT) {
 			if (min_t >= 0) {
 				distance = min_t;

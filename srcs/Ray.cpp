@@ -17,6 +17,8 @@ dirFromCam(),
 dirToLight(),
 norm(),
 dist(0),
+d1(0),
+d2(0),
 light(),
 shine(),
 color(),
@@ -33,6 +35,8 @@ dirFromCam(other.dirFromCam),
 dirToLight(other.dirToLight),
 norm(other.norm),
 dist(other.dist),
+d1(other.d1),
+d2(other.d2),
 light(other.light),
 shine(other.shine),
 color(other.color),
@@ -48,6 +52,8 @@ Ray& Ray::operator=(const Ray& other) {
 		dirToLight = other.dirToLight;
 		norm = other.norm;
 		dist = other.dist;
+		d1 = other.d1;
+		d2 = other.d2;
 		light = other.light;
 		shine = other.shine;
 		color = other.color;
