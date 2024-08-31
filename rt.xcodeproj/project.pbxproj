@@ -60,6 +60,9 @@
 		66D166C52C3C172F002E6F7E /* Sphere.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; path = Sphere.hpp; sourceTree = "<group>"; };
 		66D166C82C3D9281002E6F7E /* A_Scenery.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = A_Scenery.cpp; sourceTree = "<group>"; };
 		66D166C92C3D9281002E6F7E /* A_Scenery.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; path = A_Scenery.hpp; sourceTree = "<group>"; };
+		952C4C992C821A5100D55425 /* linuxKeys.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = linuxKeys.h; sourceTree = "<group>"; };
+		952C4C9A2C821A9000D55425 /* macKeys.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = macKeys.h; sourceTree = "<group>"; };
+		952C4C9B2C8240F900D55425 /* keys.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = keys.h; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -98,6 +101,7 @@
 		6679518D2C5217A4009C1DDD /* srcs */ = {
 			isa = PBXGroup;
 			children = (
+				952C4C9B2C8240F900D55425 /* keys.h */,
 				66D166C82C3D9281002E6F7E /* A_Scenery.cpp */,
 				66D166C92C3D9281002E6F7E /* A_Scenery.hpp */,
 				667951912C5293BB009C1DDD /* ARGBColor.cpp */,
@@ -119,6 +123,8 @@
 				667951712C41AD05009C1DDD /* Scene.hpp */,
 				66D166C42C3C172F002E6F7E /* Sphere.cpp */,
 				66D166C52C3C172F002E6F7E /* Sphere.hpp */,
+				952C4C992C821A5100D55425 /* linuxKeys.h */,
+				952C4C9A2C821A9000D55425 /* macKeys.h */,
 			);
 			path = srcs;
 			sourceTree = "<group>";

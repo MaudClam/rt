@@ -12,14 +12,14 @@
 # include "geometry.hpp"
 # include "ARGBColor.hpp"
 # include "Ray.hpp"
-//#include "MlxImage.hpp"
-# include "../SPEC_HEADER_DIR/MlxImage.hpp"
+# include "MlxImage.hpp"
 # include "A_Scenery.hpp"
 # include "Sphere.hpp"
 # include "Scene.hpp"
 # include "Light.hpp"
 # include "camera.hpp"
 # include <cstring>
+# include "keys.h"
 
 # define SUCCESS			0
 # define ERROR				-1

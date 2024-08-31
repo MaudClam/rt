@@ -24,13 +24,13 @@ ifeq ($(shell uname -s), Linux)
 	MLX_DIR = mlx_linux
 	MLX_LIB = -L/usr/lib -Lmlx_linux
 	LIB_FLAGS = -lmlx_Linux -lXext -lX11 -lm -lz
-	SPEC_HEADER_DIR = linuxHeader
-
+	SPEC_HEADER = linuxKeys.h
+	
 else
 	MLX_DIR = mlx
 	MLX_LIB = -framework OpenGL -framework AppKit -Lmlx
 	LIB_FLAGS = -lmlx -lm
-	SPEC_HEADER_DIR = macHeader
+	SPEC_HEADER = macKeys.h
 
 endif
 
@@ -41,23 +41,27 @@ HEADERS	= ${HEADER_DIR}/Header.h \
 		  ${HEADER_DIR}/geometry.hpp \
 		  ${HEADER_DIR}/Light.hpp \
 		  ${HEADER_DIR}/mlx.h \
-		  ${SPEC_HEADER_DIR}/MlxImage.hpp \
+		  ${HEADER_DIR}/MlxImage.hpp \
 		  ${HEADER_DIR}/Ray.hpp \
 		  ${HEADER_DIR}/Scene.hpp \
-		  ${HEADER_DIR}/Sphere.hpp 
+		  ${HEADER_DIR}/Sphere.hpp \
+		  ${HEADER_DIR}/keys.h
 
 CPPFLAGS = -std=c++2a
 
-all: ${NAME}
+all: os_comp ${NAME}
+
+os_comp:
+	-cp srcs/${SPEC_HEADER} srcs/keys.h
+
 
 ${OBJ_DIR}/%.o: %.cpp ${HEADERS}
-	-sed -i '' -e 's/SPEC_HEADER_DIR/${SPEC_HEADER_DIR}/g' srcs/*
 	mkdir -p ${@D}
-	g++ ${CPPFLAGS} -Wall -Wextra -Werror -I${HEADER_DIR} -I${SPEC_HEADER_DIR} -I${MLX_DIR} -o ${subst /${SRC_DIR},,$@} -c $<
+	g++ ${CPPFLAGS} -Wall -Wextra -Werror -I${HEADER_DIR} -I${MLX_DIR} -o ${subst /${SRC_DIR},,$@} -c $<
 
 ${NAME}: ${OBJ}
 	make -C ${MLX_DIR} all
-	g++ ${CPPFLAGS} -Wall -Wextra -Werror ${subst /${SRC_DIR},,${OBJ}} ${MLX_LIB} -I. -I${MLX_DIR} ${LIB_FLAGS} -o ${NAME}
+	g++ ${CPPFLAGS} -Wall -Wextra -Werror ${subst /${SRC_DIR},,${OBJ}} ${MLX_LIB} -I${HEADER_DIR} -I${MLX_DIR} ${LIB_FLAGS} -o ${NAME}
 
 clean:
 	make -C ${MLX_DIR} clean
