@@ -248,13 +248,15 @@ struct Position {
 	Position& roll(float roll);
 };
 
-// Primitive combinations
+// Operations with segments
 
-float opUnion( float d1, float d2 );
-float opSubtraction( float d1, float d2 );
-float opIntersection( float d1, float d2 );
-float opXor( float d1, float d2 );
-float combine( float d1, float d2, CombineType type );
+bool c_inside_ab(float c, float a, float b);
+bool ab1_inside_ab2(float a1, float b1, float a2, float b2);
+bool ab2_inside_ab1(float a1, float b1, float a2, float b2);
+bool equal(float a1, float b1, float a2, float b2);
+bool outside(float a1, float b1, float a2, float b2);
+bool ab1_intersect_ab2(float a1, float b1, float a2, float b2);
+bool ab2_intersect_ab1(float a1, float b1, float a2, float b2);
 
 
 // Intersections, normals, rays

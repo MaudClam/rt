@@ -510,13 +510,14 @@ A_Scenery* Camera::closestScenery(Ray& ray, float distance, Hit hit) {
 			while ( scenery != end && (*scenery)->combineType != END ) {
 				++scenery;
 				if ( scenery != end ) {
-					combine.nextPrimitive(*scenery);
+					combine.next(*scenery);
 				}
 			}
-			if ( combine.get_result() && distance > ray.dist ) {
+			A_Scenery* combineGet = combine.get();
+			if ( combineGet && distance > ray.dist ) {
 				distance = ray.dist;
 				rayHit = ray.hit;
-				closestScenery = combine.get_result();
+				closestScenery = combineGet;
 			}
 		}
 		if (scenery != end) ++scenery;

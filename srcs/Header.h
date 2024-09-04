@@ -18,7 +18,6 @@
 # include "Scene.hpp"
 # include "Light.hpp"
 # include "camera.hpp"
-# include <thread>
 
 
 # define SUCCESS			0

@@ -105,28 +105,36 @@ int  Scene::parsing(int ac, char** av) {
 //	set_any( std::istringstream("sp 0,-5001,0 10000 " + img.yellow.rrggbb()+ " 1000 0.5") );
 
 	
-//	set_any( std::istringstream("c     0,0,0         0,0,1      60 ") );
+	set_any( std::istringstream("c     0,1,-25         0,0,1      90 ") );
 //	set_any( std::istringstream("c     5,0,3         -1,0,0      60 ") );
 //	set_any( std::istringstream("c     0,0,8         0,0,-1      60 ") );
 //	set_any( std::istringstream("c     0,0,0        0,0,1      60 ") );
-//	set_any( std::istringstream("c     0,4,2         0,-1,0      60 ") );
+	set_any( std::istringstream("c     0,25,0         0,-1,0      90 ") );
 	set_any( std::istringstream("A 0.2	255,255,250") );
-	set_any( std::istringstream("ls    -30,30,-5  0.5 " + img.white.rrggbb()) );
-	set_any( std::istringstream("ls    30,10,25  0.3 " + img.white.rrggbb()) );
-	
-	set_any( std::istringstream("sp    0,0,25	20   " + img.red.rrggbb()   + " 500  0 0 1.33") );
+	set_any( std::istringstream("ls    25,50,25  0.2 " + img.white.rrggbb()) );
+	set_any( std::istringstream("ls    -25,50,25  0.2 " + img.white.rrggbb()) );
+	set_any( std::istringstream("ls    -25,50,-25  0.2 " + img.white.rrggbb()) );
+	set_any( std::istringstream("ls    25,50,-25  0.2 " + img.white.rrggbb()) );
+	set_any( std::istringstream("l    0,-5004,250  0.4 " + img.white.rrggbb()) );
+	set_any( std::istringstream("l    250,-5004,0  0.4 " + img.white.rrggbb()) );
+
+	set_any( std::istringstream("sp    0,0,0	20   " + img.red.rrggbb()   + " 500  0.2 0 1.33") );
 	set_any( std::istringstream("SUBTRACTION"));
-	set_any( std::istringstream("sp    0,0,10	16   " + img.green.rrggbb()   + " 500  0 0 1.33") );
+	set_any( std::istringstream("sp    0,0,-5	12   " + img.white.rrggbb()   + " -1  0 0 1.33") );
 	set_any( std::istringstream("SUBTRACTION"));
-	set_any( std::istringstream("sp    0,0,40	16   " + img.white.rrggbb()   + " 500  0 0 1.33") );
-//	set_any( std::istringstream("UNION"));
-	set_any( std::istringstream("sp    -5,-2,10	12   " + img.yellow.rrggbb()   + " 500  0.3 0 1.33") );
-	set_any( std::istringstream("INTERSECTION"));
-	set_any( std::istringstream("sp    5,-2,13	12   " + img.blue.rrggbb()   + " 1000  0.3 0 1.33") );
-	set_any( std::istringstream("INTERSECTION"));
-	set_any( std::istringstream("sp    0,-2,4	12   " + img.white.rrggbb()   + " 1000  0.3 0 1.33") );
+	set_any( std::istringstream("sp    5,0,0	12   " + img.magenta.rrggbb()   + " -1  0 0 1.33") );
+	set_any( std::istringstream("SUBTRACTION"));
+	set_any( std::istringstream("sp    0,0,5	12   " + img.blue.rrggbb()   + " -1  0 0 1.33") );
+	set_any( std::istringstream("SUBTRACTION"));
+	set_any( std::istringstream("sp    -5,0,0	12   " + img.green.rrggbb()   + " -1  0 0 1.33") );
 	set_any( std::istringstream("UNION"));
-	set_any( std::istringstream("sp 0,-5004,0 10000 " + img.yellow.rrggbb()+ " 1000 0.5") );
+	set_any( std::istringstream("sp 0,-5004,0 10000 " + img.white.rrggbb()+ " 1000 0.8") );
+
+	set_any( std::istringstream("sp    -5,-3,10	12   " + img.yellow.rrggbb()   + " 500  0 0 1.33") );
+	set_any( std::istringstream("INTERSECTION"));
+	set_any( std::istringstream("sp    5,-3,13	12   " + img.blue.rrggbb()   + " 500  0 0 1.33") );
+	set_any( std::istringstream("INTERSECTION"));
+	set_any( std::istringstream("sp    0,-3,4	12   " + img.white.rrggbb()   + " 500  0 0 1.33") );
 
 	
 	
