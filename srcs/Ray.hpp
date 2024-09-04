@@ -101,9 +101,9 @@ struct Combine {
 	void emplace(const Point& a, const Point& b);
 	void next(A_Scenery* scenery);
 	void combination(CombineType type);
-	bool union_(segments_it& segment1, Segment& segment2);
-	bool subtraction(segments_it& segment1, Segment& segment2);
-	bool intersection(segments_it& segment1, Segment& segment2);
+	bool union_(Segment& segment1, Segment& segment2);
+	bool subtraction(Segment& segment1, Segment& segment2);
+	bool intersection(Segment& segment1, Segment& segment2);
 	inline void firstVisible(void) {}
 	inline void secondVisible(void) {
 		segments1.clear();

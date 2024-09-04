@@ -220,15 +220,15 @@ void Combine::next(A_Scenery* scenery) {
 
 void Combine::combination(CombineType type) {
 	for (auto segment1 = segments1.begin(), end = segments1.end(); segment1 != end; ++segment1) {
-		bool erase = false;
+		bool _del = false;
 		if (type == UNION) {
-			erase = union_(segment1, segment2);
+			_del = union_(*segment1, segment2);
 		} else if (type == SUBTRACTION) {
-			erase = subtraction(segment1, segment2);
+			_del = subtraction(*segment1, segment2);
 		} else if (type == INTERSECTION) {
-			erase = intersection(segment1, segment2);
+			_del = intersection(*segment1, segment2);
 		}
-		if (erase) {
+		if (_del) {
 			del.push_back(segment1);
 		}
 	}
@@ -241,55 +241,55 @@ void Combine::combination(CombineType type) {
 	del.clear();
 }
 
-bool Combine::union_(segments_it& segment1, Segment& segment2) {
-	if (ab1_intersect_ab2(segment1->a.d, segment1->b.d, segment2.a.d, segment2.b.d)) {
-		segment2.a = segment1->a;
+bool Combine::union_(Segment& segment1, Segment& segment2) {
+	if (ab1_intersect_ab2(segment1.a.d, segment1.b.d, segment2.a.d, segment2.b.d)) {
+		segment2.a = segment1.a;
 		return true;
-	} else if (ab2_intersect_ab1(segment1->a.d, segment1->b.d, segment2.a.d, segment2.b.d)) {
-		segment2.b = segment1->b;
+	} else if (ab2_intersect_ab1(segment1.a.d, segment1.b.d, segment2.a.d, segment2.b.d)) {
+		segment2.b = segment1.b;
 		return true;
-	} else if (ab1_inside_ab2(segment1->a.d, segment1->b.d, segment2.a.d, segment2.b.d)) {
+	} else if (ab1_inside_ab2(segment1.a.d, segment1.b.d, segment2.a.d, segment2.b.d)) {
 		return true;
-	} else if (ab2_inside_ab1(segment1->a.d, segment1->b.d, segment2.a.d, segment2.b.d)) {
-		segment2.a = segment1->a;
-		segment2.b = segment1->b;
+	} else if (ab2_inside_ab1(segment1.a.d, segment1.b.d, segment2.a.d, segment2.b.d)) {
+		segment2.a = segment1.a;
+		segment2.b = segment1.b;
 		return true;
-	} else if (equal(segment1->a.d, segment1->b.d, segment2.a.d, segment2.b.d)) {
-		return true;
-	}
-	return false;
-}
-
-bool Combine::subtraction(segments_it& segment1, Segment& segment2) {
-	if (ab1_intersect_ab2(segment1->a.d, segment1->b.d, segment2.a.d, segment2.b.d)) {
-		segment1->b = segment2.a;
-	} else if (ab2_intersect_ab1(segment1->a.d, segment1->b.d, segment2.a.d, segment2.b.d)) {
-		segment1->a = segment2.b;
-	} else if (ab2_inside_ab1(segment1->a.d, segment1->b.d, segment2.a.d, segment2.b.d)) {
-		if (segment1->a.d != segment2.a.d) {
-			emplace(segment1->a, segment2.a);
-		}
-		if (segment1->b.d != segment2.b.d) {
-			emplace(segment2.b, segment1->b);
-		}
-		return true;
-	} else if (ab1_inside_ab2(segment1->a.d, segment1->b.d, segment2.a.d, segment2.b.d)) {
+	} else if (equal(segment1.a.d, segment1.b.d, segment2.a.d, segment2.b.d)) {
 		return true;
 	}
 	return false;
 }
 
-bool Combine::intersection(segments_it& segment1, Segment& segment2) {
-	if (ab1_intersect_ab2(segment1->a.d, segment1->b.d, segment2.a.d, segment2.b.d)) {
-		segment1->a = segment2.a;
+bool Combine::subtraction(Segment& segment1, Segment& segment2) {
+	if (ab1_intersect_ab2(segment1.a.d, segment1.b.d, segment2.a.d, segment2.b.d)) {
+		segment1.b = segment2.a;
+	} else if (ab2_intersect_ab1(segment1.a.d, segment1.b.d, segment2.a.d, segment2.b.d)) {
+		segment1.a = segment2.b;
+	} else if (ab2_inside_ab1(segment1.a.d, segment1.b.d, segment2.a.d, segment2.b.d)) {
+		if (segment1.a.d != segment2.a.d) {
+			emplace(segment1.a, segment2.a);
+		}
+		if (segment1.b.d != segment2.b.d) {
+			emplace(segment2.b, segment1.b);
+		}
+		return true;
+	} else if (ab1_inside_ab2(segment1.a.d, segment1.b.d, segment2.a.d, segment2.b.d)) {
+		return true;
+	}
+	return false;
+}
+
+bool Combine::intersection(Segment& segment1, Segment& segment2) {
+	if (ab1_intersect_ab2(segment1.a.d, segment1.b.d, segment2.a.d, segment2.b.d)) {
+		segment1.a = segment2.a;
 		return false;
-	} else if (ab2_intersect_ab1(segment1->a.d, segment1->b.d, segment2.a.d, segment2.b.d)) {
-		segment1->b = segment2.b;
+	} else if (ab2_intersect_ab1(segment1.a.d, segment1.b.d, segment2.a.d, segment2.b.d)) {
+		segment1.b = segment2.b;
 		return false;
-	} else if (ab1_inside_ab2(segment1->a.d, segment1->b.d, segment2.a.d, segment2.b.d)) {
+	} else if (ab1_inside_ab2(segment1.a.d, segment1.b.d, segment2.a.d, segment2.b.d)) {
 		return false;
-	} else if (ab2_inside_ab1(segment1->a.d, segment1->b.d, segment2.a.d, segment2.b.d)) {
-		*segment1 = segment2;
+	} else if (ab2_inside_ab1(segment1.a.d, segment1.b.d, segment2.a.d, segment2.b.d)) {
+		segment1 = segment2;
 		return false;
 	}
 	return true;
