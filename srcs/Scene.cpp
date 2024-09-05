@@ -130,11 +130,11 @@ int  Scene::parsing(int ac, char** av) {
 	set_any( std::istringstream("UNION"));
 	set_any( std::istringstream("sp 0,-5004,0 10000 " + img.white.rrggbb()+ " 1000 0.8") );
 
-	set_any( std::istringstream("sp    -5,-3,10	12   " + img.yellow.rrggbb()   + " 500  0 0 1.33") );
-	set_any( std::istringstream("INTERSECTION"));
-	set_any( std::istringstream("sp    5,-3,13	12   " + img.blue.rrggbb()   + " 500  0 0 1.33") );
-	set_any( std::istringstream("INTERSECTION"));
-	set_any( std::istringstream("sp    0,-3,4	12   " + img.white.rrggbb()   + " 500  0 0 1.33") );
+//	set_any( std::istringstream("sp    -5,-3,10	12   " + img.yellow.rrggbb()   + " 500  0 0 1.33") );
+//	set_any( std::istringstream("INTERSECTION"));
+//	set_any( std::istringstream("sp    5,-3,13	12   " + img.blue.rrggbb()   + " 500  0 0 1.33") );
+//	set_any( std::istringstream("INTERSECTION"));
+//	set_any( std::istringstream("sp    0,-3,4	12   " + img.white.rrggbb()   + " 500  0 0 1.33") );
 
 	
 	

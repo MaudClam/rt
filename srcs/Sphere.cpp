@@ -62,14 +62,22 @@ void Sphere::roll(const Vec3f& pov, float shiftRoll) {
 }
 
 bool Sphere::intersection(Ray& ray) const {
+	bool result = false;
 	if (ray.hit == FRONT_SHADOW) {
 		ray.hit = FRONT;
-		return raySphereIntersection(ray.dirToLight, ray.pov, _pos.p, _sqrRadius, ray.dist, ray.d1, ray.d2, ray.hit);
+		result = raySphereIntersection(ray.dirToLight, ray.pov, _pos.p, _sqrRadius,
+									   ray.dist, ray.intersections.a.d, ray.intersections.b.d,
+									   ray.hit);
+	} else if (!ray.recursion) {
+		result = raySphereIntersection(ray.dir, _k, _c, ray.dist,
+									   ray.intersections.a.d, ray.intersections.b.d,
+									   ray.hit);
+	} else {
+		result = raySphereIntersection(ray.dir, ray.pov, _pos.p, _sqrRadius,
+									   ray.dist, ray.intersections.a.d, ray.intersections.b.d,
+									   ray.hit);
 	}
-	if (!ray.recursion) {
-		return raySphereIntersection(ray.dir, _k, _c, ray.dist, ray.d1, ray.d2, ray.hit);
-	}
-	return raySphereIntersection(ray.dir, ray.pov, _pos.p, _sqrRadius, ray.dist, ray.d1, ray.d2,  ray.hit);
+	return result;
 }
 
 void Sphere::calculateNormal(Ray& ray) const {

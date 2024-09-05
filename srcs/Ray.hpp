@@ -13,36 +13,27 @@
 # include "ARGBColor.hpp"
 # include "A_Scenery.hpp"
 
+struct	Ray;
 struct	Combine;
 class	A_Scenery;
 
-struct Ray {
-	int			recursion;	// recursion counter
-	Vec3f		pov;		// POV (point of view)
-	Vec3f		dir;		// normalized ray direction vector
-	Vec3f		dirFromCam;	// normalized camera direction vector
-	Vec3f		dirToLight;	// normalized direction vector to light
-	Vec3f		norm;		// normalized normal vector from the ray hit point
-	float		dist,d1,d2;	// distance from pov to object
-	ARGBColor	light;
-	ARGBColor	shine;
-	ARGBColor	color;
-	Hit			hit;
-	Ray(void);
-	~Ray(void);
-	Ray(const Ray& other);
-	Ray& operator=(const Ray& other);
-	Ray& set_hit(Hit hit);
-	Ray& changePov(void);
-	Ray& movePovByNormal(float distance);
-	Ray& partRestore(const Ray& other);
-	Ray& collectLight(const ARGBColor& sceneryColor, float k = 1);
-	Ray& collectShine(int specular);
-	Ray& collectReflectiveLight(int _color, int _shine, float reflective);
-	Ray& collectRefractiveLight(const ARGBColor& sceneryColor, int _color, float refractive);
+struct RaySafe {
+	int		recursion;	// recursion counter
+	Vec3f	pov;		// POV (point of view)
+	Vec3f	dir;		// normalized ray direction vector
+	Vec3f	dirFromCam;	// normalized camera direction vector
+	Vec3f	dirToLight;	// normalized direction vector to light
+	Vec3f	norm;		// normalized normal vector from the ray hit point
+	float	dist;		// distance from pov to object
+	RaySafe(void);
+	RaySafe(const Ray& ray);
+	~RaySafe(void);
+	RaySafe(const RaySafe& other);
+	RaySafe& operator=(const RaySafe& other);
+	RaySafe& operator=(const Ray& ray);
 };
 
-struct Combine {
+struct Ray : public RaySafe {
 	struct	Point;
 	struct	Segment;
 	typedef	std::list<Segment>			segments_t;
@@ -86,39 +77,54 @@ struct Combine {
 			}
 			return *this;
 		}
+		Segment& activate(A_Scenery* scenery) {
+			if (scenery) {
+				a.inside = false;
+				b.inside = a.d == b.d ? false : true;
+			}
+			a.s = scenery;
+			b.s = scenery;
+			return *this;
+		}
 	};
-	Ray&			ray;
+	int				recursion;
+	Segment			intersections;
+	ARGBColor		light;
+	ARGBColor		shine;
+	ARGBColor		color;
 	Hit				hit;
 	CombineType		t1, t2;
-	segments_t		segments1;
+	segments_t		segments;
 	segmForDel_t	del;
-	Segment			segment2;
-	Combine(Ray& ray, A_Scenery* scenery, Hit hit);
-	~Combine(void);
-	Combine(const Combine& other);
-	Combine& operator=(const Combine& other);
+	Ray(void);
+	~Ray(void);
+	Ray(const Ray& other);
+	Ray& operator=(const Ray& other);
+	Ray& operator=(const RaySafe& raySafe);
+	Ray& set_hit(Hit hit);
 	void emplace(const Segment& segment);
 	void emplace(const Point& a, const Point& b);
-	void next(A_Scenery* scenery);
+	void combineStart(A_Scenery* scenery, Hit targetHit);
+	void combineNext(A_Scenery* scenery, Hit targetHit);
 	void combination(CombineType type);
 	bool union_(Segment& segment1, Segment& segment2);
 	bool subtraction(Segment& segment1, Segment& segment2);
 	bool intersection(Segment& segment1, Segment& segment2);
 	inline void firstVisible(void) {}
 	inline void secondVisible(void) {
-		segments1.clear();
-		segments1.push_front(segment2);
+		segments.clear();
+		emplace(intersections);
 	}
 	inline void noVisible(void) {
-		segments1.clear();
+		segments.clear();
 	}
-	inline bool first(void) { return !segments1.empty(); }
-	inline bool second(void) { return segment2.a.s; }
-	inline A_Scenery* get(void) {
-		return  get(segment2.a.replace(_INFINITY, false, NULL));
+	inline bool first(void) { return !segments.empty(); }
+	inline bool second(void) { return intersections.a.s; }
+	inline A_Scenery* combineGet(void) {
+		return  combineGet(intersections.a.replace(_INFINITY, false, NULL));
 	}
-	inline A_Scenery* get(Point& nearest) {
-		for (auto segment = segments1.begin(), end = segments1.end(); segment != end; ++segment) {
+	inline A_Scenery* combineGet(Point& nearest) {
+		for (auto segment = segments.begin(), end = segments.end(); segment != end; ++segment) {
 			if (nearest.d > segment->a.d && segment->a.d >= 0) {
 				nearest = segment->a;
 			}
@@ -127,11 +133,18 @@ struct Combine {
 			}
 		}
 		if (nearest.s) {
-			ray.dist = nearest.d;
-			ray.hit = nearest.inside ? INSIDE : OUTSIDE;
+			dist = nearest.d;
+			hit = nearest.inside ? INSIDE : OUTSIDE;
 		}
 		return nearest.s;
 	}
+	Ray& changePov(void);
+	Ray& movePovByNormal(float distance);
+	Ray& partRestore(const Ray& other);//FIXME
+	Ray& collectLight(const ARGBColor& sceneryColor, float k = 1);
+	Ray& collectShine(int specular);
+	Ray& collectReflectiveLight(int _color, int _shine, float reflective);
+	Ray& collectRefractiveLight(const ARGBColor& sceneryColor, int _color, float refractive);
 };
 
 #endif /* RAY_HPP */

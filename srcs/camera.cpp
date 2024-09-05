@@ -457,10 +457,10 @@ void Camera::reflections(Ray& ray, const A_Scenery& scenery, int& r) {
 		int _color = ray.color.val, _shine = ray.shine.val;
 		ray.color = ray.shine = 0;
 		if (scenery.refractive > 0) {
-			Ray tmp(ray);
+			RaySafe raySafe(ray);
 			ray.dir.reflect(ray.norm);
 			traceRay(ray, ++r);
-			ray.partRestore(tmp);
+			ray = raySafe;
 		} else {
 			ray.dir.reflect(ray.norm);
 			traceRay(ray, ++r);
@@ -506,14 +506,14 @@ A_Scenery* Camera::closestScenery(Ray& ray, float distance, Hit hit) {
 				closestScenery = *scenery;
 			}
 		} else {
-			Combine	combine(ray, *scenery, hit);
+			ray.combineStart(*scenery, hit);
 			while ( scenery != end && (*scenery)->combineType != END ) {
 				++scenery;
 				if ( scenery != end ) {
-					combine.next(*scenery);
+					ray.combineNext(*scenery, hit);
 				}
 			}
-			A_Scenery* combineGet = combine.get();
+			A_Scenery* combineGet = ray.combineGet();
 			if ( combineGet && distance > ray.dist ) {
 				distance = ray.dist;
 				rayHit = ray.hit;
