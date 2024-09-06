@@ -425,7 +425,8 @@ void  Camera::traceRay(Ray& ray, int r) {
 	ray.recursion = r;
 	A_Scenery* scenery = closestScenery(ray, _INFINITY);
 	if (!scenery) { ray.color = space ; return; }
-	ray.changePov();
+	ray.movePovByDirToDist();
+	ray.fixDirFromCam_if();
 	scenery->calculateNormal(ray);
 	ray.movePovByNormal(EPSILON);
 	lightings(ray, *scenery);
@@ -440,7 +441,7 @@ void Camera::refracions(Ray& ray, const A_Scenery& scenery, int& r) {
 		if (ray.dir.refract(ray.norm, scenery.a_matIOR)) {
 			ray.movePovByNormal(-2 * EPSILON);
 			scenery.intersection(ray);
-			ray.changePov();
+			ray.movePovByDirToDist();
 			ray.hit = OUTSIDE;
 			scenery.calculateNormal(ray);
 			if (ray.dir.refract(ray.norm, scenery.a_matIOR)) {
@@ -478,12 +479,10 @@ void Camera::lightings(Ray& ray, const A_Scenery& scenery) {
 			A_Scenery* shadow = closestScenery(ray, ray.dist, FRONT_SHADOW);
 			if (shadow) {
 				if (shadow->refractive > 0) {
-					int r = recursionDepth;
-					Ray sh_ray;
-					sh_ray.partRestore(ray);
-					sh_ray.dir = ray.dirToLight;
-					refracions(sh_ray, *shadow, r);
-					ray.collectRefractiveLight(shadow->color, sh_ray.color.val, shadow->refractive);
+					int r = std::sqrt(recursionDepth);
+					Ray shadowRay(ray, ray.dirToLight);
+					refracions(shadowRay, *shadow, r);
+					ray.collectRefractiveLight(shadow->color, shadowRay.color.val, shadow->refractive);
 				}
 			}  else {
 				ray.collectLight(scenery.color, k);

@@ -18,13 +18,12 @@ struct	Combine;
 class	A_Scenery;
 
 struct RaySafe {
-	int		recursion;	// recursion counter
 	Vec3f	pov;		// POV (point of view)
 	Vec3f	dir;		// normalized ray direction vector
 	Vec3f	dirFromCam;	// normalized camera direction vector
-	Vec3f	dirToLight;	// normalized direction vector to light
+	Vec3f	dirToLight;	// normalized direction vector to light source
 	Vec3f	norm;		// normalized normal vector from the ray hit point
-	float	dist;		// distance from pov to object
+	float	dist;		// distance from pov to object hit point
 	RaySafe(void);
 	RaySafe(const Ray& ray);
 	~RaySafe(void);
@@ -53,7 +52,7 @@ struct Ray : public RaySafe {
 			}
 			return *this;
 		}
-		Point& replace(float _d, bool _inside, A_Scenery* _s) {
+		Point& set(float _d, bool _inside, A_Scenery* _s) {
 			d = _d;
 			inside = _inside;
 			s = _s;
@@ -89,28 +88,33 @@ struct Ray : public RaySafe {
 			return *this;
 		}
 	};
-	int				recursion;
-	Segment			intersections;
-	ARGBColor		light;
-	ARGBColor		shine;
-	ARGBColor		color;
-	Hit				hit;
-	CombineType		t1, t2;
-	segments_t		segments;
+	int				recursion;		// current recursion number
+	Segment			intersections;	// segment on ray - object entry and exit points
+	ARGBColor		light;			// variable for light sources
+	ARGBColor		shine;			// variable for shines
+	ARGBColor		color;			// variable for pixel color
+	Hit				hit;			// type of contact with an object
+	CombineType		t1, t2;			// type of object combination
+	segments_t		segments;		// container for segments handling
 	Ray(void);
 	~Ray(void);
 	Ray(const Ray& other);
+	Ray(const Ray& other, const Vec3f& dirToLight); // for transparent shadows
 	Ray& operator=(const Ray& other);
 	Ray& operator=(const RaySafe& raySafe);
 	Ray& set_hit(Hit hit);
-	void emplace(const Segment& segment);
-	void emplace(const Point& a, const Point& b);
 	void combineStart(A_Scenery* scenery, Hit targetHit);
 	void combineNext(A_Scenery* scenery, Hit targetHit);
 	void combination(CombineType type);
 	void union_(Segment& segment1, Segment& segment2);
 	void subtraction(Segment& segment1, Segment& segment2);
 	void intersection(Segment& segment1, Segment& segment2);
+	inline void emplace(const Segment& segment) {
+		emplace(segment.a, segment.b);
+	}
+	inline void emplace(const Point& a, const Point& b) {
+		segments.emplace_front(a.d, a.inside, a.s, b.d, b.inside, b.s, false);
+	}
 	inline void firstVisible(void) {}
 	inline void secondVisible(void) {
 		segments.clear();
@@ -127,7 +131,7 @@ struct Ray : public RaySafe {
 		return segment != end; }
 	inline bool second(void) { return intersections.a.s; }
 	inline A_Scenery* combineGet(void) {
-		return  combineGet(intersections.a.replace(_INFINITY, false, NULL));
+		return  combineGet(intersections.a.set(_INFINITY, false, NULL));
 	}
 	inline A_Scenery* combineGet(Point& nearest) {
 		for (auto segment = segments.begin(), end = segments.end(); segment != end; ++segment) {
@@ -147,13 +151,41 @@ struct Ray : public RaySafe {
 		}
 		return nearest.s;
 	}
-	Ray& changePov(void);
-	Ray& movePovByNormal(float distance);
-	Ray& partRestore(const Ray& other);//FIXME
-	Ray& collectLight(const ARGBColor& sceneryColor, float k = 1);
-	Ray& collectShine(int specular);
-	Ray& collectReflectiveLight(int _color, int _shine, float reflective);
-	Ray& collectRefractiveLight(const ARGBColor& sceneryColor, int _color, float refractive);
+	inline void movePovByDirToDist(void) {
+		pov.addition( pov, dir * dist );
+	}
+	inline void movePovByNormal(float distance) {
+		pov.addition(pov, norm * distance);
+	}
+	inline void fixDirFromCam_if(void) {
+		if (!recursion) {
+			dirFromCam = dir;
+		}
+	}
+	inline void collectLight(const ARGBColor& sceneryColor, float k = 1) {
+		color.addition(color, light * sceneryColor * k);
+	}
+	inline void collectShine(int specular) {
+		if (specular != -1) {
+			float k = dirToLight.reflect(norm) * dirFromCam;
+			if (k > 0) {
+				k = std::pow(k, specular);
+				shine.addition(shine, light * k);
+			}
+		}
+	}
+	inline void collectReflectiveLight(int _color, int _shine, float reflective) {
+		float previous = 1. - reflective;
+		light.val = _color;
+		color.addition(color.product(reflective), light.product(previous));
+		light.val = _shine;
+		shine.addition(shine.product(reflective), light.product(previous));
+	}
+	inline void collectRefractiveLight(const ARGBColor& sceneryColor, int _color, float refractive) {
+		float previous = 1. - refractive;
+		light.val = _color;
+		color.addition(color.product(color,sceneryColor).product(refractive), light.product(previous));
+	}
 };
 
 #endif /* RAY_HPP */

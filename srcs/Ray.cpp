@@ -80,6 +80,18 @@ Ray::~Ray(void) {}
 
 Ray::Ray(const Ray& other) { *this = other; }
 
+Ray::Ray(const Ray& other, const Vec3f& dirToLight) {
+	if (this != & other) {
+		pov = other.pov;
+		dir = other.dir;
+		dirFromCam = other.dirFromCam;
+		this->dirToLight = dirToLight;
+		norm = other.norm;
+		dist = other.dist;
+	}
+}
+
+
 Ray& Ray::operator=(const Ray& other) {
 	if (this != & other) {
 		recursion = other.recursion;
@@ -114,16 +126,6 @@ Ray& Ray::operator=(const RaySafe& raySafe) {
 Ray& Ray::set_hit(Hit hit) {
 	this->hit = hit;
 	return *this;
-}
-
-void Ray::emplace(const Segment& segment) {
-	segments.emplace_front(segment.a.d, segment.a.inside, segment.a.s,
-						   segment.b.d, segment.b.inside, segment.b.s,
-						   false);
-}
-
-void Ray::emplace(const Point& a, const Point& b) {
-	segments.emplace_front(a.d, a.inside, a.s, b.d, b.inside, b.s, false);
 }
 
 void Ray::combineStart(A_Scenery* scenery, Hit targetHit) {
@@ -237,64 +239,4 @@ void Ray::intersection(Segment& segment1, Segment& segment2) {
 	} else {
 		segment1.removed = true;
 	}
-}
-
-Ray& Ray::changePov(void) {
-	pov.addition( pov, dir * dist );
-	if (!recursion) {
-		dirFromCam = dir;
-	}
-	return *this;
-}
-
-Ray& Ray::partRestore(const Ray& other) {//FIXME
-//	recursion = other.recursion;
-	pov = other.pov;
-	dir = other.dir;
-	dirFromCam = other.dirFromCam;
-	dirToLight = other.dirToLight;
-	norm = other.norm;
-	dist = other.dist;
-//	light = other.light;
-//	shine = other.shine;
-//	color = other.color;
-//	hit = other.hit;
-	return *this;
-}
-
-Ray& Ray::movePovByNormal(float distance) {
-	pov.addition(pov, norm * distance);
-	return *this;
-}
-
-Ray& Ray::collectLight(const ARGBColor& sceneryColor, float k) {
-	color.addition(color, light * sceneryColor * k);
-	return *this;
-}
-
-Ray& Ray::collectShine(int specular) {
-	if (specular != -1) {
-		float k = dirToLight.reflect(norm) * dirFromCam;
-		if (k > 0) {
-			k = std::pow(k, specular);
-			shine.addition(shine, light * k);
-		}
-	}
-	return *this;
-}
-
-Ray& Ray::collectReflectiveLight(int _color, int _shine, float reflective) {
-	float previous = 1. - reflective;
-	light.val = _color;
-	color.addition(color.product(reflective), light.product(previous));
-	light.val = _shine;
-	shine.addition(shine.product(reflective), light.product(previous));
-	return *this;
-}
-
-Ray& Ray::collectRefractiveLight(const ARGBColor& sceneryColor, int _color, float refractive) {
-	float previous = 1. - refractive;
-	light.val = _color;
-	color.addition(color.product(color,sceneryColor).product(refractive), light.product(previous));
-	return *this;
 }
