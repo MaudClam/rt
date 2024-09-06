@@ -8,7 +8,7 @@
 #ifndef RAY_HPP
 #define RAY_HPP
 
-# include <list>
+# include <forward_list>
 # include "geometry.hpp"
 # include "ARGBColor.hpp"
 # include "A_Scenery.hpp"
@@ -36,9 +36,7 @@ struct RaySafe {
 struct Ray : public RaySafe {
 	struct	Point;
 	struct	Segment;
-	typedef	std::list<Segment>			segments_t;
-	typedef	segments_t::iterator		segments_it;
-	typedef	std::vector<segments_it>	segmForDel_t;
+	typedef	std::forward_list<Segment>	segments_t;
 	struct Point {
 		float		d;
 		bool		inside;
@@ -65,15 +63,18 @@ struct Ray : public RaySafe {
 	struct Segment {
 		Point a;
 		Point b;
+		bool  removed;
 		Segment(void) : a(), b() {}
-		Segment(const Point& a, const Point& b) : a(a), b(b) {}
-		Segment(float ad, bool ai, A_Scenery* as, float bd, bool bi, A_Scenery* bs) : a(ad,ai,as), b(bd,bi,bs) {}
-		Segment(const Segment& other) : a(other.a), b(other.b) {}
+		Segment(const Point& a, const Point& b) : a(a), b(b), removed(false) {}
+		Segment(float ad, bool ai, A_Scenery* as, float bd, bool bi, A_Scenery* bs, bool r) :
+		a(ad,ai,as), b(bd,bi,bs), removed(r) {}
+		Segment(const Segment& other) : a(other.a), b(other.b), removed(other.removed) {}
 		~Segment(void) {}
 		Segment& operator=(const Segment& other) {
 			if (this != &other) {
 				a = other.a;
 				b = other.b;
+				removed = other.removed;
 			}
 			return *this;
 		}
@@ -84,6 +85,7 @@ struct Ray : public RaySafe {
 			}
 			a.s = scenery;
 			b.s = scenery;
+			removed = false;
 			return *this;
 		}
 	};
@@ -95,7 +97,6 @@ struct Ray : public RaySafe {
 	Hit				hit;
 	CombineType		t1, t2;
 	segments_t		segments;
-	segmForDel_t	del;
 	Ray(void);
 	~Ray(void);
 	Ray(const Ray& other);
@@ -107,9 +108,9 @@ struct Ray : public RaySafe {
 	void combineStart(A_Scenery* scenery, Hit targetHit);
 	void combineNext(A_Scenery* scenery, Hit targetHit);
 	void combination(CombineType type);
-	bool union_(Segment& segment1, Segment& segment2);
-	bool subtraction(Segment& segment1, Segment& segment2);
-	bool intersection(Segment& segment1, Segment& segment2);
+	void union_(Segment& segment1, Segment& segment2);
+	void subtraction(Segment& segment1, Segment& segment2);
+	void intersection(Segment& segment1, Segment& segment2);
 	inline void firstVisible(void) {}
 	inline void secondVisible(void) {
 		segments.clear();
@@ -118,13 +119,21 @@ struct Ray : public RaySafe {
 	inline void noVisible(void) {
 		segments.clear();
 	}
-	inline bool first(void) { return !segments.empty(); }
+	inline bool first(void) {
+		auto segment = segments.begin(), end = segments.end();
+		while (segment != end && segment->removed) {
+			++segment;
+		}
+		return segment != end; }
 	inline bool second(void) { return intersections.a.s; }
 	inline A_Scenery* combineGet(void) {
 		return  combineGet(intersections.a.replace(_INFINITY, false, NULL));
 	}
 	inline A_Scenery* combineGet(Point& nearest) {
 		for (auto segment = segments.begin(), end = segments.end(); segment != end; ++segment) {
+			if (segment->removed) {
+				continue;
+			}
 			if (nearest.d > segment->a.d && segment->a.d >= 0) {
 				nearest = segment->a;
 			}

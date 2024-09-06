@@ -73,8 +73,7 @@ color(),
 hit(FRONT),
 t1(END),
 t2(END),
-segments(),
-del()
+segments()
 {}
 
 Ray::~Ray(void) {}
@@ -98,7 +97,6 @@ Ray& Ray::operator=(const Ray& other) {
 		t1 = other.t1;
 		t2 = other.t2;
 		segments = other.segments;
-		del = other.del;
 	}
 	return *this;
 }
@@ -120,11 +118,12 @@ Ray& Ray::set_hit(Hit hit) {
 
 void Ray::emplace(const Segment& segment) {
 	segments.emplace_front(segment.a.d, segment.a.inside, segment.a.s,
-						   segment.b.d, segment.b.inside, segment.b.s );
+						   segment.b.d, segment.b.inside, segment.b.s,
+						   false);
 }
 
 void Ray::emplace(const Point& a, const Point& b) {
-	segments.emplace_front(a.d, a.inside, a.s, b.d, b.inside, b.s );
+	segments.emplace_front(a.d, a.inside, a.s, b.d, b.inside, b.s, false);
 }
 
 void Ray::combineStart(A_Scenery* scenery, Hit targetHit) {
@@ -175,47 +174,41 @@ void Ray::combineNext(A_Scenery* scenery, Hit targetHit) {
 
 void Ray::combination(CombineType type) {
 	for (auto segment = segments.begin(), end = segments.end(); segment != end; ++segment) {
-		bool _del = false;
-		if (type == UNION) {
-			_del = union_(*segment, intersections);
-		} else if (type == SUBTRACTION) {
-			_del = subtraction(*segment, intersections);
-		} else if (type == INTERSECTION) {
-			_del = intersection(*segment, intersections);
+		if (segment->removed) {
+			continue;
 		}
-		if (_del) {
-			del.push_back(segment);
+		if (type == UNION) {
+			union_(*segment, intersections);
+		} else if (type == SUBTRACTION) {
+			subtraction(*segment, intersections);
+		} else if (type == INTERSECTION) {
+			intersection(*segment, intersections);
 		}
 	}
 	if (type == UNION) {
 		emplace(intersections);
 	}
-	for (auto it = del.begin(), end = del.end(); it != end; ++it) {
-		segments.erase(*it);
-	}
-	del.clear();
 }
 
-bool Ray::union_(Segment& segment1, Segment& segment2) {
+void Ray::union_(Segment& segment1, Segment& segment2) {
 	if (ab1_intersect_ab2(segment1.a.d, segment1.b.d, segment2.a.d, segment2.b.d)) {
 		segment2.a = segment1.a;
-		return true;
+		segment1.removed = true;
 	} else if (ab2_intersect_ab1(segment1.a.d, segment1.b.d, segment2.a.d, segment2.b.d)) {
 		segment2.b = segment1.b;
-		return true;
+		segment1.removed = true;
 	} else if (ab1_inside_ab2(segment1.a.d, segment1.b.d, segment2.a.d, segment2.b.d)) {
-		return true;
+		segment1.removed = true;
 	} else if (ab2_inside_ab1(segment1.a.d, segment1.b.d, segment2.a.d, segment2.b.d)) {
 		segment2.a = segment1.a;
 		segment2.b = segment1.b;
-		return true;
+		segment1.removed = true;
 	} else if (equal(segment1.a.d, segment1.b.d, segment2.a.d, segment2.b.d)) {
-		return true;
+		segment1.removed = true;
 	}
-	return false;
 }
 
-bool Ray::subtraction(Segment& segment1, Segment& segment2) {
+void Ray::subtraction(Segment& segment1, Segment& segment2) {
 	if (ab1_intersect_ab2(segment1.a.d, segment1.b.d, segment2.a.d, segment2.b.d)) {
 		segment1.b = segment2.a;
 	} else if (ab2_intersect_ab1(segment1.a.d, segment1.b.d, segment2.a.d, segment2.b.d)) {
@@ -227,29 +220,24 @@ bool Ray::subtraction(Segment& segment1, Segment& segment2) {
 		if (segment1.b.d != segment2.b.d) {
 			emplace(segment2.b, segment1.b);
 		}
-		return true;
+		segment1.removed = true;
 	} else if (ab1_inside_ab2(segment1.a.d, segment1.b.d, segment2.a.d, segment2.b.d)) {
-		return true;
+		segment1.removed = true;
 	}
-	return false;
 }
 
-bool Ray::intersection(Segment& segment1, Segment& segment2) {
+void Ray::intersection(Segment& segment1, Segment& segment2) {
 	if (ab1_intersect_ab2(segment1.a.d, segment1.b.d, segment2.a.d, segment2.b.d)) {
 		segment1.a = segment2.a;
-		return false;
 	} else if (ab2_intersect_ab1(segment1.a.d, segment1.b.d, segment2.a.d, segment2.b.d)) {
 		segment1.b = segment2.b;
-		return false;
 	} else if (ab1_inside_ab2(segment1.a.d, segment1.b.d, segment2.a.d, segment2.b.d)) {
-		return false;
 	} else if (ab2_inside_ab1(segment1.a.d, segment1.b.d, segment2.a.d, segment2.b.d)) {
 		segment1 = segment2;
-		return false;
+	} else {
+		segment1.removed = true;
 	}
-	return true;
 }
-
 
 Ray& Ray::changePov(void) {
 	pov.addition( pov, dir * dist );
