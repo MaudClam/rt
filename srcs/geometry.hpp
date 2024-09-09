@@ -16,7 +16,7 @@
 
 # define PRECISION		1e-9
 # define EPSILON 		1e-3
-# define _INFINITY		1000
+# define _INFINITY		100
 
 enum 	Hit { FRONT, BACK, OUTLINE, FRONT_SHADOW, INSIDE, OUTSIDE };
 enum	CombineType { END=0, UNION, SUBTRACTION, INTERSECTION, XOR };
@@ -120,14 +120,13 @@ template <class t> struct Vec3 {
 		substract(norm * (*this * norm * 2), *this).normalize();
 		return *this;
 	}
-	inline bool refract(Vec3<t> normal, float a_matIOR) {
+	inline bool refract(Vec3<t>& normal, float a_matIOR) {
 		float eta = 1. / a_matIOR; // eta = in_IOR/out_IOR
 		float cos_theta = -1 * (normal * *this);
 		if(cos_theta < 0.) {
 			cos_theta *= -1 ;
 			normal.product(-1);
 			eta = 1. / eta;
-			eta = round_(eta);
 		  }
 		float k = 1. - eta * eta * (1. - cos_theta * cos_theta);
 		if(k > 0) {

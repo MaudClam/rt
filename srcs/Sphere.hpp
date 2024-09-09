@@ -25,7 +25,7 @@ public:
 	void lookat(const Position& eye, const LookatAux& aux, const Vec3f& pov, float roll);
 	void roll(const Vec3f& pov, float shiftRoll);
 	bool intersection(Ray& ray) const;
-	void calculateNormal(Ray& ray) const;
+	void giveNormal(Ray& ray) const;
 	float lighting(Ray& ray) const;
 	virtual void output(std::ostringstream& os);
 	friend std::ostream& operator<<(std::ostream& o, Sphere& sp);

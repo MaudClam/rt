@@ -52,7 +52,7 @@ bool Light::intersection(Ray& ray) const {
 	return false;
 }
 
-void Light::calculateNormal(Ray& ray) const {
+void Light::giveNormal(Ray& ray) const {
 	(void)ray;
 }
 

@@ -105,9 +105,10 @@ public:
 	void	rayTracing_lll(unsigned long begin, unsigned long end);
 	static void	rayTracing(Camera* camera, unsigned long begin, unsigned long end);
 	void	traceRay(Ray& ray, int r = 0);
-	void	refracions(Ray& ray, const A_Scenery& scenery, int& r);
-	void	reflections(Ray& ray, const A_Scenery& scenery, int& r);
-	void	lightings(Ray& ray, const A_Scenery& scenery);
+	void	reflections(Ray& ray, const A_Scenery& scenery, int r);
+	void	refractions(Ray& ray, const A_Scenery& scenery, int r);
+	bool	transparentShadow(Ray& ray, const A_Scenery& shadow, const A_Scenery& scenery, float k, int r);
+	void	lightings(Ray& ray, const A_Scenery& scenery, int r);
 	A_Scenery* closestScenery(Ray& ray, float distance, Hit hit = FRONT);
 	void	calculateFlybyRadius(void);
 

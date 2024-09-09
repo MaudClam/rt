@@ -62,6 +62,35 @@ RaySafe& RaySafe::operator=(const Ray& ray) {
 }
 
 
+// sruct ColorsSafe
+
+ColorsSafe::ColorsSafe(void) : light(0), shine(0), color(0){}
+
+ColorsSafe::ColorsSafe(Ray& ray) :
+light(ray.light.val),
+shine(ray.shine.val),
+color(ray.color.val) {
+	ray.light = ray.shine = ray.color = 0;
+}
+
+ColorsSafe::~ColorsSafe(void) {}
+
+ColorsSafe::ColorsSafe(const ColorsSafe& other) :
+light(other.light),
+shine(other.shine),
+color(other.color)
+{}
+
+ColorsSafe& ColorsSafe::operator=(const ColorsSafe& other) {
+	if (this != &other) {
+		light = other.light;
+		shine = other.shine;
+		color = other.color;
+	}
+	return *this;
+}
+
+
 // struct Ray
 
 Ray::Ray(void) :
@@ -79,18 +108,6 @@ segments()
 Ray::~Ray(void) {}
 
 Ray::Ray(const Ray& other) { *this = other; }
-
-Ray::Ray(const Ray& other, const Vec3f& dirToLight) {
-	if (this != & other) {
-		pov = other.pov;
-		dir = other.dir;
-		dirFromCam = other.dirFromCam;
-		this->dirToLight = dirToLight;
-		norm = other.norm;
-		dist = other.dist;
-	}
-}
-
 
 Ray& Ray::operator=(const Ray& other) {
 	if (this != & other) {
@@ -120,6 +137,11 @@ Ray& Ray::operator=(const RaySafe& raySafe) {
 	dirToLight = raySafe.dirToLight;
 	norm = raySafe.norm;
 	dist = raySafe.dist;
+	return *this;
+}
+
+Ray& Ray::restore(const RaySafe& raySafe) {
+	*this = raySafe;
 	return *this;
 }
 
@@ -240,3 +262,4 @@ void Ray::intersection(Segment& segment1, Segment& segment2) {
 		segment1.removed = true;
 	}
 }
+

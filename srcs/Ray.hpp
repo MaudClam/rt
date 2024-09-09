@@ -13,9 +13,10 @@
 # include "ARGBColor.hpp"
 # include "A_Scenery.hpp"
 
-struct	Ray;
-struct	Combine;
 class	A_Scenery;
+struct	RaySafe;
+struct	ColorsSafe;
+struct	Ray;
 
 struct RaySafe {
 	Vec3f	pov;		// POV (point of view)
@@ -30,6 +31,17 @@ struct RaySafe {
 	RaySafe(const RaySafe& other);
 	RaySafe& operator=(const RaySafe& other);
 	RaySafe& operator=(const Ray& ray);
+};
+
+struct ColorsSafe {
+	float	light;
+	float	shine;
+	float	color;
+	ColorsSafe(void);
+	ColorsSafe(Ray& ray);
+	~ColorsSafe(void);
+	ColorsSafe(const ColorsSafe& other);
+	ColorsSafe& operator=(const ColorsSafe& other);
 };
 
 struct Ray : public RaySafe {
@@ -99,9 +111,9 @@ struct Ray : public RaySafe {
 	Ray(void);
 	~Ray(void);
 	Ray(const Ray& other);
-	Ray(const Ray& other, const Vec3f& dirToLight); // for transparent shadows
 	Ray& operator=(const Ray& other);
 	Ray& operator=(const RaySafe& raySafe);
+	Ray& restore(const RaySafe& raySafe);
 	Ray& set_hit(Hit hit);
 	void combineStart(A_Scenery* scenery, Hit targetHit);
 	void combineNext(A_Scenery* scenery, Hit targetHit);
@@ -186,6 +198,14 @@ struct Ray : public RaySafe {
 		light.val = _color;
 		color.addition(color.product(color,sceneryColor).product(refractive), light.product(previous));
 	}
+	inline void collectShadowLight(const ColorsSafe& colorsSafe, const ARGBColor& sceneryColor, float k) {
+		light = color;
+		color.val = colorsSafe.color;
+		collectLight(sceneryColor, k);
+		shine.val = colorsSafe.shine;
+		light.val = colorsSafe.light;
+	}
 };
+
 
 #endif /* RAY_HPP */
