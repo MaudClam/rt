@@ -90,26 +90,29 @@ int  Scene::parsing(int ac, char** av) {
 
 // ============
 
-	set_any( std::istringstream("c     0,0,-12         0,0,1      60 ") );
-//	set_any( std::istringstream("c     5,0,3         -1,0,0      60 ") );
+//	set_any( std::istringstream("c     0,0,-12         0,0,1      60 ") );
+	set_any( std::istringstream("c     -40,0,0         1,0,0      60 ") );
 //	set_any( std::istringstream("c     0,0,8         0,0,-1      60 ") );
 //	set_any( std::istringstream("c     -5,0,3        1,0,0      60 ") );
 	set_any( std::istringstream("c     0,4,0         0,-1,0      60 ") );
 	set_any( std::istringstream("A 0.2	255,255,250") );
 	set_any( std::istringstream("ls    -4,4,8  0.4 " + img.white.rrggbb()) );
-	set_any( std::istringstream("ls     -4,4,-8    0.4 " + img.white.rrggbb()) );
+	set_any( std::istringstream("ls     4,4,-8    0.4 " + img.white.rrggbb()) );
 	set_any( std::istringstream("sp    0,-1,0	2   " + img.red.rrggbb()   + " 500  0.2") );
 	set_any( std::istringstream("sp    2,0,0	2   " + img.green.rrggbb()  + " 100 0.3") );
 	set_any( std::istringstream("sp 0,-5001,0 10000 " + img.yellow.rrggbb()+ " 1000 0.5") );
-
-	set_any( std::istringstream("sp    -4,1.5,-4	1   " + img.cyan.rrggbb()   + " 10 ") );
+//
+	set_any( std::istringstream("sp    -2,2.5,-4	1   " + img.magenta.rrggbb()   + " -1") );
+	set_any( std::istringstream("sp    -25,0.5,0	9   255,255,0 500   0 0.9 1.33 ") );
+	set_any( std::istringstream("INTERSECTION"));
+	set_any( std::istringstream("sp    -33.5,0.5,0	9   255,255,0 500   0 0.9 1.33 ") );
+//	set_any( std::istringstream("END"));
+//	set_any( std::istringstream("sp    -33.25,0.5,0	3   255,0,0 500   0 0 1.33 ") );
+	
+	set_any( std::istringstream("sp    -1,1.5,-4	1   " + img.cyan.rrggbb()   + " 10 ") );
 	set_any( std::istringstream("sp    -2,0.1,0	2   255,255,255 500   0 0.99 1.33") );
-	
-//	set_any( std::istringstream("sp    -6,2.5,-4	1   " + img.magenta.rrggbb()   + " -1") );
-//	set_any( std::istringstream("sp    -5,0.5,-4.5	9   255,255,255 500   0 0.8 1.33") );
-//	set_any( std::istringstream("INTERSECTION"));
-//	set_any( std::istringstream("sp    -5,0.5,4	    9   255,255,255 500   0 0.8 1.33") );
-	
+
+
 //	set_any( std::istringstream("c     0,1,-25         0,0,1      90 ") );
 ////	set_any( std::istringstream("c     5,0,3         -1,0,0      60 ") );
 ////	set_any( std::istringstream("c     0,0,8         0,0,-1      60 ") );

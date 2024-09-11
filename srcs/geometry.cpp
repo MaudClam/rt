@@ -79,37 +79,6 @@ float degree(float radian) {
 }
 
 
-// Operations with segments
-
-bool c_inside_ab(float c, float a, float b) {
-	return a <= c && c <= b;
-}
-
-bool ab1_inside_ab2(float a1, float b1, float a2, float b2) {
-	return c_inside_ab(a1, a2, b2) && c_inside_ab(b1, a2, b2);
-}
-
-bool ab2_inside_ab1(float a1, float b1, float a2, float b2) {
-	return c_inside_ab(a2, a1, b1) && c_inside_ab(b2, a1, b1);
-}
-
-bool equal(float a1, float b1, float a2, float b2) {
-	return a1 == a2 && b1 == b2;
-}
-
-bool outside(float a1, float b1, float a2, float b2) {
-	return b1 < a2 || b2 < a1;
-}
-
-bool ab1_intersect_ab2(float a1, float b1, float a2, float b2) {
-	return a1 < a2 && a2 < b1 && b1 < b2;
-}
-
-bool ab2_intersect_ab1(float a1, float b1, float a2, float b2) {
-	return a2 < a1 && a1 < b2 && b2 < b1;
-}
-
-
 // Intersections, normals, rays
 
 bool raySphereIntersection(const Vec3f& rayDir,

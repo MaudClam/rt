@@ -140,8 +140,20 @@ Ray& Ray::operator=(const RaySafe& raySafe) {
 	return *this;
 }
 
+Ray& Ray::operator=(const ColorsSafe& colorsSafe) {
+	light.val = colorsSafe.light;
+	shine.val = colorsSafe.shine;
+	color.val = colorsSafe.color;
+	return *this;
+}
+
 Ray& Ray::restore(const RaySafe& raySafe) {
 	*this = raySafe;
+	return *this;
+}
+
+Ray& Ray::restore(const ColorsSafe& colorsSafe) {
+	*this = colorsSafe;
 	return *this;
 }
 
@@ -215,51 +227,42 @@ void Ray::combination(CombineType type) {
 }
 
 void Ray::union_(Segment& segment1, Segment& segment2) {
-	if (ab1_intersect_ab2(segment1.a.d, segment1.b.d, segment2.a.d, segment2.b.d)) {
-		segment2.a = segment1.a;
-		segment1.removed = true;
-	} else if (ab2_intersect_ab1(segment1.a.d, segment1.b.d, segment2.a.d, segment2.b.d)) {
-		segment2.b = segment1.b;
-		segment1.removed = true;
-	} else if (ab1_inside_ab2(segment1.a.d, segment1.b.d, segment2.a.d, segment2.b.d)) {
-		segment1.removed = true;
-	} else if (ab2_inside_ab1(segment1.a.d, segment1.b.d, segment2.a.d, segment2.b.d)) {
-		segment2.a = segment1.a;
-		segment2.b = segment1.b;
-		segment1.removed = true;
-	} else if (equal(segment1.a.d, segment1.b.d, segment2.a.d, segment2.b.d)) {
-		segment1.removed = true;
+	if (segment1.a.d > segment2.b.d || segment2.a.d > segment1.b.d) {
+		return;
 	}
+	if (segment2.a.d > segment1.a.d) {
+		segment2.a = segment1.a;
+	}		
+	if (segment2.b.d < segment1.b.d) {
+		segment2.b = segment1.b;
+	}
+	segment1.removed = true;
 }
 
 void Ray::subtraction(Segment& segment1, Segment& segment2) {
-	if (ab1_intersect_ab2(segment1.a.d, segment1.b.d, segment2.a.d, segment2.b.d)) {
-		segment1.b = segment2.a;
-	} else if (ab2_intersect_ab1(segment1.a.d, segment1.b.d, segment2.a.d, segment2.b.d)) {
+	if (segment1.a.d > segment2.b.d || segment2.a.d > segment1.b.d) {
+		return;
+	}
+	if (segment1.a.d < segment2.a.d) {
+		emplace(segment1.a, segment2.a);
+	}
+	if (segment1.b.d > segment2.b.d) {
 		segment1.a = segment2.b;
-	} else if (ab2_inside_ab1(segment1.a.d, segment1.b.d, segment2.a.d, segment2.b.d)) {
-		if (segment1.a.d != segment2.a.d) {
-			emplace(segment1.a, segment2.a);
-		}
-		if (segment1.b.d != segment2.b.d) {
-			emplace(segment2.b, segment1.b);
-		}
-		segment1.removed = true;
-	} else if (ab1_inside_ab2(segment1.a.d, segment1.b.d, segment2.a.d, segment2.b.d)) {
+	} else {
 		segment1.removed = true;
 	}
 }
 
 void Ray::intersection(Segment& segment1, Segment& segment2) {
-	if (ab1_intersect_ab2(segment1.a.d, segment1.b.d, segment2.a.d, segment2.b.d)) {
-		segment1.a = segment2.a;
-	} else if (ab2_intersect_ab1(segment1.a.d, segment1.b.d, segment2.a.d, segment2.b.d)) {
-		segment1.b = segment2.b;
-	} else if (ab1_inside_ab2(segment1.a.d, segment1.b.d, segment2.a.d, segment2.b.d)) {
-	} else if (ab2_inside_ab1(segment1.a.d, segment1.b.d, segment2.a.d, segment2.b.d)) {
-		segment1 = segment2;
-	} else {
+	if (segment1.a.d > segment2.b.d || segment2.a.d > segment1.b.d) {
 		segment1.removed = true;
+		return;
+	}
+	if (segment1.a.d < segment2.a.d) {
+		segment1.a = segment2.a;
+	}
+	if (segment1.b.d > segment2.b.d) {
+		segment1.b = segment2.b;
 	}
 }
 

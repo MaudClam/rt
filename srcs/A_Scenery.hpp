@@ -30,7 +30,8 @@ public:
 	int				specular;	// in range [-1,1000]
 	float			reflective;	// in range [0,1]
 	float			refractive; // in range [0,1]
-	float			a_matIOR;	// refractive index relative to air
+	float			matIOR;		// refractive in/out index relative to air
+	float			matOIR;		// refractive out/in index relative to air
 	A_Scenery(void);
 	virtual ~A_Scenery(void);
 	A_Scenery(const A_Scenery& other);

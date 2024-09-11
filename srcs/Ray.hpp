@@ -70,6 +70,11 @@ struct Ray : public RaySafe {
 			s = _s;
 			return *this;
 		}
+		inline void swap(Point& other) {
+			std::swap(d, other.d);
+			std::swap(inside, other.inside);
+			std::swap(s, other.s);
+		}
 	};
 	struct Segment {
 		Point a;
@@ -89,7 +94,7 @@ struct Ray : public RaySafe {
 			}
 			return *this;
 		}
-		Segment& activate(A_Scenery* scenery) {
+		inline void activate(A_Scenery* scenery) {
 			if (scenery) {
 				a.inside = false;
 				b.inside = a.d == b.d ? false : true;
@@ -97,7 +102,11 @@ struct Ray : public RaySafe {
 			a.s = scenery;
 			b.s = scenery;
 			removed = false;
-			return *this;
+		}
+		inline void swap(Segment& other) {
+			a.swap(other.a);
+			b.swap(other.b);
+			std::swap(removed, other.removed);
 		}
 	};
 	int				recursion;		// current recursion number
@@ -113,7 +122,9 @@ struct Ray : public RaySafe {
 	Ray(const Ray& other);
 	Ray& operator=(const Ray& other);
 	Ray& operator=(const RaySafe& raySafe);
+	Ray& operator=(const ColorsSafe& colorsSafe);
 	Ray& restore(const RaySafe& raySafe);
+	Ray& restore(const ColorsSafe& colorsSafe);
 	Ray& set_hit(Hit hit);
 	void combineStart(A_Scenery* scenery, Hit targetHit);
 	void combineNext(A_Scenery* scenery, Hit targetHit);

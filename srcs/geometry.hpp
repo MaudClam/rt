@@ -120,8 +120,8 @@ template <class t> struct Vec3 {
 		substract(norm * (*this * norm * 2), *this).normalize();
 		return *this;
 	}
-	inline bool refract(Vec3<t>& normal, float a_matIOR) {
-		float eta = 1. / a_matIOR; // eta = in_IOR/out_IOR
+	inline bool refract(Vec3<t> normal, float eta) {
+//		float eta = 1. / matIOR; // eta = in_IOR/out_IOR
 		float cos_theta = -1 * (normal * *this);
 		if(cos_theta < 0.) {
 			cos_theta *= -1 ;
@@ -246,16 +246,6 @@ struct Position {
 	Position& lookat(const Position& eye, const LookatAux& aux, float roll = 0);
 	Position& roll(float roll);
 };
-
-// Operations with segments
-
-bool c_inside_ab(float c, float a, float b);
-bool ab1_inside_ab2(float a1, float b1, float a2, float b2);
-bool ab2_inside_ab1(float a1, float b1, float a2, float b2);
-bool equal(float a1, float b1, float a2, float b2);
-bool outside(float a1, float b1, float a2, float b2);
-bool ab1_intersect_ab2(float a1, float b1, float a2, float b2);
-bool ab2_intersect_ab1(float a1, float b1, float a2, float b2);
 
 
 // Intersections, normals, rays

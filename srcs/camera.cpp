@@ -438,6 +438,9 @@ void  Camera::traceRay(Ray& ray, int r) {
 
 void Camera::reflections(Ray& ray, const A_Scenery& scenery, int r) {
 	if (scenery.reflective) {
+		if (scenery.refractive && ray.hit == INSIDE) {
+			return;
+		}
 		int _color = ray.color.val, _shine = ray.shine.val;
 		ray.color = ray.shine = 0;
 		if (scenery.refractive) {
@@ -455,12 +458,14 @@ void Camera::reflections(Ray& ray, const A_Scenery& scenery, int r) {
 		
 void Camera::refractions(Ray& ray, const A_Scenery& scenery, int r) {
 	if (scenery.refractive) {
-		if (ray.dir.refract(ray.norm, scenery.a_matIOR)) {
-			int _color = ray.color.val;
+		int _color = ray.color.val;
+		if (ray.dir.refract(ray.norm, ray.hit == INSIDE ? scenery.matIOR : scenery.matOIR)) {
 			ray.color = 0;
 			ray.movePovByNormal(-2 * EPSILON);
 			traceRay(ray, ++r);
 			ray.collectRefractiveLight(scenery.color, _color, scenery.refractive);
+		} else {
+			ray.collectLight(scenery.color);
 		}
 	}
 }
@@ -487,7 +492,7 @@ bool Camera::transparentShadow(Ray& ray, const A_Scenery& shadow, const A_Scener
 		RaySafe	raySafe(ray);
 		ray.dir = ray.dirToLight;
 		shadow.giveNormal(ray);
-		if (ray.dir.refract(ray.norm, shadow.a_matIOR)) {
+		if (ray.dir.refract(ray.norm, ray.hit == INSIDE ? shadow.matIOR : shadow.matOIR)) {
 			ColorsSafe	colorsSafe(ray);
 			ray.movePovByNormal(EPSILON);
 			traceRay(ray, ++r);
@@ -514,11 +519,13 @@ A_Scenery* Camera::closestScenery(Ray& ray, float distance, Hit hit) {
 			}
 		} else {
 			ray.combineStart(*scenery, hit);
-			while ( scenery != end && (*scenery)->combineType != END ) {
-				++scenery;
-				if ( scenery != end ) {
-					ray.combineNext(*scenery, hit);
+			++scenery;
+			while (scenery != end) {
+				ray.combineNext(*scenery, hit);
+				if ( (*scenery)->combineType == END ) {
+					break;
 				}
+				++scenery;
 			}
 			A_Scenery* combineGet = ray.combineGet();
 			if ( combineGet && distance > ray.dist ) {

@@ -24,6 +24,8 @@ Light::Light(const Light& other) : _type(other._type), light(other.light) {
 	color = other.color;
 	specular = other.specular;
 	reflective = other.reflective;
+	matIOR = other.matIOR;
+	matOIR = other.matOIR;
 }
 
 Light* Light::clone(void) const {

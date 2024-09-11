@@ -20,7 +20,8 @@ color(),
 specular(-1),
 reflective(0),
 refractive(0),
-a_matIOR(1)
+matIOR(1),
+matOIR(1)
 {}
 
 A_Scenery::~A_Scenery(void) {}
@@ -35,7 +36,8 @@ color(other.color),
 specular(other.specular),
 reflective(other.reflective),
 refractive(other.refractive),
-a_matIOR(other.a_matIOR)
+matIOR(other.matIOR),
+matOIR(other.matOIR)
 {}
 
 std::string A_Scenery::get_nick(void) const { return _nick; }
