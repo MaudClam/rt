@@ -1,0 +1,54 @@
+//
+//  linuxKeys.hpp
+//  rt
+//
+//  Created by anna on 30/08/2024.
+//
+
+#ifndef KEYS_H
+#define KEYS_H
+
+enum {
+	ON_KEYDOWN			= 2,
+	ON_KEYUP			= 3,
+	ON_MOUSEDOWN		= 4,
+	ON_MOUSEUP			= 5,
+	ON_MOUSEMOVE		= 6,
+	ON_EXPOSE			= 12,
+	ON_DESTROY			= 17,
+	BUTTON_CLOSE_WINDOW	= 0,
+	KEY_LEFT_CMD		= 65515,
+	KEY_RIGHT_CMD		= 65516,
+	KEY_LEFT_CTRL		= 65507,
+	KEY_RIGHT_CTRL		= 269, // find
+	KEY_LEFT_SHIFT		= 65505,
+	KEY_RIGHT_SHIFT		= 65506,
+	KEY_LEFT_ALT		= 65513,
+	KEY_RIGHT_ALT		= 65514,
+	KEY_ESCAPE			= 65307,
+	KEY_SPACE			= 32,
+	KEY_ARROW_UP		= 65362,
+	KEY_ARROW_DOWN		= 65364,
+	KEY_ARROW_RIGHT		= 65363,
+	KEY_ARROW_LEFT		= 65361,
+	KEY_1				= 49,
+	KEY_2				= 50,
+	KEY_3				= 51,
+	KEY_4				= 52,
+	KEY_5				= 53,
+	KEY_6				= 54,
+	KEY_7				= 55,
+	KEY_8				= 56,
+	KEY_9				= 57,
+	KEY_0				= 48,
+	KEY_MINUS			= 45,
+	KEY_PLUS			= 61,
+	KEY_F				= 102,
+	MOUSE_LEFT_CLICK	= 1,
+	MOUSE_RIGHT_CLICK	= 3,
+	MOUSE_MIDDLE_CLICK	= 2, // maybe won't work
+	MOUSE_SCROLL_UP		= 5,
+	MOUSE_SCROLL_DOWN	= 4
+};
+
+#endif /* KEYS_H */

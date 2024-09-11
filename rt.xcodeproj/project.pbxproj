@@ -7,19 +7,19 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		665241D22C5BA6E700BD3A64 /* Ray.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 665241D02C5BA6E700BD3A64 /* Ray.cpp */; settings = {COMPILER_FLAGS = "-Wall -Wextra -Werror"; }; };
-		6659C4E32C399E8A00CC7FAB /* MlxImage.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 6659C4E12C399E8A00CC7FAB /* MlxImage.cpp */; settings = {COMPILER_FLAGS = "-Wall -Wextra -Werror"; }; };
+		665241D22C5BA6E700BD3A64 /* Ray.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 665241D02C5BA6E700BD3A64 /* Ray.cpp */; settings = {COMPILER_FLAGS = "-Wall -Wextra -Werror -O2"; }; };
+		6659C4E32C399E8A00CC7FAB /* MlxImage.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 6659C4E12C399E8A00CC7FAB /* MlxImage.cpp */; settings = {COMPILER_FLAGS = "-Wall -Wextra -Werror -O2"; }; };
 		6659C4E62C39A8B200CC7FAB /* OpenGL.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 6659C4E52C39A8B200CC7FAB /* OpenGL.framework */; };
 		6659C4E82C39A8CD00CC7FAB /* AppKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 6659C4E72C39A8CD00CC7FAB /* AppKit.framework */; };
-		6661C21B2C38071100D58CDC /* main.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 6661C21A2C38071100D58CDC /* main.cpp */; settings = {COMPILER_FLAGS = "-Wall -Wextra -Werror"; }; };
-		667951722C41AD05009C1DDD /* Scene.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 667951702C41AD05009C1DDD /* Scene.cpp */; settings = {COMPILER_FLAGS = "-Wall -Wextra -Werror"; }; };
-		667951792C427BFD009C1DDD /* camera.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 667951772C427BFD009C1DDD /* camera.cpp */; settings = {COMPILER_FLAGS = "-Wall -Wextra -Werror"; }; };
-		6679517D2C46DF55009C1DDD /* geometry.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 6679517C2C46DF55009C1DDD /* geometry.cpp */; settings = {COMPILER_FLAGS = "-Wall -Wextra -Werror"; }; };
-		6679518B2C5216B7009C1DDD /* Light.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 667951892C5216B7009C1DDD /* Light.cpp */; settings = {COMPILER_FLAGS = "-Wall -Wextra -Werror"; }; };
-		667951922C5293BB009C1DDD /* ARGBColor.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 667951912C5293BB009C1DDD /* ARGBColor.cpp */; settings = {COMPILER_FLAGS = "-Wall -Wextra -Werror"; }; };
+		6661C21B2C38071100D58CDC /* main.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 6661C21A2C38071100D58CDC /* main.cpp */; settings = {COMPILER_FLAGS = "-Wall -Wextra -Werror -O2"; }; };
+		667951722C41AD05009C1DDD /* Scene.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 667951702C41AD05009C1DDD /* Scene.cpp */; settings = {COMPILER_FLAGS = "-Wall -Wextra -Werror -O2"; }; };
+		667951792C427BFD009C1DDD /* camera.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 667951772C427BFD009C1DDD /* camera.cpp */; settings = {COMPILER_FLAGS = "-Wall -Wextra -Werror -O2"; }; };
+		6679517D2C46DF55009C1DDD /* geometry.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 6679517C2C46DF55009C1DDD /* geometry.cpp */; settings = {COMPILER_FLAGS = "-Wall -Wextra -Werror -O2"; }; };
+		6679518B2C5216B7009C1DDD /* Light.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 667951892C5216B7009C1DDD /* Light.cpp */; settings = {COMPILER_FLAGS = "-Wall -Wextra -Werror -O2"; }; };
+		667951922C5293BB009C1DDD /* ARGBColor.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 667951912C5293BB009C1DDD /* ARGBColor.cpp */; settings = {COMPILER_FLAGS = "-Wall -Wextra -Werror -O2"; }; };
 		66D1668D2C3B4243002E6F7E /* libmlx.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 66D1668C2C3B4243002E6F7E /* libmlx.a */; };
-		66D166C62C3C172F002E6F7E /* Sphere.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 66D166C42C3C172F002E6F7E /* Sphere.cpp */; settings = {COMPILER_FLAGS = "-Wall -Wextra -Werror"; }; };
-		66D166CA2C3D9281002E6F7E /* A_Scenery.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 66D166C82C3D9281002E6F7E /* A_Scenery.cpp */; settings = {COMPILER_FLAGS = "-Wall -Wextra -Werror"; }; };
+		66D166C62C3C172F002E6F7E /* Sphere.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 66D166C42C3C172F002E6F7E /* Sphere.cpp */; settings = {COMPILER_FLAGS = "-Wall -Wextra -Werror -O2"; }; };
+		66D166CA2C3D9281002E6F7E /* A_Scenery.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 66D166C82C3D9281002E6F7E /* A_Scenery.cpp */; settings = {COMPILER_FLAGS = "-Wall -Wextra -Werror -O2"; }; };
 		66E2EDFD2C872D050060FEB1 /* main.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 66E2EDFC2C872D050060FEB1 /* main.cpp */; settings = {COMPILER_FLAGS = "-Wall -Wextra -Werror"; }; };
 /* End PBXBuildFile section */
 
@@ -45,6 +45,10 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
+		6628EB052C91F0D900BC90BD /* macKeys.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = macKeys.h; sourceTree = "<group>"; };
+		6628EB062C91F0D900BC90BD /* linuxKeys.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = linuxKeys.h; sourceTree = "<group>"; };
+		6628EB072C91F1D200BC90BD /* keys.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = keys.h; sourceTree = "<group>"; };
+		6628EB082C91F2D800BC90BD /* Makefile */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.make; path = Makefile; sourceTree = "<group>"; };
 		665241D02C5BA6E700BD3A64 /* Ray.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = Ray.cpp; sourceTree = "<group>"; };
 		665241D12C5BA6E700BD3A64 /* Ray.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; path = Ray.hpp; sourceTree = "<group>"; };
 		6659C4E12C399E8A00CC7FAB /* MlxImage.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = MlxImage.cpp; sourceTree = "<group>"; };
@@ -108,6 +112,7 @@
 		6661C20E2C38071100D58CDC = {
 			isa = PBXGroup;
 			children = (
+				6628EB082C91F2D800BC90BD /* Makefile */,
 				66E2EDFB2C872D050060FEB1 /* combine_test */,
 				6659C4E42C39A8B200CC7FAB /* Frameworks */,
 				667951822C4D535C009C1DDD /* rt */,
@@ -119,6 +124,7 @@
 		6679518D2C5217A4009C1DDD /* srcs */ = {
 			isa = PBXGroup;
 			children = (
+				6628EB072C91F1D200BC90BD /* keys.h */,
 				66D166C82C3D9281002E6F7E /* A_Scenery.cpp */,
 				66D166C92C3D9281002E6F7E /* A_Scenery.hpp */,
 				667951912C5293BB009C1DDD /* ARGBColor.cpp */,
@@ -130,6 +136,8 @@
 				66B6D1C42C3AD3B9008FD6E6 /* Header.h */,
 				667951892C5216B7009C1DDD /* Light.cpp */,
 				6679518A2C5216B7009C1DDD /* Light.hpp */,
+				6628EB062C91F0D900BC90BD /* linuxKeys.h */,
+				6628EB052C91F0D900BC90BD /* macKeys.h */,
 				6661C21A2C38071100D58CDC /* main.cpp */,
 				6659C4EB2C39A8F700CC7FAB /* mlx.h */,
 				6659C4E12C399E8A00CC7FAB /* MlxImage.cpp */,

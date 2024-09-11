@@ -18,6 +18,7 @@
 # include "Scene.hpp"
 # include "Light.hpp"
 # include "camera.hpp"
+# include "keys.h"
 
 
 # define SUCCESS			0

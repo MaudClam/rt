@@ -369,7 +369,7 @@ void Camera::resetRoll(float roll) {
 	for (int i = 0; i < NUM_THREADS; i++) {
 		th[i].join();
 	}
-	if (DEBUG) { std::cout << "roll: " << degree(_roll) << std::endl; }
+	if (DEBUG_MODE) { std::cout << "roll: " << degree(_roll) << std::endl; }
 }
 
 void Camera::lookatCamera(const Position& pos) {
