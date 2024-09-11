@@ -8,7 +8,6 @@
 #include "Scene.hpp"
 
 
-
 // Class Scene
 
 Scene::Scene(MlxImage& img) :
@@ -70,7 +69,7 @@ Scene& Scene::operator=(const Scene& other) {
 
 int  Scene::parsing(int ac, char** av) {
 	(void)ac; (void)av;
-	set_any( std::istringstream("R 600 600	RayTrasing") );
+	set_any( std::istringstream("R 800 600	RayTrasing") );
 	std::string header(_header + " " + std::to_string(_resolution.x) + "x" + std::to_string(_resolution.y));
 	img.init(header, _resolution);
 	cameras.push_back(Camera(img));// default camera '0'
@@ -98,11 +97,11 @@ int  Scene::parsing(int ac, char** av) {
 	set_any( std::istringstream("c     0,4,2         0,-1,0      60 ") );
 	set_any( std::istringstream("A 0.2	255,255,250") );
 	set_any( std::istringstream("l     2,1,0    0.6 " + img.white.rrggbb()) );
-	set_any( std::istringstream("l    4000,-5001,0    0.6 " + img.white.rrggbb()) );
-	set_any( std::istringstream("ls     1,4,4  0.2 " + img.white.rrggbb()) );
-	set_any( std::istringstream("sp    0,-1,3	2   " + img.red.rrggbb()   + " 500  0.2") );
-	set_any( std::istringstream("sp    2,0,4	2   " + img.blue.rrggbb()  + " 500  0.3") );
-	set_any( std::istringstream("sp    -2,0,4	2   " + img.green.rrggbb() + " 10   0.4") );
+	set_any( std::istringstream("ls    1,4,4  0.2 " + img.white.rrggbb()) );
+	set_any( std::istringstream("sp    0,-1,3	2   " + img.red.rrggbb()   + " 500  0.2 0 1.33") );
+	set_any( std::istringstream("sp    2,0,4	2   " + img.white.rrggbb()  + " 10 0.7 0 1.33") );
+//	set_any( std::istringstream("sp    -2,0,4	2   " + img.green.rrggbb() + " 10   0.4 0 1.33") );
+	set_any( std::istringstream("sp    -2,0,4	2   255,0,0 10   0.3 0 1.33") );
 	set_any( std::istringstream("sp 0,-5001,0 10000 " + img.yellow.rrggbb()+ " 1000 0.5") );
 
 //	===========
@@ -111,7 +110,7 @@ int  Scene::parsing(int ac, char** av) {
 		_currentCamera = 1;
 	}
 	makeLookatsForCameras();
-	if (DEBUG_MODE) { std::cout << *this; }
+	if (DEBUG) { std::cout << *this; }
 	return SUCCESS;
 }
 
@@ -121,23 +120,7 @@ bool Scene::set_currentCamera(int idx) {
 	if (idx >= 0 && idx < (int)cameras.size()) {
 		_currentCamera = idx;
 		Camera* cCam = &cameras[_currentCamera];
-		unsigned long size = cameras[_currentCamera].matrix.size();
-		unsigned long begin, end;
-		std::thread th[NUM_THREADS];
-		for (int i = 0; i < NUM_THREADS; i++) {
-			begin = i * size / NUM_THREADS;
-			if (i == NUM_THREADS - 1) {
-				end = size;
-			} else {
-				end = size / NUM_THREADS * (i + 1);
-			}
-			std::cout << "begin: " << begin << " end: " << end << std::endl;
-			th[i] = std::thread([cCam, begin, end](){Camera::restoreRays(cCam, begin, end);});
-		}
-		for (int i = 0; i < NUM_THREADS; i++) {
-			th[i].join();
-		}
-//		cameras[_currentCamera].restoreRays_lll();
+		cCam->runThreadRoutine(RESTORE_RAYS);
 		if (DEBUG_MODE) { std::cout << "currentCamera: " << _currentCamera << "\n";}
 		return true;
 	}
@@ -218,11 +201,15 @@ void Scene::set_scenery(A_Scenery* scenery) {
 }
 
 void Scene::makeLookatsForCameras(void) {
+	bool refractionsPresence = false;
 	for (auto cam = cameras.begin(), End = cameras.end(); cam != End; ++cam) {
 		LookatAux aux(cam->get_pos().n);
 		for (auto sc = scenerys.begin(), end = scenerys.end(); sc != end; ++sc) {
 			A_Scenery* clone = (*sc)->clone();
 			cam->set_scenery(clone);
+			if (!refractionsPresence && (*sc)->refractive > 0) {
+				refractionsPresence = true;
+			}
 		}
 	}
 	for (auto cam = cameras.begin(), End = cameras.end(); cam != End; ++cam) {
@@ -230,12 +217,15 @@ void Scene::makeLookatsForCameras(void) {
 		cam->initMatrix();
 		cam->ambient = _ambient.light;
 		cam->space = _space.light;
+		if (refractionsPresence) {
+			cam->recursionDepth *= cam->recursionDepth;
+		}
 	}
 }
 
 A_Scenery* Scene::nearestIntersection(Ray& ray) {
 	A_Scenery*	nearestObj = NULL;
-	float		distance = INFINITY;
+	float		distance = _INFINITY;
 	Camera&		cam(cameras[_currentCamera]);
 	for (auto obj = cam.scenerys.begin(), end = cam.scenerys.end(); obj != end; ++obj) {
 		if ( (*obj)->intersection(ray) ) {
@@ -252,38 +242,9 @@ A_Scenery* Scene::nearestIntersection(Ray& ray) {
 }
 
 void Scene::rt(void) {
-	unsigned long size = cameras[_currentCamera].matrix.size();
-	unsigned long begin, end;
-	std::thread th[NUM_THREADS];
 	Camera* cCam = &cameras[_currentCamera];
-	for (int i = 0; i < NUM_THREADS; i++) {
-		begin = i * size / NUM_THREADS;
-		if (i == NUM_THREADS - 1) {
-			end = size;
-		} else {
-			end = size / NUM_THREADS * (i + 1);
-		}
-		std::cout << "begin: " << begin << " end: " << end << std::endl;
-		th[i] = std::thread([cCam, begin, end](){Camera::rayTracing(cCam, begin, end);});
-	}
-	for (int i = 0; i < NUM_THREADS; i++) {
-		th[i].join();
-	}
-//	cameras[_currentCamera].rayTracing_lll();
-	for (int i = 0; i < NUM_THREADS; i++) {
-		begin = i * size / NUM_THREADS;
-		if (i == NUM_THREADS - 1) {
-			end = size;
-		} else {
-			end = size / NUM_THREADS * (i + 1);
-		}
-		std::cout << "begin: " << begin << " end: " << end << std::endl;
-		th[i] = std::thread([cCam, this, begin, end](){Camera::takePicture(cCam, this->img, begin, end);});
-	}
-	for (int i = 0; i < NUM_THREADS; i++) {
-		th[i].join();
-	}
-//	cameras[_currentCamera].takePicture_lll(img);
+	cCam->runThreadRoutine(RAY_TRACING);
+	cCam->runThreadRoutine(TAKE_PICTURE, &this->img);
 	mlx_put_image_to_window(img.get_mlx(), img.get_win(), img.get_image(), 0, 0);
 }
 
@@ -313,11 +274,11 @@ void Scene::changeCameraFOV(int ctrl) {
 	float fovDegree = cam.get_fovDegree();
 	switch (ctrl) {
 		case INCREASE_FOV: {
-			if (cam.resetFovDegree(fovDegree + (float)STEP_FOV)) { rt(); }
+			if (cam.resetFovDegree(fovDegree + STEP_FOV)) { rt(); }
 			break;
 		}
 		case DECREASE_FOV: {
-			if (cam.resetFovDegree(fovDegree - (float)STEP_FOV)) { rt(); }
+			if (cam.resetFovDegree(fovDegree - STEP_FOV)) { rt(); }
 			break;
 		}
 		default:
@@ -330,22 +291,22 @@ void Scene::moveCamera(int ctrl) {
 	Position  pos(cam.get_pos());
 	switch (ctrl) {
 		case MOVE_RIGHT:
-			pos.p.x += (float)STEP_MOVE;
+			pos.p.x += STEP_MOVE;
 			break;
 		case MOVE_LEFT:
-			pos.p.x -= (float)STEP_MOVE;
+			pos.p.x -= STEP_MOVE;
 			break;
 		case MOVE_UP:
-			pos.p.y += (float)STEP_MOVE;
+			pos.p.y += STEP_MOVE;
 			break;
 		case MOVE_DOWN:
-			pos.p.y -= (float)STEP_MOVE;
+			pos.p.y -= STEP_MOVE;
 			break;
 		case MOVE_FORWARD:
-			pos.p.z += (float)STEP_MOVE;
+			pos.p.z += STEP_MOVE;
 			break;
 		case MOVE_BACKWARD:
-			pos.p.z -= (float)STEP_MOVE;
+			pos.p.z -= STEP_MOVE;
 			break;
 		default:
 			return;
@@ -371,12 +332,12 @@ void Scene::rotateCamera(int ctrl) {
 			pos.n.turnAroundX(radian(STEP_ROTATION));
 			break;
 		case ROLL_RIGHT: {
-			cam.resetRoll(cam.get_rollDegree() + (float)STEP_ROTATION);
+			cam.resetRoll(cam.get_rollDegree() + STEP_ROTATION);
 			rt();
 			return;
 		}
 		case ROLL_LEFT:
-			cam.resetRoll(cam.get_rollDegree() - (float)STEP_ROTATION);
+			cam.resetRoll(cam.get_rollDegree() - STEP_ROTATION);
 			rt();
 			return;
 		default:
@@ -389,7 +350,7 @@ void Scene::rotateCamera(int ctrl) {
 void Scene::flybyCamera(void) {
 	Camera&		cam(cameras[_currentCamera]);
 	Position	pos(cam.get_pos());
-	float angle = radian((float)FLYBY_STEP / 10.), radius = cam.get_flybyRadius();
+	float angle = radian(FLYBY_STEP / 10.), radius = cam.get_flybyRadius();
 	if (img.flyby == FLYBY_CLOCKWISE) {
 		angle = -angle;
 	}
@@ -408,7 +369,7 @@ std::ostream& operator<<(std::ostream& o, Scene& sc) {
 	std::ostringstream os;
 	o  << "R " << std::setw(5) << sc._resolution << " " << sc._header << std::endl;
 	os << "A  " << std::setw(32) << sc._ambient;
-	o << std::setw(46) << std::left << os.str();
+	o << std::setw(56) << std::left << os.str();
 	o << " #ambient liting" << std::endl;
 	for (auto light = sc.lightsIdx.begin(); light != sc.lightsIdx.end(); ++light) {
 		o << *(*light) << std::endl;

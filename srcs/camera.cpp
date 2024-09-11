@@ -274,22 +274,22 @@ void Camera::initMatrix(void) {
 	}
 }
 
-void Camera::restoreRays(Camera* camera, unsigned long begin, unsigned long end) {
+void Camera::restoreRays(Camera* camera, size_t begin, size_t end) {
 	camera->restoreRays_lll(begin, end);
 }
 
-void Camera::resetRays(Camera* camera, unsigned long begin, unsigned long end) {
+void Camera::resetRays(Camera* camera, size_t begin, size_t end) {
 	camera->resetRays_lll(begin, end);
 }
 
-void Camera::restoreRays_lll(unsigned long begin, unsigned long end) {
+void Camera::restoreRays_lll(size_t begin, size_t end) {
 	float tan = _fov.get_tan();
 	for (auto pixel = matrix.begin() + begin, _end = matrix.begin() + end; pixel != _end; ++pixel) {
 		pixel->restoreRays(_sm, tan, _pos.p);
 	}
 }
 
-void Camera::resetRays_lll(unsigned long begin, unsigned long end) {
+void Camera::resetRays_lll(size_t begin, size_t end) {
 	float sm_mult = (1. / _sm) * _mult;
 	float tan = _fov.get_tan();
 	for (auto pixel = matrix.begin() + begin, _end = matrix.begin() + end; pixel != _end; ++pixel) {
@@ -395,7 +395,7 @@ void Camera::lookatCamera(const Position& pos) {
 	}
 }
 
-void Camera::takePicture_lll(MlxImage& img, unsigned long begin, unsigned long end) {
+void Camera::takePicture_lll(MlxImage& img, size_t begin, size_t end) {
 	char* data = img.get_data();
 	if (data) {
 		data += _bytespp * begin;
@@ -406,11 +406,11 @@ void Camera::takePicture_lll(MlxImage& img, unsigned long begin, unsigned long e
 	}
 }
 
-void Camera::takePicture(Camera* camera, MlxImage& img, unsigned long begin, unsigned long end) {
+void Camera::takePicture(Camera* camera, MlxImage& img, size_t begin, size_t end) {
 	camera->takePicture_lll(img, begin, end);
 }
 
-void Camera::rayTracing_lll(unsigned long begin, unsigned long end) {
+void Camera::rayTracing_lll(size_t begin, size_t end) {
 	for (auto pixel = matrix.begin() + begin, End = matrix.begin() + end; pixel != End; ++pixel) {
 		for (auto ray = pixel->rays.begin(), _end = pixel->rays.end(); ray != _end; ++ray) {
 			traceRay(*ray);
@@ -419,7 +419,7 @@ void Camera::rayTracing_lll(unsigned long begin, unsigned long end) {
 	}
 }
 
-void Camera::rayTracing(Camera* camera, unsigned long begin, unsigned long end) {
+void Camera::rayTracing(Camera* camera, size_t begin, size_t end) {
 	camera->rayTracing_lll(begin, end);
 }
 
@@ -573,6 +573,41 @@ void Camera::calculateFlybyRadius(void) {
 		}
 	}
 }
+
+void Camera::runThreadRoutine(int routine, MlxImage* img) {
+	size_t size = this->matrix.size();
+	size_t begin, end;
+	std::thread th[NUM_THREADS];
+	for (int i = 0; i < NUM_THREADS; i++) {
+		begin = i * size / NUM_THREADS;
+		if (i == NUM_THREADS - 1) {
+			end = size;
+		} else {
+			end = size / NUM_THREADS * (i + 1);
+		}
+		switch (routine) {
+			case RESTORE_RAYS:
+				th[i] = std::thread([this, begin, end](){restoreRays(this, begin, end);});
+				break ;
+			case RESET_RAYS:
+				th[i] = std::thread([this, begin, end](){resetRays(this, begin, end);});
+				break ;
+			case TAKE_PICTURE:
+				if (img != NULL) {
+					th[i] = std::thread([this, img, begin, end](){takePicture(this, *img, begin, end);});
+				}
+				break ;
+			case RAY_TRACING:
+				th[i] = std::thread([this, begin, end](){rayTracing(this, begin, end);});
+				break ;
+		}
+	}
+	for (int i = 0; i < NUM_THREADS; i++) {
+		th[i].join();
+	}
+
+}
+
 
 
 // Non member functions

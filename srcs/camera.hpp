@@ -92,18 +92,18 @@ public:
 	void	set_posToBase(void);
 	void	set_flybyRadius(float flybyRadius);
 	void	initMatrix(void);
-	void	restoreRays_lll(unsigned long begin, unsigned long end);
-	static void restoreRays(Camera* camera, unsigned long begin, unsigned long end);
-	void	resetRays_lll(unsigned long begin, unsigned long end);
-	static void resetRays(Camera* camera, unsigned long begin, unsigned long end);
+	void	restoreRays_lll(size_t begin, size_t end);
+	static void restoreRays(Camera* camera, size_t begin, size_t end);
+	void	resetRays_lll(size_t begin, size_t end);
+	static void resetRays(Camera* camera, size_t begin, size_t end);
 	bool	resetFovDegree(float degree);
 	void	resetSmoothingFactor(int smoothingFactor);
 	void	resetRoll(float roll);
 	void	lookatCamera(const Position& pos);
-	void	takePicture_lll(MlxImage& img, unsigned long begin, unsigned long end);
-	static void	takePicture(Camera* camera, MlxImage& img, unsigned long begin, unsigned long end);
-	void	rayTracing_lll(unsigned long begin, unsigned long end);
-	static void	rayTracing(Camera* camera, unsigned long begin, unsigned long end);
+	void	takePicture_lll(MlxImage& img, size_t begin, size_t end);
+	static void	takePicture(Camera* camera, MlxImage& img, size_t begin, size_t end);
+	void	rayTracing_lll(size_t begin, size_t end);
+	static void	rayTracing(Camera* camera, size_t begin, size_t end);
 	void	traceRay(Ray& ray, int r = 0);
 	void	reflections(Ray& ray, const A_Scenery& scenery, int r);
 	void	refractions(Ray& ray, const A_Scenery& scenery, int r);
@@ -111,6 +111,7 @@ public:
 	void	lightings(Ray& ray, const A_Scenery& scenery, int r);
 	A_Scenery* closestScenery(Ray& ray, float distance, Hit hit = FRONT);
 	void	calculateFlybyRadius(void);
+	void 	runThreadRoutine(int routine, MlxImage* img = NULL);
 
 	friend	std::ostream& operator<<(std::ostream& o, Camera& camera);
 	friend	std::istringstream& operator>>(std::istringstream& is, Camera& camera);

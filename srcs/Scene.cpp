@@ -90,63 +90,63 @@ int  Scene::parsing(int ac, char** av) {
 
 // ============
 
-//	set_any( std::istringstream("c     0,0,-12         0,0,1      60 ") );
-	set_any( std::istringstream("c     -40,0,0         1,0,0      60 ") );
-//	set_any( std::istringstream("c     0,0,8         0,0,-1      60 ") );
-//	set_any( std::istringstream("c     -5,0,3        1,0,0      60 ") );
-	set_any( std::istringstream("c     0,4,0         0,-1,0      60 ") );
-	set_any( std::istringstream("A 0.2	255,255,250") );
-	set_any( std::istringstream("ls    -4,4,8  0.4 " + img.white.rrggbb()) );
-	set_any( std::istringstream("ls     4,4,-8    0.4 " + img.white.rrggbb()) );
-	set_any( std::istringstream("sp    0,-1,0	2   " + img.red.rrggbb()   + " 500  0.2") );
-	set_any( std::istringstream("sp    2,0,0	2   " + img.green.rrggbb()  + " 100 0.3") );
-	set_any( std::istringstream("sp 0,-5001,0 10000 " + img.yellow.rrggbb()+ " 1000 0.5") );
-//
-	set_any( std::istringstream("sp    -2,2.5,-4	1   " + img.magenta.rrggbb()   + " -1") );
-	set_any( std::istringstream("sp    -25,0.5,0	9   255,255,0 500   0 0.9 1.33 ") );
-	set_any( std::istringstream("INTERSECTION"));
-	set_any( std::istringstream("sp    -33.5,0.5,0	9   255,255,0 500   0 0.9 1.33 ") );
-//	set_any( std::istringstream("END"));
-//	set_any( std::istringstream("sp    -33.25,0.5,0	3   255,0,0 500   0 0 1.33 ") );
-	
-	set_any( std::istringstream("sp    -1,1.5,-4	1   " + img.cyan.rrggbb()   + " 10 ") );
-	set_any( std::istringstream("sp    -2,0.1,0	2   255,255,255 500   0 0.99 1.33") );
-
-
-//	set_any( std::istringstream("c     0,1,-25         0,0,1      90 ") );
-////	set_any( std::istringstream("c     5,0,3         -1,0,0      60 ") );
+////	set_any( std::istringstream("c     0,0,-12         0,0,1      60 ") );
+//	set_any( std::istringstream("c     -40,0,0         1,0,0      60 ") );
 ////	set_any( std::istringstream("c     0,0,8         0,0,-1      60 ") );
-////	set_any( std::istringstream("c     0,0,0        0,0,1      60 ") );
-//	set_any( std::istringstream("c     0,25,0         0,-1,0      90 ") );
+////	set_any( std::istringstream("c     -5,0,3        1,0,0      60 ") );
+//	set_any( std::istringstream("c     0,4,0         0,-1,0      60 ") );
 //	set_any( std::istringstream("A 0.2	255,255,250") );
-//	set_any( std::istringstream("ls    25,50,25  0.5 " + img.white.rrggbb()) );
-////	set_any( std::istringstream("l    -25,10,25  0.3 " + img.white.rrggbb()) );
-////	set_any( std::istringstream("l    -25,15,-25  0.2 " + img.white.rrggbb()) );
-//	set_any( std::istringstream("l    25,10,-25  0.3 " + img.white.rrggbb()) );
-//	set_any( std::istringstream("l    0,-5004,250  0.4 " + img.white.rrggbb()) );
-//	set_any( std::istringstream("l    250,-5004,0  0.4 " + img.white.rrggbb()) );
-//
-//	set_any( std::istringstream("sp    0,0,0	20   " + img.red.rrggbb()   + " 500  0.2 0 1.33") );
-//	set_any( std::istringstream("SUBTRACTION"));
-//	set_any( std::istringstream("sp    0,0,-6	12   " + img.red.rrggbb()   + " -1  0 0 1.33") );
-//	set_any( std::istringstream("SUBTRACTION"));
-//	set_any( std::istringstream("sp    6,0,0	12   " + img.red.rrggbb()   + " -1  0 0 1.33") );
-//	set_any( std::istringstream("SUBTRACTION"));
-//	set_any( std::istringstream("sp    0,0,6	12   " + img.red.rrggbb()   + " -1  0 0 1.33") );
-//	set_any( std::istringstream("SUBTRACTION"));
-//	set_any( std::istringstream("sp    -6,0,0	12   " + img.red.rrggbb()   + " -1  0 0 1.33") );
-//	set_any( std::istringstream("SUBTRACTION"));
-//	set_any( std::istringstream("sp    0,0,0	19.5   " + img.red.rrggbb()   + " 500  0 0 1.33") );
+//	set_any( std::istringstream("ls    -4,4,8  0.4 " + img.white.rrggbb()) );
+//	set_any( std::istringstream("ls     4,4,-8    0.4 " + img.white.rrggbb()) );
+//	set_any( std::istringstream("sp    0,-1,0	2   " + img.red.rrggbb()   + " 500  0.2") );
+//	set_any( std::istringstream("sp    2,0,0	2   " + img.green.rrggbb()  + " 100 0.3") );
+//	set_any( std::istringstream("sp 0,-5001,0 10000 " + img.yellow.rrggbb()+ " 1000 0.5") );
+////
+//	set_any( std::istringstream("sp    -2,2.5,-4	1   " + img.magenta.rrggbb()   + " -1") );
+//	set_any( std::istringstream("sp    -25,0.5,0	9   255,255,0 500   0 0.9 1.33 ") );
+//	set_any( std::istringstream("INTERSECTION"));
+//	set_any( std::istringstream("sp    -33.5,0.5,0	9   255,255,0 500   0 0.9 1.33 ") );
+////	set_any( std::istringstream("END"));
+////	set_any( std::istringstream("sp    -33.25,0.5,0	3   255,0,0 500   0 0 1.33 ") );
+//	
+//	set_any( std::istringstream("sp    -1,1.5,-4	1   " + img.cyan.rrggbb()   + " 10 ") );
+//	set_any( std::istringstream("sp    -2,0.1,0	2   255,255,255 500   0 0.99 1.33") );
+
+
+	set_any( std::istringstream("c     0,1,-25         0,0,1      90 ") );
+//	set_any( std::istringstream("c     5,0,3         -1,0,0      60 ") );
+//	set_any( std::istringstream("c     0,0,8         0,0,-1      60 ") );
+//	set_any( std::istringstream("c     0,0,0        0,0,1      60 ") );
+	set_any( std::istringstream("c     0,25,0         0,-1,0      90 ") );
+	set_any( std::istringstream("A 0.2	255,255,250") );
+	set_any( std::istringstream("ls    25,50,25  0.5 " + img.white.rrggbb()) );
+//	set_any( std::istringstream("l    -25,10,25  0.3 " + img.white.rrggbb()) );
+//	set_any( std::istringstream("l    -25,15,-25  0.2 " + img.white.rrggbb()) );
+	set_any( std::istringstream("l    25,10,-25  0.3 " + img.white.rrggbb()) );
+	set_any( std::istringstream("l    0,-5004,250  0.4 " + img.white.rrggbb()) );
+	set_any( std::istringstream("l    250,-5004,0  0.4 " + img.white.rrggbb()) );
+
+	set_any( std::istringstream("sp    0,0,0	20   " + img.red.rrggbb()   + " 500  0.2 0 1.33") );
+	set_any( std::istringstream("SUBTRACTION"));
+	set_any( std::istringstream("sp    0,0,-6	12   " + img.red.rrggbb()   + " -1  0 0 1.33") );
+	set_any( std::istringstream("SUBTRACTION"));
+	set_any( std::istringstream("sp    6,0,0	12   " + img.red.rrggbb()   + " -1  0 0 1.33") );
+	set_any( std::istringstream("SUBTRACTION"));
+	set_any( std::istringstream("sp    0,0,6	12   " + img.red.rrggbb()   + " -1  0 0 1.33") );
+	set_any( std::istringstream("SUBTRACTION"));
+	set_any( std::istringstream("sp    -6,0,0	12   " + img.red.rrggbb()   + " -1  0 0 1.33") );
+	set_any( std::istringstream("SUBTRACTION"));
+	set_any( std::istringstream("sp    0,0,0	19.5   " + img.red.rrggbb()   + " 500  0 0 1.33") );
+	set_any( std::istringstream("UNION"));
+	set_any( std::istringstream("sp 0,-5004,0 10000 " + img.yellow.rrggbb()+ " 1000 0.8") );
+
+	set_any( std::istringstream("sp    -3,-3,13	12   " + img.yellow.rrggbb()   + " 500  0.3 0 1.33") );
+	set_any( std::istringstream("INTERSECTION"));
+	set_any( std::istringstream("sp    3,-3,13	12   " + img.magenta.rrggbb()   + " 500  0.3 0 1.33") );
+	set_any( std::istringstream("INTERSECTION"));
+	set_any( std::istringstream("sp    0,-3,7	12   " + img.cyan.rrggbb()   + " 500  0.3 0 1.33") );
 //	set_any( std::istringstream("UNION"));
 //	set_any( std::istringstream("sp 0,-5004,0 10000 " + img.yellow.rrggbb()+ " 1000 0.8") );
-//
-//	set_any( std::istringstream("sp    -3,-3,13	12   " + img.yellow.rrggbb()   + " 500  0.3 0 1.33") );
-//	set_any( std::istringstream("INTERSECTION"));
-//	set_any( std::istringstream("sp    3,-3,13	12   " + img.magenta.rrggbb()   + " 500  0.3 0 1.33") );
-//	set_any( std::istringstream("INTERSECTION"));
-//	set_any( std::istringstream("sp    0,-3,7	12   " + img.cyan.rrggbb()   + " 500  0.3 0 1.33") );
-////	set_any( std::istringstream("UNION"));
-////	set_any( std::istringstream("sp 0,-5004,0 10000 " + img.yellow.rrggbb()+ " 1000 0.8") );
 
 	
 	
@@ -301,34 +301,9 @@ void Scene::makeLookatsForCameras(void) {
 }
 
 void Scene::rt(void) {
-	unsigned long size = cameras[_currentCamera].matrix.size();
-	unsigned long begin, end;
-	std::thread th[NUM_THREADS];
 	Camera* cCam = &cameras[_currentCamera];
-	for (int i = 0; i < NUM_THREADS; i++) {
-		begin = i * size / NUM_THREADS;
-		if (i == NUM_THREADS - 1) {
-			end = size;
-		} else {
-			end = size / NUM_THREADS * (i + 1);
-		}
-		th[i] = std::thread([cCam, begin, end](){Camera::rayTracing(cCam, begin, end);});
-	}
-	for (int i = 0; i < NUM_THREADS; i++) {
-		th[i].join();
-	}
-	for (int i = 0; i < NUM_THREADS; i++) {
-		begin = i * size / NUM_THREADS;
-		if (i == NUM_THREADS - 1) {
-			end = size;
-		} else {
-			end = size / NUM_THREADS * (i + 1);
-		}
-		th[i] = std::thread([cCam, this, begin, end](){Camera::takePicture(cCam, this->img, begin, end);});
-	}
-	for (int i = 0; i < NUM_THREADS; i++) {
-		th[i].join();
-	}
+	cCam->runThreadRoutine(RAY_TRACING);
+	cCam->runThreadRoutine(TAKE_PICTURE, &this->img);
 	mlx_put_image_to_window(img.get_mlx(), img.get_win(), img.get_image(), 0, 0);
 }
 

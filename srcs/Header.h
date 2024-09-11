@@ -28,7 +28,11 @@
 # define RECURSION_DEPTH	5
 # define SMOOTHING_FACTOR 	1
 # define BASE				Vec3f(0,0,0),Vec3f(0,0,1)
-# define NUM_THREADS		48
+# define NUM_THREADS		64
+# define RESTORE_RAYS		1
+# define RESET_RAYS			2
+# define TAKE_PICTURE		3
+# define RAY_TRACING		4
 
 class MlxImage;
 struct Scene;
