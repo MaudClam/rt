@@ -300,8 +300,8 @@ void Camera::resetRays_lll(size_t begin, size_t end) {
 
 bool Camera::resetFovDegree(float degree) {
 	if (_fov.set_degree(degree)) {
-		unsigned long size = this->matrix.size();
-		unsigned long begin, end;
+		size_t size = this->matrix.size();
+		size_t begin, end;
 		std::thread th[NUM_THREADS];
 		for (int i = 0; i < NUM_THREADS; i++) {
 			begin = i * size / NUM_THREADS;
@@ -322,8 +322,8 @@ bool Camera::resetFovDegree(float degree) {
 
 void Camera::resetSmoothingFactor(int sm) {
 	_sm = sm;
-	unsigned long size = this->matrix.size();
-	unsigned long begin, end;
+	size_t size = this->matrix.size();
+	size_t begin, end;
 	std::thread th[NUM_THREADS];
 	for (int i = 0; i < NUM_THREADS; i++) {
 		begin = i * size / NUM_THREADS;
@@ -354,8 +354,8 @@ void Camera::resetRoll(float roll) {
 	for (auto sc = scenerys.begin(), end = scenerys.end(); sc != end; ++sc) {
 		(*sc)->roll(_pos.p, shiftRoll);
 	}
-	unsigned long size = this->matrix.size();
-	unsigned long begin, end;
+	size_t size = this->matrix.size();
+	size_t begin, end;
 	std::thread th[NUM_THREADS];
 	for (int i = 0; i < NUM_THREADS; i++) {
 		begin = i * size / NUM_THREADS;
@@ -378,8 +378,8 @@ void Camera::lookatCamera(const Position& pos) {
 		(*sc)->lookat(pos, aux, _base.p, _roll);
 	}
 	set_posToBase();
-	unsigned long size = this->matrix.size();
-	unsigned long begin, end;
+	size_t size = this->matrix.size();
+	size_t begin, end;
 	std::thread th[NUM_THREADS];
 	for (int i = 0; i < NUM_THREADS; i++) {
 		begin = i * size / NUM_THREADS;

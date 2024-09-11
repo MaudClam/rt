@@ -167,8 +167,8 @@ bool Scene::set_currentCamera(int idx) {
 	if (idx >= 0 && idx < (int)cameras.size()) {
 		_currentCamera = idx;
 		Camera* cCam = &cameras[_currentCamera];
-		unsigned long size = cameras[_currentCamera].matrix.size();
-		unsigned long begin, end;
+		size_t size = cameras[_currentCamera].matrix.size();
+		size_t begin, end;
 		std::thread th[NUM_THREADS];
 		for (int i = 0; i < NUM_THREADS; i++) {
 			begin = i * size / NUM_THREADS;
