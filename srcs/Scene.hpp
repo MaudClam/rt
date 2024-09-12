@@ -8,6 +8,7 @@
 #ifndef SCENE_HPP
 # define SCENE_HPP
 
+# include <fstream>
 # include "Header.h"
 
 class	A_Scenery;
@@ -49,6 +50,7 @@ public:
 	void flybyCamera(void);
 	friend std::ostream& operator<<(std::ostream& o, Scene& sc);
 };
+	int  outputFile(const char* filename);
 
 
 #endif /* SCENE_HPP */

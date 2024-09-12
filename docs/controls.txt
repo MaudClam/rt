@@ -1,0 +1,28 @@
+/-------------------------------------------------------------\
+| CONTROLS                                                    |
+|                                                             |
+| 'esc' - quit the program                                    |
+|                                                             |
+| Cameras switching:                                          |
+| 'Alt' + ('left'/'right' or num keys '0','1','2',...)        |
+| '0' - system camera, position (0,0,0),(0,0,1), FOV 90º      |
+|                                                             |
+| Current camera horizontal FOV (field of view):              |
+| 'Alt' + '-'/'+'                                             |
+|                                                             |
+| Current camera moving:                                      |
+| arrow keys                 - left/right/up/down             |
+| 'Alt' + 'up'/'down'        - forward/backward               |
+|                                                             |
+| Current camera rotation:                                    |
+| 'Shift' + arrow keys       - yaw/pitch                      |
+| 'Shift' + '-'/'+'          - roll                           |
+|                                                             |
+| Smoothing (antialiasing) factor:                            |
+| num keys '1','2','3','4'   - 1, 4, 9, 16 rays per pixel     |
+|                                                             |
+| Flyby around the scene:                                     |
+| 'space'                    - on/reverse/off                 |
+|                                                             |
+\-------------------------------------------------------------/
+Enjoy! :)

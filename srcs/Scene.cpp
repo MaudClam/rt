@@ -442,3 +442,22 @@ std::ostream& operator<<(std::ostream& o, Scene& sc) {
 	}
 	return o;
 }
+
+int outputFile(const char* filename) {
+	std::ifstream	in;
+	std::string		line;
+	in.open(filename, std::ifstream::in);
+	if (in.fail()) {
+		int error = errno;
+		std::cerr	<< "Warning: Can't open file: "
+					<< "'" << filename << "'. "
+					<< strerror(error) << std::endl;
+		return error;
+	}
+	while (!in.eof()) {
+		std::getline(in, line);
+		std::cout << line << "\n";
+	}
+	in.close();
+	return SUCCESS;
+}

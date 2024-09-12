@@ -21,9 +21,10 @@
 # include "keys.h"
 
 
+# define CONTROLS_FILE		"docs/controls.txt"
 # define SUCCESS			0
 # define ERROR				-1
-# define DEBUG_MODE			true
+# define DEBUG_MODE			false
 # define DEBUG_KEYS			false
 # define DEBUG_MOUSE		false
 # define RECURSION_DEPTH	5
