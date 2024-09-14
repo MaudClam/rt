@@ -1,0 +1,25 @@
+R   800 600 Arches
+A                   0.2 255,255,255                      #ambient liting
+ls    0,0,0         0.5 255,255,255 0.408248,0.816497,0.408248 #sunlight
+l   -25,10,25       0.3 255,255,255                      #spotlight
+l     0,-5004,250    0.4 255,255,255                     #spotlight
+c     0,1,-25       0,0,1      90                        #camera 0
+c     0,25,0        0,-1,0     90                        #camera 1
+sp    0,0,0         20   255,255,255  500  0.2    0    1 #sphere
+SUBTRACTION
+sp    0,0,-6        12   255,255,255   -1    0    0    1 #sphere
+SUBTRACTION
+sp    6,0,0         12   255,255,255   -1    0    0    1 #sphere
+SUBTRACTION
+sp    0,0,6         12   255,255,255   -1    0    0    1 #sphere
+SUBTRACTION
+sp   -6,0,0         12   255,255,255   -1    0    0    1 #sphere
+SUBTRACTION
+sp    0,0,0       19.5   255,255,255  500    0    0    1 #sphere
+UNION
+sp    0,-5004,0  10000   255,255,000 1000  0.8    0    1 #sphere
+sp   -3,-3,13       12   255,255,255  500  0.3  0.7 1.33 #sphere
+INTERSECTION
+sp    3,-3,13       12   255,255,255  500  0.3  0.7 1.33 #sphere
+INTERSECTION
+sp    0,-3,7        12   255,255,255  500  0.3  0.7 1.33 #sphere

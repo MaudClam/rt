@@ -10,15 +10,15 @@
 Var	var;
 
 int main(int ac, char** av) {
-	system("clear");
-	outputFile(CONTROLS_FILE);
 	MlxImage	img;
 	Scene		scene(img);
 	var.img		= &img;
 	var.scene	= &scene;
-	int error	= scene.parsing(ac, av);
-	if (error != SUCCESS)
-		return error;
+	system("clear");
+	scene.mesage(WELLCOM_MSG);
+	outputFile(CONTROLS_FILE);
+	if (scene.parsing(ac, av))
+		return ERROR;
 	void* mlx = img.get_mlx();
 	scene.rt();
 	mlx_loop_hook(mlx, flyby, NULL);

@@ -19,7 +19,8 @@
 # define _INFINITY		100
 
 enum 	Hit { FRONT, BACK, OUTLINE, FRONT_SHADOW, INSIDE, OUTSIDE };
-enum	CombineType { END=0, UNION, SUBTRACTION, INTERSECTION, XOR };
+enum	CombineType { END=0, UNION, SUBTRACTION, INTERSECTION };
+std::string combineType(CombineType type);
 bool 	almostEqual(float a, float b, float precision = PRECISION);
 bool 	almostMore(float a, float b, float precision = PRECISION);
 bool 	almostLess(float a, float b, float precision = PRECISION);
@@ -246,6 +247,9 @@ struct Position {
 	Position& lookat(const Position& eye, const LookatAux& aux, float roll = 0);
 	Position& roll(float roll);
 };
+
+std::ostream& operator<<(std::ostream& o, Position& pos);
+
 
 
 // Intersections, normals, rays

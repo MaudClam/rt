@@ -16,7 +16,7 @@ scenerys(),
 objsIdx(),
 lightsIdx(),
 cameras(),
-_resolution(800,600),
+_resolution(DEFAULT_RESOLUTION),
 _header(),
 _ambient(1),
 _space(1),
@@ -36,7 +36,6 @@ Scene::~Scene(void) {
 			*scenery = NULL;
 		}
 	}
-	if (DEBUG_MODE) { std::cout << "~Scene() destructor was done.\n"; }
 }
 
 Scene::Scene(const Scene& other) :
@@ -67,97 +66,143 @@ Scene& Scene::operator=(const Scene& other) {
 	return *this;
 }
 
+std::string Scene::header(void) {
+	return std::string(_header + " " + std::to_string(_resolution.x) + "x" + std::to_string(_resolution.y));
+}
+
+void Scene::systemDemo(void) {
+	img.init(header(), _resolution);
+	cameras.push_back(Camera(img));
+	set_any("R	800 600		Nice_Balls");
+	set_any("A				0.2		0xFFFFFF");
+	set_any("l	2,1,0		0.6		0xFFFFFF");
+	set_any("ls	1,4,4		0.4		0xFFFFFF");
+	set_any("c	0,0,-2		0,0,1		60");
+	set_any("c	0,0,8		0,0,-1		60");
+	set_any("c	-5,0,3		1,0,0		60");
+	set_any("c	5,0,3		-1,0,0		60");
+	set_any("c	0,5,3		0,-1,0		60");
+	set_any("sp	0,-1,3		2		0xFF0000	500		0.2");
+	set_any("sp	2,0,4		2		0xFFFFFF	500		0.1		0.9		1.33");
+	set_any("sp	-2,0,4		2		0x00FF00	10		0.4");
+	set_any("sp	0,-5001,0	10000	0xFFFF00	1000	0.5");
+	if (cameras.size() > 1)
+		_currentCamera = 1;
+	saveParsingLog(PARSING_LOGFILE);
+	makeLookatsForCameras();
+	this->cameras[_currentCamera].calculateFlybyRadius();
+	img.flyby = FLYBY_COUNTER_CLOCKWISE;
+}
+
+void Scene::mesage(MsgType type, int line, const std::string& hint, int error) {
+	switch (type) {
+		case WELLCOM_MSG:
+			std::cout << "\nWellcom to Ray Tracing by " << CREATORS << "!" <<std::endl;
+			break;
+		case WRNG_FILE_MISSING:
+			std::cerr << "\nWarning: Missing *.rt file. System demo will be used." <<std::endl;
+			std::cerr << "How to create an *.rt file see default.rt." <<std::endl;
+			std::cerr << "Usage:\n\t\t./rt <filename.rt>" <<std::endl;
+			break;
+		case ERR_OPEN_FILE:
+			std::cerr << "\nError: Can't open file: '";
+			std::cerr << hint << "'. " << strerror(error) << std::endl;
+			break;
+		case WRNG_RESOLUTION:
+			std::cerr << "\nWarning: Resolution is missing in the first line of the file: '" << hint << "'." << std::endl;
+			std::cerr << "Will be used by default: '" << _resolution.x << "x" << _resolution.y << "'." << std::endl;
+			std::cerr << "See " << PARSING_LOGFILE << " for datails." << std::endl;
+			break;
+		case WRNG_PARSING_ERROR:
+			std::cerr << "\nWarning: Parsing error in file: '" << hint << "'." << std::endl;
+			std::cerr << "Line " << line << ": unknown object, ignored." << std::endl;
+			std::cerr << "See " << PARSING_LOGFILE << " for datails." << std::endl;
+			break;
+		case WRNG_PARSING_ERROR1: {
+			std::cerr << "\nWarning: Parsing error in file: '" << hint << "'." << std::endl;
+			std::cerr << "The scene does not contain any cameras." << std::endl;
+			Position pos(cameras.front().get_pos());
+			float degree = cameras.front().get_fov().get_degree();
+			std::cerr << "Will be used the system camera at position " << pos << " with FOV " << degree << "º." << std::endl;
+			std::cerr << "See " << PARSING_LOGFILE << " for datails." << std::endl;
+			break;
+		}
+		case WRNG_PARSING_ERROR2:
+			std::cerr << "\nWarning: Parsing error in file: '" << hint << "'." << std::endl;
+			std::cerr << "The scene does not contain any light sources." << std::endl;
+			std::cerr << "See " << PARSING_LOGFILE << " for datails." << std::endl;
+			break;
+		case WRNG_PARSING_ERROR3:
+			std::cerr << "\nWarning: Parsing error in file: '" << hint << "'." << std::endl;
+			std::cerr << "The scene does not contain any objects." << std::endl;
+			std::cerr << "See " << PARSING_LOGFILE << " for datails." << std::endl;
+			break;
+		default:
+			break;
+	}
+}
+
+int Scene::saveParsingLog(const char* filename) {
+	std::string		fileName(filename);
+	std::fstream	out;
+	if (DEBUG_MODE) fileName = DEBUG_PATH + fileName;
+	out.open(filename, std::ios::out | std::ios::trunc);
+	if (out.fail()) {
+		int error = errno;
+		std::cerr	<< "\nWarning: Can't open file: "
+					<< "'" << fileName << "'. "
+					<< strerror(error) << std::endl;
+		return error;
+	}
+	out << *this;
+	out.close();
+	return SUCCESS;
+}
+
 int  Scene::parsing(int ac, char** av) {
-	(void)ac; (void)av;
-	set_any( std::istringstream("R 800 600	RayTrasing") );
-	std::string header(_header + " " + std::to_string(_resolution.x) + "x" + std::to_string(_resolution.y));
-	img.init(header, _resolution);
-	cameras.push_back(Camera(img));// default camera '0'
-	
-// ============
-
-//	set_any( std::istringstream("A 0.2	255,255,230") );
-//	set_any( std::istringstream("c    19,0,19       -1,0,0      70 ") );
-//	set_any( std::istringstream("c     0,0,0         0,0,1      70 ") );
-//	set_any( std::istringstream("c     0,0,38        0,0,-1     70 ") );
-//	set_any( std::istringstream("l     0,0,0      0.6 " + img.white.rrggbb() +  " -1,0,-1") );
-//	set_any( std::istringstream("l     0,0,0      0.2 " + img.white.rrggbb() +  " 1,-2,1") );
-//	set_any( std::istringstream("sp    0,0,25     16  " + img.white.rrggbb() +  " 1000 0.8") );
-//	set_any( std::istringstream("sp    0,0,16.9   8   " + img.yellow.rrggbb() + " 500  0.2") );
-//	set_any( std::istringstream("sp    0,0,12.5   4   " + img.cyan.rrggbb() +   " 500  0.3") );
-//	set_any( std::istringstream("sp    0,0,9.9    2   " + img.magenta.rrggbb() + " 10  0.4") );
-//	set_any( std::istringstream("sp    0,0,3      0.5 " + img.red.rrggbb()) );
-
-// ============
-
-//	set_any( std::istringstream("c     0,0,-12         0,0,1      60 ") );
-	set_any( std::istringstream("c     -40,0,0         1,0,0      60 ") );
-//	set_any( std::istringstream("c     0,0,8         0,0,-1      60 ") );
-//	set_any( std::istringstream("c     -5,0,3        1,0,0      60 ") );
-	set_any( std::istringstream("c     0,4,0         0,-1,0      60 ") );
-	set_any( std::istringstream("A 0.2	255,255,250") );
-	set_any( std::istringstream("ls    -4,4,8  0.4 " + img.white.rrggbb()) );
-	set_any( std::istringstream("ls     4,4,-8    0.4 " + img.white.rrggbb()) );
-	set_any( std::istringstream("sp    0,-1,0	2   " + img.red.rrggbb()   + " 500  0.2") );
-	set_any( std::istringstream("sp    2,0,0	2   " + img.green.rrggbb()  + " 100 0.3") );
-	set_any( std::istringstream("sp 0,-5001,0 10000 " + img.yellow.rrggbb()+ " 1000 0.5") );
-//
-	set_any( std::istringstream("sp    -2,2.5,-4	1   " + img.magenta.rrggbb()   + " -1") );
-	set_any( std::istringstream("sp    -25,0.5,0	9   255,255,0 500   0 0.9 1.33 ") );
-	set_any( std::istringstream("INTERSECTION"));
-	set_any( std::istringstream("sp    -33.5,0.5,0	9   255,255,0 500   0 0.9 1.33 ") );
-//	set_any( std::istringstream("END"));
-//	set_any( std::istringstream("sp    -33.25,0.5,0	3   255,0,0 500   0 0 1.33 ") );
-	
-	set_any( std::istringstream("sp    -1,1.5,-4	1   " + img.cyan.rrggbb()   + " 10 ") );
-	set_any( std::istringstream("sp    -2,0.1,0	2   255,255,255 500   0 0.99 1.33") );
-
-
-//	set_any( std::istringstream("c     0,1,-25         0,0,1      90 ") );
-////	set_any( std::istringstream("c     5,0,3         -1,0,0      60 ") );
-////	set_any( std::istringstream("c     0,0,8         0,0,-1      60 ") );
-////	set_any( std::istringstream("c     0,0,0        0,0,1      60 ") );
-//	set_any( std::istringstream("c     0,25,0         0,-1,0      90 ") );
-//	set_any( std::istringstream("A 0.2	255,255,250") );
-//	set_any( std::istringstream("ls    25,50,25  0.5 " + img.white.rrggbb()) );
-////	set_any( std::istringstream("l    -25,10,25  0.3 " + img.white.rrggbb()) );
-////	set_any( std::istringstream("l    -25,15,-25  0.2 " + img.white.rrggbb()) );
-//	set_any( std::istringstream("l    25,10,-25  0.3 " + img.white.rrggbb()) );
-//	set_any( std::istringstream("l    0,-5004,250  0.4 " + img.white.rrggbb()) );
-//	set_any( std::istringstream("l    250,-5004,0  0.4 " + img.white.rrggbb()) );
-//
-//	set_any( std::istringstream("sp    0,0,0	20   " + img.red.rrggbb()   + " 500  0.2 0 1.33") );
-//	set_any( std::istringstream("SUBTRACTION"));
-//	set_any( std::istringstream("sp    0,0,-6	12   " + img.red.rrggbb()   + " -1  0 0 1.33") );
-//	set_any( std::istringstream("SUBTRACTION"));
-//	set_any( std::istringstream("sp    6,0,0	12   " + img.red.rrggbb()   + " -1  0 0 1.33") );
-//	set_any( std::istringstream("SUBTRACTION"));
-//	set_any( std::istringstream("sp    0,0,6	12   " + img.red.rrggbb()   + " -1  0 0 1.33") );
-//	set_any( std::istringstream("SUBTRACTION"));
-//	set_any( std::istringstream("sp    -6,0,0	12   " + img.red.rrggbb()   + " -1  0 0 1.33") );
-//	set_any( std::istringstream("SUBTRACTION"));
-//	set_any( std::istringstream("sp    0,0,0	19.5   " + img.red.rrggbb()   + " 500  0 0 1.33") );
-//	set_any( std::istringstream("UNION"));
-//	set_any( std::istringstream("sp 0,-5004,0 10000 " + img.yellow.rrggbb()+ " 1000 0.8") );
-//
-//	set_any( std::istringstream("sp    -3,-3,13	12   " + img.yellow.rrggbb()   + " 500  0.3 0 1.33") );
-//	set_any( std::istringstream("INTERSECTION"));
-//	set_any( std::istringstream("sp    3,-3,13	12   " + img.magenta.rrggbb()   + " 500  0.3 0 1.33") );
-//	set_any( std::istringstream("INTERSECTION"));
-//	set_any( std::istringstream("sp    0,-3,7	12   " + img.cyan.rrggbb()   + " 500  0.3 0 1.33") );
-////	set_any( std::istringstream("UNION"));
-////	set_any( std::istringstream("sp 0,-5004,0 10000 " + img.yellow.rrggbb()+ " 1000 0.8") );
-
-	
-	
-	
-//	===========
-	
+	if (ac != 2) {
+		mesage(WRNG_FILE_MISSING);
+		_header = "System Demo";
+		systemDemo();
+		return SUCCESS;
+	}
+	std::ifstream	in;
+	std::string		line;
+	in.open(av[1],std::ifstream::in);
+	if (in.fail()) {
+		int error = errno;
+		mesage(ERR_OPEN_FILE, 0, av[1], error);
+		return error;
+	}
+	std::getline(in, line);
+	if (set_any(line)) {
+		mesage(WRNG_RESOLUTION, 1, av[1]);
+		_header = "Default";
+	}
+	img.init(header(), _resolution);
+	cameras.push_back(Camera(img));	// default camera '0'
+	for (int ln = 2; !in.eof(); ln++) {
+		std::getline(in, line);
+		if ( line.compare(0, 1, "#") && !line.empty() ) {
+			if (set_any(line) == ERROR) {
+				mesage(WRNG_PARSING_ERROR, ln, av[1]);
+			}
+		}
+	}
+	in.close();
 	if (cameras.size() > 1) {
 		_currentCamera = 1;
+	} else {
+		mesage(WRNG_PARSING_ERROR1, 0, av[1]);
 	}
+	if (lightsIdx.empty()) {
+		mesage(WRNG_PARSING_ERROR2, 0, av[1]);
+	}
+	if (objsIdx.empty()) {
+		mesage(WRNG_PARSING_ERROR3, 0, av[1]);
+	}
+	saveParsingLog(PARSING_LOGFILE);
 	makeLookatsForCameras();
-	if (DEBUG_MODE) { std::cout << *this; }
 	return SUCCESS;
 }
 
@@ -188,7 +233,11 @@ bool Scene::set_currentCamera(int idx) {
 	return false;
 }
 
-bool Scene::set_any(std::istringstream is) {
+int Scene::set_any(std::string string) {
+	return set_any(std::istringstream(string));
+}
+
+int Scene::set_any(std::istringstream is) {
 	std::string	iD;
 	size_t		id = 0;
 	
@@ -200,6 +249,8 @@ bool Scene::set_any(std::istringstream is) {
 	switch (id) {
 		case 0: {// R Resolution
 			is >> _resolution.x >> _resolution.y >> _header;
+			_resolution.x = i2limits(_resolution.x, RESOLUTION_MIN, RESOLUTION_MAX);
+			_resolution.y = i2limits(_resolution.y, RESOLUTION_MIN, RESOLUTION_MAX);
 			break;
 		}
 		case 1: {// A AmbientLightning
@@ -255,17 +306,15 @@ bool Scene::set_any(std::istringstream is) {
 					scenerys.back()->combineType = SUBTRACTION;
 				} else if (iD == "INTERSECTION") {
 					scenerys.back()->combineType = INTERSECTION;
-				} else if (iD == "XOR") {
-					scenerys.back()->combineType = XOR;
 				} else if (iD == "END") {
 					scenerys.back()->combineType = END;
 				} else {
-					return false;
+					return ERROR;
 				}
 			}
 		}
 	}
-	return true;
+	return (int)id;
 }
 
 void Scene::set_scenery(A_Scenery* scenery) {
@@ -294,9 +343,6 @@ void Scene::makeLookatsForCameras(void) {
 		cam->initMatrix();
 		cam->ambient = _ambient.light;
 		cam->space = _space.light;
-//		if (refractionsPresence) {
-//			cam->recursionDepth *= cam->recursionDepth;
-//		}
 	}
 }
 
@@ -385,10 +431,10 @@ void Scene::rotateCamera(int ctrl) {
 			pos.n.turnAroundY(radian(-STEP_ROTATION));
 			break;
 		case PITCH_UP:
-			pos.n.turnAroundX(radian(-STEP_ROTATION));
+			pos.n.turnAroundX(radian(STEP_ROTATION));
 			break;
 		case PITCH_DOWN:
-			pos.n.turnAroundX(radian(STEP_ROTATION));
+			pos.n.turnAroundX(radian(-STEP_ROTATION));
 			break;
 		case ROLL_RIGHT: {
 			cam.resetRoll(cam.get_rollDegree() + STEP_ROTATION);
@@ -426,7 +472,7 @@ void Scene::flybyCamera(void) {
 
 std::ostream& operator<<(std::ostream& o, Scene& sc) {
 	std::ostringstream os;
-	o  << "R " << std::setw(5) << sc._resolution << " " << sc._header << std::endl;
+	o  << "R " << std::setw(5) << sc._resolution.x << " " << sc._resolution.y << " " << sc._header << std::endl;
 	os << "A  " << std::setw(32) << sc._ambient;
 	o << std::setw(56) << std::left << os.str();
 	o << " #ambient liting" << std::endl;
@@ -434,23 +480,28 @@ std::ostream& operator<<(std::ostream& o, Scene& sc) {
 		o << *(*light) << std::endl;
 	}
 	int i = 0;
-	for (auto camera = sc.cameras.begin(); camera != sc.cameras.end(); ++camera, ++i) {
+	for (auto camera = ++sc.cameras.begin(); camera != sc.cameras.end(); ++camera, ++i) {
 		o << *camera << " " << i << std::endl;
 	}
 	for (auto obj = sc.objsIdx.begin(); obj != sc.objsIdx.end(); ++obj) {
 		o << *(*obj) << std::endl;
+		if ((*obj)->combineType) {
+			o << combineType((*obj)->combineType) << std::endl;
+		}
 	}
 	return o;
 }
 
 int outputFile(const char* filename) {
+	std::string		fileName(filename);
 	std::ifstream	in;
 	std::string		line;
-	in.open(filename, std::ifstream::in);
+	if (DEBUG_MODE) fileName = DEBUG_PATH + fileName;
+	in.open(fileName, std::ifstream::in);
 	if (in.fail()) {
 		int error = errno;
-		std::cerr	<< "Warning: Can't open file: "
-					<< "'" << filename << "'. "
+		std::cerr	<< "\nWarning: Can't open file: "
+					<< "'" << fileName << "'. "
 					<< strerror(error) << std::endl;
 		return error;
 	}

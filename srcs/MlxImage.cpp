@@ -28,7 +28,6 @@ flyby(FLYBY_OFF)
 
 MlxImage::~MlxImage(void) {
 	freePointers();
-	if (DEBUG_MODE) { std::cout << "~MlxImage() destructor was done.\n"; }
 }
 
 void*	MlxImage::get_mlx(void) const { return mlx; }
@@ -120,14 +119,9 @@ void	MlxImage::init(const std::string& header, const Vec2i& resolution) {
 }
 
 void	MlxImage::freePointers(void) {
-	if (DEBUG_MODE) { std::cout << "Pointers freed:";
-		if (pointers.empty()) { std::cout << " not used.\n"; }
-	}
 	while (!pointers.empty()) {
-		if (DEBUG_MODE) { std::cout << " " << pointers.top(); }
 		free(pointers.top());
 		pointers.pop();
-		if (DEBUG_MODE && pointers.empty()) { std::cout << "\n"; }
 	}
 }
 

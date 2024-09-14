@@ -21,7 +21,10 @@
 # include "keys.h"
 
 
-# define CONTROLS_FILE		"docs/controls.txt"
+# define CREATORS			"mclam, cvignar"
+# define DEBUG_PATH			"/Users/uru/Library/Mobile Documents/com~apple~CloudDocs/42_Projects/rt/"
+# define CONTROLS_FILE		"scenes/controls"
+# define PARSING_LOGFILE	"parsing.log"
 # define SUCCESS			0
 # define ERROR				-1
 # define DEBUG_MODE			false
@@ -29,6 +32,9 @@
 # define DEBUG_MOUSE		false
 # define RECURSION_DEPTH	5
 # define SMOOTHING_FACTOR 	1
+# define RESOLUTION_MIN 	100
+# define RESOLUTION_MAX 	1920
+# define DEFAULT_RESOLUTION 800,600
 # define BASE				Vec3f(0,0,0),Vec3f(0,0,1)
 # define NUM_THREADS		64
 # define RESTORE_RAYS		1

@@ -52,9 +52,27 @@ Position& Position::roll(float roll) {
 }
 
 
-
-
 // Non member functions
+
+std::ostream& operator<<(std::ostream& o, Position& pos) {
+	o << "(" << pos.p.x << "," << pos.p.y << "," << pos.p.z << "),";
+	o << "(" << pos.n.x << "," << pos.n.y << "," << pos.n.z << ")";
+	return o;
+}
+
+std::string combineType(CombineType type) {
+	switch (type) {
+		case 0:
+			return "END";
+		case 1:
+			return "UNION";
+		case 2:
+			return "SUBTRACTION";
+		case 3:
+			return "INTERSECTION";
+	}
+	return "";
+}
 
 bool almostEqual(float a, float b, float precision) { return std::fabs(a - b) < precision; }
 

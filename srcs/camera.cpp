@@ -438,7 +438,7 @@ void  Camera::traceRay(Ray& ray, int r) {
 
 void Camera::reflections(Ray& ray, const A_Scenery& scenery, int r) {
 	if (scenery.reflective) {
-		if (scenery.refractive && ray.hit == INSIDE) {
+		if (scenery.refractive) {
 			return;
 		}
 		int _color = ray.color.val, _shine = ray.shine.val;
@@ -567,10 +567,6 @@ void Camera::calculateFlybyRadius(void) {
 	}
 	if ( back > 0) {
 		_flybyRadius = (back - front) / 2 + front;
-		if (DEBUG_MODE) {
-			std::cout << "front: " << front << ", back: " << back;
-			std::cout << ", flybyRadius: " << _flybyRadius << std::endl;
-		}
 	}
 }
 

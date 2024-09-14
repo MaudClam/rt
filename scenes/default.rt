@@ -1,0 +1,98 @@
+#
+# default.rt for Ray Tracing Progtam
+#
+# Made by mclam <mclam@student.42wolfsburg.de>
+#
+# Started on  Tue Sep 13 21:18:18 2024 mclam
+# Last update Tue Sep 14 17:32:12 2024 mclam
+#
+# GENERAL RULES
+#
+# Each type of element separated by one or more line break(s).
+#
+# Each type of information from an element separated by one or more space(s).
+#
+# Each element type except Resolution (1) can be set in any order in the file.
+#
+# Elements which are defined by a capital letter only declared once.
+#
+# Each element first’s information is the type identifier (composed by one or
+# two character(s)), followed by all specific information for each object in a
+# strict order.
+#
+# Two or more objects can be combined into one object using union, subtraction,
+# or intersection operations. To do this, use the following between the objects
+# on a separate line: UNION, SUBTRACTION or INTERSECTION. For example:
+# sp  0.0,0.0,20.6  10.6  10,0,255
+# UNION
+# sp  0.0,0.0,20.6  12  10,0,255
+# INTERSECTION
+# sp  0.0,0.0,20.6  12.6  10,0,255
+#
+# (1)The first line of the file must contain the Resolution.
+#
+# (2)Will definitely be normalized during the parsing.
+#
+# (3)The value of a numeric element that is outside the allowed range will be
+# brought to the limits of this range during parsing.
+#
+# (4)Color can also be in hexadecimal formats 0xRRGGBB and #BBGGRR, where each
+# component is in the range [0,FF].
+#
+# (5)Optional. To activate an optional parameter, the previous optional
+# parameters must be active or marked '0' ('-1' for specular).
+#
+# (6)Refractive index is inactive if the refractive is '0'.
+#
+# (1) Resolution:
+# R  800  600  My_Scene
+# Identifier:                                                      R
+# x render size:                                                   800
+# y render size:                                                   600
+# Scene name whithout spaces:                                      My_Scene
+#
+# Camera:
+# c  -50.5,0,20  0,0,1  70
+# Identifier:                                                      c
+# x,y,z coordinates of the POV (point of view):                    -50.5,0,20
+# 3d normalized (2) vector in range (3) [-1.0,1.0] for each axis:  0,0,1
+# FOV (horizontal field of view) in degrees in range (3) [0,180]:  70
+#
+# Ambient lightning:
+# A  0.2  255,255,255
+# Identifier:                                                      A
+# Ambient lighting ratio in range (3) [0.0,1.0]:                   0.2
+# R,G,B (4) colors in range (3) [0,255]:                           255,255,255
+#
+# Spot Light:
+# l  -40,50,0  0.5  10,0,255
+# Identifier:                                                      l
+# x,y,z coordinates of the light point:                            -40,50,0
+# Light brightness ratio in range (3) [0.0,1.0]:                   0.5
+# R,G,B (4) colors in range (3) [0,255]:                           10,0,255
+#
+# Direct Light:
+# l  0,-1,0  0.3  10,0,255
+# Identifier:                                                      ls
+# 3d normalized (2) vector in range (3) [-1.0,1.0] for each axis:  0,-1,0
+# Light brightness ratio in range (3) [0.0,1.0]:                   0.3
+# R,G,B (4) colors in range (3) [0,255]:                           10,0,255
+#
+# Direct Light Limited By Plane:
+# ll  0,-1,0  0.3  10,0,255
+# Identifier:                                                      ll
+# 3d normalized (2) vector in range (3) [-1.0,1.0] for each axis:  0,-1,0
+# Light brightness ratio in range (3) [0.0,1.0]:                   0.3
+# R,G,B (4) colors in range (3) [0,255]:                           10,0,255
+#
+# Sphere:
+# sp  0.0,0.0,20.6  12.6  10,0,255  500  0.1  0.9  1.33
+# Identifier:                                                      sp
+# x,y,z coordinates of the sphere center:                          0.0,0.0,20.6
+# Diameter:                                                        12.6
+# R,G,B (4) colors in range (3) [0,255]:                           10,0,255
+# (5) Specular in range (3) [-1,1000] (-1 not specular):           500
+# (5) Reflective in range (3) [0.0,1.0]:                           0.1
+# (5) Refractive in range (3) [0.0,1.0]:                           0.9
+# (5,6) Refractive index at the material1/material2 interface:     1.33
+#
