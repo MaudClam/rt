@@ -20,14 +20,13 @@
 # include "camera.hpp"
 # include "keys.h"
 
-
 # define CREATORS			"mclam, cvignar"
 # define DEBUG_PATH			"/Users/uru/Library/Mobile Documents/com~apple~CloudDocs/42_Projects/rt/"
 # define CONTROLS_FILE		"scenes/controls"
 # define PARSING_LOGFILE	"parsing.log"
 # define SUCCESS			0
 # define ERROR				-1
-# define DEBUG_MODE			false
+# define DEBUG_MODE			true
 # define DEBUG_KEYS			false
 # define DEBUG_MOUSE		false
 # define RECURSION_DEPTH	5

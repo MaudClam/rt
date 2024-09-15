@@ -146,7 +146,7 @@ int Scene::saveParsingLog(const char* filename) {
 	std::string		fileName(filename);
 	std::fstream	out;
 	if (DEBUG_MODE) fileName = DEBUG_PATH + fileName;
-	out.open(filename, std::ios::out | std::ios::trunc);
+	out.open(fileName, std::ios::out | std::ios::trunc);
 	if (out.fail()) {
 		int error = errno;
 		std::cerr	<< "\nWarning: Can't open file: "
@@ -327,15 +327,11 @@ void Scene::set_scenery(A_Scenery* scenery) {
 }
 
 void Scene::makeLookatsForCameras(void) {
-	bool refractionsPresence = false;
 	for (auto cam = cameras.begin(), End = cameras.end(); cam != End; ++cam) {
 		LookatAux aux(cam->get_pos().n);
 		for (auto sc = scenerys.begin(), end = scenerys.end(); sc != end; ++sc) {
 			A_Scenery* clone = (*sc)->clone();
 			cam->set_scenery(clone);
-			if (!refractionsPresence && (*sc)->refractive > 0) {
-				refractionsPresence = true;
-			}
 		}
 	}
 	for (auto cam = cameras.begin(), End = cameras.end(); cam != End; ++cam) {
