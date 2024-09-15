@@ -5,8 +5,6 @@ SRC_DIR 	= srcs
 
 HEADER_DIR	= srcs
 
-OBJ_DIR		= obj
-
 SRC		= ${SRC_DIR}/main.cpp \
 			${SRC_DIR}/A_Scenery.cpp \
 			${SRC_DIR}/ARGBColor.cpp \
@@ -18,7 +16,7 @@ SRC		= ${SRC_DIR}/main.cpp \
 			${SRC_DIR}/Scene.cpp \
 			${SRC_DIR}/Sphere.cpp 
 
-OBJ		= ${SRC:%.cpp=${OBJ_DIR}/%.o}
+OBJ		= ${SRC:%.cpp=%.o}
 
 ifeq ($(shell uname -s), Linux)
 	MLX_DIR = mlx_linux
@@ -45,18 +43,13 @@ HEADERS	= ${HEADER_DIR}/Header.h \
 		  ${HEADER_DIR}/Ray.hpp \
 		  ${HEADER_DIR}/Scene.hpp \
 		  ${HEADER_DIR}/Sphere.hpp \
-		  ${HEADER_DIR}/keys.h
 
 CPPFLAGS = -std=c++2a -O2
 
-all: os_comp ${NAME}
+all: ${NAME}
 
-os_comp:
+%.o: %.cpp Makefile ${HEADERS} ${SPEC_HEADER}
 	-cp srcs/${SPEC_HEADER} srcs/keys.h
-
-
-${OBJ_DIR}/%.o: %.cpp ${HEADERS}
-	mkdir -p ${@D}
 	g++ ${CPPFLAGS} -Wall -Wextra -Werror -I${HEADER_DIR} -I${MLX_DIR} -o ${subst /${SRC_DIR},,$@} -c $<
 
 ${NAME}: ${OBJ}
@@ -65,7 +58,7 @@ ${NAME}: ${OBJ}
 
 clean:
 	make -C ${MLX_DIR} clean
-	rm -fr ${OBJ_DIR}
+	rm -fr ${OBJ}
 
 fclean: clean
 	rm -fr ${NAME}

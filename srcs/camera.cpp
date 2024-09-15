@@ -300,21 +300,7 @@ void Camera::resetRays_lll(size_t begin, size_t end) {
 
 bool Camera::resetFovDegree(float degree) {
 	if (_fov.set_degree(degree)) {
-		size_t size = this->matrix.size();
-		size_t begin, end;
-		std::thread th[NUM_THREADS];
-		for (int i = 0; i < NUM_THREADS; i++) {
-			begin = i * size / NUM_THREADS;
-			if (i == NUM_THREADS - 1) {
-				end = size;
-			} else {
-				end = size / NUM_THREADS * (i + 1);
-			}
-			th[i] = std::thread([this, begin, end](){restoreRays(this, begin, end);});
-		}
-		for (int i = 0; i < NUM_THREADS; i++) {
-			th[i].join();
-		}
+		runThreadRoutine(RESTORE_RAYS);
 		return true;
 	}
 	return false;
@@ -322,21 +308,22 @@ bool Camera::resetFovDegree(float degree) {
 
 void Camera::resetSmoothingFactor(int sm) {
 	_sm = sm;
-	size_t size = this->matrix.size();
-	size_t begin, end;
-	std::thread th[NUM_THREADS];
-	for (int i = 0; i < NUM_THREADS; i++) {
-		begin = i * size / NUM_THREADS;
-		if (i == NUM_THREADS - 1) {
-			end = size;
-		} else {
-			end = size / NUM_THREADS * (i + 1);
-		}
-		th[i] = std::thread([this, begin, end](){resetRays(this, begin, end);});
-	}
-	for (int i = 0; i < NUM_THREADS; i++) {
-		th[i].join();
-	}
+	runThreadRoutine(RESET_RAYS);
+//	size_t size = this->matrix.size();
+//	size_t begin, end;
+//	std::thread th[NUM_THREADS];
+//	for (int i = 0; i < NUM_THREADS; i++) {
+//		begin = i * size / NUM_THREADS;
+//		if (i == NUM_THREADS - 1) {
+//			end = size;
+//		} else {
+//			end = size / NUM_THREADS * (i + 1);
+//		}
+//		th[i] = std::thread([this, begin, end](){resetRays(this, begin, end);});
+//	}
+//	for (int i = 0; i < NUM_THREADS; i++) {
+//		th[i].join();
+//	}
 }
 
 void Camera::resetRoll(float roll) {
@@ -354,21 +341,7 @@ void Camera::resetRoll(float roll) {
 	for (auto sc = scenerys.begin(), end = scenerys.end(); sc != end; ++sc) {
 		(*sc)->roll(_pos.p, shiftRoll);
 	}
-	size_t size = this->matrix.size();
-	size_t begin, end;
-	std::thread th[NUM_THREADS];
-	for (int i = 0; i < NUM_THREADS; i++) {
-		begin = i * size / NUM_THREADS;
-		if (i == NUM_THREADS - 1) {
-			end = size;
-		} else {
-			end = size / NUM_THREADS * (i + 1);
-		}
-		th[i] = std::thread([this, begin, end](){restoreRays(this, begin, end);});
-	}
-	for (int i = 0; i < NUM_THREADS; i++) {
-		th[i].join();
-	}
+	runThreadRoutine(RESTORE_RAYS);
 	if (DEBUG_MODE) { std::cout << "roll: " << degree(_roll) << std::endl; }
 }
 
@@ -378,21 +351,7 @@ void Camera::lookatCamera(const Position& pos) {
 		(*sc)->lookat(pos, aux, _base.p, _roll);
 	}
 	set_posToBase();
-	size_t size = this->matrix.size();
-	size_t begin, end;
-	std::thread th[NUM_THREADS];
-	for (int i = 0; i < NUM_THREADS; i++) {
-		begin = i * size / NUM_THREADS;
-		if (i == NUM_THREADS - 1) {
-			end = size;
-		} else {
-			end = size / NUM_THREADS * (i + 1);
-		}
-		th[i] = std::thread([this, begin, end](){restoreRays(this, begin, end);});
-	}
-	for (int i = 0; i < NUM_THREADS; i++) {
-		th[i].join();
-	}
+	runThreadRoutine(RESTORE_RAYS);
 }
 
 void Camera::takePicture_lll(MlxImage& img, size_t begin, size_t end) {
@@ -573,13 +532,17 @@ void Camera::calculateFlybyRadius(void) {
 void Camera::runThreadRoutine(int routine, MlxImage* img) {
 	size_t size = this->matrix.size();
 	size_t begin, end;
-	std::thread th[NUM_THREADS];
-	for (int i = 0; i < NUM_THREADS; i++) {
-		begin = i * size / NUM_THREADS;
-		if (i == NUM_THREADS - 1) {
+	int numThreads = (int)(size / PIXELS_PER_THREAD);
+	if (size % PIXELS_PER_THREAD > 0) {
+		numThreads++;
+	}
+	std::thread th[numThreads];
+	for (int i = 0; i < numThreads; i++) {
+		begin = i * size / numThreads;
+		if (i == numThreads - 1) {
 			end = size;
 		} else {
-			end = size / NUM_THREADS * (i + 1);
+			end = size / numThreads * (i + 1);
 		}
 		switch (routine) {
 			case RESTORE_RAYS:
@@ -598,7 +561,7 @@ void Camera::runThreadRoutine(int routine, MlxImage* img) {
 				break ;
 		}
 	}
-	for (int i = 0; i < NUM_THREADS; i++) {
+	for (int i = 0; i < numThreads; i++) {
 		th[i].join();
 	}
 
