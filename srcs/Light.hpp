@@ -29,7 +29,6 @@ public:
 	bool intersection(Ray& ray) const;
 	void giveNormal(Ray& ray) const;
 	float lighting(Ray& ray) const;
-	bool shadow(Ray& ray, const a_scenerys_t& scenerys) const;
 	virtual void output(std::ostringstream& os);
 	friend std::ostream& operator<<(std::ostream& o, Light& sp);
 	friend std::istringstream& operator>>(std::istringstream& is, Light& sp);

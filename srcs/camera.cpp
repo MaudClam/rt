@@ -198,7 +198,10 @@ objsIdx(),
 lightsIdx(),
 ambient(),
 space(),
-recursionDepth(RECURSION_DEPTH)
+recursionDepth(RECURSION_DEPTH),
+softShadowLength(SOFT_SHADOW_LENGTH),
+softShadowSoftness(SOFT_SHADOW_SOFTNESS),
+softShadowRecursionLimit(SOFT_SHADOW_RECURSION_LIMIT)
 {	_width = img.get_width();
 	_height = img.get_height();
 	_bytespp = img.get_bytespp();
@@ -228,6 +231,9 @@ Camera& Camera::operator=(const Camera& other) {
 		ambient = other.ambient;
 		space = other.space;
 		recursionDepth = other.recursionDepth;
+		softShadowLength = other.softShadowLength;
+		softShadowSoftness = other.softShadowSoftness;
+		softShadowRecursionLimit = other.softShadowRecursionLimit;
 	}
 	return *this;
 }
@@ -339,13 +345,89 @@ void Camera::resetSmoothingFactor(int sm) {
 	}
 }
 
+void Camera::resetRecursionDepth(int rd) {
+	recursionDepth = rd;
+	size_t size = this->matrix.size();
+	size_t begin, end;
+	std::thread th[NUM_THREADS];
+	for (int i = 0; i < NUM_THREADS; i++) {
+		begin = i * size / NUM_THREADS;
+		if (i == NUM_THREADS - 1) {
+			end = size;
+		} else {
+			end = size / NUM_THREADS * (i + 1);
+		}
+		th[i] = std::thread([this, begin, end](){resetRays(this, begin, end);});
+	}
+	for (int i = 0; i < NUM_THREADS; i++) {
+		th[i].join();
+	}
+}
+
+void Camera::resetSoftShadowLength(float sl) {
+	softShadowLength = sl;
+	size_t size = this->matrix.size();
+	size_t begin, end;
+	std::thread th[NUM_THREADS];
+	for (int i = 0; i < NUM_THREADS; i++) {
+		begin = i * size / NUM_THREADS;
+		if (i == NUM_THREADS - 1) {
+			end = size;
+		} else {
+			end = size / NUM_THREADS * (i + 1);
+		}
+		th[i] = std::thread([this, begin, end](){resetRays(this, begin, end);});
+	}
+	for (int i = 0; i < NUM_THREADS; i++) {
+		th[i].join();
+	}
+}
+
+void Camera::resetSoftShadowSoftness(float ss) {
+	softShadowSoftness = ss;
+	size_t size = this->matrix.size();
+	size_t begin, end;
+	std::thread th[NUM_THREADS];
+	for (int i = 0; i < NUM_THREADS; i++) {
+		begin = i * size / NUM_THREADS;
+		if (i == NUM_THREADS - 1) {
+			end = size;
+		} else {
+			end = size / NUM_THREADS * (i + 1);
+		}
+		th[i] = std::thread([this, begin, end](){resetRays(this, begin, end);});
+	}
+	for (int i = 0; i < NUM_THREADS; i++) {
+		th[i].join();
+	}
+}
+
+void Camera::resetSoftShadowRecursionLimit(int srl) {
+	softShadowRecursionLimit = srl;
+	size_t size = this->matrix.size();
+	size_t begin, end;
+	std::thread th[NUM_THREADS];
+	for (int i = 0; i < NUM_THREADS; i++) {
+		begin = i * size / NUM_THREADS;
+		if (i == NUM_THREADS - 1) {
+			end = size;
+		} else {
+			end = size / NUM_THREADS * (i + 1);
+		}
+		th[i] = std::thread([this, begin, end](){resetRays(this, begin, end);});
+	}
+	for (int i = 0; i < NUM_THREADS; i++) {
+		th[i].join();
+	}
+}
+
 void Camera::resetRoll(float roll) {
-	if (roll >= 90) {
-		roll = radian(90);
-	} else if (roll <= -90) {
-		roll = radian(-90);
-	} else if ( almostEqual(roll, 0, EPSILON) ) {
-		roll = radian(0);
+	if (roll >= 90.) {
+		roll = radian(90.);
+	} else if (roll <= -90.) {
+		roll = radian(-90.);
+	} else if ( almostEqual(roll, 0., EPSILON) ) {
+		roll = radian(0.);
 	} else {
 		roll = radian(roll);
 	}
@@ -476,9 +558,16 @@ void Camera::lightings(Ray& ray, const A_Scenery& scenery, int r) {
 	for (auto light = lightsIdx.begin(), end = lightsIdx.end(); light != end; ++light) {
 		float k = (*light)->lighting(ray);
 		if (k) {
+			float distToLight = ray.dist;
 			A_Scenery* shadow = closestScenery(ray, ray.dist, FRONT_SHADOW);
 			if (shadow) {
-				transparentShadow(ray, *shadow, scenery, k, r);
+				float k1 = softShadow(ray, *shadow, distToLight);
+				if (!transparentShadow(ray, *shadow, scenery, k * (1. - k1), r)) {
+					if (k > 0) {
+						ray.collectLight(scenery.color, k * k1 );
+						ray.collectShine(scenery.specular, k1);
+					}
+				}
 			}  else {
 				ray.collectLight(scenery.color, k);
 				ray.collectShine(scenery.specular);
@@ -500,10 +589,28 @@ bool Camera::transparentShadow(Ray& ray, const A_Scenery& shadow, const A_Scener
 			ray.collectShadowLight(colorsSafe, scenery.color, k);
 			ray.restore(raySafe);
 			return true;
-		}
+		}	
 		ray.restore(raySafe);
 	}
 	return false;
+}
+
+float Camera::softShadow(Ray& ray, const A_Scenery& shadow, float distToLight) {
+	if (ray.recursion <= softShadowRecursionLimit &&
+		shadow.get_nick() == "sp" &&
+		softShadowSoftness < SOFT_SHADOW_LENGTH) {
+		RaySafe	raySafe(ray);
+		ray.dir = ray.dirToLight;
+		shadow.giveNormal(ray);
+		float d = ray.norm * -1 * raySafe.dirToLight;
+		if (d > 0) {
+			d = 1. - std::pow( softShadowLength * d, distToLight * softShadowSoftness ) / ray.dist;
+			ray.restore(raySafe);
+			return d;
+		}
+		ray.restore(raySafe);
+	}
+	return 0;
 }
 
 A_Scenery* Camera::closestScenery(Ray& ray, float distance, Hit hit) {
@@ -603,7 +710,6 @@ void Camera::runThreadRoutine(int routine, MlxImage* img) {
 	}
 
 }
-
 
 
 // Non member functions

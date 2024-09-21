@@ -17,35 +17,6 @@
 struct Var;
 struct Scene;
 
-enum Controls {
-	UNHOLD				= -1,
-	NEXT,
-	PREVIOUS,
-	INCREASE_FOV,
-	DECREASE_FOV,
-	STEP_FOV			= 1,
-	MOVE_RIGHT,
-	MOVE_LEFT,
-	MOVE_UP,
-	MOVE_DOWN,
-	MOVE_FORWARD,
-	MOVE_BACKWARD,
-	STEP_MOVE			= 1,
-	YAW_RIGHT,
-	YAW_LEFT,
-	PITCH_UP,
-	PITCH_DOWN,
-	ROLL_RIGHT,
-	ROLL_LEFT,
-	STEP_ROTATION		= 1,
-	FLYBY_OFF,
-	FLYBY_ON,
-	FLYBY_STEP			= 20,
-	FLYBY_RADIUS_MAX	= 100,
-	FLYBY_CLOCKWISE,
-	FLYBY_COUNTER_CLOCKWISE
-};
-
 struct ImageOptions {
 	const ARGBColor	black		= ARGBColor(  0,   0,   0);
 	const ARGBColor	darkGray	= ARGBColor( 32,  32,  32);
@@ -59,6 +30,28 @@ struct ImageOptions {
 	const ARGBColor	yellow		= ARGBColor(  255, 255, 0);
 	ImageOptions(void) {}
 	~ImageOptions(void) {}
+};
+
+class HoldKeys {
+	int	_raw[3];
+public:
+	HoldKeys(void);
+	~HoldKeys(void);
+	HoldKeys(const HoldKeys& other);
+	HoldKeys& operator=(const HoldKeys& other);
+	int  firstEmptyPlace(void);
+	int  numEmptyPlaces(void);
+	bool isInSet(int key);
+	bool isIn(int key);
+	bool hold(int key);
+	bool unhold(int key);
+	bool UNHOLD_(void);
+	bool CTRL_(void);
+	bool SHIFT_(void);
+	bool ALT_(void);
+	bool CTRL_SHIFT_(void);
+	bool CTRL_ALT_(void);
+	bool SHIFT_ALT_(void);
 };
 
 class MlxImage : public ImageOptions {
@@ -75,7 +68,7 @@ private:
 	int					lineLen;
 	int					endian;
 public:
-	int					holdKey;
+	HoldKeys			hold;
 	int					mouseHoldKey;
 	int					flyby;
 	enum ClearWhat { BOTH, DRAW_IMG, SHOW_IMG };
@@ -112,9 +105,19 @@ int		mouseKeyDown(int button, void *param);
 int		mouseKeyUp(int button, void *param);
 int		mouseMove(int button, void *param);
 int		flyby(void);
-bool	isNumericKey(int key);
-bool	isHoldKey(int key);
-int 	numericKeyToNumber(int key);
-void	changeCamera(Var& var, int key);
-
+int		_KEY(bool expression);
+int		_NUMERIC(int key);
+int		_ARROWS_LEFT_RIGHT(int key);
+int		_ARROWS_UP_DOWN(int key);
+int		_ARROWS(int key);
+int		_MINUS_PLUS(int key);
+int		_ARROWS_AND_MINUS_PLUS(int key);
+bool	quitTheProgram(bool hold, int val);
+bool	camerasSwitching(bool hold, int val);
+bool	currentCameraFOV(bool hold, int val);
+bool	currentCameraMoving(bool hold, int val);
+bool	currentCameraMoving_(bool hold, int val);
+bool	currentCameraRotation(bool hold, int val);
+bool	flybyAroundTheScene(bool hold, int val);
+bool	camerasOptions(int option, bool hold, int val);
 #endif /* MLXIMAGE_HPP */

@@ -14,7 +14,9 @@
 class	A_Scenery;
 class	MlxImage;
 class	Camera;
-typedef std::vector<Camera>	cameras_t;
+typedef std::vector<std::string>	stringSet_t;
+typedef std::vector<float>			floatSet_t;
+typedef std::vector<Camera>			cameras_t;
 
 enum MsgType {
 	WELLCOM_MSG,
@@ -28,8 +30,14 @@ enum MsgType {
 };
 
 struct Scene {
-	const std::vector<std::string> nicks {
+	const stringSet_t nicks {
 		"R","A","c","l","ls","ll","sp"
+	};
+	const floatSet_t softShadowLengths {
+		1.0, 1.2, 1.4, 1.6, 1.8, 2.0, 2.2, 2.4, 2.6, 2.8, 3.0, 4.0, 5.0, 6.0, 100.0
+	};
+	const floatSet_t softShadowSoftnesses {
+		10.0, 5.0, 4.0, 3.0, 2.0, 1.0, 0.9, 0.8, 0.7, 0.6, 0.5, 0.4, 0.3, 0.2, 0.1
 	};
 	MlxImage&		img;
 	a_scenerys_t	scenerys;
@@ -64,6 +72,8 @@ public:
 	void moveCamera(int ctrl);
 	void rotateCamera(int ctrl);
 	void flybyCamera(void);
+	void changeCamerasOptions(int key, int option);
+	float giveValue(const floatSet_t& set, float val, int key);
 	friend std::ostream& operator<<(std::ostream& o, Scene& sc);
 };
 	int  outputFile(const char* filename);

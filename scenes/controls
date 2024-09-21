@@ -18,11 +18,21 @@
 | 'Shift' + arrow keys       - yaw/pitch                      |
 | 'Shift' + '-'/'+'          - roll                           |
 |                                                             |
-| Smoothing (antialiasing) factor:                            |
-| num keys '1','2','3','4'   - 1, 4, 9, 16 rays per pixel     |
-|                                                             |
 | Flyby around the scene:                                     |
 | 'space'                    - on/reverse/off                 |
+|                                                             |                                                            |
+| Change Smoothing (antialiasing) factor:                     |
+| num keys '1','2','3','4'   - 1, 4, 9, 16 rays per pixel     |
+| '1' - default                                               |
+|                                                             |
+| Change Recursion Depth:                                     |
+| 'Shift' + num keys '0','1', ...,'9'                         |
+| '5' - default                                               |
+|                                                             |
+| SOFT SHADOW OPTIONS                                         |
+| Length:          'Ctrl' + '-'/'+'                           |
+| Softness:        'Ctrl' + 'Shift' + '-'/'+'                 |
+| Recursion Limit: 'Ctrl' + num keys '0','1', ...,'9'         |
 |                                                             |
 \-------------------------------------------------------------/
 Enjoy! :)

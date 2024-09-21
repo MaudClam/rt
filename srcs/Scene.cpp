@@ -90,8 +90,8 @@ void Scene::systemDemo(void) {
 		_currentCamera = 1;
 	saveParsingLog(PARSING_LOGFILE);
 	makeLookatsForCameras();
-	this->cameras[_currentCamera].calculateFlybyRadius();
-	img.flyby = FLYBY_COUNTER_CLOCKWISE;
+	cameras[_currentCamera].calculateFlybyRadius();
+	img.flyby = COUNTER_CLOCKWISE;
 }
 
 void Scene::mesage(MsgType type, int line, const std::string& hint, int error) {
@@ -209,7 +209,7 @@ int  Scene::parsing(int ac, char** av) {
 int  Scene::get_currentCamera(void) { return _currentCamera;}
 
 bool Scene::set_currentCamera(int idx) {
-	if (idx >= 0 && idx < (int)cameras.size()) {
+	if (idx >= 0 && idx < (int)cameras.size() && _currentCamera != idx) {
 		_currentCamera = idx;
 		Camera* cCam = &cameras[_currentCamera];
 		size_t size = cameras[_currentCamera].matrix.size();
@@ -227,7 +227,7 @@ bool Scene::set_currentCamera(int idx) {
 		for (int i = 0; i < NUM_THREADS; i++) {
 			th[i].join();
 		}
-		if (DEBUG_MODE) { std::cout << "currentCamera: " << _currentCamera << "\n";}
+		if (DEBUG_KEYS) { std::cout << "currentCamera: " << _currentCamera << "\n";}
 		return true;
 	}
 	return false;
@@ -351,66 +351,42 @@ void Scene::rt(void) {
 
 void Scene::selectCamera(int ctrl) {
 	switch (ctrl) {
-		case NEXT: {
-			if (set_currentCamera(_currentCamera +  1))
-				rt();
+		case NEXT:		if (!set_currentCamera(_currentCamera +  1)) return;
 			break;
-		}
-		case PREVIOUS: {
-			if (set_currentCamera(_currentCamera -  1))
-				rt();
+		case PREVIOUS:	if (!set_currentCamera(_currentCamera -  1)) return;
 			break;
-		}
-		default: {
-			if (set_currentCamera(ctrl))
-				rt();
+		default:		if (!set_currentCamera(ctrl)) return;
 			break;
-		}
 	}
-	img.flyby = FLYBY_OFF;
+	img.flyby = OFF;
+	rt();
 }
 
 void Scene::changeCameraFOV(int ctrl) {
 	Camera& cam(cameras[_currentCamera]);
 	float fovDegree = cam.get_fovDegree();
 	switch (ctrl) {
-		case INCREASE_FOV: {
-			if (cam.resetFovDegree(fovDegree + STEP_FOV)) { rt(); }
+		case INCREASE:	if (!cam.resetFovDegree(fovDegree + (float)STEP_FOV)) return;
 			break;
-		}
-		case DECREASE_FOV: {
-			if (cam.resetFovDegree(fovDegree - STEP_FOV)) { rt(); }
+		case DECREASE:	if (!cam.resetFovDegree(fovDegree - (float)STEP_FOV)) return;
 			break;
-		}
-		default:
+		default:		if (!cam.resetFovDegree((float)ctrl)) return;
 			break;
-		}
+	}
+	rt();
 }
 
 void Scene::moveCamera(int ctrl) {
 	Camera&   cam(cameras[_currentCamera]);
 	Position  pos(cam.get_pos());
 	switch (ctrl) {
-		case MOVE_RIGHT:
-			pos.p.x += STEP_MOVE;
-			break;
-		case MOVE_LEFT:
-			pos.p.x -= STEP_MOVE;
-			break;
-		case MOVE_UP:
-			pos.p.y += STEP_MOVE;
-			break;
-		case MOVE_DOWN:
-			pos.p.y -= STEP_MOVE;
-			break;
-		case MOVE_FORWARD:
-			pos.p.z += STEP_MOVE;
-			break;
-		case MOVE_BACKWARD:
-			pos.p.z -= STEP_MOVE;
-			break;
-		default:
-			return;
+		case RIGHT:		pos.p.x += (float)STEP_MOVE; break;
+		case LEFT:		pos.p.x -= (float)STEP_MOVE; break;
+		case UP:		pos.p.y += (float)STEP_MOVE; break;
+		case DOWN:		pos.p.y -= (float)STEP_MOVE; break;
+		case FORWARD:	pos.p.z += (float)STEP_MOVE; break;
+		case BACKWARD:	pos.p.z -= (float)STEP_MOVE; break;
+		default:		return;
 	}
 	cam.lookatCamera(pos);
 	rt();
@@ -420,29 +396,13 @@ void Scene::rotateCamera(int ctrl) {
 	Camera&  cam(cameras[_currentCamera]);
 	Position pos(cam.get_pos());
 	switch (ctrl) {
-		case YAW_RIGHT:
-			pos.n.turnAroundY(radian(STEP_ROTATION));
-			break;
-		case YAW_LEFT:
-			pos.n.turnAroundY(radian(-STEP_ROTATION));
-			break;
-		case PITCH_UP:
-			pos.n.turnAroundX(radian(STEP_ROTATION));
-			break;
-		case PITCH_DOWN:
-			pos.n.turnAroundX(radian(-STEP_ROTATION));
-			break;
-		case ROLL_RIGHT: {
-			cam.resetRoll(cam.get_rollDegree() + STEP_ROTATION);
-			rt();
-			return;
-		}
-		case ROLL_LEFT:
-			cam.resetRoll(cam.get_rollDegree() - STEP_ROTATION);
-			rt();
-			return;
-		default:
-			return;
+		case YAW_RIGHT:		pos.n.turnAroundY(radian((float)STEP_ROTATION)); break;
+		case YAW_LEFT:		pos.n.turnAroundY(radian(-(float)STEP_ROTATION)); break;
+		case PITCH_UP:		pos.n.turnAroundX(radian((float)STEP_ROTATION)); break;
+		case PITCH_DOWN:	pos.n.turnAroundX(radian(-(float)STEP_ROTATION)); break;
+		case ROLL_RIGHT:	cam.resetRoll(cam.get_rollDegree() + (float)STEP_ROTATION); rt(); return;
+		case ROLL_LEFT:		cam.resetRoll(cam.get_rollDegree() - (float)STEP_ROTATION); rt(); return;
+		default:			return;
 	}
 	cam.lookatCamera(pos);
 	rt();
@@ -452,7 +412,7 @@ void Scene::flybyCamera(void) {
 	Camera&		cam(cameras[_currentCamera]);
 	Position	pos(cam.get_pos());
 	float angle = radian(FLYBY_STEP / 10.), radius = cam.get_flybyRadius();
-	if (img.flyby == FLYBY_CLOCKWISE) {
+	if (img.flyby == CLOCKWISE) {
 		angle = -angle;
 	}
 	pos.p.z += radius;
@@ -461,6 +421,77 @@ void Scene::flybyCamera(void) {
 	pos.p.z -= radius;
 	cam.lookatCamera(pos);
 	rt();
+}
+
+void Scene::changeCamerasOptions(int key, int option) {
+	if (cameras.empty()) return;
+	float val = 0;
+	switch (option) {
+		case CHANGE_SMOOTHING_FACTOR: {
+			if (key == 0 || key > 4) return;
+			break;
+		}
+		case CHANGE_SOFT_SHADOW_LENGTH: {
+			val = cameras[0].softShadowLength;
+			float _val = giveValue(softShadowLengths, val, key);
+			if (val == _val) return;
+			val = _val;
+			if (DEBUG_MODE) std::cout << "softShadowLengths: " << val << std::endl;
+			break;
+		}
+		case CHANGE_SOFT_SHADOW_SOFTNESS: {
+			val = cameras[0].softShadowSoftness;
+			float _val = giveValue(softShadowSoftnesses, val, key);
+			if (val == _val) return;
+			val = _val;
+			if (DEBUG_MODE) std::cout << "softShadowSoftnesses: " << val << std::endl;
+			break;
+		}
+		default:
+			break;
+	}
+	for (auto cam = cameras.begin(), end = cameras.end(); cam != end; ++cam) {
+		switch (option) {
+			case CHANGE_SMOOTHING_FACTOR:
+				cam->resetSmoothingFactor(key);
+				break;
+			case CHANGE_RECURSION_DEPTH:
+				cam->resetRecursionDepth(key);
+				break;
+			case CHANGE_SOFT_SHADOW_LENGTH:
+				cam->resetSoftShadowLength(val);
+				break;
+			case CHANGE_SOFT_SHADOW_SOFTNESS:
+				cam->resetSoftShadowSoftness(val);
+				break;
+			case CHANGE_SOFT_SHADOW_RECURSION_LIMIT:
+				cam->resetSoftShadowRecursionLimit(key);
+				break;
+			default:
+				return;
+		}
+	}
+	rt();
+}
+
+float Scene::giveValue(const floatSet_t& set, float val, int key) {
+	size_t i = 0, size = set.size();
+	if (size > 0) {
+		while ( i < size && set[i] != val) {
+			i++;
+		}
+		if (i != size) {
+			switch (key) {
+				case NEXT:		i++; break;
+				case PREVIOUS:	i--; break;
+			}
+			if (i >= 0 && i < size)
+				val = set[i];
+		} else {
+			val = set[size / 2];
+		}
+	}
+	return val;
 }
 
 

@@ -78,6 +78,9 @@ public:
 	a_scenerys_t		lightsIdx;
 	ARGBColor 			ambient, space;
 	int					recursionDepth;
+	float				softShadowLength;
+	float				softShadowSoftness;
+	int					softShadowRecursionLimit;
 	Camera(const MlxImage& img);
 	~Camera(void);
 	Camera(const Camera& other);
@@ -98,6 +101,10 @@ public:
 	static void resetRays(Camera* camera, size_t begin, size_t end);
 	bool	resetFovDegree(float degree);
 	void	resetSmoothingFactor(int smoothingFactor);
+	void	resetRecursionDepth(int recursionDepth);
+	void	resetSoftShadowLength(float softShadowLength);
+	void	resetSoftShadowSoftness(float softShadowSoftness);
+	void	resetSoftShadowRecursionLimit(int softShadowRecursionLimit);
 	void	resetRoll(float roll);
 	void	lookatCamera(const Position& pos);
 	void	takePicture_lll(MlxImage& img, size_t begin, size_t end);
@@ -108,6 +115,7 @@ public:
 	void	reflections(Ray& ray, const A_Scenery& scenery, int r);
 	void	refractions(Ray& ray, const A_Scenery& scenery, int r);
 	bool	transparentShadow(Ray& ray, const A_Scenery& shadow, const A_Scenery& scenery, float k, int r);
+	float	softShadow(Ray& ray, const A_Scenery& shadow, float distToLight);
 	void	lightings(Ray& ray, const A_Scenery& scenery, int r);
 	A_Scenery* closestScenery(Ray& ray, float distance, Hit hit = FRONT);
 	void	calculateFlybyRadius(void);

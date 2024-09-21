@@ -92,19 +92,6 @@ float Light::lighting(Ray& ray) const {
 	return k;
 }
 
-bool Light::shadow(Ray& ray, const a_scenerys_t& scenerys) const {
-	float distance = ray.dist;
-	for (auto scenery = scenerys.begin(), end = scenerys.end(); scenery != end; ++scenery) {
-		ray.hit = FRONT_SHADOW;
-		if ( (*scenery)->intersection(ray) ) {
-			if (distance > ray.dist) {
-				return true;
-			}
-		}
-	}
-	return false;
-}
-
 void Light::output(std::ostringstream& os) {
 	os << *this;
 }

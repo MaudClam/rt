@@ -188,12 +188,12 @@ struct Ray : public RaySafe {
 	inline void collectLight(const ARGBColor& sceneryColor, float k = 1) {
 		color.addition(color, light * sceneryColor * k);
 	}
-	inline void collectShine(int specular) {
+	inline void collectShine(int specular, float k1 = 1) {
 		if (specular != -1) {
 			float k = dirToLight.reflect(norm) * dirFromCam;
 			if (k > 0) {
 				k = std::pow(k, specular);
-				shine.addition(shine, light * k);
+				shine.addition(shine, light * (k * k1));
 			}
 		}
 	}
