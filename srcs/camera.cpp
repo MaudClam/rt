@@ -199,7 +199,7 @@ lightsIdx(),
 ambient(),
 space(),
 recursionDepth(RECURSION_DEPTH),
-softShadowLength(SOFT_SHADOW_LENGTH),
+softShadowLength(SOFT_SHADOW_LENGTH_LIMIT),
 softShadowSoftness(SOFT_SHADOW_SOFTNESS),
 softShadowRecursionLimit(SOFT_SHADOW_RECURSION_LIMIT)
 {	_width = img.get_width();
@@ -558,59 +558,85 @@ void Camera::lightings(Ray& ray, const A_Scenery& scenery, int r) {
 	for (auto light = lightsIdx.begin(), end = lightsIdx.end(); light != end; ++light) {
 		float k = (*light)->lighting(ray);
 		if (k) {
-			float distToLight = ray.dist;
-			A_Scenery* shadow = closestScenery(ray, ray.dist, FRONT_SHADOW);
-			if (shadow) {
-				float k1 = softShadow(ray, *shadow, distToLight);
-				if (!transparentShadow(ray, *shadow, scenery, k * (1. - k1), r)) {
-					if (k > 0) {
-						ray.collectLight(scenery.color, k * k1 );
-						ray.collectShine(scenery.specular, k1);
-					}
-				}
-			}  else {
-				ray.collectLight(scenery.color, k);
-				ray.collectShine(scenery.specular);
-			}
+			shadow(ray, scenery.specular, r);
+			ray.collectLight(scenery.color, k);
 		}
 	}
 }
 
-bool Camera::transparentShadow(Ray& ray, const A_Scenery& shadow, const A_Scenery& scenery, float k, int r) {
-	if (shadow.refractive) {
-		RaySafe	raySafe(ray);
-		ray.dir = ray.dirToLight;
-		shadow.giveNormal(ray);
-		if (ray.dir.refract(ray.norm, ray.hit == INSIDE ? shadow.matIOR : shadow.matOIR)) {
-			ColorsSafe	colorsSafe(ray);
-			ray.movePovByNormal(EPSILON);
-			traceRay(ray, ++r);
-			ray.collectRefractiveLight(shadow.color, colorsSafe.color, shadow.refractive);
-			ray.collectShadowLight(colorsSafe, scenery.color, k);
-			ray.restore(raySafe);
-			return true;
-		}	
+bool Camera::transparentShadow(Ray& ray, const A_Scenery& shader, float d, int r) {
+	RaySafe	raySafe(ray);
+	ray.dir = ray.dirToLight;
+	shader.giveNormal(ray);
+	if (ray.dir.refract(ray.norm, ray.hit == INSIDE ? shader.matIOR : shader.matOIR)) {
+		ColorsSafe	colorsSafe(ray);
+		ray.movePovByNormal(EPSILON);
+		traceRay(ray, ++r);
+		ray.collectRefractiveLight(shader.color, colorsSafe.color, shader.refractive);
+		ray.collectShadowLight(colorsSafe, d);
 		ray.restore(raySafe);
+		return true;
 	}
+	ray.restore(raySafe);
 	return false;
 }
 
-float Camera::softShadow(Ray& ray, const A_Scenery& shadow, float distToLight) {
-	if (ray.recursion <= softShadowRecursionLimit &&
-		shadow.get_nick() == "sp" &&
-		softShadowSoftness < SOFT_SHADOW_LENGTH) {
-		RaySafe	raySafe(ray);
-		ray.dir = ray.dirToLight;
-		shadow.giveNormal(ray);
-		float d = ray.norm * -1 * raySafe.dirToLight;
-		if (d > 0) {
-			d = 1. - std::pow( softShadowLength * d, distToLight * softShadowSoftness ) / ray.dist;
-			ray.restore(raySafe);
-			return d;
+void Camera::shadow(Ray& ray, float specular, int r) {
+	(void)r;
+	A_Scenery* shader = objsIdx.back();
+	float distToLight = ray.dist, d = 1.;
+	RaySafe raySafe(ray);
+	ColorsSafe colorsSafe(ray);
+//	Vec3f pov(ray.pov);
+	bool odd = true, softOff = softShadowLength >= SOFT_SHADOW_LENGTH_LIMIT;
+
+	while (shader && d >= 0.003922) {
+		shader = closestScenery(ray, distToLight, FRONT_SHADOW);
+		if (shader) {
+			if (odd) {
+				odd = false;
+//				if (shader->refractive) {
+//					if (softOff) {
+//						ray.collectShine(specular, 1. - d);
+//						transparentShadow(ray, *shader, d, r);
+//						ray.pov = pov;
+//						return;
+//					} else {
+//					d *= ::softShadow(shader->getRelativeDistanceToShaderEdge(ray),
+//									  ray.dist, distToLight, softShadowLength, softShadowSoftness);
+//						ray.collectShine(specular, d);
+//						transparentShadow(ray, *shader, 1. - d, r);
+//						ray.pov = pov;
+//						return;
+//					}
+//				}
+				if (softOff) { d = 0.; break; }
+			} else { //even
+				odd = true;
+				if (softOff) { d = 0.; break; }
+//				if (ray.hit == INSIDE) {
+//					d *= ::softShadow(shader->getRelativeDistanceToShaderEdge(ray),
+//									  ray.dist, distToLight, softShadowLength, softShadowSoftness);
+//				}
+			}
+			if (d >= 0.003922) {
+//				ray.movePovByDirToLightToDist();
+				distToLight -= ray.dist;
+//				if (distToLight < 0.) {
+					d = 0.;
+//				}
+			} else {
+				d = 0.;
+			}
 		}
-		ray.restore(raySafe);
+		
+		
 	}
-	return 0;
+	ray.restore(raySafe);
+	ray.restore(colorsSafe);
+//	ray.pov = pov;
+	ray.light.product(d);
+	ray.collectShine(specular);
 }
 
 A_Scenery* Camera::closestScenery(Ray& ray, float distance, Hit hit) {

@@ -97,6 +97,26 @@ float degree(float radian) {
 }
 
 
+// Soft Sadow
+
+float softShadow(float distToEdge,
+				 float distToShader,
+				 float distToLight,
+				 float lenght,
+				 float softness) {
+	if (distToEdge > 0.) {
+		float d = 1. - std::pow( lenght * distToEdge / distToShader, softness * distToLight );
+		if (d < 0.003922)
+			return 0.;
+		else if (d > 1.)
+			return 1.;
+		else
+			return d;
+	}
+	return 0.;
+}
+
+
 // Intersections, normals, rays
 
 bool raySphereIntersection(const Vec3f& rayDir,
@@ -162,6 +182,16 @@ bool raySphereIntersection(const Vec3f& rayDir,
 void normalToRaySphereIntersect(const Vec3f& intersectPt, const Vec3f& center, Vec3f& normal) {
 	normal.substract(intersectPt, center).normalize();
 }
+
+float distanceToSphericalShaderEdge(const Vec3f& intersectPt,
+									const Vec3f& center,
+									const Vec3f& dirToLight,
+									float radius) {
+	float d = (center - intersectPt).normalize() * dirToLight * radius;
+	return 	d > 0. ? d : 0.;
+}
+
+
 
 bool rayPlaneIntersection(const Vec3f& pov,
 						  const Vec3f& dir,

@@ -3,7 +3,7 @@ R	800 600		Arches
 #	Lights
 #				ratio	color
 A				0.2		0xFFFFFF
-ls	25,50,25	0.6		0xFFFFFF
+lы	5,10,5	0.6		0xFFFFFF
 l	-25,10,25	0.5		0xFFFFFF
 
 #	Cameras
@@ -13,11 +13,11 @@ c	0,25,0		0,-1,0		90
 
 #	Spheres
 #	center		diametr	color			specular	reflective	refractive	matIOR
-sp	-3,0.6,14	12		0xFFFFFF		500			0.05			0.95	1.33
-INTERSECTION
-sp	3,0.6,14	12		0xFFFFFF		500			0.05			0.95	1.33
-INTERSECTION
-sp	0,0.7,8		12		0xFFFFFF		500			0.05			0.95	1.33
+#sp	-3,0.6,14	12		0xFFFFFF		500			0.05			0.95	1.33
+#INTERSECTION
+#sp	3,0.6,14	12		0xFFFFFF		500			0.05			0.95	1.33
+#INTERSECTION
+#sp	0,0.7,8		12		0xFFFFFF		500			0.05			0.95	1.33
 #
 sp	0,0,0		20		0xFFFFFF		500			0.2
 SUBTRACTION

@@ -16,7 +16,7 @@
 
 # define PRECISION		1e-9
 # define EPSILON 		1e-3
-# define _INFINITY		100
+# define _INFINITY		1000
 
 enum 	Hit { FRONT, BACK, OUTLINE, FRONT_SHADOW, INSIDE, OUTSIDE };
 enum	CombineType { END=0, UNION, SUBTRACTION, INTERSECTION };
@@ -120,6 +120,10 @@ template <class t> struct Vec3 {
 		product(-1);
 		substract(norm * (*this * norm * 2), *this).normalize();
 		return *this;
+	}
+	inline Vec3<t> get_reflect(const Vec3<t>& norm) {
+		Vec3<t> v(*this);
+		return v.reflect(norm);
 	}
 	inline bool refract(Vec3<t> normal, float eta) {
 //		float eta = 1. / matIOR; // eta = in_IOR/out_IOR
@@ -250,7 +254,13 @@ struct Position {
 
 std::ostream& operator<<(std::ostream& o, Position& pos);
 
+// Soft Sadow
 
+float softShadow(float distToEdge,
+				 float distToShader,
+				 float distToLight,
+				 float lenght,
+				 float softness);
 
 // Intersections, normals, rays
 
@@ -274,6 +284,11 @@ bool raySphereIntersection(const Vec3f& rayDir,
 void normalToRaySphereIntersect(const Vec3f& intersectPt,
 								const Vec3f& center,
 								Vec3f& normal);
+
+float distanceToSphericalShaderEdge(const Vec3f& intersectPt,
+									const Vec3f& center,
+									const Vec3f& dirToLight,
+									float radius);
 
 bool rayPlaneIntersection(const Vec3f& pov,
 						  const Vec3f& dir,

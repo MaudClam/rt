@@ -114,8 +114,8 @@ public:
 	void	traceRay(Ray& ray, int r = 0);
 	void	reflections(Ray& ray, const A_Scenery& scenery, int r);
 	void	refractions(Ray& ray, const A_Scenery& scenery, int r);
-	bool	transparentShadow(Ray& ray, const A_Scenery& shadow, const A_Scenery& scenery, float k, int r);
-	float	softShadow(Ray& ray, const A_Scenery& shadow, float distToLight);
+	bool	transparentShadow(Ray& ray, const A_Scenery& shader, float d, int r);
+	void	shadow(Ray& ray, float specular, int r);
 	void	lightings(Ray& ray, const A_Scenery& scenery, int r);
 	A_Scenery* closestScenery(Ray& ray, float distance, Hit hit = FRONT);
 	void	calculateFlybyRadius(void);

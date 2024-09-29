@@ -68,14 +68,14 @@ ARGBColor& ARGBColor::substract(const ARGBColor& c1, const ARGBColor& c2) {
 
 ARGBColor& ARGBColor::product(const ARGBColor& c1, const ARGBColor& c2) {
 	for (int i = 0; i < 4; ++i) {
-		raw[i] = c1.raw[i] * c2.raw[i] * 0.003922;
+		raw[i] = (unsigned char)(c1.raw[i] * c2.raw[i] * 0.003922);
 	}
 	return *this;
 }
 
 ARGBColor& ARGBColor::product(float f) {
 	for (int i = 0; i < 4; ++i) {
-		raw[i] = f2limits(raw[i] * f, 0., 255.);
+		raw[i] = (unsigned char)f2limits((float)raw[i] * f, 0., 255.);
 	}
 	return *this;
 }

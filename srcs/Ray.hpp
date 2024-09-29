@@ -180,6 +180,9 @@ struct Ray : public RaySafe {
 	inline void movePovByNormal(float distance) {
 		pov.addition(pov, norm * distance);
 	}
+	inline void movePovByDirToLightToDist(void) {
+		pov.addition(pov, dirToLight * (dist + EPSILON));
+	}
 	inline void fixDirFromCam_if(void) {
 		if (!recursion) {
 			dirFromCam = dir;
@@ -188,12 +191,12 @@ struct Ray : public RaySafe {
 	inline void collectLight(const ARGBColor& sceneryColor, float k = 1) {
 		color.addition(color, light * sceneryColor * k);
 	}
-	inline void collectShine(int specular, float k1 = 1) {
-		if (specular != -1) {
-			float k = dirToLight.reflect(norm) * dirFromCam;
-			if (k > 0) {
+	inline void collectShine(int specular, float d = 1.) {
+		if (specular != -1 && d > 0.) {
+			float k = dirToLight.get_reflect(norm) * dirFromCam;
+			if (k > 0.) {
 				k = std::pow(k, specular);
-				shine.addition(shine, light * (k * k1));
+				shine.addition(shine, light * (k * d));
 			}
 		}
 	}
@@ -209,12 +212,13 @@ struct Ray : public RaySafe {
 		light.val = _color;
 		color.addition(color.product(color,sceneryColor).product(refractive), light.product(previous));
 	}
-	inline void collectShadowLight(const ColorsSafe& colorsSafe, const ARGBColor& sceneryColor, float k) {
-		light = color;
-		color.val = colorsSafe.color;
-		collectLight(sceneryColor, k);
-		shine.val = colorsSafe.shine;
+	inline void collectShadowLight( ColorsSafe& colorsSafe, float d) {
+		(void)d;
+		float l = 1. - d;
 		light.val = colorsSafe.light;
+		light.addition(light.product(l), color.product(d));
+		color.val = colorsSafe.color;
+		shine.val = colorsSafe.shine;
 	}
 };
 

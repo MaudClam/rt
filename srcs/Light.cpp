@@ -58,6 +58,11 @@ void Light::giveNormal(Ray& ray) const {
 	(void)ray;
 }
 
+float Light::getRelativeDistanceToShaderEdge(Ray& ray) const {
+	(void)ray;
+	return 1.;
+}
+
 float Light::lighting(Ray& ray) const {
 	float k = 0;
 	switch (_type) {

@@ -90,6 +90,19 @@ void Sphere::giveNormal(Ray& ray) const {
 	}
 }
 
+float Sphere::getRelativeDistanceToShaderEdge(Ray& ray) const {
+	if (ray.hit == INSIDE) {
+		return distanceToSphericalShaderEdge(_pos.p,
+											 ray.pov + ray.dirToLight * ray.dist,
+											 ray.dirToLight,
+											 _radius);
+	}
+	return distanceToSphericalShaderEdge(ray.pov + ray.dirToLight * ray.dist,
+										 _pos.p,
+										 ray.dirToLight,
+										 _radius);
+}
+
 float Sphere::lighting(Ray& ray) const {
 	(void)ray;
 	return 0;
