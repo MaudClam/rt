@@ -36,7 +36,8 @@ dir(other.dir),
 dirFromCam(other.dirFromCam),
 dirToLight(other.dirToLight),
 norm(other.norm),
-dist(other.dist)
+dist(other.dist),
+hit(FRONT)
 {}
 
 RaySafe& RaySafe::operator=(const RaySafe& other) {
@@ -47,6 +48,7 @@ RaySafe& RaySafe::operator=(const RaySafe& other) {
 		dirToLight = other.dirToLight;
 		norm = other.norm;
 		dist = other.dist;
+		hit = other.hit;
 	}
 	return *this;
 }
@@ -58,6 +60,7 @@ RaySafe& RaySafe::operator=(const Ray& ray) {
 	dirToLight = ray.dirToLight;
 	norm = ray.norm;
 	dist = ray.dist;
+	hit = ray.hit;
 	return *this;
 }
 
@@ -99,9 +102,7 @@ intersections(),
 light(),
 shine(),
 color(),
-hit(FRONT),
-t1(END),
-t2(END),
+combineType(END),
 segments()
 {}
 
@@ -118,13 +119,12 @@ Ray& Ray::operator=(const Ray& other) {
 		dirToLight = other.dirToLight;
 		norm = other.norm;
 		dist = other.dist;
+		hit = other.hit;
 		intersections = other.intersections;
 		light = other.light;
 		shine = other.shine;
 		color = other.color;
-		hit = other.hit;
-		t1 = other.t1;
-		t2 = other.t2;
+		combineType = other.combineType;
 		segments = other.segments;
 	}
 	return *this;
@@ -137,6 +137,7 @@ Ray& Ray::operator=(const RaySafe& raySafe) {
 	dirToLight = raySafe.dirToLight;
 	norm = raySafe.norm;
 	dist = raySafe.dist;
+	hit = raySafe.hit;
 	return *this;
 }
 
@@ -162,107 +163,206 @@ Ray& Ray::set_hit(Hit hit) {
 	return *this;
 }
 
-void Ray::combineStart(A_Scenery* scenery, Hit targetHit) {
-	t1 = scenery->combineType;
+
+A_Scenery* Ray::closestScenery(a_scenerys_t& scenerys, float maxDistance, Hit target) {
+	float		_distance = maxDistance;
+	Hit			_hit = target;
+	A_Scenery*	_closest = NULL;
 	segments.clear();
-	if ( scenery->intersection(this->set_hit(targetHit)) ) {
-		intersections.activate(scenery);
-		emplace(intersections);
-	}
-}
-
-void Ray::combineNext(A_Scenery* scenery, Hit targetHit) {
-	t2 = scenery->combineType;
-	if ( scenery->intersection(this->set_hit(targetHit)) ) {
-		intersections.activate(scenery);
-	} else {
-		intersections.activate(NULL);
-	}
-	if (t1 == UNION) {
-		if (first() && second()) {
-			combination(t1);
-		} else if (!first() && !second()) {
-			noVisible();
-		} else if (!first() && second()) {
-			secondVisible();
-		} else if (first() && !second()) {
-			firstVisible();
-		}
-	} else if (t1 == SUBTRACTION) {
-		if (first() && second()) {
-			combination(t1);
-		} else if (!first() && !second()) {
-			noVisible();
-		} else if (!first() && second()) {
-			noVisible();
-		} else if (first() && !second()) {
-			firstVisible();
-		}
-	} else if (t1 == INTERSECTION) {
-		if (first() && second()) {
-			combination(t1);
+	for (auto scenery = scenerys.begin(), end = scenerys.end(); scenery != end; ++scenery) {
+		if ( (*scenery)->combineType == END ) {
+			if ( (*scenery)->intersection(set_hit(target)) && _distance > dist ) {
+				_closest = *scenery;
+				_distance = dist;
+				_hit = hit;
+				if (target == FIRST_SHADOW) {
+					intersections.activate(*scenery);
+					emplace(intersections, false);
+				}
+			}
 		} else {
-			noVisible();
+			A_Scenery* _combine = combine(scenery, end, _distance, target);
+			if (_combine) {
+				_closest = _combine;
+				_distance = dist;
+				_hit = hit;
+			}
+		}
+		if (target == ANY_SHADOW && _closest) {
+			dist = _distance;
+			hit = _hit;
+			return _closest;
 		}
 	}
-	t1 = t2;
+	if (_closest) {
+		dist = _distance;
+		hit = _hit;
+		return _closest;
+	}
+	return NULL;
 }
 
-void Ray::combination(CombineType type) {
+A_Scenery* Ray::combine(a_scenerys_it& scenery, a_scenerys_it& end, float distance, Hit target) {
+	for (; scenery != end; ++scenery) {
+		if ( (*scenery)->intersection(set_hit(target)) ) {
+			intersections.activate(*scenery);
+		} else {
+			intersections.activate(NULL);
+		}
+		if (combineType == END) {				// first element
+			combineType = (*scenery)->combineType;
+			emplace(intersections, true);
+		} else {								// each next element
+			combination();
+			combineType = (*scenery)->combineType;
+		}
+		if ( (*scenery)->combineType == END ) {	// last element
+			combineType = END;
+			return getCombine(intersections.a.set(distance, false, NULL));
+		}
+	}
+	return NULL;
+}
+
+A_Scenery* Ray::getCombine(Point& nearest) {
+	auto segment = segments.before_begin(), segmentNext = segments.begin();
+	for (; segment != segments.end(); ++segment) {
+		segmentNext = segment; segmentNext++;
+		while (segmentNext != segments.end() && segmentNext->removed) {
+			segmentNext = segments.erase_after(segment);
+		}
+		if (segmentNext != segments.end() && segmentNext->combine) {
+			if (nearest.d > segmentNext->a.d && segmentNext->a.d >= 0) {
+				nearest = segmentNext->a;
+			}
+			if (nearest.d > segmentNext->b.d && segmentNext->b.d >= 0) {
+				nearest = segmentNext->b;
+			}
+			segmentNext->combine = false;
+		}
+	}
+//	for (auto segment = segments.begin(), end = segments.end(); segment != end; ++segment) {
+//		if (!segment->removed && segment->combine) {
+//			if (nearest.d > segment->a.d && segment->a.d >= 0) {
+//				nearest = segment->a;
+//			}
+//			if (nearest.d > segment->b.d && segment->b.d >= 0) {
+//				nearest = segment->b;
+//			}
+//			segment->combine = false;
+//		}
+//	}
+	if (nearest.s) {
+		dist = nearest.d;
+		hit = nearest.inside ? INSIDE : OUTSIDE;
+	}
+	return nearest.s;
+}
+
+void Ray::combination(void) {
 	for (auto segment = segments.begin(), end = segments.end(); segment != end; ++segment) {
-		if (segment->removed) {
+		if (segment->removed || !segment->combine) {
 			continue;
 		}
-		if (type == UNION) {
-			union_(*segment, intersections);
-		} else if (type == SUBTRACTION) {
-			subtraction(*segment, intersections);
-		} else if (type == INTERSECTION) {
-			intersection(*segment, intersections);
+		switch (combineType) {
+			case UNION:			union_(*segment, intersections); break;
+			case SUBTRACTION:	subtraction(*segment, intersections); break;
+			case INTERSECTION:	intersection(*segment, intersections); break;
+			default: break;
 		}
 	}
-	if (type == UNION) {
-		emplace(intersections);
+	if (combineType == UNION && !intersections.empty()) {
+		emplace(intersections, true);
 	}
 }
 
 void Ray::union_(Segment& segment1, Segment& segment2) {
-	if (segment1.a.d > segment2.b.d || segment2.a.d > segment1.b.d) {
-		return;
-	}
-	if (segment2.a.d > segment1.a.d) {
-		segment2.a = segment1.a;
-	}		
-	if (segment2.b.d < segment1.b.d) {
-		segment2.b = segment1.b;
+//	the result of the operation is placed in segment2
+	if (!segment1.empty() && !segment2.empty()) {
+		if (segment1.a.d > segment2.b.d || segment2.a.d > segment1.b.d) {
+			return;
+		}
+		if (segment2.a.d > segment1.a.d) {
+			segment2.a = segment1.a;
+		}
+		if (segment2.b.d < segment1.b.d) {
+			segment2.b = segment1.b;
+		}
+//	} else if (segment1.empty() && !segment2.empty()) {	// ∅ ∪ a2 = a2
+//		segment1.removed = true;
+	} else if (!segment1.empty() && segment2.empty()) {	// a1 ∪ ∅ = a1
+		segment2 = segment1;
+//	} else if (segment1.empty() && segment2.empty()) {	// ∅ ∪ ∅ = ∅
+//		segment1.removed = true;
 	}
 	segment1.removed = true;
 }
 
 void Ray::subtraction(Segment& segment1, Segment& segment2) {
-	if (segment1.a.d > segment2.b.d || segment2.a.d > segment1.b.d) {
-		return;
-	}
-	if (segment1.a.d < segment2.a.d) {
-		emplace(segment1.a, segment2.a);
-	}
-	if (segment1.b.d > segment2.b.d) {
-		segment1.a = segment2.b;
-	} else {
+//	the result of the operation is placed in segment1
+	if (!segment1.empty() && !segment2.empty()) {
+		if (segment1.a.d > segment2.b.d || segment2.a.d > segment1.b.d) {
+			return;
+		}
+		if (segment1.a.d < segment2.a.d) {
+			emplace(segment1.a, segment2.a, true);
+		}
+		if (segment1.b.d > segment2.b.d) {
+			segment1.a = segment2.b;
+		} else {
+			segment1.removed = true;
+		}
+	} else if (segment1.empty() && !segment2.empty()) {	// ∅ – a2 = ∅
+		segment1.removed = true;
+//	} else if (!segment1.empty() && segment2.empty()) {	// a1 – ∅ = a1
+//		nothing
+	} else if (segment1.empty() && segment2.empty()) {	// ∅ – ∅ = ∅
 		segment1.removed = true;
 	}
 }
 
 void Ray::intersection(Segment& segment1, Segment& segment2) {
-	if (segment1.a.d > segment2.b.d || segment2.a.d > segment1.b.d) {
+//	the result of the operation is placed in segment1
+//	∅ ∩ a2 = ∅; a1 ∩ ∅ = ∅; ∅ ∩ ∅ = ∅;
+	if (!segment1.empty() && !segment2.empty()) {
+		if (segment1.a.d > segment2.b.d || segment2.a.d > segment1.b.d) {
+			segment1.removed = true;
+			return;
+		}
+		if (segment1.a.d < segment2.a.d) {
+			segment1.a = segment2.a;
+		}
+		if (segment1.b.d > segment2.b.d) {
+			segment1.b = segment2.b;
+		}
+	} else {
 		segment1.removed = true;
-		return;
-	}
-	if (segment1.a.d < segment2.a.d) {
-		segment1.a = segment2.a;
-	}
-	if (segment1.b.d > segment2.b.d) {
-		segment1.b = segment2.b;
 	}
 }
 
+
+// Non member functions
+
+bool operator<(const Ray::Segment& left, const Ray::Segment& right) {
+	return left.b.d < right.b.d;
+}
+
+std::ostream& operator<<(std::ostream& o, Ray::Point& p) {
+	o << "(" << p.d << ", " << std::boolalpha << p.inside << ", " << p.s << ")";
+	return o;
+}
+
+std::ostream& operator<<(std::ostream& o, Ray::Segment& s) {
+	o << "a" << s.a << ", b" << s.b << ", " << std::boolalpha << s.removed << ", " << s.combine;
+	return o;
+}
+
+std::ostream& operator<<(std::ostream& o, Ray::segments_t& ss) {
+	for (auto segment = ss.begin(), end = ss.end(); segment != end; ++segment) {
+		o << *segment << std::endl;
+	}
+	if (!ss.empty()) {
+		o << std::endl;
+	}
+	return o;
+}

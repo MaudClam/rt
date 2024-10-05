@@ -16,7 +16,6 @@
 struct	Ray;
 class	A_Scenery;
 typedef std::vector<A_Scenery*> a_scenerys_t;
-typedef a_scenerys_t::iterator	a_scenerys_it;
 
 class A_Scenery {
 protected:
@@ -44,7 +43,7 @@ public:
 	virtual void roll(const Vec3f& pov, float shiftRoll) = 0;
 	virtual bool intersection(Ray& ray) const = 0;
 	virtual void giveNormal(Ray& ray) const = 0;
-	virtual float getRelativeDistanceToShaderEdge(Ray& ray) const = 0;
+	virtual float getDistanceToShaderEdge(Ray& ray, float distance, bool inside) const = 0;
 	virtual float lighting(Ray& ray) const = 0;
 	virtual void output(std::ostringstream& os) = 0;
 	friend std::ostream& operator<<(std::ostream& o, A_Scenery& s);

@@ -36,7 +36,7 @@
 # define SMOOTHING_FACTOR				1
 # define RECURSION_DEPTH				5
 # define SOFT_SHADOW_LENGTH_LIMIT		100
-# define SOFT_SHADOW_SOFTNESS			1.
+# define SOFT_SHADOW_SOFTNESS			1.9
 # define SOFT_SHADOW_RECURSION_LIMIT	5
 # define NUM_THREADS					64
 # define RESTORE_RAYS					1
@@ -75,7 +75,6 @@ enum Controls {
 	CHANGE_RECURSION_DEPTH,
 	CHANGE_SOFT_SHADOW_LENGTH,
 	CHANGE_SOFT_SHADOW_SOFTNESS,
-	CHANGE_SOFT_SHADOW_RECURSION_LIMIT
 };
 
 class MlxImage;
@@ -84,8 +83,15 @@ struct Scene;
 struct Var {
 	MlxImage*	img;
 	Scene*		scene;
-	Var(void) : img(NULL) {}
+	Var(void) : img(NULL), scene(NULL) {}
 	~Var(void) {}
+};
+
+struct Test {
+	std::vector<float>	v;
+	Test(void) : v() {}
+	~Test(void) {}
+	Test(const Test& other) : v(other.v) {}
 };
 
 #endif /* HEADER_H */

@@ -101,17 +101,16 @@ float degree(float radian) {
 
 float softShadow(float distToEdge,
 				 float distToShader,
-				 float distToLight,
 				 float lenght,
 				 float softness) {
 	if (distToEdge > 0.) {
-		float d = 1. - std::pow( lenght * distToEdge / distToShader, softness * distToLight );
+		float d = std::pow( lenght * distToEdge / distToShader, softness );
 		if (d < 0.003922)
-			return 0.;
-		else if (d > 1.)
 			return 1.;
+		if (d > 0.996078)
+			return 0.;
 		else
-			return d;
+			return 1. - d;
 	}
 	return 0.;
 }
@@ -187,6 +186,7 @@ float distanceToSphericalShaderEdge(const Vec3f& intersectPt,
 									const Vec3f& center,
 									const Vec3f& dirToLight,
 									float radius) {
+	(void)radius;
 	float d = (center - intersectPt).normalize() * dirToLight * radius;
 	return 	d > 0. ? d : 0.;
 }

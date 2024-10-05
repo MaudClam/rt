@@ -16,9 +16,9 @@
 
 # define PRECISION		1e-9
 # define EPSILON 		1e-3
-# define _INFINITY		1000
+# define _INFINITY		100
 
-enum 	Hit { FRONT, BACK, OUTLINE, FRONT_SHADOW, INSIDE, OUTSIDE };
+enum 	Hit { FRONT, BACK, OUTLINE, ANY_SHADOW, FIRST_SHADOW, INSIDE, OUTSIDE };
 enum	CombineType { END=0, UNION, SUBTRACTION, INTERSECTION };
 std::string combineType(CombineType type);
 bool 	almostEqual(float a, float b, float precision = PRECISION);
@@ -254,11 +254,12 @@ struct Position {
 
 std::ostream& operator<<(std::ostream& o, Position& pos);
 
+
+
 // Soft Sadow
 
 float softShadow(float distToEdge,
 				 float distToShader,
-				 float distToLight,
 				 float lenght,
 				 float softness);
 

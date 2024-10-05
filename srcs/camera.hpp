@@ -21,8 +21,7 @@ public:
 	Fov& operator=(const Fov& other);
 	float get_degree(void) const;
 	float get_tan(void) const;
-	bool set_degree(float degree);
-	bool set_tan(float tan);
+	bool  set_degree(float degree);
 	friend std::ostream& operator<<(std::ostream& o, Fov& fov);
 	friend std::istringstream& operator>>(std::istringstream& is, Fov& fov);
 };
@@ -54,14 +53,8 @@ public:
 	~Matrix(void);
 	Matrix(const Matrix& other);
 	Matrix& operator=(const Matrix& other);
-	int  get_width(void);
-	int  get_height(void);
-	int  get_bytespp(void);
-	Fov  get_fov(void);
+	Fov   get_fov(void);
 	float get_fovDegree(void);
-	float get_fovTan(void);
-	int   get_sm(void);
-	bool  set_fovDegree(float degree);
 };
 
 class Camera : public Matrix {
@@ -80,7 +73,6 @@ public:
 	int					recursionDepth;
 	float				softShadowLength;
 	float				softShadowSoftness;
-	int					softShadowRecursionLimit;
 	Camera(const MlxImage& img);
 	~Camera(void);
 	Camera(const Camera& other);
@@ -89,9 +81,7 @@ public:
 	float	get_rollDegree(void) const;
 	float	get_roll(void) const;
 	float	get_flybyRadius(void) const;
-	int		get_sm(void) const;
 	void	set_scenery(A_Scenery* scenery);
-	void	set_pos(const Position& pos);
 	void	set_posToBase(void);
 	void	set_flybyRadius(float flybyRadius);
 	void	initMatrix(void);
@@ -104,7 +94,6 @@ public:
 	void	resetRecursionDepth(int recursionDepth);
 	void	resetSoftShadowLength(float softShadowLength);
 	void	resetSoftShadowSoftness(float softShadowSoftness);
-	void	resetSoftShadowRecursionLimit(int softShadowRecursionLimit);
 	void	resetRoll(float roll);
 	void	lookatCamera(const Position& pos);
 	void	takePicture_lll(MlxImage& img, size_t begin, size_t end);
@@ -114,10 +103,10 @@ public:
 	void	traceRay(Ray& ray, int r = 0);
 	void	reflections(Ray& ray, const A_Scenery& scenery, int r);
 	void	refractions(Ray& ray, const A_Scenery& scenery, int r);
-	bool	transparentShadow(Ray& ray, const A_Scenery& shader, float d, int r);
-	void	shadow(Ray& ray, float specular, int r);
 	void	lightings(Ray& ray, const A_Scenery& scenery, int r);
-	A_Scenery* closestScenery(Ray& ray, float distance, Hit hit = FRONT);
+	void	shadow_if(Ray& ray, const A_Scenery& scenery, float k, int r);
+	float	softShadowMultiplier(Ray& ray, float distToLight);
+	bool	transparentShadow(Ray& ray, const A_Scenery& shader, float d, int r);
 	void	calculateFlybyRadius(void);
 	void 	runThreadRoutine(int routine, MlxImage* img = NULL);
 

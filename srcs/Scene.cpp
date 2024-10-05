@@ -464,9 +464,6 @@ void Scene::changeCamerasOptions(int key, int option) {
 			case CHANGE_SOFT_SHADOW_SOFTNESS:
 				cam->resetSoftShadowSoftness(val);
 				break;
-			case CHANGE_SOFT_SHADOW_RECURSION_LIMIT:
-				cam->resetSoftShadowRecursionLimit(key);
-				break;
 			default:
 				return;
 		}

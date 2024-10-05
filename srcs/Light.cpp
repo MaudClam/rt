@@ -58,8 +58,10 @@ void Light::giveNormal(Ray& ray) const {
 	(void)ray;
 }
 
-float Light::getRelativeDistanceToShaderEdge(Ray& ray) const {
+float Light::getDistanceToShaderEdge(Ray& ray, float distance, bool inside) const {
 	(void)ray;
+	(void)distance;
+	(void)inside;
 	return 1.;
 }
 

@@ -290,7 +290,6 @@ int		keyDown(int key, void* param) {
 	if ( camerasOptions(CHANGE_RECURSION_DEPTH,             hold.SHIFT_(),      _NUMERIC(key))    ) { return SUCCESS; }
 	if ( camerasOptions(CHANGE_SOFT_SHADOW_LENGTH,          hold.CTRL_(),       _MINUS_PLUS(key)) ) { return SUCCESS; }
 	if ( camerasOptions(CHANGE_SOFT_SHADOW_SOFTNESS,        hold.CTRL_SHIFT_(), _MINUS_PLUS(key)) ) { return SUCCESS; }
-	if ( camerasOptions(CHANGE_SOFT_SHADOW_RECURSION_LIMIT, hold.CTRL_(),       _NUMERIC(key))    ) { return SUCCESS; }
 	return SUCCESS;
 }
 

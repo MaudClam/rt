@@ -37,11 +37,6 @@ bool Fov::set_degree(float degree) {
 	return false;
 }
 
-bool Fov::set_tan(float tan) {
-	bool b = set_degree( degree(std::atan(tan)) * 2 );
-	return b && almostEqual(_tan, tan);
-}
-
 
 // Non member functions
 
@@ -169,21 +164,9 @@ Matrix& Matrix::operator=(const Matrix& other) {
 	return *this;
 }
 
-int	Matrix::get_width(void) { return _width; }
-
-int	Matrix::get_height(void) { return _height; }
-
-int	Matrix::get_bytespp(void) { return _bytespp; }
-
 Fov	Matrix::get_fov(void) { return _fov; }
 
 float Matrix::get_fovDegree(void) { return _fov.get_degree(); }
-
-float Matrix::get_fovTan(void) { return _fov.get_tan(); }
-
-int   Matrix::get_sm(void) { return _sm; }
-
-bool Matrix::set_fovDegree(float degree) { return _fov.set_degree(degree); }
 
 
 // class Camera
@@ -200,8 +183,7 @@ ambient(),
 space(),
 recursionDepth(RECURSION_DEPTH),
 softShadowLength(SOFT_SHADOW_LENGTH_LIMIT),
-softShadowSoftness(SOFT_SHADOW_SOFTNESS),
-softShadowRecursionLimit(SOFT_SHADOW_RECURSION_LIMIT)
+softShadowSoftness(SOFT_SHADOW_SOFTNESS)
 {	_width = img.get_width();
 	_height = img.get_height();
 	_bytespp = img.get_bytespp();
@@ -233,7 +215,6 @@ Camera& Camera::operator=(const Camera& other) {
 		recursionDepth = other.recursionDepth;
 		softShadowLength = other.softShadowLength;
 		softShadowSoftness = other.softShadowSoftness;
-		softShadowRecursionLimit = other.softShadowRecursionLimit;
 	}
 	return *this;
 }
@@ -246,8 +227,6 @@ float Camera::get_roll(void) const { return _roll; }
 
 float Camera::get_flybyRadius(void) const { return _flybyRadius; }
 
-int	 Camera::get_sm(void) const { return _sm; }
-
 void Camera::set_scenery(A_Scenery* scenery) {
 	scenerys.push_back(scenery);
 	if ( scenerys.back()->get_isLight() == true ) {
@@ -256,8 +235,6 @@ void Camera::set_scenery(A_Scenery* scenery) {
 		objsIdx.push_back(scenery);
 	}
 }
-
-void Camera::set_pos(const Position& pos) { _pos = pos; }
 
 void Camera::set_posToBase(void) { _pos = _base; }
 
@@ -402,25 +379,6 @@ void Camera::resetSoftShadowSoftness(float ss) {
 	}
 }
 
-void Camera::resetSoftShadowRecursionLimit(int srl) {
-	softShadowRecursionLimit = srl;
-	size_t size = this->matrix.size();
-	size_t begin, end;
-	std::thread th[NUM_THREADS];
-	for (int i = 0; i < NUM_THREADS; i++) {
-		begin = i * size / NUM_THREADS;
-		if (i == NUM_THREADS - 1) {
-			end = size;
-		} else {
-			end = size / NUM_THREADS * (i + 1);
-		}
-		th[i] = std::thread([this, begin, end](){resetRays(this, begin, end);});
-	}
-	for (int i = 0; i < NUM_THREADS; i++) {
-		th[i].join();
-	}
-}
-
 void Camera::resetRoll(float roll) {
 	if (roll >= 90.) {
 		roll = radian(90.);
@@ -505,10 +463,10 @@ void Camera::rayTracing(Camera* camera, size_t begin, size_t end) {
 	camera->rayTracing_lll(begin, end);
 }
 
-void  Camera::traceRay(Ray& ray, int r) {
+void Camera::traceRay(Ray& ray, int r) {
 	if (r > recursionDepth) { return; }
 	ray.recursion = r;
-	A_Scenery* scenery = closestScenery(ray, _INFINITY);
+	A_Scenery* scenery = ray.closestScenery(scenerys, _INFINITY);
 	if (!scenery) { ray.color = space ; return; }
 	ray.fixDirFromCam_if();
 	scenery->giveNormal(ray);
@@ -537,7 +495,7 @@ void Camera::reflections(Ray& ray, const A_Scenery& scenery, int r) {
 		ray.collectReflectiveLight(_color, _shine, scenery.reflective);
 	}
 }
-		
+
 void Camera::refractions(Ray& ray, const A_Scenery& scenery, int r) {
 	if (scenery.refractive) {
 		int _color = ray.color.val;
@@ -547,21 +505,59 @@ void Camera::refractions(Ray& ray, const A_Scenery& scenery, int r) {
 			traceRay(ray, ++r);
 			ray.collectRefractiveLight(scenery.color, _color, scenery.refractive);
 		} else {
-			ray.collectLight(scenery.color);
+//			ray.collectLight(scenery.color);
 		}
 	}
 }
 
 void Camera::lightings(Ray& ray, const A_Scenery& scenery, int r) {
+	(void)r;
 	ray.light = ambient;
 	ray.collectLight(scenery.color);
 	for (auto light = lightsIdx.begin(), end = lightsIdx.end(); light != end; ++light) {
 		float k = (*light)->lighting(ray);
 		if (k) {
-			shadow(ray, scenery.specular, r);
-			ray.collectLight(scenery.color, k);
+			shadow_if(ray, scenery, k, r);
 		}
 	}
+}
+
+void Camera::shadow_if(Ray& ray, const A_Scenery& scenery, float k, int r) {
+	Hit		hit = ray.hit;
+	float	distToLight = ray.dist, d = 1.;
+	A_Scenery* shader = ray.closestScenery(scenerys, distToLight, FIRST_SHADOW);
+	if (softShadowLength < SOFT_SHADOW_LENGTH_LIMIT) {
+		d = softShadowMultiplier(ray, distToLight);
+	} else if (shader) {
+		d = 0.;
+	}
+	if (shader && shader->refractive) {
+		transparentShadow(ray, *shader, d, r);
+	} else {
+		ray.light.product(d);
+	}
+	ray.collectLight(scenery.color, k);
+	ray.collectShine(scenery.specular, d);
+	ray.hit = hit;
+}
+
+float Camera::softShadowMultiplier(Ray& ray, float distToLight) {
+	float	d = 1., previous = 1.;
+	if (!ray.segments.empty()) {
+		ray.segments.sort();
+		for (auto segment = ray.segments.begin(), end = ray.segments.end(); segment != end; ++segment) {
+			if (segment->b.d == ray.dist) {	// pov is inside the shader
+				d = 0.;
+				break;
+			}
+			if (segment->b.d > 0 && segment->b.d < distToLight) {
+				float _d = segment->b.s->getDistanceToShaderEdge(ray, segment->b.d, segment->b.inside);
+				d *= softShadow(_d, segment->b.d - previous, softShadowLength, softShadowSoftness);
+				previous = segment->b.d;
+			}
+		}
+	}
+	return d;
 }
 
 bool Camera::transparentShadow(Ray& ray, const A_Scenery& shader, float d, int r) {
@@ -579,101 +575,6 @@ bool Camera::transparentShadow(Ray& ray, const A_Scenery& shader, float d, int r
 	}
 	ray.restore(raySafe);
 	return false;
-}
-
-void Camera::shadow(Ray& ray, float specular, int r) {
-	(void)r;
-	A_Scenery* shader = objsIdx.back();
-	float distToLight = ray.dist, d = 1.;
-	RaySafe raySafe(ray);
-	ColorsSafe colorsSafe(ray);
-//	Vec3f pov(ray.pov);
-	bool odd = true, softOff = softShadowLength >= SOFT_SHADOW_LENGTH_LIMIT;
-
-	while (shader && d >= 0.003922) {
-		shader = closestScenery(ray, distToLight, FRONT_SHADOW);
-		if (shader) {
-			if (odd) {
-				odd = false;
-//				if (shader->refractive) {
-//					if (softOff) {
-//						ray.collectShine(specular, 1. - d);
-//						transparentShadow(ray, *shader, d, r);
-//						ray.pov = pov;
-//						return;
-//					} else {
-//					d *= ::softShadow(shader->getRelativeDistanceToShaderEdge(ray),
-//									  ray.dist, distToLight, softShadowLength, softShadowSoftness);
-//						ray.collectShine(specular, d);
-//						transparentShadow(ray, *shader, 1. - d, r);
-//						ray.pov = pov;
-//						return;
-//					}
-//				}
-				if (softOff) { d = 0.; break; }
-			} else { //even
-				odd = true;
-				if (softOff) { d = 0.; break; }
-//				if (ray.hit == INSIDE) {
-//					d *= ::softShadow(shader->getRelativeDistanceToShaderEdge(ray),
-//									  ray.dist, distToLight, softShadowLength, softShadowSoftness);
-//				}
-			}
-			if (d >= 0.003922) {
-//				ray.movePovByDirToLightToDist();
-				distToLight -= ray.dist;
-//				if (distToLight < 0.) {
-					d = 0.;
-//				}
-			} else {
-				d = 0.;
-			}
-		}
-		
-		
-	}
-	ray.restore(raySafe);
-	ray.restore(colorsSafe);
-//	ray.pov = pov;
-	ray.light.product(d);
-	ray.collectShine(specular);
-}
-
-A_Scenery* Camera::closestScenery(Ray& ray, float distance, Hit hit) {
-	A_Scenery*	closestScenery = NULL;
-	Hit			rayHit = hit;
-	auto 		scenery = scenerys.begin(), end = scenerys.end();
-	while (scenery != end) {
-		if ( (*scenery)->combineType == END) {
-			if ( (*scenery)->intersection(ray.set_hit(hit)) && distance > ray.dist ) {
-				distance = ray.dist;
-				rayHit = ray.hit;
-				closestScenery = *scenery;
-			}
-		} else {
-			ray.combineStart(*scenery, hit);
-			++scenery;
-			while (scenery != end) {
-				ray.combineNext(*scenery, hit);
-				if ( (*scenery)->combineType == END ) {
-					break;
-				}
-				++scenery;
-			}
-			A_Scenery* combineGet = ray.combineGet();
-			if ( combineGet && distance > ray.dist ) {
-				distance = ray.dist;
-				rayHit = ray.hit;
-				closestScenery = combineGet;
-			}
-		}
-		if (scenery != end) ++scenery;
-	}
-	if (closestScenery) {
-		ray.dist = distance;
-		ray.hit = rayHit;
-	}
-	return closestScenery;
 }
 
 void Camera::calculateFlybyRadius(void) {

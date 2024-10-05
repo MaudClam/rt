@@ -29,10 +29,9 @@
 | 'Shift' + num keys '0','1', ...,'9'                         |
 | '5' - default                                               |
 |                                                             |
-| SOFT SHADOW OPTIONS                                         |
+| FALSE SOFT SHADOW OPTIONS                                         |
 | Length:          'Ctrl' + '-'/'+'                           |
 | Softness:        'Ctrl' + 'Shift' + '-'/'+'                 |
-| Recursion Limit: 'Ctrl' + num keys '0','1', ...,'9'         |
 |                                                             |
 \-------------------------------------------------------------/
 Enjoy! :)

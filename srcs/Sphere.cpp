@@ -64,7 +64,7 @@ void Sphere::roll(const Vec3f& pov, float shiftRoll) {
 
 bool Sphere::intersection(Ray& ray) const {
 	bool result = false;
-	if (ray.hit == FRONT_SHADOW) {
+	if (ray.hit == ANY_SHADOW || ray.hit == FIRST_SHADOW) {
 		ray.hit = FRONT;
 		result = raySphereIntersection(ray.dirToLight, ray.pov, _pos.p, _sqrRadius,
 									   ray.dist, ray.intersections.a.d, ray.intersections.b.d,
@@ -90,14 +90,14 @@ void Sphere::giveNormal(Ray& ray) const {
 	}
 }
 
-float Sphere::getRelativeDistanceToShaderEdge(Ray& ray) const {
-	if (ray.hit == INSIDE) {
+float Sphere::getDistanceToShaderEdge(Ray& ray, float distance, bool inside) const {
+	if (inside) {
 		return distanceToSphericalShaderEdge(_pos.p,
-											 ray.pov + ray.dirToLight * ray.dist,
+											 ray.pov + (ray.dirToLight * distance),
 											 ray.dirToLight,
 											 _radius);
 	}
-	return distanceToSphericalShaderEdge(ray.pov + ray.dirToLight * ray.dist,
+	return distanceToSphericalShaderEdge(ray.pov + (ray.dirToLight * distance),
 										 _pos.p,
 										 ray.dirToLight,
 										 _radius);
