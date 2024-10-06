@@ -29,7 +29,7 @@
 | 'Shift' + num keys '0','1', ...,'9'                         |
 | '5' - default                                               |
 |                                                             |
-| FALSE SOFT SHADOW OPTIONS                                         |
+| FALSE SOFT SHADOW OPTIONS                                   |
 | Length:          'Ctrl' + '-'/'+'                           |
 | Softness:        'Ctrl' + 'Shift' + '-'/'+'                 |
 |                                                             |

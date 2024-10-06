@@ -212,21 +212,7 @@ bool Scene::set_currentCamera(int idx) {
 	if (idx >= 0 && idx < (int)cameras.size() && _currentCamera != idx) {
 		_currentCamera = idx;
 		Camera* cCam = &cameras[_currentCamera];
-		size_t size = cameras[_currentCamera].matrix.size();
-		size_t begin, end;
-		std::thread th[NUM_THREADS];
-		for (int i = 0; i < NUM_THREADS; i++) {
-			begin = i * size / NUM_THREADS;
-			if (i == NUM_THREADS - 1) {
-				end = size;
-			} else {
-				end = size / NUM_THREADS * (i + 1);
-			}
-			th[i] = std::thread([cCam, begin, end](){Camera::restoreRays(cCam, begin, end);});
-		}
-		for (int i = 0; i < NUM_THREADS; i++) {
-			th[i].join();
-		}
+		cCam->runThreadRoutine(RESTORE_RAYS);
 		if (DEBUG_KEYS) { std::cout << "currentCamera: " << _currentCamera << "\n";}
 		return true;
 	}

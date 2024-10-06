@@ -283,21 +283,7 @@ void Camera::resetRays_lll(size_t begin, size_t end) {
 
 bool Camera::resetFovDegree(float degree) {
 	if (_fov.set_degree(degree)) {
-		size_t size = this->matrix.size();
-		size_t begin, end;
-		std::thread th[NUM_THREADS];
-		for (int i = 0; i < NUM_THREADS; i++) {
-			begin = i * size / NUM_THREADS;
-			if (i == NUM_THREADS - 1) {
-				end = size;
-			} else {
-				end = size / NUM_THREADS * (i + 1);
-			}
-			th[i] = std::thread([this, begin, end](){restoreRays(this, begin, end);});
-		}
-		for (int i = 0; i < NUM_THREADS; i++) {
-			th[i].join();
-		}
+		runThreadRoutine(RESTORE_RAYS);
 		return true;
 	}
 	return false;
@@ -305,78 +291,22 @@ bool Camera::resetFovDegree(float degree) {
 
 void Camera::resetSmoothingFactor(int sm) {
 	_sm = sm;
-	size_t size = this->matrix.size();
-	size_t begin, end;
-	std::thread th[NUM_THREADS];
-	for (int i = 0; i < NUM_THREADS; i++) {
-		begin = i * size / NUM_THREADS;
-		if (i == NUM_THREADS - 1) {
-			end = size;
-		} else {
-			end = size / NUM_THREADS * (i + 1);
-		}
-		th[i] = std::thread([this, begin, end](){resetRays(this, begin, end);});
-	}
-	for (int i = 0; i < NUM_THREADS; i++) {
-		th[i].join();
-	}
+	runThreadRoutine(RESET_RAYS);
 }
 
 void Camera::resetRecursionDepth(int rd) {
 	recursionDepth = rd;
-	size_t size = this->matrix.size();
-	size_t begin, end;
-	std::thread th[NUM_THREADS];
-	for (int i = 0; i < NUM_THREADS; i++) {
-		begin = i * size / NUM_THREADS;
-		if (i == NUM_THREADS - 1) {
-			end = size;
-		} else {
-			end = size / NUM_THREADS * (i + 1);
-		}
-		th[i] = std::thread([this, begin, end](){resetRays(this, begin, end);});
-	}
-	for (int i = 0; i < NUM_THREADS; i++) {
-		th[i].join();
-	}
+	runThreadRoutine(RESTORE_RAYS);
 }
 
 void Camera::resetSoftShadowLength(float sl) {
 	softShadowLength = sl;
-	size_t size = this->matrix.size();
-	size_t begin, end;
-	std::thread th[NUM_THREADS];
-	for (int i = 0; i < NUM_THREADS; i++) {
-		begin = i * size / NUM_THREADS;
-		if (i == NUM_THREADS - 1) {
-			end = size;
-		} else {
-			end = size / NUM_THREADS * (i + 1);
-		}
-		th[i] = std::thread([this, begin, end](){resetRays(this, begin, end);});
-	}
-	for (int i = 0; i < NUM_THREADS; i++) {
-		th[i].join();
-	}
+	runThreadRoutine(RESTORE_RAYS);
 }
 
 void Camera::resetSoftShadowSoftness(float ss) {
 	softShadowSoftness = ss;
-	size_t size = this->matrix.size();
-	size_t begin, end;
-	std::thread th[NUM_THREADS];
-	for (int i = 0; i < NUM_THREADS; i++) {
-		begin = i * size / NUM_THREADS;
-		if (i == NUM_THREADS - 1) {
-			end = size;
-		} else {
-			end = size / NUM_THREADS * (i + 1);
-		}
-		th[i] = std::thread([this, begin, end](){resetRays(this, begin, end);});
-	}
-	for (int i = 0; i < NUM_THREADS; i++) {
-		th[i].join();
-	}
+	runThreadRoutine(RESTORE_RAYS);
 }
 
 void Camera::resetRoll(float roll) {
@@ -394,21 +324,7 @@ void Camera::resetRoll(float roll) {
 	for (auto sc = scenerys.begin(), end = scenerys.end(); sc != end; ++sc) {
 		(*sc)->roll(_pos.p, shiftRoll);
 	}
-	size_t size = this->matrix.size();
-	size_t begin, end;
-	std::thread th[NUM_THREADS];
-	for (int i = 0; i < NUM_THREADS; i++) {
-		begin = i * size / NUM_THREADS;
-		if (i == NUM_THREADS - 1) {
-			end = size;
-		} else {
-			end = size / NUM_THREADS * (i + 1);
-		}
-		th[i] = std::thread([this, begin, end](){restoreRays(this, begin, end);});
-	}
-	for (int i = 0; i < NUM_THREADS; i++) {
-		th[i].join();
-	}
+	runThreadRoutine(RESTORE_RAYS);
 	if (DEBUG_MODE) { std::cout << "roll: " << degree(_roll) << std::endl; }
 }
 
@@ -418,21 +334,7 @@ void Camera::lookatCamera(const Position& pos) {
 		(*sc)->lookat(pos, aux, _base.p, _roll);
 	}
 	set_posToBase();
-	size_t size = this->matrix.size();
-	size_t begin, end;
-	std::thread th[NUM_THREADS];
-	for (int i = 0; i < NUM_THREADS; i++) {
-		begin = i * size / NUM_THREADS;
-		if (i == NUM_THREADS - 1) {
-			end = size;
-		} else {
-			end = size / NUM_THREADS * (i + 1);
-		}
-		th[i] = std::thread([this, begin, end](){restoreRays(this, begin, end);});
-	}
-	for (int i = 0; i < NUM_THREADS; i++) {
-		th[i].join();
-	}
+	runThreadRoutine(RESTORE_RAYS);
 }
 
 void Camera::takePicture_lll(MlxImage& img, size_t begin, size_t end) {
