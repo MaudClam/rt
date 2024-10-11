@@ -66,7 +66,7 @@
          </CommandLineArgument>
          <CommandLineArgument
             argument = "/Users/uru/Library/Mobile\ Documents/com~apple~CloudDocs/42_Projects/rt/scenes/arches.rt"
-            isEnabled = "NO">
+            isEnabled = "YES">
          </CommandLineArgument>
       </CommandLineArguments>
    </LaunchAction>

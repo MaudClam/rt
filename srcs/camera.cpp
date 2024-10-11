@@ -509,13 +509,17 @@ void Camera::calculateFlybyRadius(void) {
 void Camera::runThreadRoutine(int routine, MlxImage* img) {
 	size_t size = this->matrix.size();
 	size_t begin, end;
-	std::thread th[NUM_THREADS];
-	for (int i = 0; i < NUM_THREADS; i++) {
-		begin = i * size / NUM_THREADS;
-		if (i == NUM_THREADS - 1) {
+	int numThreads = (int)(size / PIXELS_PER_THREAD);
+	if (size % PIXELS_PER_THREAD > 0) {
+		numThreads++;
+	}
+	std::thread th[numThreads];
+	for (int i = 0; i < numThreads; i++) {
+		begin = i * size / numThreads;
+		if (i == numThreads - 1) {
 			end = size;
 		} else {
-			end = size / NUM_THREADS * (i + 1);
+			end = size / numThreads * (i + 1);
 		}
 		switch (routine) {
 			case RESTORE_RAYS:
@@ -534,7 +538,7 @@ void Camera::runThreadRoutine(int routine, MlxImage* img) {
 				break ;
 		}
 	}
-	for (int i = 0; i < NUM_THREADS; i++) {
+	for (int i = 0; i < numThreads; i++) {
 		th[i].join();
 	}
 
