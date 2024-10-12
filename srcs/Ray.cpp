@@ -16,7 +16,8 @@ dir(),
 dirFromCam(),
 dirToLight(),
 norm(),
-dist(0)
+dist(0),
+hit(FRONT)
 {}
 
 RaySafe::RaySafe(const Ray& ray) :
@@ -25,7 +26,8 @@ dir(ray.dir),
 dirFromCam(ray.dirFromCam),
 dirToLight(ray.dirToLight),
 norm(ray.norm),
-dist(ray.dist)
+dist(ray.dist),
+hit(ray.hit)
 {}
 
 RaySafe::~RaySafe(void) {}
@@ -37,7 +39,7 @@ dirFromCam(other.dirFromCam),
 dirToLight(other.dirToLight),
 norm(other.norm),
 dist(other.dist),
-hit(FRONT)
+hit(other.hit)
 {}
 
 RaySafe& RaySafe::operator=(const RaySafe& other) {
