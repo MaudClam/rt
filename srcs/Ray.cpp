@@ -8,46 +8,46 @@
 #include "Ray.hpp"
 
 
-// struct RaySafe
+// struct RayBasic
 
-RaySafe::RaySafe(void) :
+RayBasic::RayBasic(void) :
 pov(),
 dir(),
-dirFromCam(),
-dirToLight(),
+pow(),
+dirL(),
 norm(),
 dist(0),
 hit(FRONT)
 {}
 
-RaySafe::RaySafe(const Ray& ray) :
+RayBasic::RayBasic(const Ray& ray) :
 pov(ray.pov),
 dir(ray.dir),
-dirFromCam(ray.dirFromCam),
-dirToLight(ray.dirToLight),
+pow(ray.pow),
+dirL(ray.dirL),
 norm(ray.norm),
 dist(ray.dist),
 hit(ray.hit)
 {}
 
-RaySafe::~RaySafe(void) {}
+RayBasic::~RayBasic(void) {}
 
-RaySafe::RaySafe(const RaySafe& other) :
+RayBasic::RayBasic(const RayBasic& other) :
 pov(other.pov),
 dir(other.dir),
-dirFromCam(other.dirFromCam),
-dirToLight(other.dirToLight),
+pow(other.pow),
+dirL(other.dirL),
 norm(other.norm),
 dist(other.dist),
 hit(other.hit)
 {}
 
-RaySafe& RaySafe::operator=(const RaySafe& other) {
+RayBasic& RayBasic::operator=(const RayBasic& other) {
 	if (this != &other) {
 		pov = other.pov;
 		dir = other.dir;
-		dirFromCam = other.dirFromCam;
-		dirToLight = other.dirToLight;
+		pow = other.pow;
+		dirL = other.dirL;
 		norm = other.norm;
 		dist = other.dist;
 		hit = other.hit;
@@ -55,11 +55,11 @@ RaySafe& RaySafe::operator=(const RaySafe& other) {
 	return *this;
 }
 
-RaySafe& RaySafe::operator=(const Ray& ray) {
+RayBasic& RayBasic::operator=(const Ray& ray) {
 	pov = ray.pov;
 	dir = ray.dir;
-	dirFromCam = ray.dirFromCam;
-	dirToLight = ray.dirToLight;
+	pow = ray.pow;
+	dirL = ray.dirL;
 	norm = ray.norm;
 	dist = ray.dist;
 	hit = ray.hit;
@@ -117,8 +117,8 @@ Ray& Ray::operator=(const Ray& other) {
 		recursion = other.recursion;
 		pov = other.pov;
 		dir = other.dir;
-		dirFromCam = other.dirFromCam;
-		dirToLight = other.dirToLight;
+		pow = other.pow;
+		dirL = other.dirL;
 		norm = other.norm;
 		dist = other.dist;
 		hit = other.hit;
@@ -132,11 +132,11 @@ Ray& Ray::operator=(const Ray& other) {
 	return *this;
 }
 
-Ray& Ray::operator=(const RaySafe& raySafe) {
+Ray& Ray::operator=(const RayBasic& raySafe) {
 	pov = raySafe.pov;
 	dir = raySafe.dir;
-	dirFromCam = raySafe.dirFromCam;
-	dirToLight = raySafe.dirToLight;
+	pow = raySafe.pow;
+	dirL = raySafe.dirL;
 	norm = raySafe.norm;
 	dist = raySafe.dist;
 	hit = raySafe.hit;
@@ -150,7 +150,7 @@ Ray& Ray::operator=(const ColorsSafe& colorsSafe) {
 	return *this;
 }
 
-Ray& Ray::restore(const RaySafe& raySafe) {
+Ray& Ray::restore(const RayBasic& raySafe) {
 	*this = raySafe;
 	return *this;
 }

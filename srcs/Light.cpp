@@ -69,9 +69,9 @@ float Light::lighting(Ray& ray) const {
 	float k = 0;
 	switch (_type) {
 		case SPOTLIGHT: {
-			ray.dist = ray.dirToLight.substract(_pos.p, ray.pov).norm();
-			if (ray.dist != 0) (ray.dirToLight.product(1 / ray.dist));// optimal normalization
-			if ( (k = ray.dirToLight * ray.norm) <= 0) {
+			ray.dist = ray.dirL.substract(_pos.p, ray.pov).norm();
+			if (ray.dist != 0) (ray.dirL.product(1 / ray.dist));// optimal normalization
+			if ( (k = ray.dirL * ray.norm) <= 0) {
 				return 0;
 			}
 			break;
@@ -81,7 +81,7 @@ float Light::lighting(Ray& ray) const {
 				return 0;
 			}
 			ray.dist = _INFINITY;
-			ray.dirToLight = _pos.n;
+			ray.dirL = _pos.n;
 			break;
 		}
 		case SUNLIGHT_LIMITED: {
@@ -89,7 +89,7 @@ float Light::lighting(Ray& ray) const {
 				return 0;
 			}
 			rayPlaneIntersection(ray.pov, _pos.n, _pos.p, ray.norm, ray.dist);
-			ray.dirToLight = _pos.n;
+			ray.dirL = _pos.n;
 			break;
 		}
 		default:

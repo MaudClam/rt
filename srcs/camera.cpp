@@ -386,7 +386,7 @@ void Camera::reflections(Ray& ray, const A_Scenery& scenery, int r) {
 		int _color = ray.color.val, _shine = ray.shine.val;
 		ray.color = ray.shine = 0;
 		if (scenery.refractive) {
-			RaySafe raySafe(ray);
+			RayBasic raySafe(ray);
 			ray.dir.reflect(ray.norm);
 			traceRay(ray, ++r);
 			ray.restore(raySafe);
@@ -463,8 +463,8 @@ float Camera::softShadowMultiplier(Ray& ray, float distToLight) {
 }
 
 bool Camera::transparentShadow(Ray& ray, const A_Scenery& shader, float d, int r) {
-	RaySafe	raySafe(ray);
-	ray.dir = ray.dirToLight;
+	RayBasic	raySafe(ray);
+	ray.dir = ray.dirL;
 	shader.giveNormal(ray);
 	if (ray.dir.refract(ray.norm, ray.hit == INSIDE ? shader.matIOR : shader.matOIR)) {
 		ColorsSafe	colorsSafe(ray);
