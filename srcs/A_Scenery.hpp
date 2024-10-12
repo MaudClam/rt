@@ -39,8 +39,8 @@ public:
 	Position get_pos(void) const;
 	void set_pos(const Position& pos);
 	virtual A_Scenery* clone(void) const = 0;
-	virtual void lookat(const Position& eye, const LookatAux& aux, const Vec3f& pov, float roll) = 0;
-	virtual void roll(const Vec3f& pov, float shiftRoll) = 0;
+	virtual void lookat(const Position& eye, const LookatAux& aux, const Vec3f& pos, float roll) = 0;
+	virtual void roll(const Vec3f& pos, float shiftRoll) = 0;
 	virtual bool intersection(Ray& ray) const = 0;
 	virtual void giveNormal(Ray& ray) const = 0;
 	virtual float getDistanceToShaderEdge(Ray& ray, float distance, bool inside) const = 0;

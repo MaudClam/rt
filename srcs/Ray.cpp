@@ -11,7 +11,7 @@
 // struct RayBasic
 
 RayBasic::RayBasic(void) :
-pov(),
+pos(),
 dir(),
 pow(),
 dirL(),
@@ -21,7 +21,7 @@ hit(FRONT)
 {}
 
 RayBasic::RayBasic(const Ray& ray) :
-pov(ray.pov),
+pos(ray.pos),
 dir(ray.dir),
 pow(ray.pow),
 dirL(ray.dirL),
@@ -33,7 +33,7 @@ hit(ray.hit)
 RayBasic::~RayBasic(void) {}
 
 RayBasic::RayBasic(const RayBasic& other) :
-pov(other.pov),
+pos(other.pos),
 dir(other.dir),
 pow(other.pow),
 dirL(other.dirL),
@@ -44,7 +44,7 @@ hit(other.hit)
 
 RayBasic& RayBasic::operator=(const RayBasic& other) {
 	if (this != &other) {
-		pov = other.pov;
+		pos = other.pos;
 		dir = other.dir;
 		pow = other.pow;
 		dirL = other.dirL;
@@ -56,7 +56,7 @@ RayBasic& RayBasic::operator=(const RayBasic& other) {
 }
 
 RayBasic& RayBasic::operator=(const Ray& ray) {
-	pov = ray.pov;
+	pos = ray.pos;
 	dir = ray.dir;
 	pow = ray.pow;
 	dirL = ray.dirL;
@@ -115,7 +115,7 @@ Ray::Ray(const Ray& other) { *this = other; }
 Ray& Ray::operator=(const Ray& other) {
 	if (this != & other) {
 		recursion = other.recursion;
-		pov = other.pov;
+		pos = other.pos;
 		dir = other.dir;
 		pow = other.pow;
 		dirL = other.dirL;
@@ -133,7 +133,7 @@ Ray& Ray::operator=(const Ray& other) {
 }
 
 Ray& Ray::operator=(const RayBasic& raySafe) {
-	pov = raySafe.pov;
+	pos = raySafe.pos;
 	dir = raySafe.dir;
 	pow = raySafe.pow;
 	dirL = raySafe.dirL;

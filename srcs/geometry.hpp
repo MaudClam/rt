@@ -275,12 +275,12 @@ bool raySphereIntersection(const Vec3f& rayDir,
 						   Hit& rayHit);
 
 bool raySphereIntersection(const Vec3f& rayDir,
-							const Vec3f& k,
-							float c,
+						   const Vec3f& k,
+						   float c,
 						   float& distance,
 						   float& min_t,
 						   float& max_t,
-							Hit& rayHit);
+						   Hit& rayHit);
 
 void normalToRaySphereIntersect(const Vec3f& intersectPt,
 								const Vec3f& center,
@@ -288,10 +288,10 @@ void normalToRaySphereIntersect(const Vec3f& intersectPt,
 
 float distanceToSphericalShaderEdge(const Vec3f& intersectPt,
 									const Vec3f& center,
-									const Vec3f& dirL,
+									const Vec3f& dirToLight,
 									float radius);
 
-bool rayPlaneIntersection(const Vec3f& pov,
+bool rayPlaneIntersection(const Vec3f& pos,
 						  const Vec3f& dir,
 						  const Vec3f& point,
 						  const Vec3f& norm,

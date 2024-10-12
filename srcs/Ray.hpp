@@ -21,12 +21,12 @@ struct	ColorsSafe;
 struct	Ray;
 
 struct RayBasic {
-	Vec3f	pov;	// ray POV (point of view)            | photon position
+	Vec3f	pos;	// ray POV (point of view)            | photon position
 	Vec3f	dir;	// normalized: ray direction          | photon incident direction
 	Vec3f	pow;	// normalized: dir from camera vector | photon power
 	Vec3f	dirL;	// normalized: dir vector to light source
 	Vec3f	norm;	// normalized: normal vector from the ray hit point
-	float	dist;	// distance from pov to object hit point
+	float	dist;	// distance from POV to object hit point
 	Hit		hit;	// type of contact with an object     | photon flag
 	RayBasic(void);
 	RayBasic(const Ray& ray);
@@ -140,10 +140,10 @@ struct Ray : public RayBasic {
 		segments.emplace_front(a.d, a.inside, a.s, b.d, b.inside, b.s, false, _combine);
 	}
 	inline void movePovByDirToDist(void) {
-		pov.addition( pov, dir * dist );
+		pos.addition( pos, dir * dist );
 	}
 	inline void movePovByNormal(float distance) {
-		pov.addition(pov, norm * distance);
+		pos.addition(pos, norm * distance);
 	}
 	inline void fixDirFromCam_if(void) {
 		if (!recursion)

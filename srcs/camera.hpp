@@ -30,12 +30,12 @@ struct Pixel {
 	std::vector<Ray>	rays;
 	Vec3f				cPos; // relative xy-coordinate on RT canvas of width 1
 	ARGBColor			color;
-	Pixel(const Vec3f& cPos, int smoothingFactor, float tan, const Vec3f& pov);
+	Pixel(const Vec3f& cPos, int smoothingFactor, float tan, const Vec3f& pos);
 	~Pixel(void);
 	Pixel(const Pixel& other);
 	Pixel& operator=(const Pixel& other);
-	void reset(int smoothingFactor, float tan, const Vec3f& pov);
-	void restoreRays(int smoothingFactor, float tan, const Vec3f& pov);
+	void reset(int smoothingFactor, float tan, const Vec3f& pos);
+	void restoreRays(int smoothingFactor, float tan, const Vec3f& pos);
 	void averageColor(void);
 };
 	

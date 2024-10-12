@@ -48,16 +48,16 @@ Sphere* Sphere::clone(void) const {
 	return sphere;
 }
 
-void Sphere::lookat(const Position& eye, const LookatAux& aux, const Vec3f& pov, float roll) {
+void Sphere::lookat(const Position& eye, const LookatAux& aux, const Vec3f& pos, float roll) {
 	_pos.lookat(eye, aux, roll);
-	_k.substract(pov,_pos.p);
+	_k.substract(pos,_pos.p);
 	_c = _k * _k - _sqrRadius;
 }
 
-void Sphere::roll(const Vec3f& pov, float shiftRoll) {
+void Sphere::roll(const Vec3f& pos, float shiftRoll) {
 	if (shiftRoll != 0) {
 		_pos.roll(shiftRoll);
-		_k.substract(pov,_pos.p);
+		_k.substract(pos,_pos.p);
 		_c = _k * _k - _sqrRadius;
 	}
 }
@@ -66,7 +66,7 @@ bool Sphere::intersection(Ray& ray) const {
 	bool result = false;
 	if (ray.hit == ANY_SHADOW || ray.hit == FIRST_SHADOW) {
 		ray.hit = FRONT;
-		result = raySphereIntersection(ray.dirL, ray.pov, _pos.p, _sqrRadius,
+		result = raySphereIntersection(ray.dirL, ray.pos, _pos.p, _sqrRadius,
 									   ray.dist, ray.intersections.a.d, ray.intersections.b.d,
 									   ray.hit);
 	} else if (!ray.recursion) {
@@ -74,7 +74,7 @@ bool Sphere::intersection(Ray& ray) const {
 									   ray.intersections.a.d, ray.intersections.b.d,
 									   ray.hit);
 	} else {
-		result = raySphereIntersection(ray.dir, ray.pov, _pos.p, _sqrRadius,
+		result = raySphereIntersection(ray.dir, ray.pos, _pos.p, _sqrRadius,
 									   ray.dist, ray.intersections.a.d, ray.intersections.b.d,
 									   ray.hit);
 	}
@@ -84,20 +84,20 @@ bool Sphere::intersection(Ray& ray) const {
 void Sphere::giveNormal(Ray& ray) const {
 	ray.movePovByDirToDist();
 	if (ray.hit == INSIDE) {
-		normalToRaySphereIntersect(_pos.p, ray.pov, ray.norm);
+		normalToRaySphereIntersect(_pos.p, ray.pos, ray.norm);
 	} else {
-		normalToRaySphereIntersect(ray.pov, _pos.p, ray.norm);
+		normalToRaySphereIntersect(ray.pos, _pos.p, ray.norm);
 	}
 }
 
 float Sphere::getDistanceToShaderEdge(Ray& ray, float distance, bool inside) const {
 	if (inside) {
 		return distanceToSphericalShaderEdge(_pos.p,
-											 ray.pov + (ray.dirL * distance),
+											 ray.pos + (ray.dirL * distance),
 											 ray.dirL,
 											 _radius);
 	}
-	return distanceToSphericalShaderEdge(ray.pov + (ray.dirL * distance),
+	return distanceToSphericalShaderEdge(ray.pos + (ray.dirL * distance),
 										 _pos.p,
 										 ray.dirL,
 										 _radius);

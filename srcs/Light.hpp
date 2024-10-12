@@ -24,8 +24,8 @@ public:
 	void set_nick(const std::string& nick);
 	void set_name(const std::string& name);
 	void set_type(Type type);
-	void lookat(const Position& eye, const LookatAux& aux, const Vec3f& pov, float roll);
-	void roll(const Vec3f& pov, float shiftRoll);
+	void lookat(const Position& eye, const LookatAux& aux, const Vec3f& pos, float roll);
+	void roll(const Vec3f& pos, float shiftRoll);
 	bool intersection(Ray& ray) const;
 	void giveNormal(Ray& ray) const;
 	float getDistanceToShaderEdge(Ray& ray, float distance, bool inside) const;

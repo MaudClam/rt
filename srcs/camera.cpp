@@ -58,9 +58,9 @@ std::istringstream& operator>>(std::istringstream& is, Fov& fov) {
 
 // struct Pixel
 
-Pixel::Pixel(const Vec3f& cPos, int sm, float tan, const Vec3f& pov) :
+Pixel::Pixel(const Vec3f& cPos, int sm, float tan, const Vec3f& pos) :
 rays(), cPos(cPos), color() {
-	reset(sm, tan, pov);
+	reset(sm, tan, pos);
 }
 
 Pixel::~Pixel(void) {}
@@ -80,17 +80,17 @@ Pixel& Pixel::operator=(const Pixel& other) {
 	return *this;
 }
 
-void Pixel::reset(int sm, float tan, const Vec3f& pov) {
+void Pixel::reset(int sm, float tan, const Vec3f& pos) {
 	rays.clear();
 	rays.reserve(sm * sm);
 	int sqrSm = sm * sm;
 	for (int i = 0; i < sqrSm; i++) {
 		rays.push_back(Ray());
 	}
-	restoreRays(sm, tan, pov);
+	restoreRays(sm, tan, pos);
 }
 
-void Pixel::restoreRays(int sm, float tan, const Vec3f& pov) {
+void Pixel::restoreRays(int sm, float tan, const Vec3f& pos) {
 	auto ray = rays.begin(), end = rays.end();
 	for (int j = 0; j < sm; j++) {
 		for (int i = 0; i < sm && ray != end; i++, ++ray) {
@@ -98,7 +98,7 @@ void Pixel::restoreRays(int sm, float tan, const Vec3f& pov) {
 			ray->dir.y = (cPos.y + j * cPos.z) * tan;
 			ray->dir.z = 1;
 			ray->dir.normalize();
-			ray->pov = pov;
+			ray->pos = pos;
 			ray->recursion = 0;
 		}
 	}
@@ -448,7 +448,7 @@ float Camera::softShadowMultiplier(Ray& ray, float distToLight) {
 	if (!ray.segments.empty()) {
 		ray.segments.sort();
 		for (auto segment = ray.segments.begin(), end = ray.segments.end(); segment != end; ++segment) {
-			if (segment->b.d == ray.dist) {	// pov is inside the shader
+			if (segment->b.d == ray.dist) {	// pos is inside the shader
 				d = 0.;
 				break;
 			}
