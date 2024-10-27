@@ -69,7 +69,7 @@ float Light::lighting(Ray& ray) const {
 	float k = 0;
 	switch (_type) {
 		case SPOTLIGHT: {
-			ray.dist = ray.dirL.substract(_pos.p, ray.pos).norm();
+			ray.dist = ray.dirL.substract(_pos.p, ray.pov).norm();
 			if (ray.dist != 0) (ray.dirL.product(1 / ray.dist));// optimal normalization
 			if ( (k = ray.dirL * ray.norm) <= 0) {
 				return 0;
@@ -88,7 +88,7 @@ float Light::lighting(Ray& ray) const {
 			if ( (k = _pos.n * ray.norm) <= 0) {
 				return 0;
 			}
-			rayPlaneIntersection(ray.pos, _pos.n, _pos.p, ray.norm, ray.dist);
+			rayPlaneIntersection(ray.pov, _pos.n, _pos.p, ray.norm, ray.dist);
 			ray.dirL = _pos.n;
 			break;
 		}
@@ -99,14 +99,14 @@ float Light::lighting(Ray& ray) const {
 	return k;
 }
 
-void Light::output(std::ostringstream& os) {
+void Light::output(std::ostringstream& os) const {
 	os << *this;
 }
 
 
 // Non member functions
 
-std::ostream& operator<<(std::ostream& o, Light& l) {
+std::ostream& operator<<(std::ostream& o, const Light& l) {
 	std::ostringstream os;
 	os << std::setw(2) << std::left << l._nick;
 	os << " " << l._pos.p;

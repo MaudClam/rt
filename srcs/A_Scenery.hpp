@@ -45,8 +45,8 @@ public:
 	virtual void giveNormal(Ray& ray) const = 0;
 	virtual float getDistanceToShaderEdge(Ray& ray, float distance, bool inside) const = 0;
 	virtual float lighting(Ray& ray) const = 0;
-	virtual void output(std::ostringstream& os) = 0;
-	friend std::ostream& operator<<(std::ostream& o, A_Scenery& s);
+	virtual void output(std::ostringstream& os) const = 0;
+	friend std::ostream& operator<<(std::ostream& o, const A_Scenery& s);
 };
 
 #endif /* A_SCENERY_HPP */

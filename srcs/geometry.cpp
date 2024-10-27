@@ -8,6 +8,107 @@
 #include "geometry.hpp"
 
 
+// Non class functions
+
+std::string combineType(CombineType type) {
+	switch (type) {
+		case 0:
+			return "END";
+		case 1:
+			return "UNION";
+		case 2:
+			return "SUBTRACTION";
+		case 3:
+			return "INTERSECTION";
+	}
+	return "";
+}
+
+bool	almostEqual(float a, float b, float precision) { return std::fabs(a - b) < precision; }
+
+bool	almostMore(float a, float b, float precision) { return a - b > precision; }
+
+bool	almostLess(float a, float b, float precision) { return b - a > precision; }
+
+float	degree2radian(float degree) {
+	return (degree * M_PI_180);
+}
+
+float	radian2degree(float radian) {
+	return (radian * M_180_PI);
+}
+
+float	loop(float n, float lim) {
+	lim = std::abs(lim);
+	if (n >= 0 && n < lim)
+		return n;
+	int mult = (int)(n / lim);
+	n = n - lim * mult;
+	n = (n < 0 ? lim + n : n);
+	return n;
+}
+
+int		loop(int n, int lim) {
+	lim = std::abs(lim);
+	if (n >= 0 && n < lim)
+		return n;
+	n = n % lim;
+	n = (n < 0 ? lim + n : n);
+	return n;
+}
+
+float	reverse(float n, float lim) {
+	lim = std::abs(lim);
+	if (n >= 0 && n <= lim)
+		return n;
+	n = std::abs(n);
+	int mult = (int)(n / lim);
+	n = n - lim * mult;
+	n = (mult % 2 ? lim - n : n);
+	return n;
+}
+
+int		reverse(int n, int lim) {
+	lim = std::abs(lim);
+	if (n >= 0 && n <= lim)
+		return n;
+	n = std::abs(n);
+	int mult = n / lim;
+	n = n % lim;
+	n = (mult % 2 ? lim - n : n);
+	return n;
+}
+
+float	cosineDistribution(float x) {
+	return (1.0 / M_PI) * sqrt(1.0 - x * x);
+}
+
+float	inverseCumulativeDistribution(float u) {
+	return cos(u * M_PI / 2.0);
+}
+
+std::string  roundedString(float num, int factor) {
+	std::string sign("");
+	if (num < 0) {
+		sign = "-";
+		num = -num;
+	}
+	if (factor > 0) {
+		factor = std::pow(10, factor);
+	} else {
+		factor = 1;
+	}
+	num *= factor;
+	int intgr = (int)std::round(num);
+	int frctnl = intgr % factor;
+	intgr /= factor;
+	if (intgr == 0 && frctnl == 0) {
+		sign = "";
+	}
+	return sign + std::to_string(intgr) + "." + std::to_string(frctnl);
+}
+
+
 // Struct Position
 
 Position::Position(void) : p(), n() {}
@@ -15,6 +116,8 @@ Position::Position(void) : p(), n() {}
 Position::~Position(void) {}
 
 Position::Position(const Vec3f& point, const Vec3f& norm) : p(point), n(norm) { n.normalize(); }
+
+Position::Position(int px, int py, int pz, int nx, int ny, int nz) : p(px,py,pz), n(nx,ny,nz) { n.normalize(); }
 
 Position::Position(const Position& other) : p(other.p), n(other.n) {}
 
@@ -51,55 +154,17 @@ Position& Position::roll(float roll) {
 	return *this;
 }
 
-
-// Non member functions
-
-std::ostream& operator<<(std::ostream& o, Position& pos) {
+std::ostream& operator<<(std::ostream& o, const Position& pos) {
 	o << "(" << pos.p.x << "," << pos.p.y << "," << pos.p.z << "),";
 	o << "(" << pos.n.x << "," << pos.n.y << "," << pos.n.z << ")";
 	return o;
 }
 
-std::string combineType(CombineType type) {
-	switch (type) {
-		case 0:
-			return "END";
-		case 1:
-			return "UNION";
-		case 2:
-			return "SUBTRACTION";
-		case 3:
-			return "INTERSECTION";
-	}
-	return "";
-}
-
-bool almostEqual(float a, float b, float precision) { return std::fabs(a - b) < precision; }
-
-bool almostMore(float a, float b, float precision) { return a - b > precision; }
-
-bool almostLess(float a, float b, float precision) { return b - a > precision; }
-
-float round_(float num, float prcs) {
-	return std::round(num / prcs) * prcs;
-}
-
-double round_(double num, double prcs) {
-	return std::round(num / prcs) * prcs;
-}
-
-float radian(float degree) {
-	return (degree * std::numbers::pi / 180.);
-}
-
-float degree(float radian) {
-	return (radian * 180. / std::numbers::pi);
-}
 
 
 // Soft Sadow
 
-float softShadow(float distToEdge,
+float	softShadow(float distToEdge,
 				 float distToShader,
 				 float lenght,
 				 float softness) {
@@ -118,27 +183,27 @@ float softShadow(float distToEdge,
 
 // Intersections, normals, rays
 
-bool raySphereIntersection(const Vec3f& rayDir,
-						   const Vec3f& rayPov,
-						   const Vec3f& center,
-						   float sqrRadius,
-						   float& distance,
-						   float& min_t,
-						   float& max_t,
-						   Hit& rayHit) {
+bool	raySphereIntersection(const Vec3f& rayDir,
+							  const Vec3f& rayPov,
+							  const Vec3f& center,
+							  float sqrRadius,
+							  float& distance,
+							  float& min_t,
+							  float& max_t,
+							  Hit& rayHit) {
 	Vec3f k;
 	k.substract(rayPov, center);
 	float c = k * k - sqrRadius;
 	return raySphereIntersection(rayDir, k, c, distance, min_t, max_t, rayHit);
 }
 
-bool raySphereIntersection(const Vec3f& rayDir,
-						   const Vec3f& k,
-						   float c,
-						   float& distance,
-						   float& min_t,
-						   float& max_t,
-						   Hit& rayHit) {
+bool	raySphereIntersection(const Vec3f& rayDir,
+							  const Vec3f& k,
+							  float c,
+							  float& distance,
+							  float& min_t,
+							  float& max_t,
+							  Hit& rayHit) {
 	float b = rayDir * k;
 	float d = b * b - c;
 	if (d >= 0) {
@@ -178,26 +243,26 @@ bool raySphereIntersection(const Vec3f& rayDir,
 	return false;
 }
 
-void normalToRaySphereIntersect(const Vec3f& intersectPt, const Vec3f& center, Vec3f& normal) {
+void	normalToRaySphereIntersect(const Vec3f& intersectPt,
+								   const Vec3f& center,
+								   Vec3f& normal) {
 	normal.substract(intersectPt, center).normalize();
 }
 
-float distanceToSphericalShaderEdge(const Vec3f& intersectPt,
-									const Vec3f& center,
-									const Vec3f& dirToLight,
-									float radius) {
+float	distanceToSphericalShaderEdge(const Vec3f& intersectPt,
+									  const Vec3f& center,
+									  const Vec3f& dirToLight,
+									  float radius) {
 	(void)radius;
 	float d = (center - intersectPt).normalize() * dirToLight * radius;
 	return 	d > 0. ? d : 0.;
 }
 
-
-
-bool rayPlaneIntersection(const Vec3f& pos,
-						  const Vec3f& dir,
-						  const Vec3f& point,
-						  const Vec3f& norm,
-						  float& distance) {
+bool	rayPlaneIntersection(const Vec3f& pos,
+							 const Vec3f& dir,
+							 const Vec3f& point,
+							 const Vec3f& norm,
+							 float& distance) {
 	float k = dir * norm;
 	if ( !almostEqual(k, 0, EPSILON) ) {
 		Vec3f r;

@@ -11,7 +11,7 @@
 // struct RayBasic
 
 RayBasic::RayBasic(void) :
-pos(),
+pov(),
 dir(),
 pow(),
 dirL(),
@@ -21,7 +21,7 @@ hit(FRONT)
 {}
 
 RayBasic::RayBasic(const Ray& ray) :
-pos(ray.pos),
+pov(ray.pov),
 dir(ray.dir),
 pow(ray.pow),
 dirL(ray.dirL),
@@ -33,7 +33,7 @@ hit(ray.hit)
 RayBasic::~RayBasic(void) {}
 
 RayBasic::RayBasic(const RayBasic& other) :
-pos(other.pos),
+pov(other.pov),
 dir(other.dir),
 pow(other.pow),
 dirL(other.dirL),
@@ -44,7 +44,7 @@ hit(other.hit)
 
 RayBasic& RayBasic::operator=(const RayBasic& other) {
 	if (this != &other) {
-		pos = other.pos;
+		pov = other.pov;
 		dir = other.dir;
 		pow = other.pow;
 		dirL = other.dirL;
@@ -56,7 +56,7 @@ RayBasic& RayBasic::operator=(const RayBasic& other) {
 }
 
 RayBasic& RayBasic::operator=(const Ray& ray) {
-	pos = ray.pos;
+	pov = ray.pov;
 	dir = ray.dir;
 	pow = ray.pow;
 	dirL = ray.dirL;
@@ -115,7 +115,7 @@ Ray::Ray(const Ray& other) { *this = other; }
 Ray& Ray::operator=(const Ray& other) {
 	if (this != & other) {
 		recursion = other.recursion;
-		pos = other.pos;
+		pov = other.pov;
 		dir = other.dir;
 		pow = other.pow;
 		dirL = other.dirL;
@@ -133,7 +133,7 @@ Ray& Ray::operator=(const Ray& other) {
 }
 
 Ray& Ray::operator=(const RayBasic& raySafe) {
-	pos = raySafe.pos;
+	pov = raySafe.pov;
 	dir = raySafe.dir;
 	pow = raySafe.pow;
 	dirL = raySafe.dirL;
@@ -349,17 +349,17 @@ bool operator<(const Ray::Segment& left, const Ray::Segment& right) {
 	return left.b.d < right.b.d;
 }
 
-std::ostream& operator<<(std::ostream& o, Ray::Point& p) {
+std::ostream& operator<<(std::ostream& o, const Ray::Point& p) {
 	o << "(" << p.d << ", " << std::boolalpha << p.inside << ", " << p.s << ")";
 	return o;
 }
 
-std::ostream& operator<<(std::ostream& o, Ray::Segment& s) {
+std::ostream& operator<<(std::ostream& o, const Ray::Segment& s) {
 	o << "a" << s.a << ", b" << s.b << ", " << std::boolalpha << s.removed << ", " << s.combine;
 	return o;
 }
 
-std::ostream& operator<<(std::ostream& o, Ray::segments_t& ss) {
+std::ostream& operator<<(std::ostream& o, const Ray::segments_t& ss) {
 	for (auto segment = ss.begin(), end = ss.end(); segment != end; ++segment) {
 		o << *segment << std::endl;
 	}

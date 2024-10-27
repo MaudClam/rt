@@ -74,7 +74,7 @@ public:
 	void flybyCamera(void);
 	void changeCamerasOptions(int key, int option);
 	float giveValue(const floatSet_t& set, float val, int key);
-	friend std::ostream& operator<<(std::ostream& o, Scene& sc);
+	friend std::ostream& operator<<(std::ostream& o, const Scene& sc);
 };
 	int  outputFile(const char* filename);
 

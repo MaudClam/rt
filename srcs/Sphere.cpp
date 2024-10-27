@@ -66,7 +66,7 @@ bool Sphere::intersection(Ray& ray) const {
 	bool result = false;
 	if (ray.hit == ANY_SHADOW || ray.hit == FIRST_SHADOW) {
 		ray.hit = FRONT;
-		result = raySphereIntersection(ray.dirL, ray.pos, _pos.p, _sqrRadius,
+		result = raySphereIntersection(ray.dirL, ray.pov, _pos.p, _sqrRadius,
 									   ray.dist, ray.intersections.a.d, ray.intersections.b.d,
 									   ray.hit);
 	} else if (!ray.recursion) {
@@ -74,7 +74,7 @@ bool Sphere::intersection(Ray& ray) const {
 									   ray.intersections.a.d, ray.intersections.b.d,
 									   ray.hit);
 	} else {
-		result = raySphereIntersection(ray.dir, ray.pos, _pos.p, _sqrRadius,
+		result = raySphereIntersection(ray.dir, ray.pov, _pos.p, _sqrRadius,
 									   ray.dist, ray.intersections.a.d, ray.intersections.b.d,
 									   ray.hit);
 	}
@@ -84,20 +84,20 @@ bool Sphere::intersection(Ray& ray) const {
 void Sphere::giveNormal(Ray& ray) const {
 	ray.movePovByDirToDist();
 	if (ray.hit == INSIDE) {
-		normalToRaySphereIntersect(_pos.p, ray.pos, ray.norm);
+		normalToRaySphereIntersect(_pos.p, ray.pov, ray.norm);
 	} else {
-		normalToRaySphereIntersect(ray.pos, _pos.p, ray.norm);
+		normalToRaySphereIntersect(ray.pov, _pos.p, ray.norm);
 	}
 }
 
 float Sphere::getDistanceToShaderEdge(Ray& ray, float distance, bool inside) const {
 	if (inside) {
 		return distanceToSphericalShaderEdge(_pos.p,
-											 ray.pos + (ray.dirL * distance),
+											 ray.pov + (ray.dirL * distance),
 											 ray.dirL,
 											 _radius);
 	}
-	return distanceToSphericalShaderEdge(ray.pos + (ray.dirL * distance),
+	return distanceToSphericalShaderEdge(ray.pov + (ray.dirL * distance),
 										 _pos.p,
 										 ray.dirL,
 										 _radius);
@@ -108,13 +108,13 @@ float Sphere::lighting(Ray& ray) const {
 	return 0;
 }
 
-void Sphere::output(std::ostringstream& os) {
+void Sphere::output(std::ostringstream& os) const {
 	os << *this;
 }
 
 // Non member functions
 
-std::ostream& operator<<(std::ostream& o, Sphere& sp) {
+std::ostream& operator<<(std::ostream& o, const Sphere& sp) {
 	std::ostringstream os;
 	os << std::setw(2) << std::left << sp._nick;
 	os << " " << sp._pos.p;

@@ -22,7 +22,7 @@ public:
 	float get_degree(void) const;
 	float get_tan(void) const;
 	bool  set_degree(float degree);
-	friend std::ostream& operator<<(std::ostream& o, Fov& fov);
+	friend std::ostream& operator<<(std::ostream& o, const Fov& fov);
 	friend std::istringstream& operator>>(std::istringstream& is, Fov& fov);
 };
 
@@ -34,8 +34,8 @@ struct Pixel {
 	~Pixel(void);
 	Pixel(const Pixel& other);
 	Pixel& operator=(const Pixel& other);
-	void reset(int smoothingFactor, float tan, const Vec3f& pos);
-	void restoreRays(int smoothingFactor, float tan, const Vec3f& pos);
+	void reset(int smoothingFactor, float tan, const Vec3f& pov);
+	void restoreRays(int smoothingFactor, float tan, const Vec3f& pov);
 	void averageColor(void);
 };
 	
@@ -110,7 +110,7 @@ public:
 	void	calculateFlybyRadius(void);
 	void 	runThreadRoutine(int routine, MlxImage* img = NULL);
 
-	friend	std::ostream& operator<<(std::ostream& o, Camera& camera);
+	friend	std::ostream& operator<<(std::ostream& o, const Camera& camera);
 	friend	std::istringstream& operator>>(std::istringstream& is, Camera& camera);
 };
 

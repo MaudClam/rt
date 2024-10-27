@@ -223,7 +223,7 @@ void Lighting::invertBrightness(void) {
 
 // Non member functions
 
-std::ostream& operator<<(std::ostream& o, Lighting& l) {
+std::ostream& operator<<(std::ostream& o, const Lighting& l) {
 	std::ostringstream os;
 	os << std::setw(4) << std::right << l._ratio;
 	os << " " << l._color.rrggbb();

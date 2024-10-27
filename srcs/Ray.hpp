@@ -21,7 +21,7 @@ struct	ColorsSafe;
 struct	Ray;
 
 struct RayBasic {
-	Vec3f	pos;	// ray POV (point of view)            | photon position
+	Vec3f	pov;	// ray POV (point of view)            | photon position
 	Vec3f	dir;	// normalized: ray direction          | photon incident direction
 	Vec3f	pow;	// normalized: dir from camera vector | photon power
 	Vec3f	dirL;	// normalized: dir vector to light source
@@ -140,10 +140,10 @@ struct Ray : public RayBasic {
 		segments.emplace_front(a.d, a.inside, a.s, b.d, b.inside, b.s, false, _combine);
 	}
 	inline void movePovByDirToDist(void) {
-		pos.addition( pos, dir * dist );
+		pov.addition( pov, dir * dist );
 	}
 	inline void movePovByNormal(float distance) {
-		pos.addition(pos, norm * distance);
+		pov.addition(pov, norm * distance);
 	}
 	inline void fixDirFromCam_if(void) {
 		if (!recursion)
@@ -192,9 +192,9 @@ struct Ray : public RayBasic {
 };
 
 bool operator<(const Ray::Segment& left, const Ray::Segment& right);
-std::ostream& operator<<(std::ostream& o, Ray::Point& p);//FIXME
-std::ostream& operator<<(std::ostream& o, Ray::Segment& s);//FIXME
-std::ostream& operator<<(std::ostream& o, Ray::segments_t& s);//FIXME
+std::ostream& operator<<(std::ostream& o, const Ray::Point& p);//FIXME
+std::ostream& operator<<(std::ostream& o, const Ray::Segment& s);//FIXME
+std::ostream& operator<<(std::ostream& o, const Ray::segments_t& s);//FIXME
 
 
 #endif /* RAY_HPP */

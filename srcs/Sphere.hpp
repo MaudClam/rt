@@ -28,8 +28,8 @@ public:
 	void giveNormal(Ray& ray) const;
 	float getDistanceToShaderEdge(Ray& ray, float distance, bool inside) const;
 	float lighting(Ray& ray) const;
-	virtual void output(std::ostringstream& os);
-	friend std::ostream& operator<<(std::ostream& o, Sphere& sp);
+	virtual void output(std::ostringstream& os) const;
+	friend std::ostream& operator<<(std::ostream& o, const Sphere& sp);
 	friend std::istringstream& operator>>(std::istringstream& is, Sphere& sp);
 };
 

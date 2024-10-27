@@ -51,7 +51,7 @@ void A_Scenery::set_pos(const Position& pos) { _pos = pos; }
 
 // Non member functions
 
-std::ostream& operator<<(std::ostream& o, A_Scenery& s) {
+std::ostream& operator<<(std::ostream& o, const A_Scenery& s) {
 	std::ostringstream os;
 	s.output(os);
 	o << os.str();

@@ -31,7 +31,7 @@ float Fov::get_tan(void) const { return _tan; }
 bool Fov::set_degree(float degree) {
 	if (degree >= 0 && degree <= 180) {
 		_degree = degree;
-		_tan = std::tan( radian(_degree / 2) );
+		_tan = std::tan( degree2radian(_degree / 2) );
 		return true;
 	}
 	return false;
@@ -40,7 +40,7 @@ bool Fov::set_degree(float degree) {
 
 // Non member functions
 
-std::ostream& operator<<(std::ostream& o, Fov& fov) {
+std::ostream& operator<<(std::ostream& o, const Fov& fov) {
 	o << fov.get_degree();
 	return o;
 }
@@ -90,7 +90,7 @@ void Pixel::reset(int sm, float tan, const Vec3f& pos) {
 	restoreRays(sm, tan, pos);
 }
 
-void Pixel::restoreRays(int sm, float tan, const Vec3f& pos) {
+void Pixel::restoreRays(int sm, float tan, const Vec3f& pov) {
 	auto ray = rays.begin(), end = rays.end();
 	for (int j = 0; j < sm; j++) {
 		for (int i = 0; i < sm && ray != end; i++, ++ray) {
@@ -98,7 +98,7 @@ void Pixel::restoreRays(int sm, float tan, const Vec3f& pos) {
 			ray->dir.y = (cPos.y + j * cPos.z) * tan;
 			ray->dir.z = 1;
 			ray->dir.normalize();
-			ray->pos = pos;
+			ray->pov = pov;
 			ray->recursion = 0;
 		}
 	}
@@ -221,7 +221,7 @@ Camera& Camera::operator=(const Camera& other) {
 
 Position Camera::get_pos(void) const { return _pos; }
 
-float Camera::get_rollDegree(void) const { return degree(_roll); }
+float Camera::get_rollDegree(void) const { return radian2degree(_roll); }
 
 float Camera::get_roll(void) const { return _roll; }
 
@@ -311,13 +311,13 @@ void Camera::resetSoftShadowSoftness(float ss) {
 
 void Camera::resetRoll(float roll) {
 	if (roll >= 90.) {
-		roll = radian(90.);
+		roll = degree2radian(90.);
 	} else if (roll <= -90.) {
-		roll = radian(-90.);
+		roll = degree2radian(-90.);
 	} else if ( almostEqual(roll, 0., EPSILON) ) {
-		roll = radian(0.);
+		roll = degree2radian(0.);
 	} else {
-		roll = radian(roll);
+		roll = degree2radian(roll);
 	}
 	float shiftRoll = roll - _roll;
 	_roll = roll;
@@ -325,7 +325,7 @@ void Camera::resetRoll(float roll) {
 		(*sc)->roll(_pos.p, shiftRoll);
 	}
 	runThreadRoutine(RESTORE_RAYS);
-	if (DEBUG_MODE) { std::cout << "roll: " << degree(_roll) << std::endl; }
+	if (DEBUG_MODE) { std::cout << "roll: " << radian2degree(_roll) << std::endl; }
 }
 
 void Camera::lookatCamera(const Position& pos) {
@@ -547,7 +547,7 @@ void Camera::runThreadRoutine(int routine, MlxImage* img) {
 
 // Non member functions
 
-std::ostream& operator<<(std::ostream& o, Camera& camera) {
+std::ostream& operator<<(std::ostream& o, const Camera& camera) {
 	std::ostringstream os;
 	os << std::setw(2) << std::left << camera._nick;
 	os << " " << camera._pos.p;

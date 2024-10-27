@@ -69,7 +69,7 @@ public:
 	void set_ratio(float ratio);
 	void set_color(const ARGBColor& color);
 	void invertBrightness(void);
-	friend std::ostream& operator<<(std::ostream& o, Lighting& al);
+	friend std::ostream& operator<<(std::ostream& o, const Lighting& al);
 	friend std::istringstream& operator>>(std::istringstream& is, Lighting& l);
 };
 

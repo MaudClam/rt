@@ -30,8 +30,8 @@
 | '5' - default                                               |
 |                                                             |
 | FALSE SOFT SHADOW OPTIONS                                   |
-| Length:          'Ctrl' + '-'/'+'                           |
-| Softness:        'Ctrl' + 'Shift' + '-'/'+'                 |
+| 'Ctrl' +           '-'/'+' - length                         |
+| 'Ctrl' + 'Shift' + '-'/'+' - softness                       |
 |                                                             |
 \-------------------------------------------------------------/
 Enjoy! :)

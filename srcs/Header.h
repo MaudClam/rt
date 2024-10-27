@@ -17,6 +17,7 @@
 # include "Sphere.hpp"
 # include "Scene.hpp"
 # include "Light.hpp"
+# include "DirectionMatrix.hpp"
 # include "camera.hpp"
 # include "keys.h"
 
@@ -37,7 +38,6 @@
 # define RECURSION_DEPTH				5
 # define SOFT_SHADOW_LENGTH_LIMIT		100
 # define SOFT_SHADOW_SOFTNESS			1.9
-# define SOFT_SHADOW_RECURSION_LIMIT	5
 # define PIXELS_PER_THREAD				4000
 # define RESTORE_RAYS					1
 # define RESET_RAYS						2

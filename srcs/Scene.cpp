@@ -382,10 +382,10 @@ void Scene::rotateCamera(int ctrl) {
 	Camera&  cam(cameras[_currentCamera]);
 	Position pos(cam.get_pos());
 	switch (ctrl) {
-		case YAW_RIGHT:		pos.n.turnAroundY(radian((float)STEP_ROTATION)); break;
-		case YAW_LEFT:		pos.n.turnAroundY(radian(-(float)STEP_ROTATION)); break;
-		case PITCH_UP:		pos.n.turnAroundX(radian((float)STEP_ROTATION)); break;
-		case PITCH_DOWN:	pos.n.turnAroundX(radian(-(float)STEP_ROTATION)); break;
+		case YAW_RIGHT:		pos.n.turnAroundY(degree2radian((float)STEP_ROTATION)); break;
+		case YAW_LEFT:		pos.n.turnAroundY(degree2radian(-(float)STEP_ROTATION)); break;
+		case PITCH_UP:		pos.n.turnAroundX(degree2radian((float)STEP_ROTATION)); break;
+		case PITCH_DOWN:	pos.n.turnAroundX(degree2radian(-(float)STEP_ROTATION)); break;
 		case ROLL_RIGHT:	cam.resetRoll(cam.get_rollDegree() + (float)STEP_ROTATION); rt(); return;
 		case ROLL_LEFT:		cam.resetRoll(cam.get_rollDegree() - (float)STEP_ROTATION); rt(); return;
 		default:			return;
@@ -397,7 +397,7 @@ void Scene::rotateCamera(int ctrl) {
 void Scene::flybyCamera(void) {
 	Camera&		cam(cameras[_currentCamera]);
 	Position	pos(cam.get_pos());
-	float angle = radian(FLYBY_STEP / 10.), radius = cam.get_flybyRadius();
+	float angle = degree2radian(FLYBY_STEP / 10.), radius = cam.get_flybyRadius();
 	if (img.flyby == CLOCKWISE) {
 		angle = -angle;
 	}
@@ -480,7 +480,7 @@ float Scene::giveValue(const floatSet_t& set, float val, int key) {
 
 // Non member functions
 
-std::ostream& operator<<(std::ostream& o, Scene& sc) {
+std::ostream& operator<<(std::ostream& o, const Scene& sc) {
 	std::ostringstream os;
 	o  << "R " << std::setw(5) << sc._resolution.x << " " << sc._resolution.y << " " << sc._header << std::endl;
 	os << "A  " << std::setw(32) << sc._ambient;
