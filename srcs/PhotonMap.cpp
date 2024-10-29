@@ -8,38 +8,141 @@
 #include "PhotonMap.hpp"
 
 
-// class PhotonMap
+// Struct Photon
 
-//PhotonMap::PhotonMap(void) :
-//_n(NUMBER_OF_PHOTONS),
-//_d(SEARCH_DISTANCE),
-//_photons(),
-//_map()
-//{}
-//
-//PhotonMap::~PhotonMap(void) {}
-//
-//PhotonMap::PhotonMap(const PhotonMap& other) :
-//_n(other._n),
-//_d(other._d),
-//_photons(other._photons),
-//_map(other._map)
-//{}
-//
-//PhotonMap& PhotonMap::operator=(const PhotonMap& other) {
-//	if (this != &other) {
-//		_n = other._n;
-//		_d = other._d;
-//		_photons = other._photons;
-//		_map = other._map;
-//	}
-//	return *this;
-//}
-//
-//int		PhotonMap::get_n(void) { return _n; }
-//
-//float	PhotonMap::get_d(void) { return _d; }
-//
-//void	PhotonMap::set_n(int n) { _n = n; }
-//
-//void	PhotonMap::set_d(float d) { _d = d; }
+PhotonTrace::PhotonTrace(void) : type(GLOBAL), pos(0,0,0,0,0,0), pow(0,0,0) {}
+
+PhotonTrace::PhotonTrace(MapType _type, const Vec3f& point, const Vec3f& dir, const Vec3f& _pow) :
+type(_type),
+pos(point, dir),
+pow(_pow)
+{}
+
+PhotonTrace::PhotonTrace(const PhotonTrace& other) : type(other.type), pos(other.pos), pow(other.pow) {}
+
+PhotonTrace::~PhotonTrace(void) {}
+
+PhotonTrace& PhotonTrace::operator=(const PhotonTrace& other) {
+	if (this != &other) {
+		type = other.type;
+		pos = other.pos;
+		pow = other.pow;
+	}
+	return *this;
+}
+
+
+// Struct Claster
+
+ClasterKey::ClasterKey(void) : type(ALL), x(0), y(0), z(0) {}
+
+ClasterKey::ClasterKey(MapType _type, int _x, int _y, int _z) : type(_type), x(_x), y(_y), z(_z) {}
+
+ClasterKey::ClasterKey(MapType type, const Vec3f point, float gridStep) : type(ALL), x(0), y(0), z(0) {
+	make(type, point, gridStep);
+}
+
+ClasterKey::ClasterKey(const PhotonTrace& trace, float gridStep) : type(ALL), x(0), y(0), z(0) {
+	make(trace, gridStep);
+}
+
+ClasterKey::ClasterKey(const ClasterKey& other) : type(other.type), x(other.x), y(other.y), z(other.z)   {}
+
+ClasterKey::~ClasterKey(void) {}
+
+ClasterKey& ClasterKey::operator=(const ClasterKey& other) {
+	if (this != &other) {
+		type = other.type;
+		x = other.x;
+		y = other.y;
+		z = other.z;
+	}
+	return *this;
+}
+
+ClasterKey&	ClasterKey::make(MapType _type, const Vec3f& point, float gridStep) {
+	type = _type;
+	x = point.x / gridStep;
+	y = point.y / gridStep;
+	z = point.z / gridStep;
+	return *this;
+}
+
+ClasterKey&	ClasterKey::make(const PhotonTrace& trace, float gridStep) {
+	return make(trace.type, trace.pos.p, gridStep);
+}
+
+bool operator==(const ClasterKey& left, const ClasterKey& right) {
+	return left.type == right.type && left.x == right.x && left.y == right.y && left.z == right.z;
+}
+
+bool operator!=(const ClasterKey& left, const ClasterKey& right) {
+	return !(left == right);
+}
+
+bool operator<(const ClasterKey& left, const ClasterKey& right) {
+	return left.type < right.type ||
+	(left.type == right.type && left.x < right.x) ||
+	(left.type == right.type && left.x == right.x && left.y < right.y) ||
+	(left.type == right.type && left.x == right.x && left.y == right.y && left.z < right.z);
+}
+
+bool operator>(const ClasterKey& left, const ClasterKey& right) {
+	return left != right && !(left < right);
+}
+
+bool operator>=(const ClasterKey& left, const ClasterKey& right) {
+	return !(left < right);
+}
+
+bool operator<=(const ClasterKey& left, const ClasterKey& right) {
+	return !(left > right);
+}
+
+
+// Class PhotonMap
+
+PhotonMap::PhotonMap(void) :
+_sizeGlobal(0),
+_sizeCaustic(0),
+_sizeVolume(0),
+_gridStep(PHOTON_MAP_GRID_STEP)
+{}
+
+PhotonMap::~PhotonMap(void) {
+	for (auto claster = begin(), END = end(); claster != END; ++claster)
+		for (auto trace = claster->second.begin(), End = claster->second.end(); trace != End;  ++trace)
+			delete *trace;
+}
+
+void PhotonMap::swap_(PhotonMap& other) {
+	swap(other);
+	std::swap(_sizeGlobal, other._sizeGlobal);
+	std::swap(_sizeCaustic, other._sizeCaustic);
+	std::swap(_sizeVolume, other._sizeVolume);
+}
+
+int PhotonMap::get_size(MapType type) const {
+	switch (type) {
+		case GLOBAL:	return _sizeGlobal;
+		case CAUSTIC:	return _sizeCaustic;
+		case VOLUME:	return _sizeVolume;
+		default:		break;
+	}
+	return (int)size();
+}
+
+void PhotonMap::lookat(const Position& eye, const LookatAux& aux, float roll) {
+	PhotonMap tmp;
+	for (auto claster = begin(), End = end(); claster != End; ++claster) {
+		for (auto trace = claster->second.begin(), End = claster->second.end(); trace != End;  ++trace) {
+			(*trace)->pos.lookat(eye, aux, roll);
+			tmp.set_trace(*trace);
+		}
+	}
+	swap_(tmp);
+	tmp.clear();
+}
+
+
+

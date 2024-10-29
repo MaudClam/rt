@@ -34,6 +34,7 @@
 # define RESOLUTION_MAX 	1920
 # define DEFAULT_RESOLUTION 800,600
 # define BASE				Vec3f(0,0,0),Vec3f(0,0,1)
+# define PHOTON_MAP_GRID_STEP			0.15
 # define SMOOTHING_FACTOR				1
 # define RECURSION_DEPTH				5
 # define SOFT_SHADOW_LENGTH_LIMIT		100

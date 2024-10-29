@@ -27,7 +27,7 @@ struct RayBasic {
 	Vec3f	dirL;	// normalized: dir vector to light source
 	Vec3f	norm;	// normalized: normal vector from the ray hit point
 	float	dist;	// distance from POV to object hit point
-	Hit		hit;	// type of contact with an object     | photon flag
+	Hit		hit;	// type of contact with an object
 	RayBasic(void);
 	RayBasic(const Ray& ray);
 	~RayBasic(void);
