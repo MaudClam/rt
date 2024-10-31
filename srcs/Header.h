@@ -8,18 +8,7 @@
 #ifndef HEADER_H
 # define HEADER_H
 
-# include "mlx.h"
-# include "geometry.hpp"
-# include "ARGBColor.hpp"
-# include "Ray.hpp"
-# include "MlxImage.hpp"
-# include "A_Scenery.hpp"
-# include "Sphere.hpp"
-# include "Scene.hpp"
-# include "Light.hpp"
-# include "DirectionMatrix.hpp"
-# include "camera.hpp"
-# include "keys.h"
+# include <iostream>
 
 # define CREATORS			"mclam, cvignar"
 # define DEBUG_PATH			"/Users/uru/Library/Mobile Documents/com~apple~CloudDocs/42_Projects/rt/"
@@ -33,17 +22,32 @@
 # define RESOLUTION_MIN 	100
 # define RESOLUTION_MAX 	1920
 # define DEFAULT_RESOLUTION 800,600
+# define PRECISION			1e-9
+# define EPSILON 			1e-3
+# define _INFINITY			100
 # define BASE				Vec3f(0,0,0),Vec3f(0,0,1)
-# define PHOTON_MAP_GRID_STEP			0.15
-# define SMOOTHING_FACTOR				1
-# define RECURSION_DEPTH				5
-# define SOFT_SHADOW_LENGTH_LIMIT		100
-# define SOFT_SHADOW_SOFTNESS			1.9
-# define PIXELS_PER_THREAD				4000
-# define RESTORE_RAYS					1
-# define RESET_RAYS						2
-# define TAKE_PICTURE					3
-# define RAY_TRACING					4
+# define PHOTON_DIRECTIONS_MATRIX	360,180
+# define TOTAL_PHOTONS_NUMBER		1000000
+# define PHOTON_MAP_GRID_STEP		0.15
+# define SMOOTHING_FACTOR			1
+# define RECURSION_DEPTH			5
+# define SOFT_SHADOW_LENGTH_LIMIT	100
+# define SOFT_SHADOW_SOFTNESS		1.9
+# define PIXELS_PER_THREAD			4000
+# define RESTORE_RAYS				1
+# define RESET_RAYS					2
+# define TAKE_PICTURE				3
+# define RAY_TRACING				4
+
+
+//typedef	std::vector<A_Scenery*>	a_scenerys_t;
+//typedef	a_scenerys_t::iterator	a_scenerys_it;
+//typedef std::vector<Ray>		photonRays_t;
+//typedef std::set<Dir>			dirSet_t;
+//typedef	std::vector<std::string> stringSet_t;
+//typedef	std::vector<float>		floatSet_t;
+//typedef	std::vector<Camera>		cameras_t;
+
 
 enum Controls {
 	OFF,
@@ -86,13 +90,6 @@ struct Var {
 	Scene*		scene;
 	Var(void) : img(NULL), scene(NULL) {}
 	~Var(void) {}
-};
-
-struct Test {
-	std::vector<float>	v;
-	Test(void) : v() {}
-	~Test(void) {}
-	Test(const Test& other) : v(other.v) {}
 };
 
 #endif /* HEADER_H */

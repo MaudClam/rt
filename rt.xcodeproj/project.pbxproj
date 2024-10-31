@@ -9,13 +9,18 @@
 /* Begin PBXBuildFile section */
 		660BE1792CBAD9890061AA16 /* PhotonMap.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 660BE1772CBAD9890061AA16 /* PhotonMap.cpp */; settings = {COMPILER_FLAGS = "-Wall -Wextra -Werror -O2"; }; };
 		660BE1812CBD7D010061AA16 /* main.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 660BE1802CBD7D010061AA16 /* main.cpp */; settings = {COMPILER_FLAGS = "-Wall -Wextra -Werror -O2"; }; };
-		661867392CBED59C00936DE1 /* geometry.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 6679517C2C46DF55009C1DDD /* geometry.cpp */; settings = {COMPILER_FLAGS = "-Wall -Wextra -Werror -O2"; }; };
-		6618673F2CC7C19900936DE1 /* DirectionMatrix.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 6618673E2CC7C19900936DE1 /* DirectionMatrix.cpp */; settings = {COMPILER_FLAGS = "-Wall -Wextra -Werror -O2"; }; };
-		661867402CC7C19900936DE1 /* DirectionMatrix.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 6618673E2CC7C19900936DE1 /* DirectionMatrix.cpp */; settings = {COMPILER_FLAGS = "-Wall -Wextra -Werror -O2"; }; };
+		6618673F2CC7C19900936DE1 /* DirMatrix.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 6618673E2CC7C19900936DE1 /* DirMatrix.cpp */; settings = {COMPILER_FLAGS = "-Wall -Wextra -Werror -O2"; }; };
 		665241D22C5BA6E700BD3A64 /* Ray.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 665241D02C5BA6E700BD3A64 /* Ray.cpp */; settings = {COMPILER_FLAGS = "-Wall -Wextra -Werror -O2"; }; };
-		6658DAEC2CCC43ED008F760F /* Ray.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 665241D02C5BA6E700BD3A64 /* Ray.cpp */; settings = {COMPILER_FLAGS = "-Wall -Wextra -Werror -O2"; }; };
-		6658DAED2CCC441E008F760F /* ARGBColor.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 667951912C5293BB009C1DDD /* ARGBColor.cpp */; settings = {COMPILER_FLAGS = "-Wall -Wextra -Werror -O2"; }; };
-		6658DAF92CD125F8008F760F /* PhotonMap.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 660BE1772CBAD9890061AA16 /* PhotonMap.cpp */; settings = {COMPILER_FLAGS = "-Wall -Wextra -Werror -O2"; }; };
+		665806B02CD2BFEF00143501 /* libmlx.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 66D1668C2C3B4243002E6F7E /* libmlx.a */; };
+		665806B12CD2BFF200143501 /* AppKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 6659C4E72C39A8CD00CC7FAB /* AppKit.framework */; };
+		665806B22CD2BFF400143501 /* OpenGL.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 6659C4E52C39A8B200CC7FAB /* OpenGL.framework */; };
+		665806B92CD3947700143501 /* Power.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 665806B72CD3947700143501 /* Power.cpp */; };
+		665806C12CD3F90500143501 /* DirMatrix.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 6618673E2CC7C19900936DE1 /* DirMatrix.cpp */; settings = {COMPILER_FLAGS = "-Wall -Wextra -Werror -O2"; }; };
+		665806C22CD3F92700143501 /* ARGBColor.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 667951912C5293BB009C1DDD /* ARGBColor.cpp */; settings = {COMPILER_FLAGS = "-Wall -Wextra -Werror -O2"; }; };
+		665806C32CD3F92E00143501 /* geometry.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 6679517C2C46DF55009C1DDD /* geometry.cpp */; settings = {COMPILER_FLAGS = "-Wall -Wextra -Werror -O2"; }; };
+		665806C52CD3F96300143501 /* Ray.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 665241D02C5BA6E700BD3A64 /* Ray.cpp */; settings = {COMPILER_FLAGS = "-Wall -Wextra -Werror -O2"; }; };
+		665806C62CD3F9C400143501 /* PhotonMap.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 660BE1772CBAD9890061AA16 /* PhotonMap.cpp */; settings = {COMPILER_FLAGS = "-Wall -Wextra -Werror -O2"; }; };
+		665806C82CD3FA2100143501 /* Power.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 665806B72CD3947700143501 /* Power.cpp */; };
 		6659C4E32C399E8A00CC7FAB /* MlxImage.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 6659C4E12C399E8A00CC7FAB /* MlxImage.cpp */; settings = {COMPILER_FLAGS = "-Wall -Wextra -Werror -O2"; }; };
 		6659C4E62C39A8B200CC7FAB /* OpenGL.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 6659C4E52C39A8B200CC7FAB /* OpenGL.framework */; };
 		6659C4E82C39A8CD00CC7FAB /* AppKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 6659C4E72C39A8CD00CC7FAB /* AppKit.framework */; };
@@ -56,8 +61,8 @@
 		660BE1782CBAD9890061AA16 /* PhotonMap.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; path = PhotonMap.hpp; sourceTree = "<group>"; };
 		660BE17E2CBD7D010061AA16 /* test_dir */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = test_dir; sourceTree = BUILT_PRODUCTS_DIR; };
 		660BE1802CBD7D010061AA16 /* main.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = main.cpp; sourceTree = "<group>"; };
-		6618673B2CC26C3B00936DE1 /* DirectionMatrix.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; path = DirectionMatrix.hpp; sourceTree = "<group>"; };
-		6618673E2CC7C19900936DE1 /* DirectionMatrix.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = DirectionMatrix.cpp; sourceTree = "<group>"; };
+		6618673B2CC26C3B00936DE1 /* DirMatrix.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; path = DirMatrix.hpp; sourceTree = "<group>"; };
+		6618673E2CC7C19900936DE1 /* DirMatrix.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = DirMatrix.cpp; sourceTree = "<group>"; };
 		6628EB052C91F0D900BC90BD /* macKeys.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = macKeys.h; sourceTree = "<group>"; };
 		6628EB062C91F0D900BC90BD /* linuxKeys.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = linuxKeys.h; sourceTree = "<group>"; };
 		6628EB072C91F1D200BC90BD /* keys.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = keys.h; sourceTree = "<group>"; };
@@ -67,6 +72,8 @@
 		6628EB0F2C936E3F00BC90BD /* balls1.rt */ = {isa = PBXFileReference; lastKnownFileType = text; path = balls1.rt; sourceTree = "<group>"; };
 		665241D02C5BA6E700BD3A64 /* Ray.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = Ray.cpp; sourceTree = "<group>"; };
 		665241D12C5BA6E700BD3A64 /* Ray.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; path = Ray.hpp; sourceTree = "<group>"; };
+		665806B72CD3947700143501 /* Power.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = Power.cpp; sourceTree = "<group>"; };
+		665806B82CD3947700143501 /* Power.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; path = Power.hpp; sourceTree = "<group>"; };
 		6659C4E12C399E8A00CC7FAB /* MlxImage.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = MlxImage.cpp; sourceTree = "<group>"; };
 		6659C4E22C399E8A00CC7FAB /* MlxImage.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; path = MlxImage.hpp; sourceTree = "<group>"; };
 		6659C4E52C39A8B200CC7FAB /* OpenGL.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = OpenGL.framework; path = System/Library/Frameworks/OpenGL.framework; sourceTree = SDKROOT; };
@@ -99,6 +106,9 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				665806B02CD2BFEF00143501 /* libmlx.a in Frameworks */,
+				665806B12CD2BFF200143501 /* AppKit.framework in Frameworks */,
+				665806B22CD2BFF400143501 /* OpenGL.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -167,8 +177,8 @@
 				667951902C5293BB009C1DDD /* ARGBColor.hpp */,
 				667951772C427BFD009C1DDD /* camera.cpp */,
 				667951782C427BFD009C1DDD /* camera.hpp */,
-				6618673E2CC7C19900936DE1 /* DirectionMatrix.cpp */,
-				6618673B2CC26C3B00936DE1 /* DirectionMatrix.hpp */,
+				6618673E2CC7C19900936DE1 /* DirMatrix.cpp */,
+				6618673B2CC26C3B00936DE1 /* DirMatrix.hpp */,
 				6679517C2C46DF55009C1DDD /* geometry.cpp */,
 				6679518F2C5293BB009C1DDD /* geometry.hpp */,
 				66B6D1C42C3AD3B9008FD6E6 /* Header.h */,
@@ -183,6 +193,8 @@
 				6659C4E22C399E8A00CC7FAB /* MlxImage.hpp */,
 				660BE1772CBAD9890061AA16 /* PhotonMap.cpp */,
 				660BE1782CBAD9890061AA16 /* PhotonMap.hpp */,
+				665806B72CD3947700143501 /* Power.cpp */,
+				665806B82CD3947700143501 /* Power.hpp */,
 				665241D02C5BA6E700BD3A64 /* Ray.cpp */,
 				665241D12C5BA6E700BD3A64 /* Ray.hpp */,
 				667951702C41AD05009C1DDD /* Scene.cpp */,
@@ -271,11 +283,12 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				6658DAED2CCC441E008F760F /* ARGBColor.cpp in Sources */,
-				6658DAEC2CCC43ED008F760F /* Ray.cpp in Sources */,
-				661867402CC7C19900936DE1 /* DirectionMatrix.cpp in Sources */,
-				661867392CBED59C00936DE1 /* geometry.cpp in Sources */,
-				6658DAF92CD125F8008F760F /* PhotonMap.cpp in Sources */,
+				665806C82CD3FA2100143501 /* Power.cpp in Sources */,
+				665806C62CD3F9C400143501 /* PhotonMap.cpp in Sources */,
+				665806C52CD3F96300143501 /* Ray.cpp in Sources */,
+				665806C32CD3F92E00143501 /* geometry.cpp in Sources */,
+				665806C22CD3F92700143501 /* ARGBColor.cpp in Sources */,
+				665806C12CD3F90500143501 /* DirMatrix.cpp in Sources */,
 				660BE1812CBD7D010061AA16 /* main.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -289,8 +302,9 @@
 				6661C21B2C38071100D58CDC /* main.cpp in Sources */,
 				665241D22C5BA6E700BD3A64 /* Ray.cpp in Sources */,
 				6679517D2C46DF55009C1DDD /* geometry.cpp in Sources */,
+				665806B92CD3947700143501 /* Power.cpp in Sources */,
 				66D166CA2C3D9281002E6F7E /* A_Scenery.cpp in Sources */,
-				6618673F2CC7C19900936DE1 /* DirectionMatrix.cpp in Sources */,
+				6618673F2CC7C19900936DE1 /* DirMatrix.cpp in Sources */,
 				6659C4E32C399E8A00CC7FAB /* MlxImage.cpp in Sources */,
 				667951792C427BFD009C1DDD /* camera.cpp in Sources */,
 				66D166C62C3C172F002E6F7E /* Sphere.cpp in Sources */,
@@ -308,6 +322,10 @@
 				CODE_SIGN_STYLE = Automatic;
 				DEVELOPMENT_TEAM = 92PJT7J9M9;
 				ENABLE_HARDENED_RUNTIME = YES;
+				LIBRARY_SEARCH_PATHS = (
+					"$(inherited)",
+					"$(PROJECT_DIR)",
+				);
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
 			name = Debug;
@@ -318,6 +336,10 @@
 				CODE_SIGN_STYLE = Automatic;
 				DEVELOPMENT_TEAM = 92PJT7J9M9;
 				ENABLE_HARDENED_RUNTIME = YES;
+				LIBRARY_SEARCH_PATHS = (
+					"$(inherited)",
+					"$(PROJECT_DIR)",
+				);
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
 			name = Release;

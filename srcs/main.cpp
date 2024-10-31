@@ -5,7 +5,7 @@
 //  Created by uru on 05/07/2024.
 //
 
-#include "Header.h"
+#include "MlxImage.hpp"
 
 Var	var;
 

@@ -7,15 +7,20 @@
 
 #ifndef MLXIMAGE_HPP
 # define MLXIMAGE_HPP
-# include <iostream>
-# include <cstdlib>
-# include <thread>
-# include <chrono>
-# include <stack>
-# include "Header.h"
 
-struct Var;
-struct Scene;
+# include <stack>
+# include "geometry.hpp"
+# include "ARGBColor.hpp"
+# include "mlx.h"
+# include "Scene.hpp"
+# include "Header.h"
+# include "keys.h"
+
+
+struct	ImageOptions;
+class	HoldKeys;
+class	MlxImage;
+
 
 struct ImageOptions {
 	const ARGBColor	black		= ARGBColor(  0,   0,   0);
@@ -31,6 +36,7 @@ struct ImageOptions {
 	ImageOptions(void) {}
 	~ImageOptions(void) {}
 };
+
 
 class HoldKeys {
 	int	_raw[3];
@@ -53,6 +59,7 @@ public:
 	bool CTRL_ALT_(void);
 	bool SHIFT_ALT_(void);
 };
+
 
 class MlxImage : public ImageOptions {
 private:

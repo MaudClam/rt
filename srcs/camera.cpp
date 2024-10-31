@@ -179,6 +179,7 @@ _flybyRadius(0),
 scenerys(),
 objsIdx(),
 lightsIdx(),
+phMap(),
 ambient(),
 space(),
 recursionDepth(RECURSION_DEPTH),
@@ -210,6 +211,7 @@ Camera& Camera::operator=(const Camera& other) {
 		scenerys = other.scenerys;
 		objsIdx = other.objsIdx;
 		lightsIdx = other.lightsIdx;
+		phMap = other.phMap;
 		ambient = other.ambient;
 		space = other.space;
 		recursionDepth = other.recursionDepth;

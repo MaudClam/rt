@@ -9,18 +9,23 @@
 # define ARGBCOLOR_HPP
 
 # include <iostream>
-# include <sstream>
 # include <iomanip>
+# include <sstream>
 # include <vector>
 
 
-enum colorFormat {
-	GRAY_SCALE=1, RGB=3, ARGB=4
-};
+struct	ARGBColor;
+class	Lighting;
 
+const float _1_255 = 1. / 255.;
+enum colorFormat { GRAY_SCALE=1, RGB=3, ARGB=4 };
 std::string colorFormat(int bpp);
 int   i2limits(int num, int min, int max);
 float f2limits(float num, float min, float max);
+float max_(float a, float b);
+float max_(float a, float b, float c);
+ARGBColor negative(const ARGBColor& c);
+
 
 struct ARGBColor {
 	union {
@@ -54,6 +59,7 @@ struct ARGBColor {
 	friend std::istringstream& operator>>(std::istringstream& is, ARGBColor& c);
 };
 
+
 class Lighting {
 	float		_ratio;
 	ARGBColor	_color;
@@ -72,7 +78,5 @@ public:
 	friend std::ostream& operator<<(std::ostream& o, const Lighting& al);
 	friend std::istringstream& operator>>(std::istringstream& is, Lighting& l);
 };
-
-	ARGBColor negative(const ARGBColor& c);
 
 #endif /* ARGBCOLOR_HPP */

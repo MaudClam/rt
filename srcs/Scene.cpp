@@ -15,11 +15,14 @@ img(img),
 scenerys(),
 objsIdx(),
 lightsIdx(),
+dirs(PHOTON_DIRECTIONS_MATRIX),
+phMap(),
 cameras(),
 _resolution(DEFAULT_RESOLUTION),
 _header(),
 _ambient(1),
 _space(1),
+_totalLightPower(),
 _currentCamera(0) {
 	img.set_scene(this);
 	_space.invertBrightness();
@@ -43,11 +46,14 @@ img(other.img),
 scenerys(other.scenerys),
 objsIdx(other.objsIdx),
 lightsIdx(other.lightsIdx),
+dirs(other.dirs),
+phMap(other.phMap),
 cameras(other.cameras),
 _resolution(other._resolution),
 _header(other._header),
 _ambient(other._ambient),
 _space(other._space),
+_totalLightPower(other._totalLightPower),
 _currentCamera(other._currentCamera)
 {}
 
@@ -56,11 +62,14 @@ Scene& Scene::operator=(const Scene& other) {
 		scenerys = other.scenerys;
 		objsIdx = other.objsIdx;
 		lightsIdx = other.lightsIdx;
+		dirs = other.dirs;
+		phMap = other.phMap;
 		cameras = other.cameras;
 		_resolution = other._resolution;
 		_header = other._header;
 		_ambient = other._ambient;
 		_space = other._space;
+		_totalLightPower = other._totalLightPower;
 		_currentCamera = other._currentCamera;
 	}
 	return *this;
@@ -305,8 +314,10 @@ int Scene::set_any(std::istringstream is) {
 
 void Scene::set_scenery(A_Scenery* scenery) {
 	scenerys.push_back(scenery);
-	if ( scenerys.back()->get_isLight() == true ) {
+	if ( scenerys.back()->get_isLight() ) {
 		lightsIdx.push_back(scenery);
+		scenery->color = scenery->light.light;
+		_totalLightPower.addition(_totalLightPower, Power(scenery->light.light));
 	} else {
 		objsIdx.push_back(scenery);
 	}
@@ -475,6 +486,14 @@ float Scene::giveValue(const floatSet_t& set, float val, int key) {
 		}
 	}
 	return val;
+}
+
+void Scene::makePhotonMap(void) {
+	std::vector<Power>	lightPowers;
+//	for (auto it = lightsIdx.begin(), End = lightsIdx.end(); it != End; ++it)
+//		lightPowers.push_back((*it)->light.light.pow());
+
+	
 }
 
 

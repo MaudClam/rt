@@ -8,14 +8,11 @@
 #ifndef ASCENERY_HPP
 # define ASCENERY_HPP
 
-# include <set>
-# include "geometry.hpp"
-# include "ARGBColor.hpp"
 # include "Ray.hpp"
 
 struct	Ray;
-class	A_Scenery;
-typedef std::vector<A_Scenery*> a_scenerys_t;
+struct	DirMatrix;
+typedef	std::vector<Ray>	photonRays_t;
 
 class A_Scenery {
 protected:
@@ -26,6 +23,7 @@ protected:
 public:
 	CombineType		combineType;// combination type with the following primitive
 	ARGBColor		color;		// surface color
+	Lighting 		light;		// light for light source
 	int				specular;	// in range [-1,1000]
 	float			reflective;	// in range [0,1]
 	float			refractive; // in range [0,1]
@@ -45,6 +43,7 @@ public:
 	virtual void giveNormal(Ray& ray) const = 0;
 	virtual float getDistanceToShaderEdge(Ray& ray, float distance, bool inside) const = 0;
 	virtual float lighting(Ray& ray) const = 0;
+	virtual void photonEmission(int num, DirMatrix& dirs, photonRays_t& rays) const = 0;
 	virtual void output(std::ostringstream& os) const = 0;
 	friend std::ostream& operator<<(std::ostream& o, const A_Scenery& s);
 };

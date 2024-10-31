@@ -9,9 +9,14 @@
 # define SCENE_HPP
 
 # include <fstream>
-# include "Header.h"
+# include "MlxImage.hpp"
+# include "camera.hpp"
+# include "DirMatrix.hpp"
+# include "PhotonMap.hpp"
+# include "Power.hpp"
+# include "Sphere.hpp"
+# include "Light.hpp"
 
-class	A_Scenery;
 class	MlxImage;
 class	Camera;
 typedef std::vector<std::string>	stringSet_t;
@@ -43,12 +48,15 @@ struct Scene {
 	a_scenerys_t	scenerys;
 	a_scenerys_t	objsIdx;
 	a_scenerys_t	lightsIdx;
+	DirMatrix		dirs;
+	PhotonMap		phMap;
 	cameras_t		cameras;
 private:
 	Vec2i			_resolution;
 	std::string		_header;
 	Lighting		_ambient;
 	Lighting		_space;
+	Power			_totalLightPower;
 	int				_currentCamera;
 public:
 	Scene(MlxImage& img);
@@ -74,6 +82,7 @@ public:
 	void flybyCamera(void);
 	void changeCamerasOptions(int key, int option);
 	float giveValue(const floatSet_t& set, float val, int key);
+	void makePhotonMap(void);
 	friend std::ostream& operator<<(std::ostream& o, const Scene& sc);
 };
 	int  outputFile(const char* filename);

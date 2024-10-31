@@ -68,7 +68,7 @@ ARGBColor& ARGBColor::substract(const ARGBColor& c1, const ARGBColor& c2) {
 
 ARGBColor& ARGBColor::product(const ARGBColor& c1, const ARGBColor& c2) {
 	for (int i = 0; i < 4; ++i) {
-		raw[i] = (unsigned char)(c1.raw[i] * c2.raw[i] * 0.003922);
+		raw[i] = (unsigned char)(c1.raw[i] * c2.raw[i] * _1_255);
 	}
 	return *this;
 }
@@ -240,10 +240,6 @@ std::istringstream& operator>>(std::istringstream& is, Lighting& l) {
 	return is;
 }
 
-ARGBColor negative(const ARGBColor& c) {
-	return ARGBColor(c).negative();
-}
-
 int i2limits(int num, int min, int max) {
 	if (num < min) {
 		return min;
@@ -260,4 +256,15 @@ float f2limits(float num, float min, float max) {
 		return max;
 	}
 	return num;
+}
+
+float max_(float a, float b) {
+	return std::max(a, b);
+}
+float max_(float a, float b, float c) {
+	return max_(max_(a, b), c);
+}
+
+ARGBColor negative(const ARGBColor& c) {
+	return ARGBColor(c).negative();
 }

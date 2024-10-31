@@ -8,22 +8,9 @@
 #ifndef GEOMETRY_HPP
 # define GEOMETRY_HPP
 
-# include <iostream>
-# include <sstream>
 # include <iomanip>
-# include <cmath>
-# include <numbers>
-
-# define PRECISION		1e-9
-# define EPSILON 		1e-3
-# define _INFINITY		100
-
-const float M_2PI = 2. * M_PI;
-const float M_PI_180 = M_PI / 180.;
-const float M_180_PI = 180. / M_PI;
-
-enum 	Hit { FRONT, BACK, OUTLINE, ANY_SHADOW, FIRST_SHADOW, INSIDE, OUTSIDE };
-enum	CombineType { END=0, UNION, SUBTRACTION, INTERSECTION };
+# include <sstream>
+# include "Header.h"
 
 template <class t> struct Vec2;
 template <class t> struct Vec3;
@@ -35,6 +22,13 @@ typedef Vec2<int>				Vec2i;
 typedef Vec3<float>				Vec3f;
 typedef Vec3<int>				Vec3i;
 typedef LookatAuxiliary<float>	LookatAux;
+
+const float M_2PI = 2. * M_PI;
+const float M_PI_180 = M_PI / 180.;
+const float M_180_PI = 180. / M_PI;
+
+enum 	Hit { FRONT, BACK, OUTLINE, ANY_SHADOW, FIRST_SHADOW, INSIDE, OUTSIDE };
+enum	CombineType { END=0, UNION, SUBTRACTION, INTERSECTION };
 
 // Non class functions
 std::string combineType(CombineType type);

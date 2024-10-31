@@ -8,7 +8,14 @@
 #ifndef CAMERA_HPP
 # define CAMERA_HPP
 
-# include "Header.h"
+# include <thread>
+# include "MlxImage.hpp"
+# include "Ray.hpp"
+
+class	Fov;
+struct	Pixel;
+class	Matrix;
+class	Camera;
 
 class Fov {
 protected:
@@ -26,6 +33,7 @@ public:
 	friend std::istringstream& operator>>(std::istringstream& is, Fov& fov);
 };
 
+
 struct Pixel {
 	std::vector<Ray>	rays;
 	Vec3f				cPos; // relative xy-coordinate on RT canvas of width 1
@@ -38,6 +46,7 @@ struct Pixel {
 	void restoreRays(int smoothingFactor, float tan, const Vec3f& pov);
 	void averageColor(void);
 };
+
 	
 class Matrix {
 protected:
@@ -57,6 +66,7 @@ public:
 	float get_fovDegree(void);
 };
 
+
 class Camera : public Matrix {
 protected:
 	const std::string	_name = "camera";
@@ -69,6 +79,7 @@ public:
 	a_scenerys_t		scenerys;
 	a_scenerys_t		objsIdx;
 	a_scenerys_t		lightsIdx;
+	PhotonMap			phMap;
 	ARGBColor 			ambient, space;
 	int					recursionDepth;
 	float				softShadowLength;

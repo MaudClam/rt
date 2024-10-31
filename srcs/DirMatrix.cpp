@@ -1,11 +1,11 @@
 //
-//  DirectionMatrix.cpp
+//  DirMatrix.cpp
 //  rt
 //
 //  Created by uru on 22/10/2024.
 //
 
-#include "DirectionMatrix.hpp"
+#include "DirMatrix.hpp"
 
 
 // struct DirPair
@@ -108,16 +108,25 @@ bool operator<=(const Dir& left, const Dir& right) {
 }
 
 
-// struct DirectionMatrix
+// struct DirMatrix
 
-DirectionMatrix::DirectionMatrix(void) : maxPhi(0), maxTheta(0) {}
+DirMatrix::DirMatrix(void) : maxPhi(0), maxTheta(0) {}
 
-DirectionMatrix::DirectionMatrix(float _maxPhi, float _maxTheta) :
+DirMatrix::DirMatrix(float _maxPhi, float _maxTheta) :
 maxPhi(_maxPhi), maxTheta(_maxTheta) { make(); }
 
-DirectionMatrix::~DirectionMatrix(void) {}
+DirMatrix::~DirMatrix(void) {}
 
-void DirectionMatrix::make(void) {
+DirMatrix& DirMatrix::operator=(const DirMatrix& other) {
+	if (this != &other) {
+		maxPhi = other.maxPhi;
+		maxTheta = other.maxTheta;
+		make();
+	}
+	return *this;
+}
+
+void DirMatrix::make(void) {
 	clear();
 	emplace(0, 0, maxPhi, maxTheta);
 	emplace(0, maxTheta, maxPhi, maxTheta);
@@ -126,7 +135,7 @@ void DirectionMatrix::make(void) {
 			emplace(phi, theta, maxPhi, maxTheta);
 }
 
-void	DirectionMatrix::randomSample(photonRays_t& s, const Position& pos, int n) const {
+void	DirMatrix::randomSample(photonRays_t& s, const Position& pos, int n) const {
 	Dir key;
 	std::random_device rd;
 	std::mt19937 generator(rd());
@@ -138,7 +147,7 @@ void	DirectionMatrix::randomSample(photonRays_t& s, const Position& pos, int n) 
 	}
 }
 
-void	DirectionMatrix::randomSampleHemisphere(photonRays_t& s, const Position& pos, int n) const {
+void	DirMatrix::randomSampleHemisphere(photonRays_t& s, const Position& pos, int n) const {
 	int maxPhi_4 = maxPhi / 4, maxTheta_4 = maxTheta / 4;
 	Dir norm(pos.n, maxPhi, maxTheta);
 	Dir key;
@@ -157,7 +166,7 @@ void	DirectionMatrix::randomSampleHemisphere(photonRays_t& s, const Position& po
 	}
 }
 
-void	DirectionMatrix::randomSampleHemisphereCosineDistribution(photonRays_t& s, const Position& pos, int n) const {
+void	DirMatrix::randomSampleHemisphereCosineDistribution(photonRays_t& s, const Position& pos, int n) const {
 	int maxPhi_4 = maxPhi / 4, maxTheta_4 = maxTheta / 4;
 	Dir norm(pos.n, maxPhi, maxTheta);
 	Dir key;
@@ -176,7 +185,7 @@ void	DirectionMatrix::randomSampleHemisphereCosineDistribution(photonRays_t& s, 
 	}
 }
 
-std::ostream& operator<<(std::ostream& o, const DirectionMatrix& dM) {
+std::ostream& operator<<(std::ostream& o, const DirMatrix& dM) {
 	int i = 0;
 	for (auto it = dM.begin(), end = dM.end(); it != end; ++it, i++) {
 		o << *it << " ";

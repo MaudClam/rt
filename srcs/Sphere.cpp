@@ -108,6 +108,10 @@ float Sphere::lighting(Ray& ray) const {
 	return 0;
 }
 
+void Sphere::photonEmission(int num, DirMatrix& dirs, photonRays_t& rays) const {
+	(void)num; (void)rays; (void)dirs;
+}
+
 void Sphere::output(std::ostringstream& os) const {
 	os << *this;
 }

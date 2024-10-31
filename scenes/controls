@@ -20,7 +20,7 @@
 |                                                             |
 | Flyby around the scene:                                     |
 | 'space'                    - on/reverse/off                 |
-|                                                             |                                                            |
+|                                                             |
 | Change Smoothing (antialiasing) factor:                     |
 | num keys '1','2','3','4'   - 1, 4, 9, 16 rays per pixel     |
 | '1' - default                                               |

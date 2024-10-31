@@ -1,5 +1,5 @@
 //
-//  DirectionMatrix.hpp
+//  DirMatrix.hpp
 //  rt
 //
 //  Created by uru on 18/10/2024.
@@ -9,17 +9,13 @@
 # define DIRECTIONMATRIX_HPP
 
 # include <set>
-#include <random>
-# include "geometry.hpp"
-# include "Header.h"
-
+# include <random>
+# include "Ray.hpp"
 
 struct	Dir;
-struct	DirectionMatrix;
-typedef DirectionMatrix		DirMatrix;
-typedef std::set<Dir>		dirSet_t;
-typedef std::vector<Ray>	photonRays_t;
+struct	DirMatrix;
 
+typedef std::set<Dir> dirSet_t;
 
 struct Dir {
 	int	phi;
@@ -45,11 +41,12 @@ struct Dir {
 };
 
 
-struct DirectionMatrix : public dirSet_t {
+struct DirMatrix : public dirSet_t {
 	int maxPhi, maxTheta;
-	DirectionMatrix(void);
-	DirectionMatrix(float maxPhi, float maxTheta);
-	~DirectionMatrix(void);
+	DirMatrix(void);
+	DirMatrix(float maxPhi, float maxTheta);
+	~DirMatrix(void);
+	DirMatrix& operator=(const DirMatrix& other);
 private:
 	void make(void);
 	inline	void makeOneRay(photonRays_t& s, const Position& pos, const Dir& key) const {
@@ -66,7 +63,7 @@ public:
 	void	randomSample(photonRays_t& s, const Position& pos, int n) const;
 	void	randomSampleHemisphere(photonRays_t& s, const Position& pos, int n) const;
 	void	randomSampleHemisphereCosineDistribution(photonRays_t& s, const Position& pos, int n) const;
-	friend std::ostream& operator<<(std::ostream& o, const DirectionMatrix& dM);
+	friend std::ostream& operator<<(std::ostream& o, const DirMatrix& dM);
 };
 
 #endif /* DIRECTIONMATRIX_HPP */

@@ -9,23 +9,19 @@
 # define PHOTONMAP_HPP
 
 # include <map>
-# include "Header.h"
+# include <forward_list>
+# include "Power.hpp"
 
-struct PhotonTrace;
-struct ClasterKey;
-class PhotonMap;
 
-typedef std::forward_list<PhotonTrace*>	traces_t;
-typedef std::map<ClasterKey,traces_t>	clasters_t;
+enum MapType {ALL, GLOBAL, CAUSTIC, VOLUME, RESET};
 
-enum MapType {ALL, GLOBAL, CAUSTIC, VOLUME};
 
 struct PhotonTrace {
 	MapType		type;
 	Position	pos;
-	Vec3f		pow;
+	Power		pow;
 	PhotonTrace(void);
-	PhotonTrace(MapType _type, const Vec3f& point, const Vec3f& dir, const Vec3f& _pow);
+	PhotonTrace(MapType _type, const Vec3f& point, const Vec3f& dir, const Power& _pow);
 	PhotonTrace(const PhotonTrace& other);
 	~PhotonTrace(void);
 	PhotonTrace& operator=(const PhotonTrace& other);
@@ -54,26 +50,28 @@ struct ClasterKey {
 };
 
 
+typedef std::forward_list<PhotonTrace*>	traces_t;
+typedef std::map<ClasterKey,traces_t>	clasters_t;
+
+
 class PhotonMap : public clasters_t {
-	int			_sizeGlobal, _sizeCaustic, _sizeVolume;
-	const float _gridStep;
+	int		_sizeGlobal, _sizeCaustic, _sizeVolume;
+	float	_gridStep;
 public:
 	PhotonMap(void);
+	PhotonMap(const PhotonMap& other);
 	~PhotonMap(void);
+	PhotonMap& operator=(const PhotonMap& other);
 private:
 	void swap_(PhotonMap& other);
 	inline void counter(MapType type) {
 		switch (type) {
-			case GLOBAL:	_sizeGlobal++; break;
-			case CAUSTIC:	_sizeCaustic++; break;
-			case VOLUME:	_sizeVolume++; break;
+			case GLOBAL:	_sizeGlobal++; return;
+			case CAUSTIC:	_sizeCaustic++; return;
+			case VOLUME:	_sizeVolume++; return;
 			default:		break;
 		}
-	}
-	inline void set_trace(PhotonTrace* trace) {
-		auto it_bool = try_emplace(ClasterKey().make(*trace, _gridStep), traces_t());
-		it_bool.first->second.emplace_front(trace);
-		counter(trace->type);
+		_sizeGlobal = _sizeCaustic = _sizeVolume = 0;
 	}
 	inline void get_traces(const ClasterKey& key, traces_t& traces) const {
 		auto claster = find(key);
@@ -81,8 +79,14 @@ private:
 			traces.insert_after(traces.before_begin(), claster->second.begin(), claster->second.end());
 		}
 	}
+	void deleteTraces(void);
+	inline void set_trace(PhotonTrace* trace) {
+		auto it_bool = try_emplace(ClasterKey().make(*trace, _gridStep), traces_t());
+		it_bool.first->second.emplace_front(trace);
+		counter(trace->type);
+	}
 public:
-	inline void set_newTrace(const Vec3f& point, const Vec3f& dir, const Vec3f& pow, MapType type) {
+	inline void set_newTrace(const Vec3f& point, const Vec3f& dir, const Power& pow, MapType type) {
 		PhotonTrace* trace = new PhotonTrace(type, point, dir, pow);
 		set_trace(trace);
 	}

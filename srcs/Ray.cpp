@@ -105,7 +105,8 @@ light(),
 shine(),
 color(),
 combineType(END),
-segments()
+segments(),
+traces()
 {}
 
 Ray::~Ray(void) {}
@@ -128,6 +129,7 @@ Ray& Ray::operator=(const Ray& other) {
 		color = other.color;
 		combineType = other.combineType;
 		segments = other.segments;
+		traces = other.traces;
 	}
 	return *this;
 }
@@ -164,7 +166,6 @@ Ray& Ray::set_hit(Hit hit) {
 	this->hit = hit;
 	return *this;
 }
-
 
 A_Scenery* Ray::closestScenery(a_scenerys_t& scenerys, float maxDistance, Hit target) {
 	float		_distance = maxDistance;

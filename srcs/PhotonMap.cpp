@@ -12,7 +12,7 @@
 
 PhotonTrace::PhotonTrace(void) : type(GLOBAL), pos(0,0,0,0,0,0), pow(0,0,0) {}
 
-PhotonTrace::PhotonTrace(MapType _type, const Vec3f& point, const Vec3f& dir, const Vec3f& _pow) :
+PhotonTrace::PhotonTrace(MapType _type, const Vec3f& point, const Vec3f& dir, const Power& _pow) :
 type(_type),
 pos(point, dir),
 pow(_pow)
@@ -109,10 +109,25 @@ _sizeVolume(0),
 _gridStep(PHOTON_MAP_GRID_STEP)
 {}
 
+PhotonMap::PhotonMap(const PhotonMap& other) :
+_sizeGlobal(0),
+_sizeCaustic(0),
+_sizeVolume(0),
+_gridStep(other._gridStep)
+{ *this = other; }
+
 PhotonMap::~PhotonMap(void) {
-	for (auto claster = begin(), END = end(); claster != END; ++claster)
-		for (auto trace = claster->second.begin(), End = claster->second.end(); trace != End;  ++trace)
-			delete *trace;
+	deleteTraces();
+}
+
+PhotonMap& PhotonMap::operator=(const PhotonMap& other) {
+	if (this != &other) {
+		deleteTraces();
+		for (auto claster = begin(), End = end(); claster != End; ++claster)
+			for (auto trace = claster->second.begin(), End = claster->second.end(); trace != End;  ++trace)
+				set_trace((*trace)->clone());
+	}
+	return *this;
 }
 
 void PhotonMap::swap_(PhotonMap& other) {
@@ -142,7 +157,17 @@ void PhotonMap::lookat(const Position& eye, const LookatAux& aux, float roll) {
 	}
 	swap_(tmp);
 	tmp.clear();
+	tmp.counter(RESET);
 }
 
-
+void PhotonMap::deleteTraces(void) {
+	for (auto claster = begin(), END = end(); claster != END; ++claster) {
+		for (auto trace = claster->second.begin(), End = claster->second.end(); trace != End;  ++trace) {
+			delete *trace;
+			*trace = NULL;
+		}
+	}
+	clear();
+	counter(RESET);
+}
 

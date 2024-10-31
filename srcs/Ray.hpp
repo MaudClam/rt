@@ -12,13 +12,18 @@
 # include "geometry.hpp"
 # include "ARGBColor.hpp"
 # include "A_Scenery.hpp"
+# include "PhotonMap.hpp"
 
-class	A_Scenery;
-typedef std::vector<A_Scenery*> a_scenerys_t;
-typedef a_scenerys_t::iterator	a_scenerys_it;
 struct	RayBasic;
 struct	ColorsSafe;
 struct	Ray;
+
+class	A_Scenery;
+struct	PhotonTrace;
+typedef	std::vector<A_Scenery*>			a_scenerys_t;
+typedef	a_scenerys_t::iterator			a_scenerys_it;
+typedef	std::forward_list<PhotonTrace*>	traces_t;
+
 
 struct RayBasic {
 	Vec3f	pov;	// ray POV (point of view)            | photon position
@@ -36,6 +41,7 @@ struct RayBasic {
 	RayBasic& operator=(const Ray& ray);
 };
 
+
 struct ColorsSafe {
 	float	light;
 	float	shine;
@@ -46,6 +52,7 @@ struct ColorsSafe {
 	ColorsSafe(const ColorsSafe& other);
 	ColorsSafe& operator=(const ColorsSafe& other);
 };
+
 
 struct Ray : public RayBasic {
 	struct	Point;
@@ -124,6 +131,7 @@ struct Ray : public RayBasic {
 	ARGBColor		color;			// variable for pixel color
 	CombineType		combineType;	// type of object combination
 	segments_t		segments;		// container for segments handling
+	traces_t		traces;
 	Ray(void);
 	~Ray(void);
 	Ray(const Ray& other);
@@ -181,7 +189,6 @@ struct Ray : public RayBasic {
 		color.val = colorsSafe.color;
 		shine.val = colorsSafe.shine;
 	}
-
 	A_Scenery* closestScenery(a_scenerys_t& scenerys, float maxDistance, Hit target = FRONT);
 	A_Scenery* combine(a_scenerys_it& scenery, a_scenerys_it& end, float distance, Hit target);
 	A_Scenery* getCombine(Point& nearest);

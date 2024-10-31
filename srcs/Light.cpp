@@ -15,13 +15,14 @@ Light::Light(void) {
 
 Light::~Light(void) {}
 
-Light::Light(const Light& other) : _type(other._type), light(other.light) {
+Light::Light(const Light& other) : _type(other._type) {
 	_name = other._name;
 	_nick = other._nick;
 	_isLight = other._isLight;
 	_pos = other._pos;
 	combineType = other.combineType;
 	color = other.color;
+	light = other.light;
 	specular = other.specular;
 	reflective = other.reflective;
 	matIOR = other.matIOR;
@@ -97,6 +98,10 @@ float Light::lighting(Ray& ray) const {
 	}
 	ray.light = light.light;
 	return k;
+}
+
+void Light::photonEmission(int num, DirMatrix& dirs, photonRays_t& rays) const {
+	(void)num; (void)rays; (void)dirs;
 }
 
 void Light::output(std::ostringstream& os) const {
