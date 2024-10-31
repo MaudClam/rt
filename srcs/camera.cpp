@@ -469,7 +469,8 @@ bool Camera::transparentShadow(Ray& ray, const A_Scenery& shader, float d, int r
 	ray.dir = ray.dirL;
 	shader.giveNormal(ray);
 	if (ray.dir.refract(ray.norm, ray.hit == INSIDE ? shader.matIOR : shader.matOIR)) {
-		ColorsSafe	colorsSafe(ray);
+		ColorsSafe	colorsSafe;
+		ray.getColorsSafe(colorsSafe);
 		ray.movePovByNormal(EPSILON);
 		traceRay(ray, ++r);
 		ray.collectRefractiveLight(shader.color, colorsSafe.color, shader.refractive);

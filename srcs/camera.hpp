@@ -12,10 +12,6 @@
 # include "MlxImage.hpp"
 # include "Ray.hpp"
 
-class	Fov;
-struct	Pixel;
-class	Matrix;
-class	Camera;
 
 class Fov {
 protected:

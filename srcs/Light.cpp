@@ -101,6 +101,21 @@ float Light::lighting(Ray& ray) const {
 }
 
 void Light::photonEmission(int num, DirMatrix& dirs, photonRays_t& rays) const {
+	Position	pos;
+	switch (_type) {
+		case SPOTLIGHT: { pos = _pos;
+			break;
+		}
+		case SUNLIGHT: { pos.p = _pos.n;
+			break;
+		}
+		case SUNLIGHT_LIMITED: {
+			break;
+		}
+
+		default:
+			break;
+	}
 	(void)num; (void)rays; (void)dirs;
 }
 

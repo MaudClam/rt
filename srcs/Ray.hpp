@@ -14,9 +14,6 @@
 # include "A_Scenery.hpp"
 # include "PhotonMap.hpp"
 
-struct	RayBasic;
-struct	ColorsSafe;
-struct	Ray;
 
 class	A_Scenery;
 struct	PhotonTrace;
@@ -34,11 +31,11 @@ struct RayBasic {
 	float	dist;	// distance from POV to object hit point
 	Hit		hit;	// type of contact with an object
 	RayBasic(void);
-	RayBasic(const Ray& ray);
+//	RayBasic(const Ray& ray);
 	~RayBasic(void);
 	RayBasic(const RayBasic& other);
 	RayBasic& operator=(const RayBasic& other);
-	RayBasic& operator=(const Ray& ray);
+//	RayBasic& operator=(const Ray& ray);
 };
 
 
@@ -47,7 +44,7 @@ struct ColorsSafe {
 	float	shine;
 	float	color;
 	ColorsSafe(void);
-	ColorsSafe(Ray& ray);
+//	ColorsSafe(Ray& ray);
 	~ColorsSafe(void);
 	ColorsSafe(const ColorsSafe& other);
 	ColorsSafe& operator=(const ColorsSafe& other);
@@ -138,6 +135,8 @@ struct Ray : public RayBasic {
 	Ray& operator=(const Ray& other);
 	Ray& operator=(const RayBasic& raySafe);
 	Ray& operator=(const ColorsSafe& colorsSafe);
+	Ray& getRayBasic(RayBasic& rayBasic);
+	Ray& getColorsSafe(ColorsSafe& colorsSafe);
 	Ray& restore(const RayBasic& raySafe);
 	Ray& restore(const ColorsSafe& colorsSafe);
 	Ray& set_hit(Hit hit);
@@ -202,6 +201,5 @@ bool operator<(const Ray::Segment& left, const Ray::Segment& right);
 std::ostream& operator<<(std::ostream& o, const Ray::Point& p);//FIXME
 std::ostream& operator<<(std::ostream& o, const Ray::Segment& s);//FIXME
 std::ostream& operator<<(std::ostream& o, const Ray::segments_t& s);//FIXME
-
 
 #endif /* RAY_HPP */

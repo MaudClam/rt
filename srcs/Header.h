@@ -40,15 +40,6 @@
 # define RAY_TRACING				4
 
 
-//typedef	std::vector<A_Scenery*>	a_scenerys_t;
-//typedef	a_scenerys_t::iterator	a_scenerys_it;
-//typedef std::vector<Ray>		photonRays_t;
-//typedef std::set<Dir>			dirSet_t;
-//typedef	std::vector<std::string> stringSet_t;
-//typedef	std::vector<float>		floatSet_t;
-//typedef	std::vector<Camera>		cameras_t;
-
-
 enum Controls {
 	OFF,
 	ON,

@@ -15,7 +15,6 @@
 template <class t> struct Vec2;
 template <class t> struct Vec3;
 template <class t> struct LookatAuxiliary;
-struct Position;
 
 typedef Vec2<float>				Vec2f;
 typedef Vec2<int>				Vec2i;

@@ -5,17 +5,15 @@
 //  Created by uru on 18/10/2024.
 //
 
-#ifndef DIRECTIONMATRIX_HPP
-# define DIRECTIONMATRIX_HPP
+#ifndef DIRMATRIX_HPP
+# define DIRMATRIX_HPP
 
 # include <set>
 # include <random>
 # include "Ray.hpp"
 
-struct	Dir;
-struct	DirMatrix;
-
-typedef std::set<Dir> dirSet_t;
+struct	Ray;
+typedef	std::vector<Ray>	photonRays_t;
 
 struct Dir {
 	int	phi;
@@ -41,6 +39,8 @@ struct Dir {
 };
 
 
+typedef std::set<Dir> dirSet_t;
+
 struct DirMatrix : public dirSet_t {
 	int maxPhi, maxTheta;
 	DirMatrix(void);
@@ -49,21 +49,12 @@ struct DirMatrix : public dirSet_t {
 	DirMatrix& operator=(const DirMatrix& other);
 private:
 	void make(void);
-	inline	void makeOneRay(photonRays_t& s, const Position& pos, const Dir& key) const {
-		if ((key.theta == 0 && key.phi != 0) || (key.theta == maxTheta && key.phi != 0))
-			return;
-		auto it = find(key);
-		if (it != end()) {
-			s.emplace_back();
-			s.back().dir = it->v;
-			s.back().pov = pos.p;
-		}
-	}
+	void makeOneRay(photonRays_t& s, const Position& pos, const Dir& key) const;
 public:
-	void	randomSample(photonRays_t& s, const Position& pos, int n) const;
-	void	randomSampleHemisphere(photonRays_t& s, const Position& pos, int n) const;
-	void	randomSampleHemisphereCosineDistribution(photonRays_t& s, const Position& pos, int n) const;
+	void	randomSample(int n, const Position& pos, photonRays_t& rays) const;
+	void	randomSampleHemisphere(int n, const Position& pos, photonRays_t& rays) const;
+	void	randomSampleHemisphereCosineDistribution(int n, const Position& pos, photonRays_t& rays) const;
 	friend std::ostream& operator<<(std::ostream& o, const DirMatrix& dM);
 };
 
-#endif /* DIRECTIONMATRIX_HPP */
+#endif /* DIRMATRIX_HPP */

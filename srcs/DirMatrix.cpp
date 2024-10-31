@@ -135,7 +135,18 @@ void DirMatrix::make(void) {
 			emplace(phi, theta, maxPhi, maxTheta);
 }
 
-void	DirMatrix::randomSample(photonRays_t& s, const Position& pos, int n) const {
+void DirMatrix::makeOneRay(photonRays_t& s, const Position& pos, const Dir& key) const {
+	if ((key.theta == 0 && key.phi != 0) || (key.theta == maxTheta && key.phi != 0))
+		return;
+	auto it = find(key);
+	if (it != end()) {
+		s.emplace_back();
+		s.back().dir = it->v;
+		s.back().pov = pos.p;
+	}
+}
+
+void	DirMatrix::randomSample(int n, const Position& pos, photonRays_t& s) const {
 	Dir key;
 	std::random_device rd;
 	std::mt19937 generator(rd());
@@ -147,41 +158,41 @@ void	DirMatrix::randomSample(photonRays_t& s, const Position& pos, int n) const 
 	}
 }
 
-void	DirMatrix::randomSampleHemisphere(photonRays_t& s, const Position& pos, int n) const {
+void	DirMatrix::randomSampleHemisphere(int n, const Position& pos, photonRays_t& rays) const {
 	int maxPhi_4 = maxPhi / 4, maxTheta_4 = maxTheta / 4;
 	Dir norm(pos.n, maxPhi, maxTheta);
 	Dir key;
 	std::random_device rd;
 	std::mt19937 generator(rd());
 	std::uniform_real_distribution<float> distr(0.0, 1.0);
-	while (s.size() < (size_t)n / 2) {
+	while (rays.size() < (size_t)n / 2) {
 		key.phi = loop((int)(norm.phi + distr(generator) * maxPhi_4), maxPhi);
 		key.theta = reverse((int)(norm.theta + distr(generator) * maxTheta_4), maxTheta);
-		makeOneRay(s, pos, key);
+		makeOneRay(rays, pos, key);
 	}
-	while (s.size() < (size_t)n) {
+	while (rays.size() < (size_t)n) {
 		key.phi = loop((int)(norm.phi - distr(generator) * maxPhi_4), maxPhi);
 		key.theta = reverse((int)(norm.theta - distr(generator) * maxTheta_4), maxTheta);
-		makeOneRay(s, pos, key);
+		makeOneRay(rays, pos, key);
 	}
 }
 
-void	DirMatrix::randomSampleHemisphereCosineDistribution(photonRays_t& s, const Position& pos, int n) const {
+void	DirMatrix::randomSampleHemisphereCosineDistribution(int n, const Position& pos, photonRays_t& rays) const {
 	int maxPhi_4 = maxPhi / 4, maxTheta_4 = maxTheta / 4;
 	Dir norm(pos.n, maxPhi, maxTheta);
 	Dir key;
 	std::random_device rd;
 	std::mt19937 generator(rd());
 	std::uniform_real_distribution<float> distr(0.0, 1.0);
-	while (s.size() < (size_t)n / 2) {
+	while (rays.size() < (size_t)n / 2) {
 		key.phi = loop((int)(norm.phi + cosineDistribution(distr(generator)) * maxPhi_4), maxPhi);
 		key.theta = reverse((int)(norm.theta - cosineDistribution(distr(generator)) * maxTheta_4), maxTheta);
-		makeOneRay(s, pos, key);
+		makeOneRay(rays, pos, key);
 	}
-	while (s.size() < (size_t)n) {
+	while (rays.size() < (size_t)n) {
 		key.phi = loop((int)(norm.phi - cosineDistribution(distr(generator)) * maxPhi_4), maxPhi);
 		key.theta = reverse((int)(norm.theta + cosineDistribution(distr(generator)) * maxTheta_4), maxTheta);
-		makeOneRay(s, pos, key);
+		makeOneRay(rays, pos, key);
 	}
 }
 

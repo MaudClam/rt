@@ -261,10 +261,7 @@ float f2limits(float num, float min, float max) {
 float max_(float a, float b) {
 	return std::max(a, b);
 }
+
 float max_(float a, float b, float c) {
 	return max_(max_(a, b), c);
-}
-
-ARGBColor negative(const ARGBColor& c) {
-	return ARGBColor(c).negative();
 }

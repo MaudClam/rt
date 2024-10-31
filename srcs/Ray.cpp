@@ -20,15 +20,6 @@ dist(0),
 hit(FRONT)
 {}
 
-RayBasic::RayBasic(const Ray& ray) :
-pov(ray.pov),
-dir(ray.dir),
-pow(ray.pow),
-dirL(ray.dirL),
-norm(ray.norm),
-dist(ray.dist),
-hit(ray.hit)
-{}
 
 RayBasic::~RayBasic(void) {}
 
@@ -55,28 +46,17 @@ RayBasic& RayBasic::operator=(const RayBasic& other) {
 	return *this;
 }
 
-RayBasic& RayBasic::operator=(const Ray& ray) {
-	pov = ray.pov;
-	dir = ray.dir;
-	pow = ray.pow;
-	dirL = ray.dirL;
-	norm = ray.norm;
-	dist = ray.dist;
-	hit = ray.hit;
-	return *this;
-}
-
 
 // sruct ColorsSafe
 
 ColorsSafe::ColorsSafe(void) : light(0), shine(0), color(0){}
 
-ColorsSafe::ColorsSafe(Ray& ray) :
-light(ray.light.val),
-shine(ray.shine.val),
-color(ray.color.val) {
-	ray.light = ray.shine = ray.color = 0;
-}
+//ColorsSafe::ColorsSafe(Ray& ray) :
+//light(ray.light.val),
+//shine(ray.shine.val),
+//color(ray.color.val) {
+//	ray.light = ray.shine = ray.color = 0;
+//}
 
 ColorsSafe::~ColorsSafe(void) {}
 
@@ -149,6 +129,25 @@ Ray& Ray::operator=(const ColorsSafe& colorsSafe) {
 	light.val = colorsSafe.light;
 	shine.val = colorsSafe.shine;
 	color.val = colorsSafe.color;
+	return *this;
+}
+
+Ray& Ray::getRayBasic(RayBasic& rayBasic) {
+	rayBasic.pov = pov;
+	rayBasic.dir = dir;
+	rayBasic.pow = pow;
+	rayBasic.dirL = dirL;
+	rayBasic.norm = norm;
+	rayBasic.dist = dist;
+	rayBasic.hit = hit;
+	return *this;
+}
+
+Ray& Ray::getColorsSafe(ColorsSafe& colorsSafe) {
+	colorsSafe.light = light.val;
+	colorsSafe.shine = shine.val;
+	colorsSafe.color = color.val;
+	light = shine = color = 0;
 	return *this;
 }
 

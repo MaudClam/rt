@@ -14,9 +14,6 @@
 # include <vector>
 
 
-struct	ARGBColor;
-class	Lighting;
-
 const float _1_255 = 1. / 255.;
 enum colorFormat { GRAY_SCALE=1, RGB=3, ARGB=4 };
 std::string colorFormat(int bpp);
@@ -24,7 +21,6 @@ int   i2limits(int num, int min, int max);
 float f2limits(float num, float min, float max);
 float max_(float a, float b);
 float max_(float a, float b, float c);
-ARGBColor negative(const ARGBColor& c);
 
 
 struct ARGBColor {

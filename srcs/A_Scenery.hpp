@@ -9,9 +9,10 @@
 # define ASCENERY_HPP
 
 # include "Ray.hpp"
+# include "DirMatrix.hpp"
 
-struct	Ray;
-struct	DirMatrix;
+struct Ray;
+struct DirMatrix;
 typedef	std::vector<Ray>	photonRays_t;
 
 class A_Scenery {

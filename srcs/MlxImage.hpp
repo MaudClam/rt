@@ -17,11 +17,6 @@
 # include "keys.h"
 
 
-struct	ImageOptions;
-class	HoldKeys;
-class	MlxImage;
-
-
 struct ImageOptions {
 	const ARGBColor	black		= ARGBColor(  0,   0,   0);
 	const ARGBColor	darkGray	= ARGBColor( 32,  32,  32);

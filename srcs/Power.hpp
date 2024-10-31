@@ -23,8 +23,6 @@ struct Power {
 	Power& operator=(const Power& other);
 	Power& operator=(const Vec3f& v);
 	Power& operator=(const ARGBColor& c);
-
-	
 	Power& get_Vec3f(Vec3f& v);
 	inline Vec3f get_Vec3f(void) {
 		Vec3f v;

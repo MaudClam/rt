@@ -10,6 +10,7 @@
 
 # include "A_Scenery.hpp"
 
+
 class Light : public A_Scenery {
 public:
 	enum Type { SPOTLIGHT, SUNLIGHT, SUNLIGHT_LIMITED };
