@@ -9,6 +9,7 @@
 # define SCENE_HPP
 
 # include <fstream>
+# include <random>
 # include "MlxImage.hpp"
 # include "camera.hpp"
 # include "DirMatrix.hpp"
@@ -19,9 +20,12 @@
 
 class	MlxImage;
 class	Camera;
-typedef std::vector<std::string>	stringSet_t;
-typedef std::vector<float>			floatSet_t;
-typedef std::vector<Camera>			cameras_t;
+typedef std::vector<std::string>				stringSet_t;
+typedef std::vector<float>						floatSet_t;
+typedef std::vector<Camera>						cameras_t;
+typedef	std::random_device						rand_device_t;
+typedef	std::mt19937							rand_gen_t;
+typedef	std::uniform_real_distribution<float>	rand_distr_t;
 
 enum MsgType {
 	WELLCOM_MSG,
@@ -48,15 +52,17 @@ struct Scene {
 	a_scenerys_t	scenerys;
 	a_scenerys_t	objsIdx;
 	a_scenerys_t	lightsIdx;
+	cameras_t		cameras;
+	rand_device_t	rand_device;
+	rand_gen_t		rand_gen;
 	DirMatrix		dirs;
 	PhotonMap		phMap;
-	cameras_t		cameras;
 private:
 	Vec2i			_resolution;
 	std::string		_header;
 	Lighting		_ambient;
 	Lighting		_space;
-	Power			_totalLightPower;
+	Power			_totalPow;
 	int				_currentCamera;
 public:
 	Scene(MlxImage& img);
@@ -83,6 +89,9 @@ public:
 	void changeCamerasOptions(int key, int option);
 	float giveValue(const floatSet_t& set, float val, int key);
 	void makePhotonMap(void);
+	void photonRayTracing_lll(photonRays_t& rays);
+	void tracePhotonRay(rand_distr_t& distr, Ray& ray);
+
 	friend std::ostream& operator<<(std::ostream& o, const Scene& sc);
 };
 	int  outputFile(const char* filename);

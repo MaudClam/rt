@@ -19,7 +19,7 @@ void testDir(void) {
 //	std::cout << dM << std::endl;
 	std::cout << dM.size() << std::endl;
 
-	dM.randomSampleHemisphereCosineDistribution(s, pos, 20);
+	dM.randSampleHemisphereCosineDistr(s, pos, 20);
 	std::cout << s.size() << std::endl;
 	for (auto it = s.begin(); it < s.end(); ++it) {
 		std::cout << it->dir.roundedOutput() << " ";

@@ -110,10 +110,8 @@ bool operator<=(const Dir& left, const Dir& right) {
 
 // struct DirMatrix
 
-DirMatrix::DirMatrix(void) : maxPhi(0), maxTheta(0) {}
-
-DirMatrix::DirMatrix(float _maxPhi, float _maxTheta) :
-maxPhi(_maxPhi), maxTheta(_maxTheta) { make(); }
+DirMatrix::DirMatrix(float _maxPhi, float _maxTheta, rand_gen_t& gen) :
+maxPhi(_maxPhi), maxTheta(_maxTheta), rand_gen(gen) { make(); }
 
 DirMatrix::~DirMatrix(void) {}
 
@@ -135,64 +133,54 @@ void DirMatrix::make(void) {
 			emplace(phi, theta, maxPhi, maxTheta);
 }
 
-void DirMatrix::makeOneRay(photonRays_t& s, const Position& pos, const Dir& key) const {
-	if ((key.theta == 0 && key.phi != 0) || (key.theta == maxTheta && key.phi != 0))
-		return;
-	auto it = find(key);
-	if (it != end()) {
-		s.emplace_back();
-		s.back().dir = it->v;
-		s.back().pov = pos.p;
+void DirMatrix::randomSample(int n, const Position& pos, const Power& pow, photonRays_t& rays) const {
+	rand_distr_t	distr(0.0, 1.0);
+	int	i = 0;
+	while (i < n) {
+		Dir		key;
+		Vec3f	dir;
+		key.phi = distr(rand_gen) * maxPhi;
+		key.theta = distr(rand_gen) * maxTheta;
+		if (findVec3f(key, dir)) {
+			rays.emplace_back(pos.p, dir, pow);
+			i++;
+		}
 	}
 }
 
-void	DirMatrix::randomSample(int n, const Position& pos, photonRays_t& s) const {
-	Dir key;
-	std::random_device rd;
-	std::mt19937 generator(rd());
-	std::uniform_real_distribution<float> distr(0.90, 1.0);
-	while (s.size() < (size_t)n) {
-		key.phi = distr(generator) * maxPhi;
-		key.theta = distr(generator) * maxTheta;
-		makeOneRay(s, pos, key);
+void DirMatrix::randSampleHemisphere(int n, const Position& pos, const Power& pow, photonRays_t& rays) const {
+	rand_distr_t distr(-1.0, 1.0);
+	Dir	norm(pos.n, maxPhi, maxTheta);
+	int	i = 0, maxPhi_4 = maxPhi / 4, maxTheta_4 = maxTheta / 4;
+	while (i < n) {
+		Dir		key;
+		Vec3f	dir;
+		key.phi = loop((int)(norm.phi + distr(rand_gen) * maxPhi_4), maxPhi);
+		key.theta = reverse((int)(norm.theta + distr(rand_gen) * maxTheta_4), maxTheta);
+		if (findVec3f(key, dir)) {
+			rays.emplace_back(pos.p, dir, pow);
+			i++;
+		}
 	}
 }
 
-void	DirMatrix::randomSampleHemisphere(int n, const Position& pos, photonRays_t& rays) const {
-	int maxPhi_4 = maxPhi / 4, maxTheta_4 = maxTheta / 4;
-	Dir norm(pos.n, maxPhi, maxTheta);
-	Dir key;
-	std::random_device rd;
-	std::mt19937 generator(rd());
-	std::uniform_real_distribution<float> distr(0.0, 1.0);
-	while (rays.size() < (size_t)n / 2) {
-		key.phi = loop((int)(norm.phi + distr(generator) * maxPhi_4), maxPhi);
-		key.theta = reverse((int)(norm.theta + distr(generator) * maxTheta_4), maxTheta);
-		makeOneRay(rays, pos, key);
-	}
-	while (rays.size() < (size_t)n) {
-		key.phi = loop((int)(norm.phi - distr(generator) * maxPhi_4), maxPhi);
-		key.theta = reverse((int)(norm.theta - distr(generator) * maxTheta_4), maxTheta);
-		makeOneRay(rays, pos, key);
-	}
-}
-
-void	DirMatrix::randomSampleHemisphereCosineDistribution(int n, const Position& pos, photonRays_t& rays) const {
-	int maxPhi_4 = maxPhi / 4, maxTheta_4 = maxTheta / 4;
-	Dir norm(pos.n, maxPhi, maxTheta);
-	Dir key;
-	std::random_device rd;
-	std::mt19937 generator(rd());
-	std::uniform_real_distribution<float> distr(0.0, 1.0);
-	while (rays.size() < (size_t)n / 2) {
-		key.phi = loop((int)(norm.phi + cosineDistribution(distr(generator)) * maxPhi_4), maxPhi);
-		key.theta = reverse((int)(norm.theta - cosineDistribution(distr(generator)) * maxTheta_4), maxTheta);
-		makeOneRay(rays, pos, key);
-	}
-	while (rays.size() < (size_t)n) {
-		key.phi = loop((int)(norm.phi - cosineDistribution(distr(generator)) * maxPhi_4), maxPhi);
-		key.theta = reverse((int)(norm.theta + cosineDistribution(distr(generator)) * maxTheta_4), maxTheta);
-		makeOneRay(rays, pos, key);
+void DirMatrix::randSampleHemisphereCosineDistr(int n, const Position& pos, const Power& pow, photonRays_t& rays) const {
+	rand_distr_t distr(-1.0, 1.0);
+	Dir	norm(pos.n, maxPhi, maxTheta);
+	int	i = 0, maxPhi_4 = maxPhi / 4, maxTheta_4 = maxTheta / 4;
+	while (i < n) {
+		Dir		key;
+		Vec3f	dir;
+		float phi = distr(rand_gen);
+		int sign = phi < 0 ? -1 : 1;
+		key.phi = loop((int)(norm.phi + sign * cosineDistr(phi) * maxPhi_4), maxPhi);
+		float theta = distr(rand_gen);
+		sign = theta < 0 ? -1 : 1;
+		key.theta = reverse((int)(norm.theta + sign * cosineDistr(theta) * maxTheta_4), maxTheta);
+		if (findVec3f(key, dir)) {
+			rays.emplace_back(pos.p, dir, pow);
+			i++;
+		}
 	}
 }
 

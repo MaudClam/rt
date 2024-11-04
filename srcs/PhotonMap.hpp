@@ -16,6 +16,25 @@
 enum MapType {ALL, GLOBAL, CAUSTIC, VOLUME, RESET};
 
 
+class PhotonPath {
+	bool	r;	// passed reflection or refraction
+	bool	d;	// passed diffusion
+	bool	v;	// passed volume diffusion
+public:
+	PhotonPath(void);
+	~PhotonPath(void);
+	PhotonPath(const PhotonPath& other);
+	PhotonPath& operator=(const PhotonPath& other);
+	inline void set_reflection(void) { r = true; }
+	inline void set_refraction(void) { r = true; }
+	inline void set_diffusion(void) { d = true; }
+	inline void set_volume(void) { v = true; }
+	inline bool is_global(void) { return true; }
+	inline bool is_caustic(void) { return r; }
+	inline bool is_volume(void) { return r || d || v; }
+};
+
+
 struct PhotonTrace {
 	MapType		type;
 	Position	pos;
@@ -79,13 +98,13 @@ private:
 			traces.insert_after(traces.before_begin(), claster->second.begin(), claster->second.end());
 		}
 	}
+public:
 	void deleteTraces(void);
 	inline void set_trace(PhotonTrace* trace) {
 		auto it_bool = try_emplace(ClasterKey().make(*trace, _gridStep), traces_t());
 		it_bool.first->second.emplace_front(trace);
 		counter(trace->type);
 	}
-public:
 	inline void set_newTrace(const Vec3f& point, const Vec3f& dir, const Power& pow, MapType type) {
 		PhotonTrace* trace = new PhotonTrace(type, point, dir, pow);
 		set_trace(trace);

@@ -13,7 +13,7 @@
 RayBasic::RayBasic(void) :
 pov(),
 dir(),
-pow(),
+dirС(),
 dirL(),
 norm(),
 dist(0),
@@ -26,7 +26,7 @@ RayBasic::~RayBasic(void) {}
 RayBasic::RayBasic(const RayBasic& other) :
 pov(other.pov),
 dir(other.dir),
-pow(other.pow),
+dirС(other.dirС),
 dirL(other.dirL),
 norm(other.norm),
 dist(other.dist),
@@ -37,7 +37,7 @@ RayBasic& RayBasic::operator=(const RayBasic& other) {
 	if (this != &other) {
 		pov = other.pov;
 		dir = other.dir;
-		pow = other.pow;
+		dirС = other.dirС;
 		dirL = other.dirL;
 		norm = other.norm;
 		dist = other.dist;
@@ -50,13 +50,6 @@ RayBasic& RayBasic::operator=(const RayBasic& other) {
 // sruct ColorsSafe
 
 ColorsSafe::ColorsSafe(void) : light(0), shine(0), color(0){}
-
-//ColorsSafe::ColorsSafe(Ray& ray) :
-//light(ray.light.val),
-//shine(ray.shine.val),
-//color(ray.color.val) {
-//	ray.light = ray.shine = ray.color = 0;
-//}
 
 ColorsSafe::~ColorsSafe(void) {}
 
@@ -80,6 +73,8 @@ ColorsSafe& ColorsSafe::operator=(const ColorsSafe& other) {
 
 Ray::Ray(void) :
 recursion(0),
+pow(),
+path(),
 intersections(),
 light(),
 shine(),
@@ -89,20 +84,39 @@ segments(),
 traces()
 {}
 
+Ray::Ray(const Vec3f& _pov, const Vec3f& _dir, const Power& _pow) :
+recursion(0),
+pow(_pow),
+path(),
+intersections(),
+light(),
+shine(),
+color(),
+combineType(END),
+segments(),
+traces()
+{
+	pov = _pov;
+	dir = _dir;
+	recursion = 1;//FIXME
+}
+
 Ray::~Ray(void) {}
 
 Ray::Ray(const Ray& other) { *this = other; }
 
 Ray& Ray::operator=(const Ray& other) {
 	if (this != & other) {
-		recursion = other.recursion;
 		pov = other.pov;
 		dir = other.dir;
-		pow = other.pow;
+		dirС = other.dirС;
 		dirL = other.dirL;
 		norm = other.norm;
 		dist = other.dist;
 		hit = other.hit;
+		recursion = other.recursion;
+		pow = other.pow;
+		path = other.path;
 		intersections = other.intersections;
 		light = other.light;
 		shine = other.shine;
@@ -117,7 +131,7 @@ Ray& Ray::operator=(const Ray& other) {
 Ray& Ray::operator=(const RayBasic& raySafe) {
 	pov = raySafe.pov;
 	dir = raySafe.dir;
-	pow = raySafe.pow;
+	dirС = raySafe.dirС;
 	dirL = raySafe.dirL;
 	norm = raySafe.norm;
 	dist = raySafe.dist;
@@ -135,7 +149,7 @@ Ray& Ray::operator=(const ColorsSafe& colorsSafe) {
 Ray& Ray::getRayBasic(RayBasic& rayBasic) {
 	rayBasic.pov = pov;
 	rayBasic.dir = dir;
-	rayBasic.pow = pow;
+	rayBasic.dirС = dirС;
 	rayBasic.dirL = dirL;
 	rayBasic.norm = norm;
 	rayBasic.dist = dist;
@@ -243,17 +257,6 @@ A_Scenery* Ray::getCombine(Point& nearest) {
 			segmentNext->combine = false;
 		}
 	}
-//	for (auto segment = segments.begin(), end = segments.end(); segment != end; ++segment) {
-//		if (!segment->removed && segment->combine) {
-//			if (nearest.d > segment->a.d && segment->a.d >= 0) {
-//				nearest = segment->a;
-//			}
-//			if (nearest.d > segment->b.d && segment->b.d >= 0) {
-//				nearest = segment->b;
-//			}
-//			segment->combine = false;
-//		}
-//	}
 	if (nearest.s) {
 		dist = nearest.d;
 		hit = nearest.inside ? INSIDE : OUTSIDE;

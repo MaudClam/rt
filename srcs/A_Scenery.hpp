@@ -8,6 +8,7 @@
 #ifndef ASCENERY_HPP
 # define ASCENERY_HPP
 
+# include "Power.hpp"
 # include "Ray.hpp"
 # include "DirMatrix.hpp"
 
@@ -44,7 +45,7 @@ public:
 	virtual void giveNormal(Ray& ray) const = 0;
 	virtual float getDistanceToShaderEdge(Ray& ray, float distance, bool inside) const = 0;
 	virtual float lighting(Ray& ray) const = 0;
-	virtual void photonEmission(int num, DirMatrix& dirs, photonRays_t& rays) const = 0;
+	virtual void photonsEmission(int num, DirMatrix& dirs, photonRays_t& rays) const = 0;
 	virtual void output(std::ostringstream& os) const = 0;
 	friend std::ostream& operator<<(std::ostream& o, const A_Scenery& s);
 };

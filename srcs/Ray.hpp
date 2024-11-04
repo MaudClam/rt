@@ -23,19 +23,17 @@ typedef	std::forward_list<PhotonTrace*>	traces_t;
 
 
 struct RayBasic {
-	Vec3f	pov;	// ray POV (point of view)            | photon position
-	Vec3f	dir;	// normalized: ray direction          | photon incident direction
-	Vec3f	pow;	// normalized: dir from camera vector | photon power
-	Vec3f	dirL;	// normalized: dir vector to light source
-	Vec3f	norm;	// normalized: normal vector from the ray hit point
-	float	dist;	// distance from POV to object hit point
-	Hit		hit;	// type of contact with an object
+	Vec3f		pov;	// ray POV (point of view)		| photon position
+	Vec3f		dir;	// normalized: ray direction	| photon incident direction
+	Vec3f		dirС;	// normalized: dir from camera vector
+	Vec3f		dirL;	// normalized: dir vector to light source
+	Vec3f		norm;	// normalized: normal vector from the ray hit point
+	float		dist;	// distance from POV to object hit point
+	Hit			hit;	// type of contact with an object
 	RayBasic(void);
-//	RayBasic(const Ray& ray);
 	~RayBasic(void);
 	RayBasic(const RayBasic& other);
 	RayBasic& operator=(const RayBasic& other);
-//	RayBasic& operator=(const Ray& ray);
 };
 
 
@@ -121,15 +119,18 @@ struct Ray : public RayBasic {
 			std::swap(combine, other.combine);
 		}
 	};
-	int				recursion;		// current recursion number
-	Segment			intersections;	// segment on ray - object entry and exit points
-	ARGBColor		light;			// variable for light sources
-	ARGBColor		shine;			// variable for shines
-	ARGBColor		color;			// variable for pixel color
-	CombineType		combineType;	// type of object combination
-	segments_t		segments;		// container for segments handling
-	traces_t		traces;
+	int			recursion;		// current recursion number
+	Power		pow;			//				| photon power
+	PhotonPath	path;			//				| photon path
+	Segment		intersections;	// segment on ray - object entry and exit points
+	ARGBColor	light;			// variable for light sources
+	ARGBColor	shine;			// variable for shines
+	ARGBColor	color;			// variable for pixel color
+	CombineType	combineType;	// type of object combination
+	segments_t	segments;		// container for segments handling
+	traces_t	traces;
 	Ray(void);
+	Ray(const Vec3f& _pov, const Vec3f& _dir, const Power& _pow);
 	~Ray(void);
 	Ray(const Ray& other);
 	Ray& operator=(const Ray& other);
@@ -154,14 +155,14 @@ struct Ray : public RayBasic {
 	}
 	inline void fixDirFromCam_if(void) {
 		if (!recursion)
-			pow = dir;
+			dirС = dir;
 	}
 	inline void collectLight(const ARGBColor& sceneryColor, float k = 1) {
 		color.addition(color, light * sceneryColor * k);
 	}
 	inline void collectShine(int specular, float d = 1.) {
 		if (specular != -1 && d > 0.) {
-			float k = dirL.get_reflect(norm) * pow;
+			float k = dirL.get_reflect(norm) * dirС;
 			if (k > 0.) {
 				k = std::pow(k, specular);
 				shine.addition(shine, light * (k * d));
@@ -187,6 +188,30 @@ struct Ray : public RayBasic {
 		light.addition(light.product(d), color.product(l));
 		color.val = colorsSafe.color;
 		shine.val = colorsSafe.shine;
+	}
+	inline void photonReflection(void) {
+		movePovByNormal(EPSILON);
+		dir.reflect(norm);
+		path.set_reflection();
+	}
+	inline bool photonRefraction(const Power& chance, const Power& color, float refractive, float matIOR, float matOIR) {
+		if (dir.refract(norm, hit == INSIDE ? matIOR : matOIR)) {
+			movePovByNormal(-EPSILON);
+			pow.refrAdjust(chance, color, refractive);
+			path.set_refraction();
+			return true;
+		}
+		return false;
+	}
+	inline void newPhotonTrace(const Power& chance, const Power& color, float diffusion) {
+		pow.diffAdjust(chance, color, diffusion);
+		if (path.is_global())
+			traces.push_front(new PhotonTrace(GLOBAL, pov, dir, pow));
+		if (path.is_caustic())
+			traces.push_front(new PhotonTrace(CAUSTIC, pov, dir, pow));
+		path.set_diffusion();
+		movePovByNormal(EPSILON);
+		recursion++;
 	}
 	A_Scenery* closestScenery(a_scenerys_t& scenerys, float maxDistance, Hit target = FRONT);
 	A_Scenery* combine(a_scenerys_it& scenery, a_scenerys_it& end, float distance, Hit target);

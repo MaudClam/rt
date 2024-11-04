@@ -100,6 +100,7 @@ void Pixel::restoreRays(int sm, float tan, const Vec3f& pov) {
 			ray->dir.normalize();
 			ray->pov = pov;
 			ray->recursion = 0;
+			ray->traces.clear();
 		}
 	}
 }
@@ -335,6 +336,7 @@ void Camera::lookatCamera(const Position& pos) {
 	for (auto sc = scenerys.begin(), end = scenerys.end(); sc != end; ++sc) {
 		(*sc)->lookat(pos, aux, _base.p, _roll);
 	}
+	phMap.lookat(pos, aux, _roll);
 	set_posToBase();
 	runThreadRoutine(RESTORE_RAYS);
 }

@@ -108,7 +108,7 @@ float Sphere::lighting(Ray& ray) const {
 	return 0;
 }
 
-void Sphere::photonEmission(int num, DirMatrix& dirs, photonRays_t& rays) const {
+void Sphere::photonsEmission(int num, DirMatrix& dirs, photonRays_t& rays) const {
 	(void)num; (void)rays; (void)dirs;
 }
 
@@ -139,8 +139,8 @@ std::istringstream& operator>>(std::istringstream& is, Sphere& sp) {
 	sp._radius /= 2;
 	sp._sqrRadius = sp._radius * sp._radius;
 	sp.specular = i2limits(sp.specular, -1, 1000);
-	sp.reflective = f2limits(sp.reflective, 0, 1);
-	sp.refractive = f2limits(sp.refractive, 0, 1);
+	sp.reflective = f2limits(sp.reflective, 0., 1.);
+	sp.refractive = f2limits(sp.refractive, 0., 1.);
 	sp.matOIR = 1. / sp.matIOR;
 	return is;
 }

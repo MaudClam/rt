@@ -79,11 +79,11 @@ int		reverse(int n, int lim) {
 	return n;
 }
 
-float	cosineDistribution(float x) {
+float	cosineDistr(float x) {
 	return (1.0 / M_PI) * std::sqrt(1.0 - x * x);
 }
 
-float	inverseCumulativeDistribution(float u) {
+float	inverseCumulativeDistr(float u) {
 	return cos(u * M_PI / 2.0);
 }
 

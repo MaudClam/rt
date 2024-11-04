@@ -100,23 +100,29 @@ float Light::lighting(Ray& ray) const {
 	return k;
 }
 
-void Light::photonEmission(int num, DirMatrix& dirs, photonRays_t& rays) const {
+void Light::photonsEmission(int num, DirMatrix& dirs, photonRays_t& rays) const {
 	Position	pos;
+	Power		pow(light.light);
 	switch (_type) {
-		case SPOTLIGHT: { pos = _pos;
+		case SPOTLIGHT: {
+			pos = _pos;
+			pos.n.product(-1);
+			dirs.randomSample(num, pos, pow.product(1. / num), rays);
 			break;
 		}
-		case SUNLIGHT: { pos.p = _pos.n;
+		case SUNLIGHT: {
+			pos = _pos;
+			pos.p = pos.n * _INFINITY;
+			pos.n.product(-1);
+			dirs.randSampleHemisphere(num * 0.5, pos, pow.product(1. / num), rays);
 			break;
 		}
-		case SUNLIGHT_LIMITED: {
+		case SUNLIGHT_LIMITED: {//FIXME
 			break;
 		}
-
 		default:
 			break;
 	}
-	(void)num; (void)rays; (void)dirs;
 }
 
 void Light::output(std::ostringstream& os) const {

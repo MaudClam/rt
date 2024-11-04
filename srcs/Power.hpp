@@ -13,9 +13,13 @@
 
 
 struct Power {
-	float r, g, b, max;
+	union {
+		struct { float r, g, b; };
+		struct { float refl, refr, diff; };
+	};
 	Power(void);
 	Power(float _r, float _g, float _b);
+	Power(const Power& p, const Power& c, float _refl, float _refr, float _diff);
 	Power(const Power& other);
 	Power(const ARGBColor& color);
 	Power(const Vec3f& vec);
@@ -23,12 +27,6 @@ struct Power {
 	Power& operator=(const Power& other);
 	Power& operator=(const Vec3f& v);
 	Power& operator=(const ARGBColor& c);
-	Power& get_Vec3f(Vec3f& v);
-	inline Vec3f get_Vec3f(void) {
-		Vec3f v;
-		get_Vec3f(v);
-		return v;
-	}
 	Power& get_ARGBColor(ARGBColor& c);
 	inline ARGBColor get_ARGBColor(void) {
 		ARGBColor c;
@@ -41,7 +39,12 @@ struct Power {
 	inline Power operator-(const Power& p) { return Power(*this).substract(*this, p); }
 	Power& product(float f);
 	inline Power operator*(float f) { return Power(*this).product(f); }
-	Power& adjust(float rA, float gA, float bA);
+	Power& product(const Power& p1, const Power& p2);
+	inline Power operator*(const Power& p) { return Power(*this).product(*this, p); }
+	Power& chance(const Power& pow, const Power& color, float _refl, float _refr, float _diff);
+	Power& reflAdjust(const Power& chance, float _refl);
+	Power& refrAdjust(const Power& chance, const Power& color, float _refr);
+	Power& diffAdjust(const Power& chance, const Power& color, float _diff);
 };
 
 #endif /* POWER_HPP */

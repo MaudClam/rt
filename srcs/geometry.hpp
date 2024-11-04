@@ -40,8 +40,8 @@ float	loop(float n, float lim);
 int		loop(int n, int lim);
 float	reverse(float n, float lim);
 int		reverse(int n, int lim);
-float	cosineDistribution(float x);
-float	inverseCumulativeDistribution(float u);
+float	cosineDistr(float x);
+float	inverseCumulativeDistr(float u);
 std::string  roundedString(float num, int factor = 2);
 
 

@@ -8,6 +8,28 @@
 #include "PhotonMap.hpp"
 
 
+// Class PhotonPath
+
+PhotonPath::PhotonPath(void) : r(false), d(false), v(false) {}
+
+PhotonPath::~PhotonPath(void) {}
+
+PhotonPath::PhotonPath(const PhotonPath& other) :
+r(other.r),
+d(other.d),
+v(other.d)
+{}
+
+PhotonPath& PhotonPath::operator=(const PhotonPath& other){
+	if (this != &other) {
+		r = other.r;
+		d = other.d;
+		v = other.v;
+	}
+	return *this;
+}
+
+
 // Struct Photon
 
 PhotonTrace::PhotonTrace(void) : type(GLOBAL), pos(0,0,0,0,0,0), pow(0,0,0) {}
@@ -123,7 +145,7 @@ PhotonMap::~PhotonMap(void) {
 PhotonMap& PhotonMap::operator=(const PhotonMap& other) {
 	if (this != &other) {
 		deleteTraces();
-		for (auto claster = begin(), End = end(); claster != End; ++claster)
+		for (auto claster = other.begin(), End = other.end(); claster != End; ++claster)
 			for (auto trace = claster->second.begin(), End = claster->second.end(); trace != End;  ++trace)
 				set_trace((*trace)->clone());
 	}
