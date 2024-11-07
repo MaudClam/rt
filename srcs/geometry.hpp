@@ -26,8 +26,9 @@ const float M_2PI = 2. * M_PI;
 const float M_PI_180 = M_PI / 180.;
 const float M_180_PI = 180. / M_PI;
 
-enum 	Hit { FRONT, BACK, OUTLINE, ANY_SHADOW, FIRST_SHADOW, INSIDE, OUTSIDE };
-enum	CombineType { END=0, UNION, SUBTRACTION, INTERSECTION };
+enum Hit { FRONT, BACK, OUTLINE, ANY_SHADOW, FIRST_SHADOW, INSIDE, OUTSIDE };
+enum CombineType { END=0, UNION, SUBTRACTION, INTERSECTION };
+
 
 // Non class functions
 std::string combineType(CombineType type);

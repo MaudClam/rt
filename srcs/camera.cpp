@@ -377,9 +377,29 @@ void Camera::traceRay(Ray& ray, int r) {
 	ray.fixDirFromCam_if();
 	scenery->giveNormal(ray);
 	ray.movePovByNormal(EPSILON);
+	caustics(ray, *scenery);
 	lightings(ray, *scenery, r);	// order matters
 	reflections(ray, *scenery, r);	// order matters
 	refractions(ray, *scenery, r);	// order matters
+}
+
+void Camera::lightings(Ray& ray, const A_Scenery& scenery, int r) {
+	(void)r;
+	ray.light = ambient;
+	ray.collectLight(scenery.color);
+	for (auto light = lightsIdx.begin(), end = lightsIdx.end(); light != end; ++light) {
+		float k = (*light)->lighting(ray);
+		if (k) {
+			shadow_if(ray, scenery, k, r);
+		}
+	}
+}
+
+void Camera::caustics(Ray& ray, const A_Scenery& scenery) {
+	phMap.get_traces27(ray.pov, ray.traces, CAUSTIC);
+	ray.phMaplightings();
+	ray.collectLight(scenery.color);
+	
 }
 
 void Camera::reflections(Ray& ray, const A_Scenery& scenery, int r) {
@@ -416,19 +436,8 @@ void Camera::refractions(Ray& ray, const A_Scenery& scenery, int r) {
 	}
 }
 
-void Camera::lightings(Ray& ray, const A_Scenery& scenery, int r) {
-	(void)r;
-	ray.light = ambient;
-	ray.collectLight(scenery.color);
-	for (auto light = lightsIdx.begin(), end = lightsIdx.end(); light != end; ++light) {
-		float k = (*light)->lighting(ray);
-		if (k) {
-			shadow_if(ray, scenery, k, r);
-		}
-	}
-}
-
 void Camera::shadow_if(Ray& ray, const A_Scenery& scenery, float k, int r) {
+	(void)r;
 	Hit		hit = ray.hit;
 	float	distToLight = ray.dist, d = 1.;
 	A_Scenery* shader = ray.closestScenery(scenerys, distToLight, FIRST_SHADOW);
@@ -437,11 +446,13 @@ void Camera::shadow_if(Ray& ray, const A_Scenery& scenery, float k, int r) {
 	} else if (shader) {
 		d = 0.;
 	}
-	if (shader && shader->refractive) {
-		transparentShadow(ray, *shader, d, r);
-	} else {
-		ray.light.product(d);
-	}
+//	if (shader && shader->refractive) {
+//		transparentShadow(ray, *shader, d, r);
+//	} else {
+//		ray.light.product(d);
+//	}
+	ray.light.product(d);
+
 	ray.collectLight(scenery.color, k);
 	ray.collectShine(scenery.specular, d);
 	ray.hit = hit;

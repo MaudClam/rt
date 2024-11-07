@@ -80,11 +80,12 @@ int		reverse(int n, int lim) {
 }
 
 float	cosineDistr(float x) {
-	return (1.0 / M_PI) * std::sqrt(1.0 - x * x);
+	int sign = x < 0 ? -1 : 1;
+	return sign * (1.0 / M_PI) * std::sqrt(1.0 - x * x);
 }
 
-float	inverseCumulativeDistr(float u) {
-	return cos(u * M_PI / 2.0);
+float	inverseCosineDistr(float u) {
+	return cos(u * M_PI_2);
 }
 
 std::string  roundedString(float num, int factor) {

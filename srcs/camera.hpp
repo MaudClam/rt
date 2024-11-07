@@ -10,6 +10,7 @@
 
 # include <thread>
 # include "MlxImage.hpp"
+# include "PhotonMap.hpp"
 # include "Ray.hpp"
 
 
@@ -108,9 +109,10 @@ public:
 	void	rayTracing_lll(size_t begin, size_t end);
 	static void	rayTracing(Camera* camera, size_t begin, size_t end);
 	void	traceRay(Ray& ray, int r = 0);
+	void	lightings(Ray& ray, const A_Scenery& scenery, int r);
+	void	caustics(Ray& ray, const A_Scenery& scenery);
 	void	reflections(Ray& ray, const A_Scenery& scenery, int r);
 	void	refractions(Ray& ray, const A_Scenery& scenery, int r);
-	void	lightings(Ray& ray, const A_Scenery& scenery, int r);
 	void	shadow_if(Ray& ray, const A_Scenery& scenery, float k, int r);
 	float	softShadowMultiplier(Ray& ray, float distToLight);
 	bool	transparentShadow(Ray& ray, const A_Scenery& shader, float d, int r);

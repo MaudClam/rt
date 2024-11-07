@@ -96,21 +96,21 @@ Power& Power::chance(const Power& pow, const Power& color, float _refl, float _r
 Power& Power::reflAdjust(const Power& chance, float _refl) {
 	r *= (_refl / chance.refl);
 	g *= (_refl / chance.refl);
-	r *= (_refl / chance.refl);
+	b *= (_refl / chance.refl);
 	return *this;
 }
 
 Power& Power::refrAdjust(const Power& chance, const Power& color, float _refr) {
 	r *= (color.r * _refr / chance.refr);
 	g *= (color.g * _refr / chance.refr);
-	r *= (color.b * _refr / chance.refr);
+	b *= (color.b * _refr / chance.refr);
 	return *this;
 }
 
 Power& Power::diffAdjust(const Power& chance, const Power& color, float _diff) {
 	r *= (color.r * _diff / chance.diff);
 	g *= (color.g * _diff / chance.diff);
-	r *= (color.b * _diff / chance.diff);
+	b *= (color.b * _diff / chance.diff);
 	return *this;
 }
 

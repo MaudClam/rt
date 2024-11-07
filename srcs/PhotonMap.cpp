@@ -8,52 +8,6 @@
 #include "PhotonMap.hpp"
 
 
-// Class PhotonPath
-
-PhotonPath::PhotonPath(void) : r(false), d(false), v(false) {}
-
-PhotonPath::~PhotonPath(void) {}
-
-PhotonPath::PhotonPath(const PhotonPath& other) :
-r(other.r),
-d(other.d),
-v(other.d)
-{}
-
-PhotonPath& PhotonPath::operator=(const PhotonPath& other){
-	if (this != &other) {
-		r = other.r;
-		d = other.d;
-		v = other.v;
-	}
-	return *this;
-}
-
-
-// Struct Photon
-
-PhotonTrace::PhotonTrace(void) : type(GLOBAL), pos(0,0,0,0,0,0), pow(0,0,0) {}
-
-PhotonTrace::PhotonTrace(MapType _type, const Vec3f& point, const Vec3f& dir, const Power& _pow) :
-type(_type),
-pos(point, dir),
-pow(_pow)
-{}
-
-PhotonTrace::PhotonTrace(const PhotonTrace& other) : type(other.type), pos(other.pos), pow(other.pow) {}
-
-PhotonTrace::~PhotonTrace(void) {}
-
-PhotonTrace& PhotonTrace::operator=(const PhotonTrace& other) {
-	if (this != &other) {
-		type = other.type;
-		pos = other.pos;
-		pow = other.pow;
-	}
-	return *this;
-}
-
-
 // Struct Claster
 
 ClasterKey::ClasterKey(void) : type(ALL), x(0), y(0), z(0) {}
@@ -191,5 +145,17 @@ void PhotonMap::deleteTraces(void) {
 	}
 	clear();
 	counter(RESET);
+}
+
+void PhotonMap::randomSampleHemisphere(rand_gen_t& gen, int n, const Position& pos, const Power& pow, photonRays_t& rays, bool is_cosineDistr) const {
+	int		i = 0;
+	Vec3f	dir;
+	while (i < n) {
+		float phi = 0., theta = 0.;
+		getHemisphereRandomPhiTheta(gen, pos.n, phi, theta, is_cosineDistr);
+		dir.sphericalDirection2cartesian(phi, theta);
+		rays.emplace_back(pos.p, dir, pow);
+		i++;
+	}
 }
 

@@ -102,6 +102,7 @@ void Scene::systemDemo(void) {
 	if (cameras.size() > 1)
 		_currentCamera = 1;
 	saveParsingLog(PARSING_LOGFILE);
+	_totalPow.product(1);//FIXME
 	makePhotonMap();
 	makeLookatsForCameras();
 	cameras[_currentCamera].calculateFlybyRadius();

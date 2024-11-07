@@ -10,42 +10,16 @@
 
 # include <map>
 # include <forward_list>
+# include <random>
+# include "Ray.hpp"
 # include "Power.hpp"
 
 
-enum MapType {ALL, GLOBAL, CAUSTIC, VOLUME, RESET};
-
-
-class PhotonPath {
-	bool	r;	// passed reflection or refraction
-	bool	d;	// passed diffusion
-	bool	v;	// passed volume diffusion
-public:
-	PhotonPath(void);
-	~PhotonPath(void);
-	PhotonPath(const PhotonPath& other);
-	PhotonPath& operator=(const PhotonPath& other);
-	inline void set_reflection(void) { r = true; }
-	inline void set_refraction(void) { r = true; }
-	inline void set_diffusion(void) { d = true; }
-	inline void set_volume(void) { v = true; }
-	inline bool is_global(void) { return true; }
-	inline bool is_caustic(void) { return r; }
-	inline bool is_volume(void) { return r || d || v; }
-};
-
-
-struct PhotonTrace {
-	MapType		type;
-	Position	pos;
-	Power		pow;
-	PhotonTrace(void);
-	PhotonTrace(MapType _type, const Vec3f& point, const Vec3f& dir, const Power& _pow);
-	PhotonTrace(const PhotonTrace& other);
-	~PhotonTrace(void);
-	PhotonTrace& operator=(const PhotonTrace& other);
-	inline PhotonTrace* clone(void) const { return new PhotonTrace(*this); }
-};
+struct	Ray;
+typedef	std::vector<Ray>						photonRays_t;
+typedef	std::mt19937							rand_gen_t;
+typedef	std::uniform_real_distribution<float>	rand_distr_t;
+typedef std::forward_list<PhotonTrace*>	traces_t;
 
 
 struct ClasterKey {
@@ -69,7 +43,6 @@ struct ClasterKey {
 };
 
 
-typedef std::forward_list<PhotonTrace*>	traces_t;
 typedef std::map<ClasterKey,traces_t>	clasters_t;
 
 
@@ -110,10 +83,12 @@ public:
 		set_trace(trace);
 	}
 	inline void get_traces(const Vec3f& point, traces_t& traces, MapType type) const {
+		traces.clear();
 		ClasterKey	key(type, point, _gridStep);
 		get_traces(key, traces);
 	}
 	inline void get_traces27(const Vec3f& point, traces_t& traces, MapType type) const {
+		traces.clear();
 		ClasterKey	key(type, point, _gridStep);
 		int x_begin = key.x - 1, x_end = key.x + 2;
 		int y_begin = key.y - 1, y_end = key.y + 2;
@@ -125,6 +100,26 @@ public:
 	}
 	int  get_size(MapType type) const;
 	void lookat(const Position& eye, const LookatAux& aux, float roll);
+	
+	void randomSampleHemisphere(rand_gen_t& gen, int n, const Position& pos, const Power& pow, photonRays_t& rays, bool is_cosineDistr) const;
+	inline void getHemisphereRandomPhiTheta(rand_gen_t& gen, const Vec3f& normal, float& phi, float theta, bool is_cosineDistr) const {
+		rand_distr_t distr(-1.0, 1.0);
+		float phiNorm = 0., thetaNorm = 0.;
+		normal.cartesian2sphericalDirection(phiNorm, thetaNorm);
+		bool condition = true;
+		while (condition) {
+			phi = distr(gen);
+			theta = distr(gen);
+			if (is_cosineDistr) {
+				phi = cosineDistr(phi);
+				theta = cosineDistr(theta);
+			}
+			phi = loop(phiNorm + phi * M_PI_2, M_2PI);
+			theta = reverse(thetaNorm + theta * M_PI_4, (float)M_PI);
+			condition =	(almostEqual(theta, 0.) && !almostEqual(phi, 0.)) ||
+						(almostEqual(theta, M_PI) && !almostEqual(phi, 0.));
+		}
+	}
 };
 
 #endif /* PHOTONMAP_HPP */

@@ -12,14 +12,45 @@
 # include "geometry.hpp"
 # include "ARGBColor.hpp"
 # include "A_Scenery.hpp"
-# include "PhotonMap.hpp"
 
 
 class	A_Scenery;
-struct	PhotonTrace;
 typedef	std::vector<A_Scenery*>			a_scenerys_t;
 typedef	a_scenerys_t::iterator			a_scenerys_it;
-typedef	std::forward_list<PhotonTrace*>	traces_t;
+
+
+enum MapType {ALL, GLOBAL, CAUSTIC, VOLUME, RESET};
+
+
+class PhotonPath {
+	bool	r;	// passed reflection or refraction
+	bool	d;	// passed diffusion
+	bool	v;	// passed volume diffusion
+public:
+	PhotonPath(void);
+	~PhotonPath(void);
+	PhotonPath(const PhotonPath& other);
+	PhotonPath& operator=(const PhotonPath& other);
+	inline void set_reflection(void) { r = true; }
+	inline void set_refraction(void) { r = true; }
+	inline void set_diffusion(void) { d = true; }
+	inline void set_volume(void) { v = true; }
+	inline bool is_global(void) { return true; }
+	inline bool is_caustic(void) { return r; }
+	inline bool is_volume(void) { return r || d || v; }
+};
+
+struct PhotonTrace {
+	MapType		type;
+	Position	pos;
+	Power		pow;
+	PhotonTrace(void);
+	PhotonTrace(MapType _type, const Vec3f& point, const Vec3f& dir, const Power& _pow);
+	PhotonTrace(const PhotonTrace& other);
+	~PhotonTrace(void);
+	PhotonTrace& operator=(const PhotonTrace& other);
+	inline PhotonTrace* clone(void) const { return new PhotonTrace(*this); }
+};
 
 
 struct RayBasic {
@@ -42,11 +73,13 @@ struct ColorsSafe {
 	float	shine;
 	float	color;
 	ColorsSafe(void);
-//	ColorsSafe(Ray& ray);
 	~ColorsSafe(void);
 	ColorsSafe(const ColorsSafe& other);
 	ColorsSafe& operator=(const ColorsSafe& other);
 };
+
+
+typedef	std::forward_list<PhotonTrace*>	traces_t;
 
 
 struct Ray : public RayBasic {
@@ -212,6 +245,16 @@ struct Ray : public RayBasic {
 		path.set_diffusion();
 		movePovByNormal(EPSILON);
 		recursion++;
+	}
+	inline void phMaplightings(void) {
+		Power lighting;
+		for (auto trace = traces.begin(), end = traces.end(); trace != end; ++trace) {
+			float k1 = (*trace)->pos.n * norm;
+			float k2 = (pov - (*trace)->pos.p).norm();
+			if (k1 < 0 && k2 < PHOTON_MAP_GRID_STEP)
+				lighting.addition(lighting, (*trace)->pow.product(-k1 / k2));
+		}
+		lighting.get_ARGBColor(light);
 	}
 	A_Scenery* closestScenery(a_scenerys_t& scenerys, float maxDistance, Hit target = FRONT);
 	A_Scenery* combine(a_scenerys_it& scenery, a_scenerys_it& end, float distance, Hit target);
