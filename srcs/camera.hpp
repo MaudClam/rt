@@ -1,10 +1,3 @@
-//
-//  Camera.hpp
-//  rt
-//
-//  Created by uru on 13/07/2024.
-//
-
 #ifndef CAMERA_HPP
 # define CAMERA_HPP
 

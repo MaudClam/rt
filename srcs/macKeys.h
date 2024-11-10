@@ -1,10 +1,3 @@
-//
-//  macKays.hpp
-//  rt
-//
-//  Created by anna on 30/08/2024.
-//
-
 #ifndef KEYS_H
 #define KEYS_H
 

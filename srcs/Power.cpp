@@ -1,11 +1,5 @@
-//
-//  Power.cpp
-//  rt
-//
-//  Created by uru on 31/10/2024.
-//
-
 #include "Power.hpp"
+
 
 Power::Power(void) : r(0), g(0), b(0) {}
 

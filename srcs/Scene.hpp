@@ -1,10 +1,3 @@
-//
-//  Scene.hpp
-//  rt
-//
-//  Created by uru on 12/07/2024.
-//
-
 #ifndef SCENE_HPP
 # define SCENE_HPP
 
@@ -55,7 +48,6 @@ struct Scene {
 	cameras_t		cameras;
 	rand_device_t	rand_device;
 	rand_gen_t		rand_gen;
-	DirMatrix		dirs;
 	PhotonMap		phMap;
 private:
 	Vec2i			_resolution;

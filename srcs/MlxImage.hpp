@@ -1,10 +1,3 @@
-//
-//  MlxImage.hpp
-//  rt
-//
-//  Created by uru on 06/07/2024.
-//
-
 #ifndef MLXIMAGE_HPP
 # define MLXIMAGE_HPP
 

@@ -1,10 +1,3 @@
-//
-//  PhotonMap.cpp
-//  rt
-//
-//  Created by uru on 12/10/2024.
-//
-
 #include "PhotonMap.hpp"
 
 

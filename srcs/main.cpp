@@ -1,10 +1,3 @@
-//
-//  main.cpp
-//  rt
-//
-//  Created by uru on 05/07/2024.
-//
-
 #include "MlxImage.hpp"
 
 Var	var;

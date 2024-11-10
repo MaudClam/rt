@@ -1,10 +1,3 @@
-//
-//  Sphere.hpp
-//  rt
-//
-//  Created by uru on 08/07/2024.
-//
-
 #ifndef SPHERE_HPP
 # define SPHERE_HPP
 
@@ -29,7 +22,7 @@ public:
 	void giveNormal(Ray& ray) const;
 	float getDistanceToShaderEdge(Ray& ray, float distance, bool inside) const;
 	float lighting(Ray& ray) const;
-	void photonsEmission(int num, DirMatrix& dirs, photonRays_t& rays) const;
+	void photonsEmission(rand_gen_t& gen, int num, const PhotonMap& phMap, photonRays_t& rays) const;
 	virtual void output(std::ostringstream& os) const;
 	friend std::ostream& operator<<(std::ostream& o, const Sphere& sp);
 	friend std::istringstream& operator>>(std::istringstream& is, Sphere& sp);

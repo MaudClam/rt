@@ -1,10 +1,3 @@
-//
-//  Power.hpp
-//  rt
-//
-//  Created by uru on 31/10/2024.
-//
-
 #ifndef POWER_HPP
 # define POWER_HPP
 

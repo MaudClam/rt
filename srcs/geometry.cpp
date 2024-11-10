@@ -1,10 +1,3 @@
-//
-//  geometry.cpp
-//  rt
-//
-//  Created by uru on 16/07/2024.
-//
-
 #include "geometry.hpp"
 
 
@@ -107,6 +100,18 @@ std::string  roundedString(float num, int factor) {
 		sign = "";
 	}
 	return sign + std::to_string(intgr) + "." + std::to_string(frctnl);
+}
+
+void	dabugPrint(int n, float param1, float param2) {
+	static int i = 0;
+	if (i == n) {
+		std::cout << "param1: " << param1;
+		if (param2 != -1) {
+			std::cout << " param2: " << param2 << std::endl;
+		}
+		std::cout << std::endl;
+	}
+	i++;
 }
 
 

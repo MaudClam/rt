@@ -1,10 +1,3 @@
-//
-//  geometry.hpp
-//  geometry
-//
-//  Created by uru on 02/07/2024.
-//
-
 #ifndef GEOMETRY_HPP
 # define GEOMETRY_HPP
 
@@ -28,6 +21,7 @@ const float M_180_PI = 180. / M_PI;
 
 enum Hit { FRONT, BACK, OUTLINE, ANY_SHADOW, FIRST_SHADOW, INSIDE, OUTSIDE };
 enum CombineType { END=0, UNION, SUBTRACTION, INTERSECTION };
+enum MapType {ALL, GLOBAL, CAUSTIC, VOLUME, RESET};
 
 
 // Non class functions
@@ -44,6 +38,7 @@ int		reverse(int n, int lim);
 float	cosineDistr(float x);
 float	inverseCumulativeDistr(float u);
 std::string  roundedString(float num, int factor = 2);
+void	dabugPrint(int n, float param1, float param2 = -1);
 
 
 // struct Vec2
@@ -108,14 +103,15 @@ template <class t> struct Vec3 {
 	Vec3(t _x, t _y, t _z) : x(_x),y(_y),z(_z) {}
 	Vec3(const Vec3<t>& other) : x(other.x), y(other.y), z(other.z) {}
 	~Vec3(void) {}
-	Vec3<t>&	operator=(const Vec3<t>& other) {
+	Vec3<t>& operator=(const Vec3<t>& other) {
 		if (this != &other) {
 			for (int i = 0; i < 3; i++)
 				raw[i] = other.raw[i];
 		}
 		return *this;
 	}
-	inline Vec3<t>	operator^(const Vec3<t>& v) const {
+	Vec3<t>& set_xyz(t _x, t _y, t _z) { x = _x; y = _y; z = _z; return *this; }
+	inline Vec3<t> operator^(const Vec3<t>& v) const {
 		return Vec3<t>(y * v.z - z * v.y,
 					   z * v.x - x * v.z,
 					   x * v.y - y * v.x);
@@ -127,7 +123,7 @@ template <class t> struct Vec3 {
 		x = _x; y =_y; z = _z;
 		return *this;
 	}
-	inline Vec3<t>	operator+(const Vec3<t>& v) const {
+	inline Vec3<t> operator+(const Vec3<t>& v) const {
 		return Vec3<t>(x + v.x, y + v.y, z + v.z);
 	}
 	Vec3<t>& addition(const Vec3<t>& v1, const Vec3<t>& v2) {
@@ -136,7 +132,7 @@ template <class t> struct Vec3 {
 		z = v1.z + v2.z;
 		return *this;
 	}
-	inline Vec3<t>	operator-(const Vec3<t>& v) const {
+	inline Vec3<t> operator-(const Vec3<t>& v) const {
 		return Vec3<t>(x - v.x, y - v.y, z - v.z);
 	}
 	Vec3<t>& substract(const Vec3<t>& v1, const Vec3<t>& v2) {
@@ -145,7 +141,7 @@ template <class t> struct Vec3 {
 		z = v1.z - v2.z;
 		return *this;
 	}
-	inline Vec3<t>	operator*(float f) const { return Vec3<t>(x * f, y * f, z * f); }
+	inline Vec3<t> operator*(float f) const { return Vec3<t>(x * f, y * f, z * f); }
 	Vec3<t>& product(float f)  { x *= f; y *= f; z *= f; return *this; }
 	inline t operator*(const Vec3<t>& v) const { return x * v.x + y * v.y + z * v.z;}
 	inline t product(const Vec3<t>& v) const { return x * v.x + y * v.y + z * v.z;}

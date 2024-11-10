@@ -1,20 +1,14 @@
-//
-//  A_Scenery.hpp
-//  rt
-//
-//  Created by uru on 09/07/2024.
-//
-
 #ifndef ASCENERY_HPP
 # define ASCENERY_HPP
 
-# include "Power.hpp"
 # include "Ray.hpp"
-# include "DirMatrix.hpp"
+# include "PhotonMap.hpp"
 
-struct Ray;
-struct DirMatrix;
+struct	Ray;
+class	PhotonMap;
 typedef	std::vector<Ray>	photonRays_t;
+typedef	std::mt19937		rand_gen_t;
+
 
 class A_Scenery {
 protected:
@@ -45,7 +39,7 @@ public:
 	virtual void giveNormal(Ray& ray) const = 0;
 	virtual float getDistanceToShaderEdge(Ray& ray, float distance, bool inside) const = 0;
 	virtual float lighting(Ray& ray) const = 0;
-	virtual void photonsEmission(int num, DirMatrix& dirs, photonRays_t& rays) const = 0;
+	virtual void photonsEmission(rand_gen_t& gen, int num, const PhotonMap& phMap, photonRays_t& rays) const = 0;
 	virtual void output(std::ostringstream& os) const = 0;
 	friend std::ostream& operator<<(std::ostream& o, const A_Scenery& s);
 };

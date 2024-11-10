@@ -1,10 +1,3 @@
-//
-//  Ray.hpp
-//  rt
-//
-//  Created by uru on 01/08/2024.
-//
-
 #ifndef RAY_HPP
 #define RAY_HPP
 
@@ -12,14 +5,12 @@
 # include "geometry.hpp"
 # include "ARGBColor.hpp"
 # include "A_Scenery.hpp"
+# include "PhotonTrace.hpp"
 
 
 class	A_Scenery;
-typedef	std::vector<A_Scenery*>			a_scenerys_t;
-typedef	a_scenerys_t::iterator			a_scenerys_it;
-
-
-enum MapType {ALL, GLOBAL, CAUSTIC, VOLUME, RESET};
+typedef	std::vector<A_Scenery*>	a_scenerys_t;
+typedef	a_scenerys_t::iterator	a_scenerys_it;
 
 
 class PhotonPath {
@@ -38,18 +29,6 @@ public:
 	inline bool is_global(void) { return true; }
 	inline bool is_caustic(void) { return r; }
 	inline bool is_volume(void) { return r || d || v; }
-};
-
-struct PhotonTrace {
-	MapType		type;
-	Position	pos;
-	Power		pow;
-	PhotonTrace(void);
-	PhotonTrace(MapType _type, const Vec3f& point, const Vec3f& dir, const Power& _pow);
-	PhotonTrace(const PhotonTrace& other);
-	~PhotonTrace(void);
-	PhotonTrace& operator=(const PhotonTrace& other);
-	inline PhotonTrace* clone(void) const { return new PhotonTrace(*this); }
 };
 
 
@@ -77,9 +56,6 @@ struct ColorsSafe {
 	ColorsSafe(const ColorsSafe& other);
 	ColorsSafe& operator=(const ColorsSafe& other);
 };
-
-
-typedef	std::forward_list<PhotonTrace*>	traces_t;
 
 
 struct Ray : public RayBasic {
@@ -265,9 +241,11 @@ struct Ray : public RayBasic {
 	void intersection(Segment& segment1, Segment& segment2);
 };
 
+
 bool operator<(const Ray::Segment& left, const Ray::Segment& right);
 std::ostream& operator<<(std::ostream& o, const Ray::Point& p);//FIXME
 std::ostream& operator<<(std::ostream& o, const Ray::Segment& s);//FIXME
 std::ostream& operator<<(std::ostream& o, const Ray::segments_t& s);//FIXME
+
 
 #endif /* RAY_HPP */

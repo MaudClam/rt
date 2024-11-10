@@ -1,11 +1,5 @@
-//
-//  Sphere.cpp
-//  rt
-//
-//  Created by uru on 08/07/2024.
-//
-
 #include "Sphere.hpp"
+
 
 Sphere::Sphere(void) : _radius(0), _sqrRadius(0), _k(), _c(0) {
 	_name = "sphere";
@@ -108,8 +102,8 @@ float Sphere::lighting(Ray& ray) const {
 	return 0;
 }
 
-void Sphere::photonsEmission(int num, DirMatrix& dirs, photonRays_t& rays) const {
-	(void)num; (void)rays; (void)dirs;
+void Sphere::photonsEmission(rand_gen_t& gen, int num, const PhotonMap& phMap, photonRays_t& rays) const {
+	(void)gen; (void)num; (void)rays; (void)phMap;
 }
 
 void Sphere::output(std::ostringstream& os) const {

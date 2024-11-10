@@ -1,10 +1,3 @@
-//
-//  Camera.cpp
-//  rt
-//
-//  Created by uru on 13/07/2024.
-//
-
 #include "camera.hpp"
 
 
@@ -396,7 +389,7 @@ void Camera::lightings(Ray& ray, const A_Scenery& scenery, int r) {
 }
 
 void Camera::caustics(Ray& ray, const A_Scenery& scenery) {
-	phMap.get_traces27(ray.pov, ray.traces, CAUSTIC);
+	phMap.get_traces27(ray.pov, ray.traces, GLOBAL);
 	ray.phMaplightings();
 	ray.collectLight(scenery.color);
 	

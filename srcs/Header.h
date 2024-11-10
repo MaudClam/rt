@@ -1,10 +1,3 @@
-//
-//  Header.h
-//  rt
-//
-//  Created by uru on 07/07/2024.
-//
-
 #ifndef HEADER_H
 # define HEADER_H
 
@@ -26,7 +19,6 @@
 # define EPSILON 			1e-3
 # define _INFINITY			100
 # define BASE				Vec3f(0,0,0),Vec3f(0,0,1)
-# define PHOTON_DIRECTIONS_MATRIX	360,180
 # define TOTAL_PHOTONS_NUMBER		100000
 # define PHOTON_MAP_GRID_STEP		0.15
 # define SMOOTHING_FACTOR			1

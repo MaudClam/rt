@@ -1,25 +1,20 @@
-//
-//  PhotonMap.hpp
-//  rt
-//
-//  Created by uru on 12/10/2024.
-//
-
 #ifndef PHOTONMAP_HPP
 # define PHOTONMAP_HPP
 
 # include <map>
 # include <forward_list>
 # include <random>
+# include "geometry.hpp"
 # include "Ray.hpp"
 # include "Power.hpp"
+# include "PhotonTrace.hpp"
 
 
 struct	Ray;
 typedef	std::vector<Ray>						photonRays_t;
 typedef	std::mt19937							rand_gen_t;
 typedef	std::uniform_real_distribution<float>	rand_distr_t;
-typedef std::forward_list<PhotonTrace*>	traces_t;
+typedef std::forward_list<PhotonTrace*>			traces_t;
 
 
 struct ClasterKey {
@@ -105,6 +100,7 @@ public:
 	inline void getHemisphereRandomPhiTheta(rand_gen_t& gen, const Vec3f& normal, float& phi, float theta, bool is_cosineDistr) const {
 		rand_distr_t distr(-1.0, 1.0);
 		float phiNorm = 0., thetaNorm = 0.;
+		dabugPrint(100000, phiNorm, thetaNorm);
 		normal.cartesian2sphericalDirection(phiNorm, thetaNorm);
 		bool condition = true;
 		while (condition) {
@@ -119,6 +115,11 @@ public:
 			condition =	(almostEqual(theta, 0.) && !almostEqual(phi, 0.)) ||
 						(almostEqual(theta, M_PI) && !almostEqual(phi, 0.));
 		}
+	}
+	inline void getHemisphereRandomVec3f(rand_gen_t& gen, const Vec3f& normal, Vec3f& dir, bool is_cosineDistr) const {
+		float phi = 0., theta = 0.;
+		getHemisphereRandomPhiTheta(gen, normal, phi, theta, is_cosineDistr);
+		dir.sphericalDirection2cartesian(phi, theta);
 	}
 };
 

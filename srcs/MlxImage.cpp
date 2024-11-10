@@ -1,10 +1,3 @@
-//
-//  MlxImage.cpp
-//  rt
-//
-//  Created by uru on 06/07/2024.
-//
-
 #include "MlxImage.hpp"
 
 extern Var var;

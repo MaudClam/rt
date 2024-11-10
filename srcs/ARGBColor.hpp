@@ -1,10 +1,3 @@
-//
-//  ARGBColor.hpp
-//  color
-//
-//  Created by uru on 02/07/2024.
-//
-
 #ifndef ARGBCOLOR_HPP
 # define ARGBCOLOR_HPP
 

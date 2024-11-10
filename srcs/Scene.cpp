@@ -1,10 +1,3 @@
-//
-//  Scene.cpp
-//  rt
-//
-//  Created by uru on 12/07/2024.
-//
-
 #include "Scene.hpp"
 
 
@@ -18,7 +11,6 @@ lightsIdx(),
 cameras(),
 rand_device(),
 rand_gen(rand_device()),
-dirs(PHOTON_DIRECTIONS_MATRIX, rand_gen),
 phMap(),
 _resolution(DEFAULT_RESOLUTION),
 _header(),
@@ -51,7 +43,6 @@ lightsIdx(other.lightsIdx),
 cameras(other.cameras),
 rand_device(),
 rand_gen(rand_device()),
-dirs(other.dirs),
 phMap(other.phMap),
 _resolution(other._resolution),
 _header(other._header),
@@ -67,7 +58,6 @@ Scene& Scene::operator=(const Scene& other) {
 		objsIdx = other.objsIdx;
 		lightsIdx = other.lightsIdx;
 		cameras = other.cameras;
-		dirs = other.dirs;
 		phMap = other.phMap;
 		_resolution = other._resolution;
 		_header = other._header;
@@ -500,7 +490,7 @@ void Scene::makePhotonMap(void) {
 	for (auto it = lightsIdx.begin(), End = lightsIdx.end(); it != End; ++it) {
 		Power pow((*it)->light.light);
 		int n = max_(pow.r, pow.g, pow.b) / max_(_totalPow.r, _totalPow.g, _totalPow.b) * TOTAL_PHOTONS_NUMBER;
-		(*it)->photonsEmission(n, dirs, rays);
+		(*it)->photonsEmission(rand_gen, n, phMap, rays);
 	}
 	photonRayTracing_lll(rays);
 	phMap.deleteTraces();
@@ -540,7 +530,7 @@ void Scene::tracePhotonRay(rand_distr_t& distr, Ray& ray) {
 			} else if (rand_ <= chance.refl + chance.refr + chance.diff) {
 				scenery->giveNormal(ray);
 				ray.newPhotonTrace(chance, color, diffusion);
-				dirs.getRandomDirHemisphereCosineDistr(ray.norm, ray.dir);
+				phMap.getHemisphereRandomVec3f(rand_gen, ray.norm, ray.dir, true);
 				tracePhotonRay(distr, ray);
 			}
 		}

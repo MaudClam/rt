@@ -1,10 +1,3 @@
-//
-//  A_Scenery.cpp
-//  rt
-//
-//  Created by uru on 09/07/2024.
-//
-
 #include "A_Scenery.hpp"
 
 

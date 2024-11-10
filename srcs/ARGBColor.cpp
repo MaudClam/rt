@@ -1,10 +1,3 @@
-//
-//  ARGBColor.cpp
-//  color
-//
-//  Created by uru on 02/07/2024.
-//
-
 #include "ARGBColor.hpp"
 
 
@@ -220,6 +213,7 @@ void Lighting::invertBrightness(void) {
 	light = _color;
 	light.product(_ratio);
 }
+
 
 // Non member functions
 
