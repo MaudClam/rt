@@ -102,8 +102,8 @@ float Sphere::lighting(Ray& ray) const {
 	return 0;
 }
 
-void Sphere::photonsEmission(rand_gen_t& gen, int num, const PhotonMap& phMap, photonRays_t& rays) const {
-	(void)gen; (void)num; (void)rays; (void)phMap;
+void Sphere::photonsEmission(int num, const PhotonMap& phMap, photonRays_t& rays) const {
+	(void)num; (void)rays; (void)phMap;
 }
 
 void Sphere::output(std::ostringstream& os) const {

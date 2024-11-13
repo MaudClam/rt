@@ -74,7 +74,7 @@ public:
 	int					recursionDepth;
 	float				softShadowLength;
 	float				softShadowSoftness;
-	Camera(const MlxImage& img);
+	Camera(const MlxImage& img, rand_gen_t& gen);
 	~Camera(void);
 	Camera(const Camera& other);
 	Camera& operator=(const Camera& other);

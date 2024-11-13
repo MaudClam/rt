@@ -16,8 +16,10 @@ typedef Vec3<int>				Vec3i;
 typedef LookatAuxiliary<float>	LookatAux;
 
 const float M_2PI = 2. * M_PI;
+const float M_4PI = 4. * M_PI;
 const float M_PI_180 = M_PI / 180.;
 const float M_180_PI = 180. / M_PI;
+const float SQ_PMGS = PHOTON_MAP_GRID_STEP * PHOTON_MAP_GRID_STEP;
 
 enum Hit { FRONT, BACK, OUTLINE, ANY_SHADOW, FIRST_SHADOW, INSIDE, OUTSIDE };
 enum CombineType { END=0, UNION, SUBTRACTION, INTERSECTION };
@@ -147,6 +149,9 @@ template <class t> struct Vec3 {
 	inline t product(const Vec3<t>& v) const { return x * v.x + y * v.y + z * v.z;}
 	inline float norm () const {
 		return std::sqrt(x * x + y * y + z * z);
+	}
+	inline float sqnorm () const {
+		return x * x + y * y + z * z;
 	}
 	Vec3<t>& normalize(t l=1) {
 		t _norm = norm();

@@ -22,7 +22,7 @@ public:
 	void giveNormal(Ray& ray) const;
 	float getDistanceToShaderEdge(Ray& ray, float distance, bool inside) const;
 	float lighting(Ray& ray) const;
-	void photonsEmission(rand_gen_t& gen, int num, const PhotonMap& phMap, photonRays_t& rays) const;
+	void photonsEmission(int num, const PhotonMap& phMap, photonRays_t& rays) const;
 	virtual void output(std::ostringstream& os) const;
 	friend std::ostream& operator<<(std::ostream& o, const Sphere& sp);
 	friend std::istringstream& operator>>(std::istringstream& is, Sphere& sp);

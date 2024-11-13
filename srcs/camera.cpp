@@ -165,7 +165,7 @@ float Matrix::get_fovDegree(void) { return _fov.get_degree(); }
 
 // class Camera
 
-Camera::Camera(const MlxImage& img) :
+Camera::Camera(const MlxImage& img, rand_gen_t& gen) :
 _base(BASE),
 _pos(_base),
 _roll(0),
@@ -173,7 +173,7 @@ _flybyRadius(0),
 scenerys(),
 objsIdx(),
 lightsIdx(),
-phMap(),
+phMap(gen),
 ambient(),
 space(),
 recursionDepth(RECURSION_DEPTH),
@@ -187,7 +187,7 @@ softShadowSoftness(SOFT_SHADOW_SOFTNESS)
 
 Camera::~Camera(void) {}
 
-Camera::Camera(const Camera& other) { *this = other; }
+Camera::Camera(const Camera& other) : phMap(other.phMap) { *this = other; }
 
 Camera& Camera::operator=(const Camera& other) {
 	if (this != &other) {
@@ -389,10 +389,12 @@ void Camera::lightings(Ray& ray, const A_Scenery& scenery, int r) {
 }
 
 void Camera::caustics(Ray& ray, const A_Scenery& scenery) {
-	phMap.get_traces27(ray.pov, ray.traces, GLOBAL);
+	(void)scenery;
+	phMap.get_traces27(ray.pov, ray.traces, CAUSTIC);
 	ray.phMaplightings();
 	ray.collectLight(scenery.color);
-	
+	ray.shine.addition(ray.shine, ray.light.product(ray.light, scenery.color));
+
 }
 
 void Camera::reflections(Ray& ray, const A_Scenery& scenery, int r) {
@@ -424,7 +426,7 @@ void Camera::refractions(Ray& ray, const A_Scenery& scenery, int r) {
 			traceRay(ray, ++r);
 			ray.collectRefractiveLight(scenery.color, _color, scenery.refractive);
 		} else {
-//			ray.collectLight(scenery.color);
+			ray.collectLight(scenery.color);
 		}
 	}
 }

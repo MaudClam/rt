@@ -54,7 +54,6 @@ private:
 	std::string		_header;
 	Lighting		_ambient;
 	Lighting		_space;
-	Power			_totalPow;
 	int				_currentCamera;
 public:
 	Scene(MlxImage& img);
@@ -80,10 +79,6 @@ public:
 	void flybyCamera(void);
 	void changeCamerasOptions(int key, int option);
 	float giveValue(const floatSet_t& set, float val, int key);
-	void makePhotonMap(void);
-	void photonRayTracing_lll(photonRays_t& rays);
-	void tracePhotonRay(rand_distr_t& distr, Ray& ray);
-
 	friend std::ostream& operator<<(std::ostream& o, const Scene& sc);
 };
 	int  outputFile(const char* filename);

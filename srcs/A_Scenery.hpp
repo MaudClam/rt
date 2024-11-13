@@ -39,7 +39,7 @@ public:
 	virtual void giveNormal(Ray& ray) const = 0;
 	virtual float getDistanceToShaderEdge(Ray& ray, float distance, bool inside) const = 0;
 	virtual float lighting(Ray& ray) const = 0;
-	virtual void photonsEmission(rand_gen_t& gen, int num, const PhotonMap& phMap, photonRays_t& rays) const = 0;
+	virtual void photonsEmission(int num, const PhotonMap& phMap, photonRays_t& rays) const = 0;
 	virtual void output(std::ostringstream& os) const = 0;
 	friend std::ostream& operator<<(std::ostream& o, const A_Scenery& s);
 };

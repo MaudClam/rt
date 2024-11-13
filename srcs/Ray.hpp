@@ -202,6 +202,7 @@ struct Ray : public RayBasic {
 		movePovByNormal(EPSILON);
 		dir.reflect(norm);
 		path.set_reflection();
+		recursion++;
 	}
 	inline bool photonRefraction(const Power& chance, const Power& color, float refractive, float matIOR, float matOIR) {
 		if (dir.refract(norm, hit == INSIDE ? matIOR : matOIR)) {
@@ -212,25 +213,29 @@ struct Ray : public RayBasic {
 		}
 		return false;
 	}
-	inline void newPhotonTrace(const Power& chance, const Power& color, float diffusion) {
-		pow.diffAdjust(chance, color, diffusion);
+	inline void newPhotonTrace(const Power& chance, const Power& color, float diffusion, A_Scenery* scenery) {
 		if (path.is_global())
-			traces.push_front(new PhotonTrace(GLOBAL, pov, dir, pow));
+			traces.push_front(new PhotonTrace(GLOBAL, pov, dir, pow, scenery));
 		if (path.is_caustic())
-			traces.push_front(new PhotonTrace(CAUSTIC, pov, dir, pow));
+			traces.push_front(new PhotonTrace(CAUSTIC, pov, dir, pow, scenery));
+		pow.diffAdjust(chance, color, diffusion);
 		path.set_diffusion();
 		movePovByNormal(EPSILON);
 		recursion++;
 	}
 	inline void phMaplightings(void) {
 		Power lighting;
+		int n = 0;
 		for (auto trace = traces.begin(), end = traces.end(); trace != end; ++trace) {
-			float k1 = (*trace)->pos.n * norm;
-			float k2 = (pov - (*trace)->pos.p).norm();
-			if (k1 < 0 && k2 < PHOTON_MAP_GRID_STEP)
-				lighting.addition(lighting, (*trace)->pow.product(-k1 / k2));
+			float k = (*trace)->pos.n * norm;
+			float sqr = (pov - (*trace)->pos.p).sqnorm();
+			if (k < 0 && sqr < SQ_PMGS) {
+				lighting.addition(lighting, (*trace)->pow * -k);
+				n++;
+			}
 		}
-		lighting.get_ARGBColor(light);
+		(void)n;
+		lighting.product(n / (M_4PI * SQ_PMGS)).get_ARGBColor(light);
 	}
 	A_Scenery* closestScenery(a_scenerys_t& scenerys, float maxDistance, Hit target = FRONT);
 	A_Scenery* combine(a_scenerys_it& scenery, a_scenerys_it& end, float distance, Hit target);

@@ -34,6 +34,7 @@ struct Power {
 	inline Power operator*(float f) { return Power(*this).product(f); }
 	Power& product(const Power& p1, const Power& p2);
 	inline Power operator*(const Power& p) { return Power(*this).product(*this, p); }
+	inline float maxBand(void) { return max_(r, g, b); }
 	Power& chance(const Power& pow, const Power& color, float _refl, float _refr, float _diff);
 	Power& reflAdjust(const Power& chance, float _refl);
 	Power& refrAdjust(const Power& chance, const Power& color, float _refr);

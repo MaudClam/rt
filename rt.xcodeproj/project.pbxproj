@@ -8,7 +8,6 @@
 
 /* Begin PBXBuildFile section */
 		660BE1792CBAD9890061AA16 /* PhotonMap.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 660BE1772CBAD9890061AA16 /* PhotonMap.cpp */; settings = {COMPILER_FLAGS = "-Wall -Wextra -Werror -O2"; }; };
-		660BE1812CBD7D010061AA16 /* main.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 660BE1802CBD7D010061AA16 /* main.cpp */; settings = {COMPILER_FLAGS = "-Wall -Wextra -Werror -O2"; }; };
 		665241D22C5BA6E700BD3A64 /* Ray.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 665241D02C5BA6E700BD3A64 /* Ray.cpp */; settings = {COMPILER_FLAGS = "-Wall -Wextra -Werror -O2"; }; };
 		665806B02CD2BFEF00143501 /* libmlx.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 66D1668C2C3B4243002E6F7E /* libmlx.a */; };
 		665806B12CD2BFF200143501 /* AppKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 6659C4E72C39A8CD00CC7FAB /* AppKit.framework */; };
@@ -59,7 +58,6 @@
 		660BE1772CBAD9890061AA16 /* PhotonMap.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = PhotonMap.cpp; sourceTree = "<group>"; };
 		660BE1782CBAD9890061AA16 /* PhotonMap.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; path = PhotonMap.hpp; sourceTree = "<group>"; };
 		660BE17E2CBD7D010061AA16 /* test_dir */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = test_dir; sourceTree = BUILT_PRODUCTS_DIR; };
-		660BE1802CBD7D010061AA16 /* main.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = main.cpp; sourceTree = "<group>"; };
 		6628EB052C91F0D900BC90BD /* macKeys.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = macKeys.h; sourceTree = "<group>"; };
 		6628EB062C91F0D900BC90BD /* linuxKeys.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = linuxKeys.h; sourceTree = "<group>"; };
 		6628EB072C91F1D200BC90BD /* keys.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = keys.h; sourceTree = "<group>"; };
@@ -124,14 +122,6 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
-		660BE17F2CBD7D010061AA16 /* test_dir */ = {
-			isa = PBXGroup;
-			children = (
-				660BE1802CBD7D010061AA16 /* main.cpp */,
-			);
-			path = test_dir;
-			sourceTree = "<group>";
-		};
 		6628EB0C2C93334900BC90BD /* scenes */ = {
 			isa = PBXGroup;
 			children = (
@@ -159,7 +149,6 @@
 			children = (
 				6628EB0C2C93334900BC90BD /* scenes */,
 				6628EB082C91F2D800BC90BD /* Makefile */,
-				660BE17F2CBD7D010061AA16 /* test_dir */,
 				6659C4E42C39A8B200CC7FAB /* Frameworks */,
 				667951822C4D535C009C1DDD /* rt */,
 				6679518D2C5217A4009C1DDD /* srcs */,
@@ -287,7 +276,6 @@
 				665806C52CD3F96300143501 /* Ray.cpp in Sources */,
 				665806C32CD3F92E00143501 /* geometry.cpp in Sources */,
 				665806C22CD3F92700143501 /* ARGBColor.cpp in Sources */,
-				660BE1812CBD7D010061AA16 /* main.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

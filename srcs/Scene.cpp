@@ -11,12 +11,11 @@ lightsIdx(),
 cameras(),
 rand_device(),
 rand_gen(rand_device()),
-phMap(),
+phMap(rand_gen),
 _resolution(DEFAULT_RESOLUTION),
 _header(),
 _ambient(1),
 _space(1),
-_totalPow(),
 _currentCamera(0) {
 	img.set_scene(this);
 	_space.invertBrightness();
@@ -48,7 +47,6 @@ _resolution(other._resolution),
 _header(other._header),
 _ambient(other._ambient),
 _space(other._space),
-_totalPow(other._totalPow),
 _currentCamera(other._currentCamera)
 {}
 
@@ -63,7 +61,6 @@ Scene& Scene::operator=(const Scene& other) {
 		_header = other._header;
 		_ambient = other._ambient;
 		_space = other._space;
-		_totalPow = other._totalPow;
 		_currentCamera = other._currentCamera;
 	}
 	return *this;
@@ -75,28 +72,27 @@ std::string Scene::header(void) {
 
 void Scene::systemDemo(void) {
 	img.init(header(), _resolution);
-	cameras.push_back(Camera(img));
+	cameras.push_back(Camera(img, rand_gen));
 	set_any("R	800 600		Nice_Balls");
 	set_any("A				0.2		0xFFFFFF");
 	set_any("l	2,1,0		0.6		0xFFFFFF");
 	set_any("ls	1,4,4		0.4		0xFFFFFF");
+	set_any("c	0,5,3		0,-1,0		60");
 	set_any("c	0,0,-2		0,0,1		60");
 	set_any("c	0,0,8		0,0,-1		60");
 	set_any("c	-5,0,3		1,0,0		60");
 	set_any("c	5,0,3		-1,0,0		60");
-	set_any("c	0,5,3		0,-1,0		60");
 	set_any("sp	0,-1,3		2		0xFF0000	500		0.2");
-	set_any("sp	2,0,4		2		0xFFFFFF	500		0.1		0.9		1.33");
+	set_any("sp	2,0.1,4		2		0xFFFFFF	500		0.05		0.95		1.4");
 	set_any("sp	-2,0,4		2		0x00FF00	10		0.4");
 	set_any("sp	0,-5001,0	10000	0xFFFF00	1000	0.5");
 	if (cameras.size() > 1)
 		_currentCamera = 1;
 	saveParsingLog(PARSING_LOGFILE);
-	_totalPow.product(1);//FIXME
-	makePhotonMap();
+	phMap.make(scenerys, lightsIdx);
 	makeLookatsForCameras();
 	cameras[_currentCamera].calculateFlybyRadius();
-	img.flyby = COUNTER_CLOCKWISE;
+//	img.flyby = COUNTER_CLOCKWISE;
 }
 
 void Scene::mesage(MsgType type, int line, const std::string& hint, int error) {
@@ -185,7 +181,7 @@ int  Scene::parsing(int ac, char** av) {
 		_header = "Default";
 	}
 	img.init(header(), _resolution);
-	cameras.push_back(Camera(img));	// default camera '0'
+	cameras.push_back(Camera(img, rand_gen));	// default camera '0'
 	for (int ln = 2; !in.eof(); ln++) {
 		std::getline(in, line);
 		if ( line.compare(0, 1, "#") && !line.empty() ) {
@@ -207,7 +203,7 @@ int  Scene::parsing(int ac, char** av) {
 		mesage(WRNG_PARSING_ERROR3, 0, av[1]);
 	}
 	saveParsingLog(PARSING_LOGFILE);
-	makePhotonMap();
+	phMap.make(scenerys, lightsIdx);
 	makeLookatsForCameras();
 	return SUCCESS;
 }
@@ -253,7 +249,7 @@ int Scene::set_any(std::istringstream is) {
 			break;
 		}
 		case 2: {// c camera
-			cameras.push_back(Camera(img));
+			cameras.push_back(Camera(img, rand_gen));
 			is >> cameras.back();
 			break;
 		}
@@ -314,7 +310,6 @@ void Scene::set_scenery(A_Scenery* scenery) {
 	if ( scenerys.back()->get_isLight() ) {
 		lightsIdx.push_back(scenery);
 		scenery->color = scenery->light.light;
-		_totalPow.addition(_totalPow, Power(scenery->light.light));
 	} else {
 		objsIdx.push_back(scenery);
 	}
@@ -485,57 +480,6 @@ float Scene::giveValue(const floatSet_t& set, float val, int key) {
 	return val;
 }
 
-void Scene::makePhotonMap(void) {
-	photonRays_t rays;
-	for (auto it = lightsIdx.begin(), End = lightsIdx.end(); it != End; ++it) {
-		Power pow((*it)->light.light);
-		int n = max_(pow.r, pow.g, pow.b) / max_(_totalPow.r, _totalPow.g, _totalPow.b) * TOTAL_PHOTONS_NUMBER;
-		(*it)->photonsEmission(rand_gen, n, phMap, rays);
-	}
-	photonRayTracing_lll(rays);
-	phMap.deleteTraces();
-	for (auto ray = rays.begin(), End = rays.end(); ray != End; ++ray) {
-		for (auto trace = ray->traces.begin(), end = ray->traces.end(); trace != end; ++trace) {
-			phMap.set_trace(*trace);
-		}
-	}
-}
-
-void Scene::photonRayTracing_lll(photonRays_t& rays) {
-	rand_distr_t	distr(0.0, 1.0);
-	for (auto ray = rays.begin(), end = rays.end(); ray != end; ++ray) {
-		tracePhotonRay(distr, *ray);
-	}
-}
-
-void Scene::tracePhotonRay(rand_distr_t& distr, Ray& ray) {
-	if (ray.recursion <= RECURSION_DEPTH) {
-		A_Scenery* scenery = ray.closestScenery(scenerys, _INFINITY);
-		if (scenery) {
-			Power	color(scenery->color);
-			float	reflective = scenery->reflective;
-			float	refractive = scenery->refractive;
-			float	diffusion = f2limits(1. -  reflective - refractive, 0., 1.);
-			Power	chance(ray.pow, color, reflective, refractive, diffusion);
-			float	rand_ = distr(rand_gen);
-			if (rand_ <= chance.refl) {
-				scenery->giveNormal(ray);
-				ray.photonReflection();
-				tracePhotonRay(distr, ray);
-			} else if (rand_ <= chance.refl + chance.refr) {
-				scenery->giveNormal(ray);
-				if (ray.photonRefraction(chance, color, refractive, scenery->matIOR, scenery->matOIR)) {
-					tracePhotonRay(distr, ray);
-				}
-			} else if (rand_ <= chance.refl + chance.refr + chance.diff) {
-				scenery->giveNormal(ray);
-				ray.newPhotonTrace(chance, color, diffusion);
-				phMap.getHemisphereRandomVec3f(rand_gen, ray.norm, ray.dir, true);
-				tracePhotonRay(distr, ray);
-			}
-		}
-	}
-}
 
 // Non member functions
 
