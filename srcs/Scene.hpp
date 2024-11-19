@@ -5,7 +5,6 @@
 # include <random>
 # include "MlxImage.hpp"
 # include "camera.hpp"
-# include "DirMatrix.hpp"
 # include "PhotonMap.hpp"
 # include "Power.hpp"
 # include "Sphere.hpp"

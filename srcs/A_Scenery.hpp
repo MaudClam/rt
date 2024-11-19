@@ -12,6 +12,7 @@ typedef	std::mt19937		rand_gen_t;
 
 class A_Scenery {
 protected:
+	int				_id;
 	std::string		_name;
 	std::string		_nick;
 	bool			_isLight;
@@ -28,9 +29,11 @@ public:
 	A_Scenery(void);
 	virtual ~A_Scenery(void);
 	A_Scenery(const A_Scenery& other);
-	std::string  get_nick(void) const;
-	bool  get_isLight(void) const;
+	inline int get_id(void) const { return _id; }
+	std::string get_nick(void) const;
+	bool get_isLight(void) const;
 	Position get_pos(void) const;
+	void set_id(int id);
 	void set_pos(const Position& pos);
 	virtual A_Scenery* clone(void) const = 0;
 	virtual void lookat(const Position& eye, const LookatAux& aux, const Vec3f& pos, float roll) = 0;
@@ -39,7 +42,7 @@ public:
 	virtual void giveNormal(Ray& ray) const = 0;
 	virtual float getDistanceToShaderEdge(Ray& ray, float distance, bool inside) const = 0;
 	virtual float lighting(Ray& ray) const = 0;
-	virtual void photonsEmission(int num, const PhotonMap& phMap, photonRays_t& rays) const = 0;
+	virtual void photonEmissions(int num, const PhotonMap& phMap, photonRays_t& rays) const = 0;
 	virtual void output(std::ostringstream& os) const = 0;
 	friend std::ostream& operator<<(std::ostream& o, const A_Scenery& s);
 };

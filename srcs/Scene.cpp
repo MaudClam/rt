@@ -76,14 +76,14 @@ void Scene::systemDemo(void) {
 	set_any("R	800 600		Nice_Balls");
 	set_any("A				0.2		0xFFFFFF");
 	set_any("l	2,1,0		0.6		0xFFFFFF");
-	set_any("ls	1,4,4		0.4		0xFFFFFF");
-	set_any("c	0,5,3		0,-1,0		60");
+	set_any("l	1,4,4		0.4		0xFFFFFF");
 	set_any("c	0,0,-2		0,0,1		60");
 	set_any("c	0,0,8		0,0,-1		60");
 	set_any("c	-5,0,3		1,0,0		60");
 	set_any("c	5,0,3		-1,0,0		60");
+	set_any("c	0,5,3		0,-1,0		60");
 	set_any("sp	0,-1,3		2		0xFF0000	500		0.2");
-	set_any("sp	2,0.1,4		2		0xFFFFFF	500		0.05		0.95		1.4");
+	set_any("sp	2,0,4		2		0xFFFFFF	500		0.05		0.95		1.4");
 	set_any("sp	-2,0,4		2		0x00FF00	10		0.4");
 	set_any("sp	0,-5001,0	10000	0xFFFF00	1000	0.5");
 	if (cameras.size() > 1)
@@ -307,6 +307,7 @@ int Scene::set_any(std::istringstream is) {
 
 void Scene::set_scenery(A_Scenery* scenery) {
 	scenerys.push_back(scenery);
+	scenerys.back()->set_id((int)scenerys.size());
 	if ( scenerys.back()->get_isLight() ) {
 		lightsIdx.push_back(scenery);
 		scenery->color = scenery->light.light;

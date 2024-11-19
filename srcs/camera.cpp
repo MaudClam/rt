@@ -389,12 +389,8 @@ void Camera::lightings(Ray& ray, const A_Scenery& scenery, int r) {
 }
 
 void Camera::caustics(Ray& ray, const A_Scenery& scenery) {
-	(void)scenery;
-	phMap.get_traces27(ray.pov, ray.traces, CAUSTIC);
-	ray.phMaplightings();
-	ray.collectLight(scenery.color);
-	ray.shine.addition(ray.shine, ray.light.product(ray.light, scenery.color));
-
+	phMap.get_traces27(ray.pov, scenery.get_id(), ray.traces, CAUSTIC);
+	ray.phMapLightings(ASSESSMENT_PHOTONS_NUMBER, SQ_PMGS, scenery.specular, scenery.color);
 }
 
 void Camera::reflections(Ray& ray, const A_Scenery& scenery, int r) {
@@ -432,7 +428,6 @@ void Camera::refractions(Ray& ray, const A_Scenery& scenery, int r) {
 }
 
 void Camera::shadow_if(Ray& ray, const A_Scenery& scenery, float k, int r) {
-	(void)r;
 	Hit		hit = ray.hit;
 	float	distToLight = ray.dist, d = 1.;
 	A_Scenery* shader = ray.closestScenery(scenerys, distToLight, FIRST_SHADOW);
@@ -441,11 +436,11 @@ void Camera::shadow_if(Ray& ray, const A_Scenery& scenery, float k, int r) {
 	} else if (shader) {
 		d = 0.;
 	}
-//	if (shader && shader->refractive) {
-//		transparentShadow(ray, *shader, d, r);
-//	} else {
-//		ray.light.product(d);
-//	}
+	if (shader && shader->refractive) {
+		transparentShadow(ray, *shader, d, r);
+	} else {
+		ray.light.product(d);
+	}
 	ray.light.product(d);
 
 	ray.collectLight(scenery.color, k);

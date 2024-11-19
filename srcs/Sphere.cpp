@@ -24,6 +24,7 @@ _sqrRadius(_radius * _radius),
 _k(other._k),
 _c(other._c)
 {
+	_id = other._id;
 	_name = other._name;
 	_nick = other._nick;
 	_isLight = other._isLight;
@@ -102,7 +103,7 @@ float Sphere::lighting(Ray& ray) const {
 	return 0;
 }
 
-void Sphere::photonsEmission(int num, const PhotonMap& phMap, photonRays_t& rays) const {
+void Sphere::photonEmissions(int num, const PhotonMap& phMap, photonRays_t& rays) const {
 	(void)num; (void)rays; (void)phMap;
 }
 

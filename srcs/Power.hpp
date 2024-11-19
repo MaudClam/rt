@@ -39,6 +39,8 @@ struct Power {
 	Power& reflAdjust(const Power& chance, float _refl);
 	Power& refrAdjust(const Power& chance, const Power& color, float _refr);
 	Power& diffAdjust(const Power& chance, const Power& color, float _diff);
+	friend std::ostream& operator<<(std::ostream& o, const Power& p);
 };
+
 
 #endif /* POWER_HPP */

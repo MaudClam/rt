@@ -4,6 +4,7 @@
 // class A_Scenery
 
 A_Scenery::A_Scenery(void) :
+_id(0),
 _name(),
 _nick(),
 _isLight(false),
@@ -21,6 +22,7 @@ matOIR(1)
 A_Scenery::~A_Scenery(void) {}
 
 A_Scenery::A_Scenery(const A_Scenery& other) :
+_id(other._id),
 _name(other._name),
 _nick(other._nick),
 _isLight(other._isLight),
@@ -40,6 +42,8 @@ std::string A_Scenery::get_nick(void) const { return _nick; }
 bool A_Scenery::get_isLight(void) const { return _isLight; }
 
 Position A_Scenery::get_pos(void) const { return _pos; }
+
+void A_Scenery::set_id(int id) { _id = id; }
 
 void A_Scenery::set_pos(const Position& pos) { _pos = pos; }
 

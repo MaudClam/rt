@@ -33,14 +33,14 @@ bool	almostMore(float a, float b, float precision = PRECISION);
 bool	almostLess(float a, float b, float precision = PRECISION);
 float	degree2radian(float degree);
 float	radian2degree(float radian);
-float	loop(float n, float lim);
-int		loop(int n, int lim);
-float	reverse(float n, float lim);
-int		reverse(int n, int lim);
+float	loop_(float n, float lim);
+int		loop_(int n, int lim);
+float	reverse_(float n, float lim);
+int		reverse_(int n, int lim);
 float	cosineDistr(float x);
 float	inverseCumulativeDistr(float u);
 std::string  roundedString(float num, int factor = 2);
-void	dabugPrint(int n, float param1, float param2 = -1);
+void	dabugPrint(int each, float param1, float param2 = -1, int factor = 2);
 
 
 // struct Vec2
@@ -232,8 +232,8 @@ template <class t> struct Vec3 {
 		return Vec3<t>(*this).turnAroundZ(angle);
 	}
 	inline void cartesian2sphericalDirection(float& phi, float& theta) const {
-		phi = loop(std::atan2(y, x), M_2PI);
-		theta = reverse(std::acos(z / std::sqrt(x * x + y * y + z * z)), M_PI);
+		phi = std::atan2(y, x);
+		theta = std::acos(z / std::sqrt(x * x + y * y + z * z));
 	}
 	Vec3<t>& sphericalDirection2cartesian(float phi, float theta) {
 		float sinTheta = std::sin(theta);

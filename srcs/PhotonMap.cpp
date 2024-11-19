@@ -94,6 +94,7 @@ _sizeGlobal(0),
 _sizeCaustic(0),
 _sizeVolume(0),
 _totalPhotons(TOTAL_PHOTONS_NUMBER),
+_assessmentNumber(ASSESSMENT_PHOTONS_NUMBER),
 _gridStep(PHOTON_MAP_GRID_STEP),
 _totalPow()
 {}
@@ -104,6 +105,7 @@ _sizeGlobal(0),
 _sizeCaustic(0),
 _sizeVolume(0),
 _totalPhotons(0),
+_assessmentNumber(ASSESSMENT_PHOTONS_NUMBER),
 _gridStep(0),
 _totalPow()
 { *this = other; }
@@ -115,6 +117,7 @@ PhotonMap::~PhotonMap(void) {
 PhotonMap& PhotonMap::operator=(const PhotonMap& other) {
 	if (this != &other) {
 		_totalPhotons = other._totalPhotons;
+		_assessmentNumber = other._assessmentNumber;
 		_gridStep = other._gridStep;
 		_totalPow = other._totalPow;
 		deleteTraces();
@@ -125,12 +128,26 @@ PhotonMap& PhotonMap::operator=(const PhotonMap& other) {
 	return *this;
 }
 
+int PhotonMap::get_size(MapType type) const {
+	switch (type) {
+		case GLOBAL:	return _sizeGlobal;
+		case CAUSTIC:	return _sizeCaustic;
+		case VOLUME:	return _sizeVolume;
+		default:		break;
+	}
+	return (int)size();
+}
+
 void PhotonMap::swap_(PhotonMap& other) {
 	swap(other);
 	std::swap(_gen, other._gen);
 	std::swap(_sizeGlobal, other._sizeGlobal);
 	std::swap(_sizeCaustic, other._sizeCaustic);
 	std::swap(_sizeVolume, other._sizeVolume);
+	std::swap(_totalPhotons, other._totalPhotons);
+	std::swap(_assessmentNumber, other._assessmentNumber);
+	std::swap(_gridStep, other._gridStep);
+	std::swap(_totalPow, other._totalPow);
 }
 
 void PhotonMap::deleteTraces(void) {
@@ -148,58 +165,7 @@ void PhotonMap::set_totalPow(a_scenerys_t& lightsIdx) {
 	for (auto light = lightsIdx.begin(), End = lightsIdx.end(); light != End; ++light) {
 		_totalPow.addition(_totalPow, Power((*light)->light.light));
 	}
-}
-
-int PhotonMap::get_size(MapType type) const {
-	switch (type) {
-		case GLOBAL:	return _sizeGlobal;
-		case CAUSTIC:	return _sizeCaustic;
-		case VOLUME:	return _sizeVolume;
-		default:		break;
-	}
-	return (int)size();
-}
-
-void PhotonMap::lookat(const Position& eye, const LookatAux& aux, float roll) {
-	PhotonMap tmp(_gen);
-	for (auto claster = begin(), End = end(); claster != End; ++claster) {
-		for (auto trace = claster->second.traces.begin(), End = claster->second.traces.end(); trace != End;  ++trace) {
-			(*trace)->pos.lookat(eye, aux, roll);
-			tmp.set_trace(*trace);
-		}
-	}
-	swap_(tmp);
-	tmp.clear();
-	tmp.counter(RESET);
-}
-
-void PhotonMap::randomSampleHemisphere(int n, const Position& pos, const Power& pow, photonRays_t& rays, bool is_cosineDistr) const {
-	int		i = 0;
-	Vec3f	dir;
-	while (i < n) {
-		float phi = 0., theta = 0.;
-		getHemisphereRandomPhiTheta(pos.n, phi, theta, is_cosineDistr);
-		dir.sphericalDirection2cartesian(phi, theta);
-		rays.emplace_back(pos.p, dir, pow);
-		i++;
-	}
-}
-
-void PhotonMap::make(a_scenerys_t& scenerys, a_scenerys_t& lightsIdx) {
-	photonRays_t rays;
-	set_totalPow(lightsIdx);
-	for (auto it = lightsIdx.begin(), End = lightsIdx.end(); it != End; ++it) {
-		Power pow((*it)->light.light);
-		int n = pow.maxBand() / _totalPow.maxBand() * _totalPhotons;
-		(*it)->photonsEmission(n, *this, rays);
-	}
-	photonRayTracing_lll(scenerys, rays);
-	deleteTraces();
-	for (auto ray = rays.begin(), End = rays.end(); ray != End; ++ray) {
-		for (auto trace = ray->traces.begin(), end = ray->traces.end(); trace != end; ++trace) {
-			set_trace(*trace);
-		}
-	}
+	_totalPow.product(TOTAL_PHOTONS_POWER);
 }
 
 void PhotonMap::photonRayTracing_lll(a_scenerys_t& scenerys, photonRays_t& rays) {
@@ -230,10 +196,65 @@ void PhotonMap::tracePhotonRay(rand_distr_t& distr, a_scenerys_t& scenerys, Ray&
 				}
 			} else if (rand_ <= chance.refl + chance.refr + chance.diff) {
 				scenery->giveNormal(ray);
-				ray.newPhotonTrace(chance, color, diffusion, scenery);
-				getHemisphereRandomVec3f(ray.norm, ray.dir, true);
+				ray.newPhotonTrace(chance, color, diffusion, scenery->get_id());
+				ray.randomCosineWeightedDirectionInHemisphere(_gen);
 				tracePhotonRay(distr, scenerys, ray);
 			}
 		}
 	}
 }
+
+void PhotonMap::make(a_scenerys_t& scenerys, a_scenerys_t& lightsIdx) {
+	photonRays_t rays;
+	set_totalPow(lightsIdx);
+	for (auto it = lightsIdx.begin(), End = lightsIdx.end(); it != End; ++it) {
+		Power pow((*it)->light.light);
+		int n = pow.maxBand() / _totalPow.maxBand() * _totalPhotons;
+		(*it)->photonEmissions(n, *this, rays);
+	}
+	photonRayTracing_lll(scenerys, rays);
+	deleteTraces();
+	for (auto ray = rays.begin(), End = rays.end(); ray != End; ++ray) {
+		for (auto trace = ray->traces.begin(), end = ray->traces.end(); trace != end; ++trace) {
+			set_trace(*trace);
+		}
+	}
+	outputPhotonMapParametrs();
+}
+
+void PhotonMap::lookat(const Position& eye, const LookatAux& aux, float roll) {
+	PhotonMap tmp(_gen);
+	for (auto claster = begin(), End = end(); claster != End; ++claster) {
+		for (auto trace = claster->second.traces.begin(), End = claster->second.traces.end(); trace != End;  ++trace) {
+			(*trace)->pos.lookat(eye, aux, roll);
+			tmp.set_trace(*trace);
+		}
+	}
+	swap_(tmp);
+	tmp.clear();
+	tmp.counter(RESET);
+}
+
+void PhotonMap::randomDirectionsSampling(int n, const Position& pos, const Power& pow, photonRays_t& rays, bool cosineWeighted) const {
+	if (cosineWeighted) {
+		LookatAux aux(pos.n);
+		for (int i = 0; i < n; i++)
+			rays.emplace_back(_gen, pos, pow, aux);
+	} else {
+		for (int i = 0; i < n; i++)
+			rays.emplace_back(_gen, pos, pow);
+	}
+}
+
+void PhotonMap::outputPhotonMapParametrs(void) {
+	std::cout << "\nPHOTON MAP" << std::endl;
+	std::cout << "Emitted photons......" << _totalPhotons << std::endl;
+	std::cout << "Grid step............" << _gridStep << std::endl;
+	std::cout << "Total photon power..." << _totalPow << std::endl;
+	std::cout << "Assessment number...." << _assessmentNumber << std::endl;
+	std::cout << "Photon trasces maps:"  << std::endl;
+	std::cout << "  global............." << _sizeGlobal << std::endl;
+	std::cout << "  caustic............" << _sizeCaustic << std::endl;
+	std::cout << "  volume............." << _sizeVolume << std::endl;
+}
+

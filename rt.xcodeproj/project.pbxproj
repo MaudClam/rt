@@ -9,22 +9,14 @@
 /* Begin PBXBuildFile section */
 		660BE1792CBAD9890061AA16 /* PhotonMap.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 660BE1772CBAD9890061AA16 /* PhotonMap.cpp */; settings = {COMPILER_FLAGS = "-Wall -Wextra -Werror -O2"; }; };
 		665241D22C5BA6E700BD3A64 /* Ray.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 665241D02C5BA6E700BD3A64 /* Ray.cpp */; settings = {COMPILER_FLAGS = "-Wall -Wextra -Werror -O2"; }; };
-		665806B02CD2BFEF00143501 /* libmlx.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 66D1668C2C3B4243002E6F7E /* libmlx.a */; };
-		665806B12CD2BFF200143501 /* AppKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 6659C4E72C39A8CD00CC7FAB /* AppKit.framework */; };
-		665806B22CD2BFF400143501 /* OpenGL.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 6659C4E52C39A8B200CC7FAB /* OpenGL.framework */; };
 		665806B92CD3947700143501 /* Power.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 665806B72CD3947700143501 /* Power.cpp */; settings = {COMPILER_FLAGS = "-Wall -Wextra -Werror -O2"; }; };
-		665806C22CD3F92700143501 /* ARGBColor.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 667951912C5293BB009C1DDD /* ARGBColor.cpp */; settings = {COMPILER_FLAGS = "-Wall -Wextra -Werror -O2"; }; };
-		665806C32CD3F92E00143501 /* geometry.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 6679517C2C46DF55009C1DDD /* geometry.cpp */; settings = {COMPILER_FLAGS = "-Wall -Wextra -Werror -O2"; }; };
-		665806C52CD3F96300143501 /* Ray.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 665241D02C5BA6E700BD3A64 /* Ray.cpp */; settings = {COMPILER_FLAGS = "-Wall -Wextra -Werror -O2"; }; };
-		665806C62CD3F9C400143501 /* PhotonMap.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 660BE1772CBAD9890061AA16 /* PhotonMap.cpp */; settings = {COMPILER_FLAGS = "-Wall -Wextra -Werror -O2"; }; };
-		665806C82CD3FA2100143501 /* Power.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 665806B72CD3947700143501 /* Power.cpp */; settings = {COMPILER_FLAGS = "-Wall -Wextra -Werror -O2"; }; };
 		665806CB2CDE4D6D00143501 /* PhotonTrace.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 665806C92CDE4D6D00143501 /* PhotonTrace.cpp */; settings = {COMPILER_FLAGS = "-Wall -Wextra -Werror -O2"; }; };
+		665806E52CEA0CE400143501 /* geometry.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 665806E42CEA0CE400143501 /* geometry.cpp */; settings = {COMPILER_FLAGS = "-Wall -Wextra -Werror -O2"; }; };
 		6659C4E32C399E8A00CC7FAB /* MlxImage.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 6659C4E12C399E8A00CC7FAB /* MlxImage.cpp */; settings = {COMPILER_FLAGS = "-Wall -Wextra -Werror -O2"; }; };
 		6659C4E62C39A8B200CC7FAB /* OpenGL.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 6659C4E52C39A8B200CC7FAB /* OpenGL.framework */; };
 		6659C4E82C39A8CD00CC7FAB /* AppKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 6659C4E72C39A8CD00CC7FAB /* AppKit.framework */; };
 		6661C21B2C38071100D58CDC /* main.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 6661C21A2C38071100D58CDC /* main.cpp */; settings = {COMPILER_FLAGS = "-Wall -Wextra -Werror -O2"; }; };
 		667951792C427BFD009C1DDD /* camera.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 667951772C427BFD009C1DDD /* camera.cpp */; settings = {COMPILER_FLAGS = "-Wall -Wextra -Werror -O2"; }; };
-		6679517D2C46DF55009C1DDD /* geometry.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 6679517C2C46DF55009C1DDD /* geometry.cpp */; settings = {COMPILER_FLAGS = "-Wall -Wextra -Werror -O2"; }; };
 		6679518B2C5216B7009C1DDD /* Light.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 667951892C5216B7009C1DDD /* Light.cpp */; settings = {COMPILER_FLAGS = "-Wall -Wextra -Werror -O2"; }; };
 		667951922C5293BB009C1DDD /* ARGBColor.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 667951912C5293BB009C1DDD /* ARGBColor.cpp */; settings = {COMPILER_FLAGS = "-Wall -Wextra -Werror -O2"; }; };
 		66B3B0A42C93E9C9005085BC /* Scene.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 667951702C41AD05009C1DDD /* Scene.cpp */; settings = {COMPILER_FLAGS = "-Wall -Wextra -Werror -O2"; }; };
@@ -34,15 +26,6 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXCopyFilesBuildPhase section */
-		660BE17C2CBD7D010061AA16 /* CopyFiles */ = {
-			isa = PBXCopyFilesBuildPhase;
-			buildActionMask = 2147483647;
-			dstPath = /usr/share/man/man1/;
-			dstSubfolderSpec = 0;
-			files = (
-			);
-			runOnlyForDeploymentPostprocessing = 1;
-		};
 		6661C2152C38071100D58CDC /* CopyFiles */ = {
 			isa = PBXCopyFilesBuildPhase;
 			buildActionMask = 2147483647;
@@ -57,7 +40,6 @@
 /* Begin PBXFileReference section */
 		660BE1772CBAD9890061AA16 /* PhotonMap.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = PhotonMap.cpp; sourceTree = "<group>"; };
 		660BE1782CBAD9890061AA16 /* PhotonMap.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; path = PhotonMap.hpp; sourceTree = "<group>"; };
-		660BE17E2CBD7D010061AA16 /* test_dir */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = test_dir; sourceTree = BUILT_PRODUCTS_DIR; };
 		6628EB052C91F0D900BC90BD /* macKeys.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = macKeys.h; sourceTree = "<group>"; };
 		6628EB062C91F0D900BC90BD /* linuxKeys.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = linuxKeys.h; sourceTree = "<group>"; };
 		6628EB072C91F1D200BC90BD /* keys.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = keys.h; sourceTree = "<group>"; };
@@ -71,6 +53,7 @@
 		665806B82CD3947700143501 /* Power.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; path = Power.hpp; sourceTree = "<group>"; };
 		665806C92CDE4D6D00143501 /* PhotonTrace.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = PhotonTrace.cpp; sourceTree = "<group>"; };
 		665806CA2CDE4D6D00143501 /* PhotonTrace.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; path = PhotonTrace.hpp; sourceTree = "<group>"; };
+		665806E42CEA0CE400143501 /* geometry.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; name = geometry.cpp; path = tests/../geometry.cpp; sourceTree = "<group>"; };
 		6659C4E12C399E8A00CC7FAB /* MlxImage.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = MlxImage.cpp; sourceTree = "<group>"; };
 		6659C4E22C399E8A00CC7FAB /* MlxImage.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; path = MlxImage.hpp; sourceTree = "<group>"; };
 		6659C4E52C39A8B200CC7FAB /* OpenGL.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = OpenGL.framework; path = System/Library/Frameworks/OpenGL.framework; sourceTree = SDKROOT; };
@@ -81,7 +64,6 @@
 		667951712C41AD05009C1DDD /* Scene.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; path = Scene.hpp; sourceTree = "<group>"; };
 		667951772C427BFD009C1DDD /* camera.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = camera.cpp; sourceTree = "<group>"; };
 		667951782C427BFD009C1DDD /* camera.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; path = camera.hpp; sourceTree = "<group>"; };
-		6679517C2C46DF55009C1DDD /* geometry.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = geometry.cpp; sourceTree = "<group>"; };
 		667951822C4D535C009C1DDD /* rt */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = rt; sourceTree = BUILT_PRODUCTS_DIR; };
 		667951892C5216B7009C1DDD /* Light.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = Light.cpp; sourceTree = "<group>"; };
 		6679518A2C5216B7009C1DDD /* Light.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; path = Light.hpp; sourceTree = "<group>"; };
@@ -99,16 +81,6 @@
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
-		660BE17B2CBD7D010061AA16 /* Frameworks */ = {
-			isa = PBXFrameworksBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-				665806B02CD2BFEF00143501 /* libmlx.a in Frameworks */,
-				665806B12CD2BFF200143501 /* AppKit.framework in Frameworks */,
-				665806B22CD2BFF400143501 /* OpenGL.framework in Frameworks */,
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
 		6661C2142C38071100D58CDC /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
@@ -152,7 +124,6 @@
 				6659C4E42C39A8B200CC7FAB /* Frameworks */,
 				667951822C4D535C009C1DDD /* rt */,
 				6679518D2C5217A4009C1DDD /* srcs */,
-				660BE17E2CBD7D010061AA16 /* test_dir */,
 			);
 			sourceTree = "<group>";
 		};
@@ -165,7 +136,7 @@
 				667951902C5293BB009C1DDD /* ARGBColor.hpp */,
 				667951772C427BFD009C1DDD /* camera.cpp */,
 				667951782C427BFD009C1DDD /* camera.hpp */,
-				6679517C2C46DF55009C1DDD /* geometry.cpp */,
+				665806E42CEA0CE400143501 /* geometry.cpp */,
 				6679518F2C5293BB009C1DDD /* geometry.hpp */,
 				66B6D1C42C3AD3B9008FD6E6 /* Header.h */,
 				6628EB072C91F1D200BC90BD /* keys.h */,
@@ -196,23 +167,6 @@
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
-		660BE17D2CBD7D010061AA16 /* test_dir */ = {
-			isa = PBXNativeTarget;
-			buildConfigurationList = 660BE1822CBD7D010061AA16 /* Build configuration list for PBXNativeTarget "test_dir" */;
-			buildPhases = (
-				660BE17A2CBD7D010061AA16 /* Sources */,
-				660BE17B2CBD7D010061AA16 /* Frameworks */,
-				660BE17C2CBD7D010061AA16 /* CopyFiles */,
-			);
-			buildRules = (
-			);
-			dependencies = (
-			);
-			name = test_dir;
-			productName = test_dir;
-			productReference = 660BE17E2CBD7D010061AA16 /* test_dir */;
-			productType = "com.apple.product-type.tool";
-		};
 		6661C2162C38071100D58CDC /* rt */ = {
 			isa = PBXNativeTarget;
 			buildConfigurationList = 6661C21E2C38071100D58CDC /* Build configuration list for PBXNativeTarget "rt" */;
@@ -239,9 +193,6 @@
 				BuildIndependentTargetsInParallel = 1;
 				LastUpgradeCheck = 1540;
 				TargetAttributes = {
-					660BE17D2CBD7D010061AA16 = {
-						CreatedOnToolsVersion = 15.4;
-					};
 					6661C2162C38071100D58CDC = {
 						CreatedOnToolsVersion = 15.4;
 					};
@@ -261,24 +212,11 @@
 			projectRoot = "";
 			targets = (
 				6661C2162C38071100D58CDC /* rt */,
-				660BE17D2CBD7D010061AA16 /* test_dir */,
 			);
 		};
 /* End PBXProject section */
 
 /* Begin PBXSourcesBuildPhase section */
-		660BE17A2CBD7D010061AA16 /* Sources */ = {
-			isa = PBXSourcesBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-				665806C82CD3FA2100143501 /* Power.cpp in Sources */,
-				665806C62CD3F9C400143501 /* PhotonMap.cpp in Sources */,
-				665806C52CD3F96300143501 /* Ray.cpp in Sources */,
-				665806C32CD3F92E00143501 /* geometry.cpp in Sources */,
-				665806C22CD3F92700143501 /* ARGBColor.cpp in Sources */,
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
 		6661C2132C38071100D58CDC /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
@@ -287,7 +225,7 @@
 				660BE1792CBAD9890061AA16 /* PhotonMap.cpp in Sources */,
 				6661C21B2C38071100D58CDC /* main.cpp in Sources */,
 				665241D22C5BA6E700BD3A64 /* Ray.cpp in Sources */,
-				6679517D2C46DF55009C1DDD /* geometry.cpp in Sources */,
+				665806E52CEA0CE400143501 /* geometry.cpp in Sources */,
 				665806B92CD3947700143501 /* Power.cpp in Sources */,
 				665806CB2CDE4D6D00143501 /* PhotonTrace.cpp in Sources */,
 				66D166CA2C3D9281002E6F7E /* A_Scenery.cpp in Sources */,
@@ -302,34 +240,6 @@
 /* End PBXSourcesBuildPhase section */
 
 /* Begin XCBuildConfiguration section */
-		660BE1832CBD7D010061AA16 /* Debug */ = {
-			isa = XCBuildConfiguration;
-			buildSettings = {
-				CODE_SIGN_STYLE = Automatic;
-				DEVELOPMENT_TEAM = 92PJT7J9M9;
-				ENABLE_HARDENED_RUNTIME = YES;
-				LIBRARY_SEARCH_PATHS = (
-					"$(inherited)",
-					"$(PROJECT_DIR)",
-				);
-				PRODUCT_NAME = "$(TARGET_NAME)";
-			};
-			name = Debug;
-		};
-		660BE1842CBD7D010061AA16 /* Release */ = {
-			isa = XCBuildConfiguration;
-			buildSettings = {
-				CODE_SIGN_STYLE = Automatic;
-				DEVELOPMENT_TEAM = 92PJT7J9M9;
-				ENABLE_HARDENED_RUNTIME = YES;
-				LIBRARY_SEARCH_PATHS = (
-					"$(inherited)",
-					"$(PROJECT_DIR)",
-				);
-				PRODUCT_NAME = "$(TARGET_NAME)";
-			};
-			name = Release;
-		};
 		6661C21C2C38071100D58CDC /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
@@ -478,15 +388,6 @@
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
-		660BE1822CBD7D010061AA16 /* Build configuration list for PBXNativeTarget "test_dir" */ = {
-			isa = XCConfigurationList;
-			buildConfigurations = (
-				660BE1832CBD7D010061AA16 /* Debug */,
-				660BE1842CBD7D010061AA16 /* Release */,
-			);
-			defaultConfigurationIsVisible = 0;
-			defaultConfigurationName = Release;
-		};
 		6661C2122C38071100D58CDC /* Build configuration list for PBXProject "rt" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (

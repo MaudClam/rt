@@ -10,6 +10,7 @@ Light::Light(void) {
 Light::~Light(void) {}
 
 Light::Light(const Light& other) : _type(other._type) {
+	_id = other._id;
 	_name = other._name;
 	_nick = other._nick;
 	_isLight = other._isLight;
@@ -94,23 +95,19 @@ float Light::lighting(Ray& ray) const {
 	return k;
 }
 
-void Light::photonsEmission(int num, const PhotonMap& phMap, photonRays_t& rays) const {
-	Position	pos;
-	Power		pow(light.light);
+void Light::photonEmissions(int num, const PhotonMap& phMap, photonRays_t& rays) const {
 	switch (_type) {
 		case SPOTLIGHT: {
-			pos.p = _pos.p;
-			pos.n.set_xyz(0, 0, 1);
-			phMap.randomSampleHemisphere(num * 0.5, pos, pow.product(1. / num), rays, false);
-			pos.n.set_xyz(0, 0, -1);
-			phMap.randomSampleHemisphere(num * 0.5, pos, pow.product(1. / num), rays, false);
+			Power pow(light.light);
+			phMap.randomDirectionsSampling(num, _pos, pow.product(1. / num), rays, false);
 			break;
 		}
 		case SUNLIGHT: {
-			pos = _pos;
+			Position pos(_pos);
+			Power    pow(light.light);
 			pos.p = pos.n * _INFINITY;
 			pos.n.product(-1);
-			phMap.randomSampleHemisphere(num * 0.5, pos, pow.product(1. / num), rays, false);
+			phMap.randomDirectionsSampling(num * 0.5, pos, pow.product(1. / num), rays, false);
 			break;
 		}
 		case SUNLIGHT_LIMITED: {//FIXME

@@ -31,7 +31,7 @@ float	radian2degree(float radian) {
 	return (radian * M_180_PI);
 }
 
-float	loop(float n, float lim) {
+float	loop_(float n, float lim) {
 	lim = std::abs(lim);
 	if (n >= 0 && n < lim)
 		return n;
@@ -41,7 +41,7 @@ float	loop(float n, float lim) {
 	return n;
 }
 
-int		loop(int n, int lim) {
+int		loop_(int n, int lim) {
 	lim = std::abs(lim);
 	if (n >= 0 && n < lim)
 		return n;
@@ -50,7 +50,7 @@ int		loop(int n, int lim) {
 	return n;
 }
 
-float	reverse(float n, float lim) {
+float	reverse_(float n, float lim) {
 	lim = std::abs(lim);
 	if (n >= 0 && n <= lim)
 		return n;
@@ -61,7 +61,7 @@ float	reverse(float n, float lim) {
 	return n;
 }
 
-int		reverse(int n, int lim) {
+int		reverse_(int n, int lim) {
 	lim = std::abs(lim);
 	if (n >= 0 && n <= lim)
 		return n;
@@ -77,8 +77,8 @@ float	cosineDistr(float x) {
 	return sign * (1.0 / M_PI) * std::sqrt(1.0 - x * x);
 }
 
-float	inverseCosineDistr(float u) {
-	return cos(u * M_PI_2);
+float	inverseCumulativeDistr(float u) {
+	return std::cos(u * M_PI_2);
 }
 
 std::string  roundedString(float num, int factor) {
@@ -102,16 +102,20 @@ std::string  roundedString(float num, int factor) {
 	return sign + std::to_string(intgr) + "." + std::to_string(frctnl);
 }
 
-void	dabugPrint(int n, float param1, float param2) {
-	static int i = 0;
-	if (i == n) {
-		std::cout << "param1: " << param1;
-		if (param2 != -1) {
-			std::cout << " param2: " << param2 << std::endl;
-		}
-		std::cout << std::endl;
-	}
+void	dabugPrint(int each, float param1, float param2, int factor) {
+	static int i;
+
 	i++;
+	if (!(i % each)) {
+		std::cout<< std::setw(factor + 6) << std::right << std::setfill(' ');
+		std::cout << roundedString(param1,factor) << "\t" ;
+		if (param2 != -1) {
+			std::cout<< std::setw(factor + 6) << std::right << std::setfill(' ');
+			std::cout << roundedString(param2, factor) << "\t" ;
+		}
+		std::cout<< std::setw(factor + 8) << std::right << std::setfill(' ');
+		std::cout << i <<std::endl;
+	}
 }
 
 

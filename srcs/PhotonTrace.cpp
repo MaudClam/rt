@@ -3,20 +3,20 @@
 
 // Struct PhotonTrace
 
-PhotonTrace::PhotonTrace(void) : type(GLOBAL), pos(), pow(), scenery(NULL) {}
+PhotonTrace::PhotonTrace(void) : type(GLOBAL), pos(), pow(), sceneryId(0) {}
 
-PhotonTrace::PhotonTrace(MapType _type, const Vec3f& point, const Vec3f& dir, const Power& _pow, A_Scenery* _scenery) :
+PhotonTrace::PhotonTrace(MapType _type, const Vec3f& point, const Vec3f& dir, const Power& _pow, int _sceneryId) :
 type(_type),
 pos(point, dir),
 pow(_pow),
-scenery(_scenery)
+sceneryId(_sceneryId)
 {}
 
 PhotonTrace::PhotonTrace(const PhotonTrace& other) :
 type(other.type),
 pos(other.pos),
 pow(other.pow),
-scenery(other.scenery)
+sceneryId(other.sceneryId)
 {}
 
 PhotonTrace::~PhotonTrace(void) {}
@@ -26,7 +26,7 @@ PhotonTrace& PhotonTrace::operator=(const PhotonTrace& other) {
 		type = other.type;
 		pos = other.pos;
 		pow = other.pow;
-		scenery = other.scenery;
+		sceneryId = other.sceneryId;
 	}
 	return *this;
 }

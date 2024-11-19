@@ -6,7 +6,6 @@
 # include <random>
 # include "PhotonTrace.hpp"
 # include "A_Scenery.hpp"
-# include "Ray.hpp"
 
 struct	Ray;
 class	A_Scenery;
@@ -56,7 +55,7 @@ typedef std::map<ClasterKey,Claster>	clasters_t;
 
 class PhotonMap : public clasters_t {
 	rand_gen_t&	_gen;
-	int			_sizeGlobal, _sizeCaustic, _sizeVolume, _totalPhotons;
+	int			_sizeGlobal, _sizeCaustic, _sizeVolume, _totalPhotons, _assessmentNumber;
 	float		_gridStep;
 	Power		_totalPow;
 public:
@@ -65,9 +64,12 @@ public:
 	~PhotonMap(void);
 	PhotonMap& operator=(const PhotonMap& other);
 private:
+	int  get_size(MapType type) const;
 	void swap_(PhotonMap& other);
 	void deleteTraces(void);
 	void set_totalPow(a_scenerys_t& lightsIdx);
+	void photonRayTracing_lll(a_scenerys_t& scenerys, photonRays_t& rays);
+	void tracePhotonRay(rand_distr_t& distr, a_scenerys_t& scenerys, Ray& ray);
 	inline void counter(MapType type) {
 		switch (type) {
 			case GLOBAL:	_sizeGlobal++; return;
@@ -77,36 +79,44 @@ private:
 		}
 		_sizeGlobal = _sizeCaustic = _sizeVolume = 0;
 	}
-	void photonRayTracing_lll(a_scenerys_t& scenerys, photonRays_t& rays);
-	void tracePhotonRay(rand_distr_t& distr, a_scenerys_t& scenerys, Ray& ray);
-
-public:
-	int  get_size(MapType type) const;
-	void lookat(const Position& eye, const LookatAux& aux, float roll);
-	void randomSampleHemisphere(int n, const Position& pos, const Power& pow, photonRays_t& rays, bool is_cosineDistr) const;
-	void make(a_scenerys_t& scenerys, a_scenerys_t& lightsIdx);
+	inline void counterMinus(MapType type) {
+		switch (type) {
+			case GLOBAL:	_sizeGlobal--; return;
+			case CAUSTIC:	_sizeCaustic--; return;
+			case VOLUME:	_sizeVolume--; return;
+			default:		break;
+		}
+		_sizeGlobal = _sizeCaustic = _sizeVolume = 0;
+	}
 	inline void set_trace(PhotonTrace* trace) {
 		auto it_bool = try_emplace(ClasterKey().make(*trace, _gridStep), Claster());
 		it_bool.first->second.add_trace(trace);
 		counter(trace->type);
 	}
-	inline void set_newTrace(const Vec3f& point, const Vec3f& dir, const Power& pow, MapType type, A_Scenery* scenery) {
-		PhotonTrace* trace = new PhotonTrace(type, point, dir, pow, scenery);
-		set_trace(trace);
-	}
-	inline void get_traces(const ClasterKey& key, traces_t& traces) const {
-		auto claster = find(key);
-		if (claster != end()) {
-			traces.insert_after(traces.before_begin(), claster->second.traces.begin(), claster->second.traces.end());
+	inline void get_sortedTraces(const Vec3f& point, const ClasterKey& key, int sceneryId, traces_t& rayTraces) const {
+		auto search = find(key);
+		if (search != end()) {
+			for (auto trace = search->second.traces.begin(), END = search->second.traces.end(); trace != END; ++trace) {
+				if ((*trace)->sceneryId == sceneryId) {
+					float sqr = (point - (*trace)->pos.p).sqnorm();
+					auto rayTrace = rayTraces.before_begin(), rayTraceNext = rayTraces.begin();
+					while (rayTraceNext != rayTraces.end() && sqr > (point - (*rayTraceNext)->pos.p).sqnorm()) {
+						++rayTrace;
+						++rayTraceNext;
+					}
+					rayTraces.insert_after(rayTrace, *trace);
+				}
+			}
 		}
 	}
-	inline void get_traces(const Vec3f& point, traces_t& traces, MapType type) const {
-		traces.clear();
+public:
+	inline void get_traces(const Vec3f& point, int sceneryId, traces_t& rayTraces, MapType type) const {
+		rayTraces.clear();
 		ClasterKey	key(type, point, _gridStep);
-		get_traces(key, traces);
+		get_sortedTraces(point, key, sceneryId, rayTraces);
 	}
-	inline void get_traces27(const Vec3f& point, traces_t& traces, MapType type) const {
-		traces.clear();
+	inline void get_traces27(const Vec3f& point, int sceneryId, traces_t& rayTraces, MapType type) const {
+		rayTraces.clear();
 		ClasterKey	key(type, point, _gridStep);
 		int x_begin = key.x - 1, x_end = key.x + 2;
 		int y_begin = key.y - 1, y_end = key.y + 2;
@@ -114,31 +124,12 @@ public:
 		for (key.x = x_begin; key.x < x_end; key.x++)
 			for (key.y = y_begin; key.y < y_end; key.y++)
 				for (key.z = z_begin; key.z < z_end; key.z++)
-					get_traces(key, traces);
+					get_sortedTraces(point, key, sceneryId, rayTraces);
 	}
-	inline void getHemisphereRandomPhiTheta(const Vec3f& normal, float& phi, float& theta, bool is_cosineDistr) const {
-		rand_distr_t distr(-1.0, 1.0);
-		float phiNorm = 0., thetaNorm = 0.;
-		normal.cartesian2sphericalDirection(phiNorm, thetaNorm);
-		bool condition = true;
-		while (condition) {
-			phi = distr(_gen);
-			theta = distr(_gen);
-			if (is_cosineDistr) {
-				phi = cosineDistr(phi);
-				theta = cosineDistr(theta);
-			}
-			phi = loop(phiNorm + phi * M_PI_2, M_2PI);
-			theta = reverse(thetaNorm + theta * M_PI_4, (float)M_PI);
-			condition =	(almostEqual(theta, 0.) && !almostEqual(phi, 0.)) ||
-						(almostEqual(theta, M_PI) && !almostEqual(phi, 0.));
-		}
-	}
-	inline void getHemisphereRandomVec3f(const Vec3f& normal, Vec3f& dir, bool is_cosineDistr) const {
-		float phi = 0., theta = 0.;
-		getHemisphereRandomPhiTheta(normal, phi, theta, is_cosineDistr);
-		dir.sphericalDirection2cartesian(phi, theta);
-	}
+	void make(a_scenerys_t& scenerys, a_scenerys_t& lightsIdx);
+	void lookat(const Position& eye, const LookatAux& aux, float roll);
+	void randomDirectionsSampling(int n, const Position& pos, const Power& pow, photonRays_t& rays, bool is_cosineDistr) const;
+	void outputPhotonMapParametrs(void);
 };
 
 #endif /* PHOTONMAP_HPP */

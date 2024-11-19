@@ -99,7 +99,7 @@ segments(),
 traces()
 {}
 
-Ray::Ray(const Vec3f& _pov, const Vec3f& _dir, const Power& _pow) :
+Ray::Ray(rand_gen_t& gen, const Position pos, const Power& _pow) :
 recursion(0),
 pow(_pow),
 path(),
@@ -111,9 +111,26 @@ combineType(END),
 segments(),
 traces()
 {
-	pov = _pov;
-	dir = _dir;
-	recursion = 1;//FIXME
+	pov = pos.p;
+	recursion = 1;
+	randomUniformDirectionInHemisphere(gen, pos.n);
+}
+
+Ray::Ray(rand_gen_t& gen, const Position pos, const Power& _pow, const LookatAux& aux) :
+recursion(0),
+pow(_pow),
+path(),
+intersections(),
+light(),
+shine(),
+color(),
+combineType(END),
+segments(),
+traces()
+{
+	pov = pos.p;
+	recursion = 1;
+	randomCosineWeightedDirectionInHemisphere(gen, aux);
 }
 
 Ray::~Ray(void) {}
@@ -367,22 +384,3 @@ bool operator<(const Ray::Segment& left, const Ray::Segment& right) {
 	return left.b.d < right.b.d;
 }
 
-std::ostream& operator<<(std::ostream& o, const Ray::Point& p) {
-	o << "(" << p.d << ", " << std::boolalpha << p.inside << ", " << p.s << ")";
-	return o;
-}
-
-std::ostream& operator<<(std::ostream& o, const Ray::Segment& s) {
-	o << "a" << s.a << ", b" << s.b << ", " << std::boolalpha << s.removed << ", " << s.combine;
-	return o;
-}
-
-std::ostream& operator<<(std::ostream& o, const Ray::segments_t& ss) {
-	for (auto segment = ss.begin(), end = ss.end(); segment != end; ++segment) {
-		o << *segment << std::endl;
-	}
-	if (!ss.empty()) {
-		o << std::endl;
-	}
-	return o;
-}

@@ -3,7 +3,6 @@
 
 # include <forward_list>
 # include "Power.hpp"
-//# include "A_Scenery.hpp"
 
 class A_Scenery;
 
@@ -12,9 +11,9 @@ struct PhotonTrace {
 	MapType		type;
 	Position	pos;
 	Power		pow;
-	A_Scenery*	scenery;
+	int			sceneryId;
 	PhotonTrace(void);
-	PhotonTrace(MapType _type, const Vec3f& point, const Vec3f& dir, const Power& _pow, A_Scenery* _scenery);
+	PhotonTrace(MapType _type, const Vec3f& point, const Vec3f& dir, const Power& _pow, int _sceneryId);
 	PhotonTrace(const PhotonTrace& other);
 	~PhotonTrace(void);
 	PhotonTrace& operator=(const PhotonTrace& other);

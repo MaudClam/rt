@@ -108,3 +108,8 @@ Power& Power::diffAdjust(const Power& chance, const Power& color, float _diff) {
 	return *this;
 }
 
+std::ostream& operator<<(std::ostream& o, const Power& p) {
+	std::ostringstream os, os1;
+	o << p.r << "," << p.g << "," << p.b;
+	return o;
+}

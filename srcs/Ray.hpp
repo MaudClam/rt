@@ -2,15 +2,20 @@
 #define RAY_HPP
 
 # include <forward_list>
+# include <random>
 # include "geometry.hpp"
 # include "ARGBColor.hpp"
 # include "A_Scenery.hpp"
-# include "PhotonTrace.hpp"
+//# include "PhotonTrace.hpp"
+# include "PhotonMap.hpp"
 
 
 class	A_Scenery;
 typedef	std::vector<A_Scenery*>	a_scenerys_t;
 typedef	a_scenerys_t::iterator	a_scenerys_it;
+typedef	std::random_device						rand_device_t;
+typedef	std::mt19937							rand_gen_t;
+typedef	std::uniform_real_distribution<float>	rand_distr_t;
 
 
 class PhotonPath {
@@ -139,7 +144,8 @@ struct Ray : public RayBasic {
 	segments_t	segments;		// container for segments handling
 	traces_t	traces;
 	Ray(void);
-	Ray(const Vec3f& _pov, const Vec3f& _dir, const Power& _pow);
+	Ray(rand_gen_t& gen, const Position pos, const Power& _pow);
+	Ray(rand_gen_t& gen, const Position pos, const Power& _pow, const LookatAux& aux);
 	~Ray(void);
 	Ray(const Ray& other);
 	Ray& operator=(const Ray& other);
@@ -213,29 +219,76 @@ struct Ray : public RayBasic {
 		}
 		return false;
 	}
-	inline void newPhotonTrace(const Power& chance, const Power& color, float diffusion, A_Scenery* scenery) {
+	inline void newPhotonTrace(const Power& chance, const Power& color, float diffusion, int sceneryId) {
 		if (path.is_global())
-			traces.push_front(new PhotonTrace(GLOBAL, pov, dir, pow, scenery));
+			traces.push_front(new PhotonTrace(GLOBAL, pov, dir, pow, sceneryId));
 		if (path.is_caustic())
-			traces.push_front(new PhotonTrace(CAUSTIC, pov, dir, pow, scenery));
+			traces.push_front(new PhotonTrace(CAUSTIC, pov, dir, pow, sceneryId));
 		pow.diffAdjust(chance, color, diffusion);
 		path.set_diffusion();
 		movePovByNormal(EPSILON);
 		recursion++;
 	}
-	inline void phMaplightings(void) {
-		Power lighting;
-		int n = 0;
-		for (auto trace = traces.begin(), end = traces.end(); trace != end; ++trace) {
-			float k = (*trace)->pos.n * norm;
-			float sqr = (pov - (*trace)->pos.p).sqnorm();
-			if (k < 0 && sqr < SQ_PMGS) {
-				lighting.addition(lighting, (*trace)->pow * -k);
+	inline void phMapLightings(int assessmentNumber, float sqrSearchRadius, float specular, const ARGBColor& color) {
+		Power lighting, shining;
+		int n = 0, n1 = 0;
+		float sqr = 0., maxSqr = sqrSearchRadius;
+		(void)n1;(void)sqr;//FIXME
+		std::vector<float> ks;
+		ks.reserve(assessmentNumber);
+		auto trace = traces.begin(), end = traces.end(), last = end;
+		for (; trace != end && n < assessmentNumber; ++trace) {
+			ks.push_back((*trace)->pos.n * norm * -1);
+			if (ks.back() > 0) {
+				last = trace;
 				n++;
 			}
 		}
-		(void)n;
-		lighting.product(n / (M_4PI * SQ_PMGS)).get_ARGBColor(light);
+		if (n > 0) {
+			maxSqr = (pov - (*last)->pos.p).sqnorm();
+			trace = traces.begin();
+			for (auto k = ks.begin(), end = ks.end(); k != end; k++) {
+				if (*k > 0) {
+					float sqr = ( pov - (*trace)->pos.p ).sqnorm();
+					float w = 1. - sqr / maxSqr;//filter
+					lighting.addition( lighting, (*trace)->pow * (*k * w) );
+					if (specular != -1) {
+						float s = ( (*trace)->pos.n * -1 ).reflect(norm) * dirС;
+						if (s > 0) {
+							s = std::pow(s, specular);
+							shining.addition( shining, (*trace)->pow * (s / (M_PI * sqr)) );
+							n1++;
+						}
+					}
+				}
+				trace++;
+			}
+			lighting.product((float)n / (M_PI * maxSqr)).get_ARGBColor(light);
+			collectLight(color);
+			if (n1 > 0) {
+				shining.get_ARGBColor(light);
+				shine.addition(shine, light);
+			}
+		}
+		traces.clear();
+	}
+	inline void randomUniformDirectionInHemisphere(rand_gen_t& gen, const Vec3f& normal) {
+		rand_distr_t distr(0.0, 1.0);
+		float phi = distr(gen) * M_2PI;
+		float theta = distr(gen) * M_PI;
+		dir.sphericalDirection2cartesian(phi, theta);
+		if (!dir.isNull() && dir * normal < 0) {// if normal(0,0,0) then the full sphere direction will be generated
+			dir.product(-1);
+		}
+	}
+	inline void randomCosineWeightedDirectionInHemisphere(rand_gen_t& gen, const LookatAux& aux) {
+		rand_distr_t distr(0.0, 1.0);
+		float phi = distr(gen) * M_2PI;
+		float theta = std::acos(std::sqrt(distr(gen)));
+		dir.sphericalDirection2cartesian(phi, theta).lookatDir(aux);
+	}
+	inline void randomCosineWeightedDirectionInHemisphere(rand_gen_t& gen) {
+		randomCosineWeightedDirectionInHemisphere(gen, LookatAux(norm));
 	}
 	A_Scenery* closestScenery(a_scenerys_t& scenerys, float maxDistance, Hit target = FRONT);
 	A_Scenery* combine(a_scenerys_it& scenery, a_scenerys_it& end, float distance, Hit target);
@@ -246,11 +299,7 @@ struct Ray : public RayBasic {
 	void intersection(Segment& segment1, Segment& segment2);
 };
 
-
 bool operator<(const Ray::Segment& left, const Ray::Segment& right);
-std::ostream& operator<<(std::ostream& o, const Ray::Point& p);//FIXME
-std::ostream& operator<<(std::ostream& o, const Ray::Segment& s);//FIXME
-std::ostream& operator<<(std::ostream& o, const Ray::segments_t& s);//FIXME
 
 
 #endif /* RAY_HPP */
