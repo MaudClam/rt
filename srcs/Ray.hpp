@@ -219,58 +219,79 @@ struct Ray : public RayBasic {
 		}
 		return false;
 	}
-	inline void newPhotonTrace(const Power& chance, const Power& color, float diffusion, int sceneryId) {
-		if (path.is_global())
-			traces.push_front(new PhotonTrace(GLOBAL, pov, dir, pow, sceneryId));
-		if (path.is_caustic())
-			traces.push_front(new PhotonTrace(CAUSTIC, pov, dir, pow, sceneryId));
+	inline void newPhotonTrace(MapType type, const Power& chance, const Power& color, float diffusion, int sceneryId) {
+		switch (type) {
+			case CAUSTIC: {
+				if (path.is_caustic())
+					traces.push_front(new PhotonTrace(CAUSTIC, pov, dir, pow, sceneryId));
+				break;
+			}
+			case GLOBAL: {
+				if (path.is_caustic())
+					traces.push_front(new PhotonTrace(CAUSTIC, pov, dir, pow, sceneryId));
+				if (path.is_global())
+					traces.push_front(new PhotonTrace(GLOBAL, pov, dir, pow, sceneryId));
+				break;
+			}
+			case VOLUME: {
+				if (path.is_caustic())
+					traces.push_front(new PhotonTrace(CAUSTIC, pov, dir, pow, sceneryId));
+				if (path.is_global())
+					traces.push_front(new PhotonTrace(GLOBAL, pov, dir, pow, sceneryId));
+				if (path.is_volume())
+					traces.push_front(new PhotonTrace(VOLUME, pov, dir, pow, sceneryId));
+				break;
+			}
+			default:
+				break;
+		}
 		pow.diffAdjust(chance, color, diffusion);
 		path.set_diffusion();
 		movePovByNormal(EPSILON);
 		recursion++;
 	}
-	inline void phMapLightings(int assessmentNumber, float sqrSearchRadius, float specular, const ARGBColor& color) {
-		Power lighting, shining;
-		int n = 0, n1 = 0;
-		float sqr = 0., maxSqr = sqrSearchRadius;
-		(void)n1;(void)sqr;//FIXME
-		std::vector<float> ks;
-		ks.reserve(assessmentNumber);
-		auto trace = traces.begin(), end = traces.end(), last = end;
-		for (; trace != end && n < assessmentNumber; ++trace) {
-			ks.push_back((*trace)->pos.n * norm * -1);
-			if (ks.back() > 0) {
-				last = trace;
-				n++;
+	inline void phMapLighting(float sqRadius, int estimate, int sceneryId, ARGBColor sceneryColor, float specular) {
+		(void)specular;//FIXME
+		struct Trace {
+			float k;
+			PhotonTrace* trace;
+			Trace(float _k, PhotonTrace* _trace) : k(_k), trace(_trace) {}
+			Trace(void) {}
+		};
+		std::map<float, Trace> tMap;
+		float sqr = 0., k = 0.;
+		for (auto trace = traces.begin(), end = traces.end(); trace != end; ++trace) {
+			if ((*trace)->sceneryId == sceneryId &&
+				(sqr = (pov - (*trace)->pos.p).sqnorm()) <= sqRadius &&
+				(k = (*trace)->pos.n * norm * -1) > 0) {
+				tMap.emplace(sqr, Trace(k, *trace));
 			}
 		}
-		if (n > 0) {
-			maxSqr = (pov - (*last)->pos.p).sqnorm();
-			trace = traces.begin();
-			for (auto k = ks.begin(), end = ks.end(); k != end; k++) {
-				if (*k > 0) {
-					float sqr = ( pov - (*trace)->pos.p ).sqnorm();
-					float w = 1. - sqr / maxSqr;//filter
-					lighting.addition( lighting, (*trace)->pow * (*k * w) );
-					if (specular != -1) {
-						float s = ( (*trace)->pos.n * -1 ).reflect(norm) * dirС;
-						if (s > 0) {
-							s = std::pow(s, specular);
-							shining.addition( shining, (*trace)->pow * (s / (M_PI * sqr)) );
-							n1++;
-						}
-					}
-				}
-				trace++;
+		if (tMap.size() > estimate * 0.1) {
+			int n = 0, ns = 0;
+			Power lighting, shining;
+			auto last = tMap.begin();
+			for (auto it = tMap.begin(), end = tMap.end(); it != end && n < estimate; ++it) {
+				lighting.addition(lighting, it->second.trace->pow * it->second.k);
+				last = it;
+				n++;
+//				if (specular != -1) {
+//					float s = ( it->second.trace->pos.n * -1 ).reflect(norm) * dirС;
+//					if (s > 0) {
+//						s = std::pow(s, specular);
+//						shining.addition( shining, it->second.trace->pow * (s / (M_PI * it->first)) );
+//						ns++;
+//					}
+//				}
 			}
-			lighting.product((float)n / (M_PI * maxSqr)).get_ARGBColor(light);
-			collectLight(color);
-			if (n1 > 0) {
+			lighting.product((float)n / (M_PI * last->first)).get_ARGBColor(light);
+			collectLight(sceneryColor);
+			if (ns > estimate * 0.1) {
 				shining.get_ARGBColor(light);
 				shine.addition(shine, light);
 			}
+
 		}
-		traces.clear();
 	}
 	inline void randomUniformDirectionInHemisphere(rand_gen_t& gen, const Vec3f& normal) {
 		rand_distr_t distr(0.0, 1.0);

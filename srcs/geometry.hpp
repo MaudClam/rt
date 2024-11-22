@@ -19,15 +19,15 @@ const float M_2PI = 2. * M_PI;
 const float M_4PI = 4. * M_PI;
 const float M_PI_180 = M_PI / 180.;
 const float M_180_PI = 180. / M_PI;
-const float SQ_PMGS = PHOTON_MAP_GRID_STEP * PHOTON_MAP_GRID_STEP;
 
 enum Hit { FRONT, BACK, OUTLINE, ANY_SHADOW, FIRST_SHADOW, INSIDE, OUTSIDE };
 enum CombineType { END=0, UNION, SUBTRACTION, INTERSECTION };
-enum MapType {ALL, GLOBAL, CAUSTIC, VOLUME, RESET};
+enum MapType {NO, CAUSTIC, GLOBAL, VOLUME, RESET};
 
 
 // Non class functions
 std::string combineType(CombineType type);
+std::string mapType(MapType);
 bool	almostEqual(float a, float b, float precision = PRECISION);
 bool	almostMore(float a, float b, float precision = PRECISION);
 bool	almostLess(float a, float b, float precision = PRECISION);
@@ -61,6 +61,7 @@ template <class t> struct Vec2 {
 		}
 		return *this;
 	}
+	Vec2<t>& set_xy(t _x, t _y) { x = _x; y = _y; return *this; }
 	inline Vec2<t> operator+(const Vec2<t>& V) const { return Vec2<t>(u + V.u, v + V.v); }
 	inline Vec2<t> operator-(const Vec2<t>& V) const { return Vec2<t>(u - V.u, v - V.v); }
 	inline Vec2<t> operator*(float f)          const { return Vec2<t>(u * f, v * f); }

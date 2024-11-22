@@ -71,9 +71,9 @@ std::string Scene::header(void) {
 }
 
 void Scene::systemDemo(void) {
-	img.init(header(), _resolution);
 	cameras.push_back(Camera(img, rand_gen));
-	set_any("R	800 600		Nice_Balls");
+	set_any("R	800 600  SystemDemo  VOLUME  500000  60  0.1");
+	img.init(header(), _resolution);
 	set_any("A				0.2		0xFFFFFF");
 	set_any("l	2,1,0		0.6		0xFFFFFF");
 	set_any("l	1,4,4		0.4		0xFFFFFF");
@@ -83,7 +83,7 @@ void Scene::systemDemo(void) {
 	set_any("c	5,0,3		-1,0,0		60");
 	set_any("c	0,5,3		0,-1,0		60");
 	set_any("sp	0,-1,3		2		0xFF0000	500		0.2");
-	set_any("sp	2,0,4		2		0xFFFFFF	500		0.05		0.95		1.4");
+	set_any("sp	2,0,4		2		0xFFFFFF	500		0.0		1.0		1.5");
 	set_any("sp	-2,0,4		2		0x00FF00	10		0.4");
 	set_any("sp	0,-5001,0	10000	0xFFFF00	1000	0.5");
 	if (cameras.size() > 1)
@@ -92,7 +92,7 @@ void Scene::systemDemo(void) {
 	phMap.make(scenerys, lightsIdx);
 	makeLookatsForCameras();
 	cameras[_currentCamera].calculateFlybyRadius();
-//	img.flyby = COUNTER_CLOCKWISE;
+	img.flyby = COUNTER_CLOCKWISE;
 }
 
 void Scene::mesage(MsgType type, int line, const std::string& hint, int error) {
@@ -163,7 +163,6 @@ int Scene::saveParsingLog(const char* filename) {
 int  Scene::parsing(int ac, char** av) {
 	if (ac != 2) {
 		mesage(WRNG_FILE_MISSING);
-		_header = "System Demo";
 		systemDemo();
 		return SUCCESS;
 	}
@@ -176,8 +175,12 @@ int  Scene::parsing(int ac, char** av) {
 		return error;
 	}
 	std::getline(in, line);
-	if (set_any(line)) {
+	int res = set_any(line);
+	if (res == ERROR) {
+		mesage(WRNG_PARSING_ERROR, 1, av[1]);
+	} else if (res > 0) {
 		mesage(WRNG_RESOLUTION, 1, av[1]);
+		_resolution.set_xy(DEFAULT_RESOLUTION);
 		_header = "Default";
 	}
 	img.init(header(), _resolution);
@@ -227,6 +230,7 @@ int Scene::set_any(std::string string) {
 
 int Scene::set_any(std::istringstream is) {
 	std::string	iD;
+	std::string phMapType;
 	size_t		id = 0;
 	
 	is >> iD;
@@ -236,9 +240,23 @@ int Scene::set_any(std::istringstream is) {
 	}
 	switch (id) {
 		case 0: {// R Resolution
-			is >> _resolution.x >> _resolution.y >> _header;
+			is >> _resolution.x >> _resolution.y >> _header >> phMapType >> phMap.totalPhotons >> phMap.estimate >> phMap.gridStep ;
 			_resolution.x = i2limits(_resolution.x, RESOLUTION_MIN, RESOLUTION_MAX);
 			_resolution.y = i2limits(_resolution.y, RESOLUTION_MIN, RESOLUTION_MAX);
+			phMap.totalPhotons = i2limits(phMap.totalPhotons, 0, MAX_PHOTONS_NUMBER);
+			phMap.estimate = i2limits(phMap.estimate, 0, MAX_ESTIMATE_PHOTONS);
+			phMap.gridStep = f2limits(phMap.gridStep, 0.01, MAX_PHOTONS_GRID_STEP);
+			if (phMapType == "GLOBAL") {
+				phMap.type = GLOBAL;
+			} else if (phMapType == "CAUSTIC") {
+				phMap.type = CAUSTIC;
+			} else if (phMapType == "VOLUME") {
+				phMap.type = VOLUME;
+			} else {
+				phMap.type = NO;
+				if (phMapType != "")
+					return ERROR;
+			}
 			break;
 		}
 		case 1: {// A AmbientLightning
@@ -322,7 +340,8 @@ void Scene::makeLookatsForCameras(void) {
 			A_Scenery* clone = (*sc)->clone();
 			cam->set_scenery(clone);
 		}
-		cam->phMap = phMap;
+		if (phMap.type != NO)
+			cam->phMap = phMap;
 	}
 	for (auto cam = cameras.begin(), End = cameras.end(); cam != End; ++cam) {
 		cam->lookatCamera(cam->get_pos());
@@ -437,6 +456,12 @@ void Scene::changeCamerasOptions(int key, int option) {
 			if (DEBUG_MODE) std::cout << "softShadowSoftnesses: " << val << std::endl;
 			break;
 		}
+		case CHANGE_PHOTON_MAP: {
+			if (cameras[0].phMap.type == NO ||
+				(cameras[0].displayedPhMap == NO && (MapType)key == NO))
+				return;
+			break;
+		}
 		default:
 			break;
 	}
@@ -454,6 +479,14 @@ void Scene::changeCamerasOptions(int key, int option) {
 			case CHANGE_SOFT_SHADOW_SOFTNESS:
 				cam->resetSoftShadowSoftness(val);
 				break;
+			case CHANGE_PHOTON_MAP: {
+				cam->changePhotonMap((MapType)key);
+				break;
+			}
+			case CHANGE_OTHER: {
+				cam->changeOther((Controls)key);
+				break;
+			}
 			default:
 				return;
 		}
@@ -486,10 +519,15 @@ float Scene::giveValue(const floatSet_t& set, float val, int key) {
 
 std::ostream& operator<<(std::ostream& o, const Scene& sc) {
 	std::ostringstream os;
-	o  << "R " << std::setw(5) << sc._resolution.x << " " << sc._resolution.y << " " << sc._header << std::endl;
-	os << "A  " << std::setw(32) << sc._ambient;
-	o << std::setw(56) << std::left << os.str();
-	o << " #ambient liting" << std::endl;
+	o	<< "R " << std::setw(5) << sc._resolution.x << " " << sc._resolution.y << " " << sc._header;
+	if (sc.phMap.type != NO) {
+		o	<< " " << mapType(sc.phMap.type) << " " << sc.phMap.totalPhotons << " "
+			<< sc.phMap.estimate << " " << sc.phMap.gridStep;
+	}
+	o	<< std::endl;
+	os	<< "A  " << std::setw(32) << sc._ambient;
+	o	<< std::setw(56) << std::left << os.str();
+	o	<< " #ambient liting" << std::endl;
 	for (auto light = sc.lightsIdx.begin(); light != sc.lightsIdx.end(); ++light) {
 		o << *(*light) << std::endl;
 	}

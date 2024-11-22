@@ -178,7 +178,9 @@ ambient(),
 space(),
 recursionDepth(RECURSION_DEPTH),
 softShadowLength(SOFT_SHADOW_LENGTH_LIMIT),
-softShadowSoftness(SOFT_SHADOW_SOFTNESS)
+softShadowSoftness(SOFT_SHADOW_SOFTNESS),
+displayedPhMap(NO),
+dualReflRefr(false)
 {	_width = img.get_width();
 	_height = img.get_height();
 	_bytespp = img.get_bytespp();
@@ -211,6 +213,7 @@ Camera& Camera::operator=(const Camera& other) {
 		recursionDepth = other.recursionDepth;
 		softShadowLength = other.softShadowLength;
 		softShadowSoftness = other.softShadowSoftness;
+		dualReflRefr = other.dualReflRefr;
 	}
 	return *this;
 }
@@ -305,6 +308,27 @@ void Camera::resetSoftShadowSoftness(float ss) {
 	runThreadRoutine(RESTORE_RAYS);
 }
 
+void Camera::changePhotonMap(MapType type) {
+	if (displayedPhMap == type) {
+		displayedPhMap = NO;
+	} else {
+		displayedPhMap = type;
+	}
+	runThreadRoutine(RESTORE_RAYS);
+}
+
+void Camera::changeOther(Controls key) {
+	switch (key) {
+		case OTHER_DUAL: {
+			dualReflRefr = dualReflRefr ? false : true;
+			break;
+		}
+		default:
+			break;
+	}
+	runThreadRoutine(RESTORE_RAYS);
+}
+
 void Camera::resetRoll(float roll) {
 	if (roll >= 90.) {
 		roll = degree2radian(90.);
@@ -370,34 +394,39 @@ void Camera::traceRay(Ray& ray, int r) {
 	ray.fixDirFromCam_if();
 	scenery->giveNormal(ray);
 	ray.movePovByNormal(EPSILON);
-	caustics(ray, *scenery);
+	photonMapLighting(ray, *scenery);
 	lightings(ray, *scenery, r);	// order matters
 	reflections(ray, *scenery, r);	// order matters
 	refractions(ray, *scenery, r);	// order matters
 }
 
 void Camera::lightings(Ray& ray, const A_Scenery& scenery, int r) {
-	(void)r;
-	ray.light = ambient;
-	ray.collectLight(scenery.color);
-	for (auto light = lightsIdx.begin(), end = lightsIdx.end(); light != end; ++light) {
-		float k = (*light)->lighting(ray);
-		if (k) {
-			shadow_if(ray, scenery, k, r);
+	(void)r;//FIXME
+	if (phMap.type == NO || (displayedPhMap != GLOBAL)) {
+		ray.light = ambient;
+		ray.collectLight(scenery.color);
+		for (auto light = lightsIdx.begin(), end = lightsIdx.end(); light != end; ++light) {
+			float k = (*light)->lighting(ray);
+			if (k) {
+				shadow_if(ray, scenery, k, r);
+			}
 		}
 	}
 }
 
-void Camera::caustics(Ray& ray, const A_Scenery& scenery) {
-	phMap.get_traces27(ray.pov, scenery.get_id(), ray.traces, CAUSTIC);
-	ray.phMapLightings(ASSESSMENT_PHOTONS_NUMBER, SQ_PMGS, scenery.specular, scenery.color);
+void Camera::photonMapLighting(Ray& ray, const A_Scenery& scenery) {
+	if (displayedPhMap == NO) return;
+	phMap.get_traces27(ray.pov, ray.traces, displayedPhMap);
+	if (!ray.traces.empty()) {
+		ray.phMapLighting(phMap.get_sqr(), phMap.estimate, scenery.get_id(), scenery.color, scenery.specular);
+	}
 }
 
 void Camera::reflections(Ray& ray, const A_Scenery& scenery, int r) {
 	if (scenery.reflective) {
-		if (scenery.refractive) {
-			return;
-		}
+		if (!dualReflRefr && scenery.refractive) {	// Speeds up calculations.
+			return;									// Disable if the position of reflections
+		}											// after processing refractions.
 		int _color = ray.color.val, _shine = ray.shine.val;
 		ray.color = ray.shine = 0;
 		if (scenery.refractive) {
@@ -421,8 +450,8 @@ void Camera::refractions(Ray& ray, const A_Scenery& scenery, int r) {
 			ray.movePovByNormal(-2 * EPSILON);
 			traceRay(ray, ++r);
 			ray.collectRefractiveLight(scenery.color, _color, scenery.refractive);
-		} else {
-			ray.collectLight(scenery.color);
+		} else {	// Total internal reflection.
+			ray.color = space;
 		}
 	}
 }

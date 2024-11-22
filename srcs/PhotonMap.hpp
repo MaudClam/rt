@@ -5,6 +5,7 @@
 # include <forward_list>
 # include <random>
 # include "PhotonTrace.hpp"
+# include "Ray.hpp"
 # include "A_Scenery.hpp"
 
 struct	Ray;
@@ -33,6 +34,7 @@ struct ClasterKey {
 	friend bool operator>(const ClasterKey& left, const ClasterKey& right);
 	friend bool operator>=(const ClasterKey& left, const ClasterKey& right);
 	friend bool operator<=(const ClasterKey& left, const ClasterKey& right);
+	friend std::ostream& operator<<(std::ostream& o, const ClasterKey& key);
 };
 
 
@@ -55,10 +57,13 @@ typedef std::map<ClasterKey,Claster>	clasters_t;
 
 class PhotonMap : public clasters_t {
 	rand_gen_t&	_gen;
-	int			_sizeGlobal, _sizeCaustic, _sizeVolume, _totalPhotons, _assessmentNumber;
-	float		_gridStep;
-	Power		_totalPow;
+	int _sizeGlobal, _sizeCaustic, _sizeVolume;
 public:
+	int		totalPhotons;
+	int		estimate;
+	float	gridStep;
+	Power	totalPow;
+	MapType	type;
 	PhotonMap(rand_gen_t& gen);
 	PhotonMap(const PhotonMap& other);
 	~PhotonMap(void);
@@ -66,8 +71,9 @@ public:
 private:
 	int  get_size(MapType type) const;
 	void swap_(PhotonMap& other);
+	void clear_(void);
 	void deleteTraces(void);
-	void set_totalPow(a_scenerys_t& lightsIdx);
+	void settotalPow(a_scenerys_t& lightsIdx);
 	void photonRayTracing_lll(a_scenerys_t& scenerys, photonRays_t& rays);
 	void tracePhotonRay(rand_distr_t& distr, a_scenerys_t& scenerys, Ray& ray);
 	inline void counter(MapType type) {
@@ -89,42 +95,34 @@ private:
 		_sizeGlobal = _sizeCaustic = _sizeVolume = 0;
 	}
 	inline void set_trace(PhotonTrace* trace) {
-		auto it_bool = try_emplace(ClasterKey().make(*trace, _gridStep), Claster());
+		auto it_bool = try_emplace(ClasterKey().make(*trace, gridStep), Claster());
 		it_bool.first->second.add_trace(trace);
 		counter(trace->type);
 	}
-	inline void get_sortedTraces(const Vec3f& point, const ClasterKey& key, int sceneryId, traces_t& rayTraces) const {
+	inline void get_traces(const ClasterKey& key, traces_t& rayTraces) const {
 		auto search = find(key);
 		if (search != end()) {
-			for (auto trace = search->second.traces.begin(), END = search->second.traces.end(); trace != END; ++trace) {
-				if ((*trace)->sceneryId == sceneryId) {
-					float sqr = (point - (*trace)->pos.p).sqnorm();
-					auto rayTrace = rayTraces.before_begin(), rayTraceNext = rayTraces.begin();
-					while (rayTraceNext != rayTraces.end() && sqr > (point - (*rayTraceNext)->pos.p).sqnorm()) {
-						++rayTrace;
-						++rayTraceNext;
-					}
-					rayTraces.insert_after(rayTrace, *trace);
-				}
-			}
+			rayTraces.insert_after(rayTraces.before_begin(), search->second.traces.begin(), search->second.traces.end());
 		}
 	}
 public:
-	inline void get_traces(const Vec3f& point, int sceneryId, traces_t& rayTraces, MapType type) const {
+	inline float get_sqr(void) const { return gridStep * gridStep; }
+	inline void get_traces(const Vec3f& point, traces_t& rayTraces, MapType type) const {
 		rayTraces.clear();
-		ClasterKey	key(type, point, _gridStep);
-		get_sortedTraces(point, key, sceneryId, rayTraces);
+		ClasterKey	key(type, point, gridStep);
+		get_traces(key, rayTraces);
 	}
-	inline void get_traces27(const Vec3f& point, int sceneryId, traces_t& rayTraces, MapType type) const {
+	inline void get_traces27(const Vec3f& point, traces_t& rayTraces, MapType type) const {
 		rayTraces.clear();
-		ClasterKey	key(type, point, _gridStep);
+		ClasterKey	key(type, point, gridStep);
 		int x_begin = key.x - 1, x_end = key.x + 2;
 		int y_begin = key.y - 1, y_end = key.y + 2;
 		int z_begin = key.z - 1, z_end = key.z + 2;
 		for (key.x = x_begin; key.x < x_end; key.x++)
 			for (key.y = y_begin; key.y < y_end; key.y++)
-				for (key.z = z_begin; key.z < z_end; key.z++)
-					get_sortedTraces(point, key, sceneryId, rayTraces);
+				for (key.z = z_begin; key.z < z_end; key.z++) {
+					get_traces(key, rayTraces);
+				}
 	}
 	void make(a_scenerys_t& scenerys, a_scenerys_t& lightsIdx);
 	void lookat(const Position& eye, const LookatAux& aux, float roll);

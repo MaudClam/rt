@@ -3,15 +3,15 @@
 
 // Struct Claster
 
-ClasterKey::ClasterKey(void) : type(ALL), x(0), y(0), z(0) {}
+ClasterKey::ClasterKey(void) : type(NO), x(0), y(0), z(0) {}
 
 ClasterKey::ClasterKey(MapType _type, int _x, int _y, int _z) : type(_type), x(_x), y(_y), z(_z) {}
 
-ClasterKey::ClasterKey(MapType type, const Vec3f point, float gridStep) : type(ALL), x(0), y(0), z(0) {
+ClasterKey::ClasterKey(MapType type, const Vec3f point, float gridStep) : type(NO), x(0), y(0), z(0) {
 	make(type, point, gridStep);
 }
 
-ClasterKey::ClasterKey(const PhotonTrace& trace, float gridStep) : type(ALL), x(0), y(0), z(0) {
+ClasterKey::ClasterKey(const PhotonTrace& trace, float gridStep) : type(NO), x(0), y(0), z(0) {
 	make(trace, gridStep);
 }
 
@@ -31,9 +31,9 @@ ClasterKey& ClasterKey::operator=(const ClasterKey& other) {
 
 ClasterKey&	ClasterKey::make(MapType _type, const Vec3f& point, float gridStep) {
 	type = _type;
-	x = point.x / gridStep;
-	y = point.y / gridStep;
-	z = point.z / gridStep;
+	x = std::floor(point.x / gridStep);
+	y = std::floor(point.y / gridStep);
+	z = std::floor(point.z / gridStep);
 	return *this;
 }
 
@@ -93,10 +93,11 @@ _gen(gen),
 _sizeGlobal(0),
 _sizeCaustic(0),
 _sizeVolume(0),
-_totalPhotons(TOTAL_PHOTONS_NUMBER),
-_assessmentNumber(ASSESSMENT_PHOTONS_NUMBER),
-_gridStep(PHOTON_MAP_GRID_STEP),
-_totalPow()
+totalPhotons(0),
+estimate(0),
+gridStep(0),
+totalPow(),
+type(NO)
 {}
 
 PhotonMap::PhotonMap(const PhotonMap& other) :
@@ -104,11 +105,12 @@ _gen(other._gen),
 _sizeGlobal(0),
 _sizeCaustic(0),
 _sizeVolume(0),
-_totalPhotons(0),
-_assessmentNumber(ASSESSMENT_PHOTONS_NUMBER),
-_gridStep(0),
-_totalPow()
-{ *this = other; }
+totalPhotons(other.totalPhotons),
+estimate(other.estimate),
+gridStep(other.gridStep),
+totalPow(other.totalPow),
+type(other.type)
+{}
 
 PhotonMap::~PhotonMap(void) {
 	deleteTraces();
@@ -116,11 +118,12 @@ PhotonMap::~PhotonMap(void) {
 
 PhotonMap& PhotonMap::operator=(const PhotonMap& other) {
 	if (this != &other) {
-		_totalPhotons = other._totalPhotons;
-		_assessmentNumber = other._assessmentNumber;
-		_gridStep = other._gridStep;
-		_totalPow = other._totalPow;
 		deleteTraces();
+		totalPhotons = other.totalPhotons;
+		estimate = other.estimate;
+		gridStep = other.gridStep;
+		totalPow = other.totalPow;
+		type = other.type;
 		for (auto claster = other.begin(), End = other.end(); claster != End; ++claster)
 			for (auto trace = claster->second.traces.begin(), End = claster->second.traces.end(); trace != End;  ++trace)
 				set_trace((*trace)->clone());
@@ -144,10 +147,16 @@ void PhotonMap::swap_(PhotonMap& other) {
 	std::swap(_sizeGlobal, other._sizeGlobal);
 	std::swap(_sizeCaustic, other._sizeCaustic);
 	std::swap(_sizeVolume, other._sizeVolume);
-	std::swap(_totalPhotons, other._totalPhotons);
-	std::swap(_assessmentNumber, other._assessmentNumber);
-	std::swap(_gridStep, other._gridStep);
-	std::swap(_totalPow, other._totalPow);
+	std::swap(totalPhotons, other.totalPhotons);
+	std::swap(estimate, other.estimate);
+	std::swap(gridStep, other.gridStep);
+	std::swap(totalPow, other.totalPow);
+	std::swap(type, other.type);
+}
+
+void PhotonMap::clear_(void) {
+	clear();
+	counter(RESET);
 }
 
 void PhotonMap::deleteTraces(void) {
@@ -157,15 +166,14 @@ void PhotonMap::deleteTraces(void) {
 			*trace = NULL;
 		}
 	}
-	clear();
-	counter(RESET);
+	clear_();
 }
 
-void PhotonMap::set_totalPow(a_scenerys_t& lightsIdx) {
+void PhotonMap::settotalPow(a_scenerys_t& lightsIdx) {
 	for (auto light = lightsIdx.begin(), End = lightsIdx.end(); light != End; ++light) {
-		_totalPow.addition(_totalPow, Power((*light)->light.light));
+		totalPow.addition(totalPow, Power((*light)->light.light));
 	}
-	_totalPow.product(TOTAL_PHOTONS_POWER);
+	totalPow.product(TOTAL_PHOTONS_POWER);
 }
 
 void PhotonMap::photonRayTracing_lll(a_scenerys_t& scenerys, photonRays_t& rays) {
@@ -196,7 +204,7 @@ void PhotonMap::tracePhotonRay(rand_distr_t& distr, a_scenerys_t& scenerys, Ray&
 				}
 			} else if (rand_ <= chance.refl + chance.refr + chance.diff) {
 				scenery->giveNormal(ray);
-				ray.newPhotonTrace(chance, color, diffusion, scenery->get_id());
+				ray.newPhotonTrace(type, chance, color, diffusion, scenery->get_id());
 				ray.randomCosineWeightedDirectionInHemisphere(_gen);
 				tracePhotonRay(distr, scenerys, ray);
 			}
@@ -205,11 +213,12 @@ void PhotonMap::tracePhotonRay(rand_distr_t& distr, a_scenerys_t& scenerys, Ray&
 }
 
 void PhotonMap::make(a_scenerys_t& scenerys, a_scenerys_t& lightsIdx) {
+	if (type == NO) return;
 	photonRays_t rays;
-	set_totalPow(lightsIdx);
+	settotalPow(lightsIdx);
 	for (auto it = lightsIdx.begin(), End = lightsIdx.end(); it != End; ++it) {
 		Power pow((*it)->light.light);
-		int n = pow.maxBand() / _totalPow.maxBand() * _totalPhotons;
+		int n = pow.maxBand() / totalPow.maxBand() * totalPhotons;
 		(*it)->photonEmissions(n, *this, rays);
 	}
 	photonRayTracing_lll(scenerys, rays);
@@ -223,7 +232,8 @@ void PhotonMap::make(a_scenerys_t& scenerys, a_scenerys_t& lightsIdx) {
 }
 
 void PhotonMap::lookat(const Position& eye, const LookatAux& aux, float roll) {
-	PhotonMap tmp(_gen);
+	if (type == NO) return;
+	PhotonMap tmp(*this);
 	for (auto claster = begin(), End = end(); claster != End; ++claster) {
 		for (auto trace = claster->second.traces.begin(), End = claster->second.traces.end(); trace != End;  ++trace) {
 			(*trace)->pos.lookat(eye, aux, roll);
@@ -231,8 +241,7 @@ void PhotonMap::lookat(const Position& eye, const LookatAux& aux, float roll) {
 		}
 	}
 	swap_(tmp);
-	tmp.clear();
-	tmp.counter(RESET);
+	tmp.clear_();
 }
 
 void PhotonMap::randomDirectionsSampling(int n, const Position& pos, const Power& pow, photonRays_t& rays, bool cosineWeighted) const {
@@ -247,14 +256,16 @@ void PhotonMap::randomDirectionsSampling(int n, const Position& pos, const Power
 }
 
 void PhotonMap::outputPhotonMapParametrs(void) {
+	if (type == NO) return;
 	std::cout << "\nPHOTON MAP" << std::endl;
-	std::cout << "Emitted photons......" << _totalPhotons << std::endl;
-	std::cout << "Grid step............" << _gridStep << std::endl;
-	std::cout << "Total photon power..." << _totalPow << std::endl;
-	std::cout << "Assessment number...." << _assessmentNumber << std::endl;
+	std::cout << "Emitted photons......" << totalPhotons << std::endl;
+	std::cout << "Grid step............" << gridStep << std::endl;
+	std::cout << "Total photon power..." << totalPow << std::endl;
+	std::cout << "Assessment number...." << estimate << std::endl;
 	std::cout << "Photon trasces maps:"  << std::endl;
-	std::cout << "  global............." << _sizeGlobal << std::endl;
-	std::cout << "  caustic............" << _sizeCaustic << std::endl;
-	std::cout << "  volume............." << _sizeVolume << std::endl;
+	std::cout << "  clasters..........." << size() << std::endl;
+	std::cout << "  caustic traces....." << _sizeCaustic << std::endl;
+	std::cout << "  global traces......" << _sizeGlobal << std::endl;
+	std::cout << "  volume traces......" << _sizeVolume << std::endl;
 }
 

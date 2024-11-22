@@ -21,6 +21,9 @@
 | Flyby around the scene:                                     |
 | 'space'                    - on/reverse/off                 |
 |                                                             |
+| Dual processing of reflection/refraction:                   |
+| 'd'                        - on/off(default)                         |
+|                                                             |
 | Change Smoothing (antialiasing) factor:                     |
 | num keys '1','2','3','4'   - 1, 4, 9, 16 rays per pixel     |
 | '1' - default                                               |
@@ -29,7 +32,10 @@
 | 'Shift' + num keys '0','1', ...,'9'                         |
 | '5' - default                                               |
 |                                                             |
-| FALSE SOFT SHADOW OPTIONS                                   |
+| Lighting by photon mapg:                                    |
+| 'Ctrl' n/c/g/v             - no/caustic/global/volume       |
+|                                                             |
+| False soft shadow:                                          |
 | 'Ctrl' +           '-'/'+' - length                         |
 | 'Ctrl' + 'Shift' + '-'/'+' - softness                       |
 |                                                             |

@@ -74,6 +74,8 @@ public:
 	int					recursionDepth;
 	float				softShadowLength;
 	float				softShadowSoftness;
+	MapType				displayedPhMap;
+	bool				dualReflRefr;
 	Camera(const MlxImage& img, rand_gen_t& gen);
 	~Camera(void);
 	Camera(const Camera& other);
@@ -95,6 +97,8 @@ public:
 	void	resetRecursionDepth(int recursionDepth);
 	void	resetSoftShadowLength(float softShadowLength);
 	void	resetSoftShadowSoftness(float softShadowSoftness);
+	void	changePhotonMap(MapType type);
+	void	changeOther(Controls key);
 	void	resetRoll(float roll);
 	void	lookatCamera(const Position& pos);
 	void	takePicture_lll(MlxImage& img, size_t begin, size_t end);
@@ -103,7 +107,7 @@ public:
 	static void	rayTracing(Camera* camera, size_t begin, size_t end);
 	void	traceRay(Ray& ray, int r = 0);
 	void	lightings(Ray& ray, const A_Scenery& scenery, int r);
-	void	caustics(Ray& ray, const A_Scenery& scenery);
+	void	photonMapLighting(Ray& ray, const A_Scenery& scenery);
 	void	reflections(Ray& ray, const A_Scenery& scenery, int r);
 	void	refractions(Ray& ray, const A_Scenery& scenery, int r);
 	void	shadow_if(Ray& ray, const A_Scenery& scenery, float k, int r);

@@ -5,14 +5,30 @@
 
 std::string combineType(CombineType type) {
 	switch (type) {
-		case 0:
+		case END:
 			return "END";
-		case 1:
+		case UNION:
 			return "UNION";
-		case 2:
+		case SUBTRACTION:
 			return "SUBTRACTION";
-		case 3:
+		case INTERSECTION:
 			return "INTERSECTION";
+	}
+	return "";
+}
+
+std::string mapType(MapType type) {
+	switch (type) {
+		case NO:
+			return "NO";
+		case CAUSTIC:
+			return "CAUSTIC";
+		case GLOBAL:
+			return "GLOBAL";
+		case VOLUME:
+			return "VOLUME";
+		case RESET:
+			return "RESET";
 	}
 	return "";
 }

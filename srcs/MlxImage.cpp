@@ -279,10 +279,12 @@ int		keyDown(int key, void* param) {
 	if ( currentCameraRotation(hold.SHIFT_(),  _ARROWS_AND_MINUS_PLUS(key)) ) { return SUCCESS; }
 	if ( flybyAroundTheScene(  hold.UNHOLD_(), _KEY(KEY_SPACE == key))      ) { return SUCCESS; }
 	
-	if ( camerasOptions(CHANGE_SMOOTHING_FACTOR,            hold.UNHOLD_(),     _NUMERIC(key))    ) { return SUCCESS; }
-	if ( camerasOptions(CHANGE_RECURSION_DEPTH,             hold.SHIFT_(),      _NUMERIC(key))    ) { return SUCCESS; }
-	if ( camerasOptions(CHANGE_SOFT_SHADOW_LENGTH,          hold.CTRL_(),       _MINUS_PLUS(key)) ) { return SUCCESS; }
-	if ( camerasOptions(CHANGE_SOFT_SHADOW_SOFTNESS,        hold.CTRL_SHIFT_(), _MINUS_PLUS(key)) ) { return SUCCESS; }
+	if ( camerasOptions(CHANGE_SMOOTHING_FACTOR,		hold.UNHOLD_(),     _NUMERIC(key))    ) { return SUCCESS; }
+	if ( camerasOptions(CHANGE_RECURSION_DEPTH,			hold.SHIFT_(),      _NUMERIC(key))    ) { return SUCCESS; }
+	if ( camerasOptions(CHANGE_SOFT_SHADOW_LENGTH,		hold.CTRL_(),       _MINUS_PLUS(key)) ) { return SUCCESS; }
+	if ( camerasOptions(CHANGE_SOFT_SHADOW_SOFTNESS,	hold.CTRL_SHIFT_(), _MINUS_PLUS(key)) ) { return SUCCESS; }
+	if ( camerasOptions(CHANGE_PHOTON_MAP,				hold.CTRL_(), 		key)              ) { return SUCCESS; }
+	if ( camerasOptions(CHANGE_OTHER,					hold.UNHOLD_(), 	key)              ) { return SUCCESS; }
 	return SUCCESS;
 }
 
@@ -489,7 +491,20 @@ bool	camerasOptions(int option, bool hold, int val) {
 			switch (val) {
 				case KEY_MINUS: val = PREVIOUS; break;
 				case KEY_PLUS:  val = NEXT; break;
-				default:        return false;
+				default:		return false;
+			}
+		} else if (option == CHANGE_PHOTON_MAP) {
+			switch (val) {
+				case KEY_N:	val = NO; break;
+				case KEY_C: val = CAUSTIC; break;
+				case KEY_G:	val = GLOBAL; break;
+				case KEY_V:	val = VOLUME; break;
+				default:	return false;
+			}
+		} else if (option == CHANGE_OTHER) {
+			switch (val) {
+				case KEY_D:	val = OTHER_DUAL; break;
+				default:	return false;
 			}
 		}
 		var.scene->changeCamerasOptions(val, option);

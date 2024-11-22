@@ -70,6 +70,7 @@
 		6679518F2C5293BB009C1DDD /* geometry.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = geometry.hpp; sourceTree = "<group>"; };
 		667951902C5293BB009C1DDD /* ARGBColor.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = ARGBColor.hpp; sourceTree = "<group>"; };
 		667951912C5293BB009C1DDD /* ARGBColor.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = ARGBColor.cpp; sourceTree = "<group>"; };
+		6696E8882CEF4E0200E3CFBB /* parsing.log */ = {isa = PBXFileReference; lastKnownFileType = text; path = parsing.log; sourceTree = SOURCE_ROOT; };
 		66B3B0A52C94B81E005085BC /* default.rt */ = {isa = PBXFileReference; lastKnownFileType = text; path = default.rt; sourceTree = "<group>"; };
 		66B3B0A62C950387005085BC /* balls.rt */ = {isa = PBXFileReference; lastKnownFileType = text; path = balls.rt; sourceTree = "<group>"; };
 		66B6D1C42C3AD3B9008FD6E6 /* Header.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = Header.h; sourceTree = "<group>"; };
@@ -97,6 +98,7 @@
 		6628EB0C2C93334900BC90BD /* scenes */ = {
 			isa = PBXGroup;
 			children = (
+				6696E8882CEF4E0200E3CFBB /* parsing.log */,
 				6628EB0E2C933BC900BC90BD /* arches.rt */,
 				66B3B0A62C950387005085BC /* balls.rt */,
 				6628EB0F2C936E3F00BC90BD /* balls1.rt */,

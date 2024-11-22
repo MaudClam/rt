@@ -45,11 +45,15 @@
 # (6)Refractive index is inactive if the refractive is '0'.
 #
 # (1) Resolution:
-# R  800  600  My_Scene
+# R  800  600  My_Scene  CAUSTIC  500000  60  0.1
 # Identifier:                                                      R
 # x render size:                                                   800
 # y render size:                                                   600
-# Scene name whithout spaces:                                      My_Scene
+# (5) Scene name whithout spaces:                                  My_Scene
+# (5)|Photon map type (GLOBAL, CAUSTIC or VOLUME):                 CAUSTIC
+#    |Number of photons that will be emitted for the photon map:   500000
+#    |Number of photon traces for illuminance estimation:          60
+#    |Photon map grid step (photon trace search radius):           0.1
 #
 # Camera:
 # c  -50.5,0,20  0,0,1  70
