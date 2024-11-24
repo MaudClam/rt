@@ -44,10 +44,17 @@ Power& Power::operator=(const ARGBColor& color) {
 	return *this;
 }
 
-Power& Power::get_ARGBColor(ARGBColor& c) {
+Power& Power::getARGBColor(ARGBColor& c) {
 	c.r = i2limits(std::round(r * 255.), 0, 255);
 	c.g = i2limits(std::round(g * 255.), 0, 255);
 	c.b = i2limits(std::round(b * 255.), 0, 255);
+	return *this;
+}
+
+Power& Power::collectRGB(ARGBColor& c) {
+	r += c.r;
+	g += c.g;
+	b += c.b;
 	return *this;
 }
 

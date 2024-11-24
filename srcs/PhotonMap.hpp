@@ -106,6 +106,7 @@ private:
 		}
 	}
 public:
+	inline rand_gen_t& get_gen(void) const { return _gen; }
 	inline float get_sqr(void) const { return gridStep * gridStep; }
 	inline void get_traces(const Vec3f& point, traces_t& rayTraces, MapType type) const {
 		rayTraces.clear();

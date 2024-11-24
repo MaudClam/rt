@@ -62,28 +62,6 @@ RayBasic& RayBasic::operator=(const RayBasic& other) {
 }
 
 
-// sruct ColorsSafe
-
-ColorsSafe::ColorsSafe(void) : light(0), shine(0), color(0){}
-
-ColorsSafe::~ColorsSafe(void) {}
-
-ColorsSafe::ColorsSafe(const ColorsSafe& other) :
-light(other.light),
-shine(other.shine),
-color(other.color)
-{}
-
-ColorsSafe& ColorsSafe::operator=(const ColorsSafe& other) {
-	if (this != &other) {
-		light = other.light;
-		shine = other.shine;
-		color = other.color;
-	}
-	return *this;
-}
-
-
 // struct Ray
 
 Ray::Ray(void) :
@@ -100,7 +78,7 @@ traces()
 {}
 
 Ray::Ray(rand_gen_t& gen, const Position pos, const Power& _pow) :
-recursion(0),
+recursion(1),
 pow(_pow),
 path(),
 intersections(),
@@ -112,12 +90,11 @@ segments(),
 traces()
 {
 	pov = pos.p;
-	recursion = 1;
 	randomUniformDirectionInHemisphere(gen, pos.n);
 }
 
 Ray::Ray(rand_gen_t& gen, const Position pos, const Power& _pow, const LookatAux& aux) :
-recursion(0),
+recursion(1),
 pow(_pow),
 path(),
 intersections(),
@@ -129,7 +106,6 @@ segments(),
 traces()
 {
 	pov = pos.p;
-	recursion = 1;
 	randomCosineWeightedDirectionInHemisphere(gen, aux);
 }
 
@@ -189,14 +165,6 @@ Ray& Ray::getRayBasic(RayBasic& rayBasic) {
 	return *this;
 }
 
-Ray& Ray::getColorsSafe(ColorsSafe& colorsSafe) {
-	colorsSafe.light = light.val;
-	colorsSafe.shine = shine.val;
-	colorsSafe.color = color.val;
-	light = shine = color = 0;
-	return *this;
-}
-
 Ray& Ray::restore(const RayBasic& raySafe) {
 	*this = raySafe;
 	return *this;
@@ -204,6 +172,12 @@ Ray& Ray::restore(const RayBasic& raySafe) {
 
 Ray& Ray::restore(const ColorsSafe& colorsSafe) {
 	*this = colorsSafe;
+	return *this;
+}
+
+Ray& Ray::restore(const RayBasic& raySafe, const ColorsSafe& colorsSafe) {
+	restore(raySafe);
+	restore(colorsSafe);
 	return *this;
 }
 
@@ -382,5 +356,29 @@ void Ray::intersection(Segment& segment1, Segment& segment2) {
 
 bool operator<(const Ray::Segment& left, const Ray::Segment& right) {
 	return left.b.d < right.b.d;
+}
+
+
+// sruct ColorsSafe
+
+ColorsSafe::ColorsSafe(Ray& ray) : light(ray.light.val), shine(ray.shine.val), color(ray.color.val) {
+	ray.light.val = ray.shine.val = ray.color.val = 0;
+}
+
+ColorsSafe::~ColorsSafe(void) {}
+
+ColorsSafe::ColorsSafe(const ColorsSafe& other) :
+light(other.light),
+shine(other.shine),
+color(other.color)
+{}
+
+ColorsSafe& ColorsSafe::operator=(const ColorsSafe& other) {
+	if (this != &other) {
+		light = other.light;
+		shine = other.shine;
+		color = other.color;
+	}
+	return *this;
 }
 

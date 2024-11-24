@@ -11,8 +11,8 @@
 
 
 class	A_Scenery;
-typedef	std::vector<A_Scenery*>	a_scenerys_t;
-typedef	a_scenerys_t::iterator	a_scenerys_it;
+typedef	std::vector<A_Scenery*>					a_scenerys_t;
+typedef	a_scenerys_t::iterator					a_scenerys_it;
 typedef	std::random_device						rand_device_t;
 typedef	std::mt19937							rand_gen_t;
 typedef	std::uniform_real_distribution<float>	rand_distr_t;
@@ -51,12 +51,13 @@ struct RayBasic {
 	RayBasic& operator=(const RayBasic& other);
 };
 
+struct Ray;
 
 struct ColorsSafe {
 	float	light;
 	float	shine;
 	float	color;
-	ColorsSafe(void);
+	ColorsSafe(Ray& ray);
 	~ColorsSafe(void);
 	ColorsSafe(const ColorsSafe& other);
 	ColorsSafe& operator=(const ColorsSafe& other);
@@ -152,9 +153,9 @@ struct Ray : public RayBasic {
 	Ray& operator=(const RayBasic& raySafe);
 	Ray& operator=(const ColorsSafe& colorsSafe);
 	Ray& getRayBasic(RayBasic& rayBasic);
-	Ray& getColorsSafe(ColorsSafe& colorsSafe);
 	Ray& restore(const RayBasic& raySafe);
 	Ray& restore(const ColorsSafe& colorsSafe);
+	Ray& restore(const RayBasic& raySafe, const ColorsSafe& colorsSafe);
 	Ray& set_hit(Hit hit);
 	inline void emplace(const Segment& segment, bool _combine) {
 		emplace(segment.a, segment.b, _combine);
@@ -168,12 +169,16 @@ struct Ray : public RayBasic {
 	inline void movePovByNormal(float distance) {
 		pov.addition(pov, norm * distance);
 	}
-	inline void fixDirFromCam_if(void) {
+	inline void fixDirFromCam(void) {
 		if (!recursion)
 			dirС = dir;
 	}
 	inline void collectLight(const ARGBColor& sceneryColor, float k = 1) {
 		color.addition(color, light * sceneryColor * k);
+	}
+	inline void collectLight(const ARGBColor& sceneryColor, const ARGBColor& _light, float k = 1) {
+		light = _light;
+		collectLight(sceneryColor, k);
 	}
 	inline void collectShine(int specular, float d = 1.) {
 		if (specular != -1 && d > 0.) {
@@ -184,20 +189,22 @@ struct Ray : public RayBasic {
 			}
 		}
 	}
-	inline void collectReflectiveLight(int _color, int _shine, float reflective) {
+	inline void collectReflectiveLight(const ColorsSafe& colorsSafe, float reflective) {
 		float previous = 1. - reflective;
-		light.val = _color;
+		light.val = colorsSafe.color;
 		color.addition(color.product(reflective), light.product(previous));
-		light.val = _shine;
+		light.val = colorsSafe.shine;
 		shine.addition(shine.product(reflective), light.product(previous));
+		light.val = colorsSafe.light;
 	}
-	inline void collectRefractiveLight(const ARGBColor& sceneryColor, int _color, float refractive) {
+	inline void collectRefractiveLight(const ARGBColor& sceneryColor, const ColorsSafe& colorsSafe, float refractive) {
 		float previous = 1. - refractive;
-		light.val = _color;
+		light.val = colorsSafe.color;
 		color.addition(color.product(color,sceneryColor).product(refractive), light.product(previous));
+		shine.addition(shine.product(refractive), colorsSafe.shine);
+		light.val = colorsSafe.light;
 	}
-	inline void collectShadowLight( ColorsSafe& colorsSafe, float d) {
-		(void)d;
+	inline void collectShadowLight(const ColorsSafe& colorsSafe, float d) {
 		float l = 1. - d;
 		light.val = colorsSafe.light;
 		light.addition(light.product(d), color.product(l));
@@ -250,7 +257,7 @@ struct Ray : public RayBasic {
 		movePovByNormal(EPSILON);
 		recursion++;
 	}
-	inline void phMapLighting(float sqRadius, int estimate, int sceneryId, ARGBColor sceneryColor, float specular) {
+	inline void phMapLightings(float sqRadius, int estimate, int sceneryId, ARGBColor sceneryColor, float specular) {
 		(void)specular;//FIXME
 		struct Trace {
 			float k;
@@ -284,10 +291,10 @@ struct Ray : public RayBasic {
 //					}
 //				}
 			}
-			lighting.product((float)n / (M_PI * last->first)).get_ARGBColor(light);
+			lighting.product((float)n / (M_PI * last->first)).getARGBColor(light);
 			collectLight(sceneryColor);
 			if (ns > estimate * 0.1) {
-				shining.get_ARGBColor(light);
+				shining.getARGBColor(light);
 				shine.addition(shine, light);
 			}
 

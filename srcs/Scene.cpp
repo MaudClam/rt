@@ -71,28 +71,28 @@ std::string Scene::header(void) {
 }
 
 void Scene::systemDemo(void) {
-	cameras.push_back(Camera(img, rand_gen));
 	set_any("R	800 600  SystemDemo  VOLUME  500000  60  0.1");
 	img.init(header(), _resolution);
+	cameras.push_back(Camera(img, rand_gen));
 	set_any("A				0.2		0xFFFFFF");
-	set_any("l	2,1,0		0.6		0xFFFFFF");
-	set_any("l	1,4,4		0.4		0xFFFFFF");
-	set_any("c	0,0,-2		0,0,1		60");
-	set_any("c	0,0,8		0,0,-1		60");
-	set_any("c	-5,0,3		1,0,0		60");
-	set_any("c	5,0,3		-1,0,0		60");
-	set_any("c	0,5,3		0,-1,0		60");
-	set_any("sp	0,-1,3		2		0xFF0000	500		0.2");
-	set_any("sp	2,0,4		2		0xFFFFFF	500		0.0		1.0		1.5");
-	set_any("sp	-2,0,4		2		0x00FF00	10		0.4");
-	set_any("sp	0,-5001,0	10000	0xFFFF00	1000	0.5");
+//	set_any("l	2,2,0		0.4		0xFFFFFF");
+	set_any("ls	1,4,4		0.8		0xFFFFFF");
+	set_any("c	0,80,3		0,-1,0		90");
+//	set_any("c	0,0,-2		0,0,1		60");
+//	set_any("c	0,0,8		0,0,-1		60");
+//	set_any("c	-5,0,3		1,0,0		60");
+//	set_any("c	5,0,3		-1,0,0		60");
+//	set_any("sp	0,-1,3		2		0xFF0000	500		0.2");
+//	set_any("sp	2,0,4		2		0xFFFFFF	500		0.05	0.95	1.5");
+//	set_any("sp	-2,0,4		2		0x00FF00	10		0.4");
+	set_any("sp	0,-5001,0	10000	0xFFFFFF	1000	0");
 	if (cameras.size() > 1)
 		_currentCamera = 1;
 	saveParsingLog(PARSING_LOGFILE);
 	phMap.make(scenerys, lightsIdx);
 	makeLookatsForCameras();
-	cameras[_currentCamera].calculateFlybyRadius();
-	img.flyby = COUNTER_CLOCKWISE;
+//	cameras[_currentCamera].calculateFlybyRadius();
+//	img.flyby = COUNTER_CLOCKWISE;
 }
 
 void Scene::mesage(MsgType type, int line, const std::string& hint, int error) {

@@ -213,22 +213,23 @@ void PhotonMap::tracePhotonRay(rand_distr_t& distr, a_scenerys_t& scenerys, Ray&
 }
 
 void PhotonMap::make(a_scenerys_t& scenerys, a_scenerys_t& lightsIdx) {
-	if (type == NO) return;
-	photonRays_t rays;
-	settotalPow(lightsIdx);
-	for (auto it = lightsIdx.begin(), End = lightsIdx.end(); it != End; ++it) {
-		Power pow((*it)->light.light);
-		int n = pow.maxBand() / totalPow.maxBand() * totalPhotons;
-		(*it)->photonEmissions(n, *this, rays);
-	}
-	photonRayTracing_lll(scenerys, rays);
-	deleteTraces();
-	for (auto ray = rays.begin(), End = rays.end(); ray != End; ++ray) {
-		for (auto trace = ray->traces.begin(), end = ray->traces.end(); trace != end; ++trace) {
-			set_trace(*trace);
+	if (type != NO) {
+		photonRays_t rays;
+		settotalPow(lightsIdx);
+		for (auto it = lightsIdx.begin(), End = lightsIdx.end(); it != End; ++it) {
+			Power pow((*it)->light.light);
+			int n = pow.maxBand() / totalPow.maxBand() * totalPhotons;
+			(*it)->photonEmissions(n, *this, rays);
 		}
+		photonRayTracing_lll(scenerys, rays);
+		deleteTraces();
+		for (auto ray = rays.begin(), End = rays.end(); ray != End; ++ray) {
+			for (auto trace = ray->traces.begin(), end = ray->traces.end(); trace != end; ++trace) {
+				set_trace(*trace);
+			}
+		}
+		outputPhotonMapParametrs();
 	}
-	outputPhotonMapParametrs();
 }
 
 void PhotonMap::lookat(const Position& eye, const LookatAux& aux, float roll) {

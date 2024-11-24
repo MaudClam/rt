@@ -386,49 +386,52 @@ void Camera::rayTracing(Camera* camera, size_t begin, size_t end) {
 	camera->rayTracing_lll(begin, end);
 }
 
-void Camera::traceRay(Ray& ray, int r) {
+void Camera::traceRay(Ray& ray, int r, bool is_shader) {
 	if (r > recursionDepth) { return; }
 	ray.recursion = r;
 	A_Scenery* scenery = ray.closestScenery(scenerys, _INFINITY);
 	if (!scenery) { ray.color = space ; return; }
-	ray.fixDirFromCam_if();
+	phMapLightings(ray, *scenery);
+	ray.movePovByDirToDist();
 	scenery->giveNormal(ray);
 	ray.movePovByNormal(EPSILON);
-	photonMapLighting(ray, *scenery);
-	lightings(ray, *scenery, r);	// order matters
-	reflections(ray, *scenery, r);	// order matters
-	refractions(ray, *scenery, r);	// order matters
+	ray.fixDirFromCam();
+	directLightings(ray, *scenery, r, is_shader);	// order matters
+	reflections(ray, *scenery, r);					// order matters
+	refractions(ray, *scenery, r);					// order matters
+	phMapLightings(ray, *scenery);
 }
 
-void Camera::lightings(Ray& ray, const A_Scenery& scenery, int r) {
-	(void)r;//FIXME
-	if (phMap.type == NO || (displayedPhMap != GLOBAL)) {
-		ray.light = ambient;
-		ray.collectLight(scenery.color);
-		for (auto light = lightsIdx.begin(), end = lightsIdx.end(); light != end; ++light) {
-			float k = (*light)->lighting(ray);
-			if (k) {
-				shadow_if(ray, scenery, k, r);
+void Camera::directLightings(Ray& ray, const A_Scenery& scenery, int r, bool is_shader) {
+	if (!is_shader) {
+		if (phMap.type == NO || displayedPhMap != GLOBAL) {
+			ray.collectLight(scenery.color, ambient);
+			for (auto light = lightsIdx.begin(), end = lightsIdx.end(); light != end; ++light) {
+				float k = (*light)->lighting(ray);
+				if (k) {
+					//				shadow_if(ray, scenery, k, r);
+					shadow(ray, scenery, k, r);
+				}
 			}
 		}
 	}
 }
 
-void Camera::photonMapLighting(Ray& ray, const A_Scenery& scenery) {
-	if (displayedPhMap == NO) return;
-	phMap.get_traces27(ray.pov, ray.traces, displayedPhMap);
-	if (!ray.traces.empty()) {
-		ray.phMapLighting(phMap.get_sqr(), phMap.estimate, scenery.get_id(), scenery.color, scenery.specular);
+void Camera::phMapLightings(Ray& ray, const A_Scenery& scenery) {
+	if (displayedPhMap != NO) {
+		phMap.get_traces27(ray.pov, ray.traces, displayedPhMap);
+		if (!ray.traces.empty()) {
+			ray.phMapLightings(phMap.get_sqr(), phMap.estimate, scenery.get_id(), scenery.color, scenery.specular);
+		}
 	}
 }
 
 void Camera::reflections(Ray& ray, const A_Scenery& scenery, int r) {
 	if (scenery.reflective) {
 		if (!dualReflRefr && scenery.refractive) {	// Speeds up calculations.
-			return;									// Disable if the position of reflections
-		}											// after processing refractions.
-		int _color = ray.color.val, _shine = ray.shine.val;
-		ray.color = ray.shine = 0;
+			return;
+		}
+		ColorsSafe	colorsSafe(ray);
 		if (scenery.refractive) {
 			RayBasic raySafe(ray);
 			ray.dir.reflect(ray.norm);
@@ -438,26 +441,26 @@ void Camera::reflections(Ray& ray, const A_Scenery& scenery, int r) {
 			ray.dir.reflect(ray.norm);
 			traceRay(ray, ++r);
 		}
-		ray.collectReflectiveLight(_color, _shine, scenery.reflective);
+		ray.collectReflectiveLight(colorsSafe, scenery.reflective);
 	}
 }
 
 void Camera::refractions(Ray& ray, const A_Scenery& scenery, int r) {
 	if (scenery.refractive) {
-		int _color = ray.color.val;
+		ColorsSafe colorsSafe(ray);
 		if (ray.dir.refract(ray.norm, ray.hit == INSIDE ? scenery.matIOR : scenery.matOIR)) {
-			ray.color = 0;
 			ray.movePovByNormal(-2 * EPSILON);
 			traceRay(ray, ++r);
-			ray.collectRefractiveLight(scenery.color, _color, scenery.refractive);
+			ray.collectRefractiveLight(scenery.color, colorsSafe, scenery.refractive);
 		} else {	// Total internal reflection.
 			ray.color = space;
+			ray.collectRefractiveLight(scenery.color, colorsSafe, scenery.refractive);
 		}
 	}
 }
 
 void Camera::shadow_if(Ray& ray, const A_Scenery& scenery, float k, int r) {
-	Hit		hit = ray.hit;
+	(void)r;//FIXME
 	float	distToLight = ray.dist, d = 1.;
 	A_Scenery* shader = ray.closestScenery(scenerys, distToLight, FIRST_SHADOW);
 	if (softShadowLength < SOFT_SHADOW_LENGTH_LIMIT) {
@@ -466,15 +469,14 @@ void Camera::shadow_if(Ray& ray, const A_Scenery& scenery, float k, int r) {
 		d = 0.;
 	}
 	if (shader && shader->refractive) {
-		transparentShadow(ray, *shader, d, r);
+		transparentShadow(ray, *shader, (shader ? 0 : 1), r);
 	} else {
 		ray.light.product(d);
 	}
-	ray.light.product(d);
+//	ray.light.product(d);
 
 	ray.collectLight(scenery.color, k);
 	ray.collectShine(scenery.specular, d);
-	ray.hit = hit;
 }
 
 float Camera::softShadowMultiplier(Ray& ray, float distToLight) {
@@ -496,16 +498,50 @@ float Camera::softShadowMultiplier(Ray& ray, float distToLight) {
 	return d;
 }
 
+void Camera::shadow(Ray& ray, const A_Scenery& scenery, float k, int r) {
+	A_Scenery* shader = ray.closestScenery(scenerys, ray.dist, FIRST_SHADOW);
+	if (shader) {
+		if (shader->reflective || shader->refractive) {
+			LookatAux	aux(ray.dirL);
+			RayBasic	raySafe(ray);
+			ColorsSafe	colorsSafe(ray);
+			Power		light;
+			int n = SHADOW_RAYS;
+			float _1_sqr = f2limits(0.3 / (raySafe.dist * raySafe.dist), 0, 0.3);
+			for (int i = 0; i < SHADOW_RAYS; i++) {
+				ray.dir = ray.dirL;
+//				ray.randomCosineWeightedDirectionInHemisphere(phMap.get_gen(), aux);
+				float k1 = raySafe.norm * ray.dir;
+				ray.pov = raySafe.pov;
+				ray.color = 0;
+				traceRay(ray, ++r, false);
+				if (ray.color.val != space.val) {
+					if (k > 0)
+						light.collectRGB(ray.color.product(k1));
+				} else {
+					n--;
+				}
+			}
+			ray.restore(raySafe, colorsSafe);
+			light.product(_1_255 * _1_sqr / n);
+			light.getARGBColor(ray.light);
+			ray.collectLight(scenery.color);
+		}
+	} else {
+		ray.collectLight(scenery.color, k);
+		ray.collectShine(scenery.specular);
+	}
+}
+
 bool Camera::transparentShadow(Ray& ray, const A_Scenery& shader, float d, int r) {
 	RayBasic	raySafe(ray);
 	ray.dir = ray.dirL;
 	shader.giveNormal(ray);
 	if (ray.dir.refract(ray.norm, ray.hit == INSIDE ? shader.matIOR : shader.matOIR)) {
-		ColorsSafe	colorsSafe;
-		ray.getColorsSafe(colorsSafe);
+		ColorsSafe	colorsSafe(ray);
 		ray.movePovByNormal(EPSILON);
 		traceRay(ray, ++r);
-		ray.collectRefractiveLight(shader.color, colorsSafe.color, shader.refractive);
+//		ray.collectRefractiveLight(shader.color, colorsSafe.color, shader.refractive);
 		ray.collectShadowLight(colorsSafe, d);
 		ray.restore(raySafe);
 		return true;

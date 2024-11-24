@@ -77,7 +77,6 @@ bool Sphere::intersection(Ray& ray) const {
 }
 
 void Sphere::giveNormal(Ray& ray) const {
-	ray.movePovByDirToDist();
 	if (ray.hit == INSIDE) {
 		normalToRaySphereIntersect(_pos.p, ray.pov, ray.norm);
 	} else {

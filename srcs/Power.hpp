@@ -20,12 +20,13 @@ struct Power {
 	Power& operator=(const Power& other);
 	Power& operator=(const Vec3f& v);
 	Power& operator=(const ARGBColor& c);
-	Power& get_ARGBColor(ARGBColor& c);
-	inline ARGBColor get_ARGBColor(void) {
+	Power& getARGBColor(ARGBColor& c);
+	inline ARGBColor getARGBColor(void) {
 		ARGBColor c;
-		get_ARGBColor(c);
+		getARGBColor(c);
 		return c;
 	}
+	Power& collectRGB(ARGBColor& c);
 	Power& addition(const Power& p1, const Power& p2);
 	inline Power operator+(const Power& p) { return Power(*this).addition(*this, p); }
 	Power& substract(const Power& p1, const Power& p2);
