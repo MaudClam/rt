@@ -194,15 +194,18 @@ void PhotonMap::tracePhotonRay(rand_distr_t& distr, a_scenerys_t& scenerys, Ray&
 			Power	chance(ray.pow, color, reflective, refractive, diffusion);
 			float	rand_ = distr(_gen);
 			if (rand_ <= chance.refl) {
+				ray.movePovByDirToDist();
 				scenery->giveNormal(ray);
 				ray.photonReflection();
 				tracePhotonRay(distr, scenerys, ray);
 			} else if (rand_ <= chance.refl + chance.refr) {
+				ray.movePovByDirToDist();
 				scenery->giveNormal(ray);
 				if (ray.photonRefraction(chance, color, refractive, scenery->matIOR, scenery->matOIR)) {
 					tracePhotonRay(distr, scenerys, ray);
 				}
 			} else if (rand_ <= chance.refl + chance.refr + chance.diff) {
+				ray.movePovByDirToDist();
 				scenery->giveNormal(ray);
 				ray.newPhotonTrace(type, chance, color, diffusion, scenery->get_id());
 				ray.randomCosineWeightedDirectionInHemisphere(_gen);

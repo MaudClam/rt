@@ -309,14 +309,14 @@ struct Ray : public RayBasic {
 			dir.product(-1);
 		}
 	}
-	inline void randomCosineWeightedDirectionInHemisphere(rand_gen_t& gen, const LookatAux& aux) {
+	inline void randomCosineWeightedDirectionInHemisphere(rand_gen_t& gen, const LookatAux& aux, float width = 1.) {
 		rand_distr_t distr(0.0, 1.0);
 		float phi = distr(gen) * M_2PI;
-		float theta = std::acos(std::sqrt(distr(gen)));
+		float theta = std::acos(std::sqrt(distr(gen))) * width;
 		dir.sphericalDirection2cartesian(phi, theta).lookatDir(aux);
 	}
-	inline void randomCosineWeightedDirectionInHemisphere(rand_gen_t& gen) {
-		randomCosineWeightedDirectionInHemisphere(gen, LookatAux(norm));
+	inline void randomCosineWeightedDirectionInHemisphere(rand_gen_t& gen, float width = 1. ) {
+		randomCosineWeightedDirectionInHemisphere(gen, LookatAux(norm), width);
 	}
 	A_Scenery* closestScenery(a_scenerys_t& scenerys, float maxDistance, Hit target = FRONT);
 	A_Scenery* combine(a_scenerys_it& scenery, a_scenerys_it& end, float distance, Hit target);
