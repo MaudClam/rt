@@ -6,7 +6,6 @@
 # include "geometry.hpp"
 # include "ARGBColor.hpp"
 # include "A_Scenery.hpp"
-//# include "PhotonTrace.hpp"
 # include "PhotonMap.hpp"
 
 

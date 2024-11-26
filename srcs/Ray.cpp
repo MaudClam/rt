@@ -61,6 +61,29 @@ RayBasic& RayBasic::operator=(const RayBasic& other) {
 	return *this;
 }
 
+// sruct ColorsSafe
+
+ColorsSafe::ColorsSafe(Ray& ray) : light(ray.light.val), shine(ray.shine.val), color(ray.color.val) {
+	ray.light.val = ray.shine.val = ray.color.val = 0;
+}
+
+ColorsSafe::~ColorsSafe(void) {}
+
+ColorsSafe::ColorsSafe(const ColorsSafe& other) :
+light(other.light),
+shine(other.shine),
+color(other.color)
+{}
+
+ColorsSafe& ColorsSafe::operator=(const ColorsSafe& other) {
+	if (this != &other) {
+		light = other.light;
+		shine = other.shine;
+		color = other.color;
+	}
+	return *this;
+}
+
 
 // struct Ray
 
@@ -356,29 +379,5 @@ void Ray::intersection(Segment& segment1, Segment& segment2) {
 
 bool operator<(const Ray::Segment& left, const Ray::Segment& right) {
 	return left.b.d < right.b.d;
-}
-
-
-// sruct ColorsSafe
-
-ColorsSafe::ColorsSafe(Ray& ray) : light(ray.light.val), shine(ray.shine.val), color(ray.color.val) {
-	ray.light.val = ray.shine.val = ray.color.val = 0;
-}
-
-ColorsSafe::~ColorsSafe(void) {}
-
-ColorsSafe::ColorsSafe(const ColorsSafe& other) :
-light(other.light),
-shine(other.shine),
-color(other.color)
-{}
-
-ColorsSafe& ColorsSafe::operator=(const ColorsSafe& other) {
-	if (this != &other) {
-		light = other.light;
-		shine = other.shine;
-		color = other.color;
-	}
-	return *this;
 }
 
