@@ -38,9 +38,9 @@ Power& Power::operator=(const Vec3f& vec) {
 }
 
 Power& Power::operator=(const ARGBColor& color) {
-	r = _1_255 * color.r;
-	g = _1_255 * color.g;
-	b = _1_255 * color.b;
+	r = _1_256 * color.r;
+	g = _1_256 * color.g;
+	b = _1_256 * color.b;
 	return *this;
 }
 

@@ -5,6 +5,7 @@ Light::Light(void) {
 	_name = "light";
 	_nick = "l";
 	_isLight = true;
+	_type = SPOTLIGHT;
 }
 
 Light::~Light(void) {}
@@ -15,84 +16,21 @@ Light::Light(const Light& other) : _type(other._type) {
 	_nick = other._nick;
 	_isLight = other._isLight;
 	_pos = other._pos;
+	_color = other._color;
 	combineType = other.combineType;
-	color = other.color;
 	light = other.light;
 	specular = other.specular;
 	reflective = other.reflective;
+	refractive = other.refractive;
+	diffusion = other.diffusion;
 	matIOR = other.matIOR;
 	matOIR = other.matOIR;
+	_type = other._type;
 }
 
 Light* Light::clone(void) const {
 	Light* light = new Light(*this);
 	return light;
-}
-
-void Light::set_nick(const std::string& nick) { _nick = nick; }
-
-void Light::set_name(const std::string& name) { _name = name; }
-
-void Light::set_type(Type type) { _type = type; }
-
-void Light::lookat(const Position& eye, const LookatAux& aux, const Vec3f& pos, float roll) {
-	(void)pos;
-	_pos.lookat(eye, aux, roll);
-}
-
-void Light::roll(const Vec3f& pos, float roll) {
-	(void)pos;
-	_pos.roll(roll);
-}
-
-bool Light::intersection(Ray& ray) const {
-	(void)ray;
-	return false;
-}
-
-void Light::giveNormal(Ray& ray) const {
-	(void)ray;
-}
-
-float Light::getDistanceToShaderEdge(Ray& ray, float distance, bool inside) const {
-	(void)ray;
-	(void)distance;
-	(void)inside;
-	return 1.;
-}
-
-float Light::lighting(Ray& ray) const {
-	float k = 0;
-	switch (_type) {
-		case SPOTLIGHT: {
-			ray.dist = ray.dirL.substract(_pos.p, ray.pov).norm();
-			if (ray.dist != 0) (ray.dirL.product(1 / ray.dist));// optimal normalization
-			if ( (k = ray.dirL * ray.norm) <= 0) {
-				return 0;
-			}
-			break;
-		}
-		case SUNLIGHT: {
-			if ( (k = _pos.n * ray.norm) <= 0) {
-				return 0;
-			}
-			ray.dist = _INFINITY;
-			ray.dirL = _pos.n;
-			break;
-		}
-		case SUNLIGHT_LIMITED: {
-			if ( (k = _pos.n * ray.norm) <= 0) {
-				return 0;
-			}
-			rayPlaneIntersection(ray.pov, _pos.n, _pos.p, ray.norm, ray.dist);
-			ray.dirL = _pos.n;
-			break;
-		}
-		default:
-			return 0;
-	}
-	ray.light = light.light;
-	return k;
 }
 
 void Light::photonEmissions(int num, const PhotonMap& phMap, photonRays_t& rays) const {

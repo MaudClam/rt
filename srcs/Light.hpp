@@ -14,15 +14,64 @@ public:
 	~Light(void);
 	Light(const Light& other);
 	Light* clone(void) const;
-	void set_nick(const std::string& nick);
-	void set_name(const std::string& name);
-	void set_type(Type type);
-	void lookat(const Position& eye, const LookatAux& aux, const Vec3f& pos, float roll);
-	void roll(const Vec3f& pos, float shiftRoll);
-	bool intersection(Ray& ray) const;
-	void giveNormal(Ray& ray) const;
-	float getDistanceToShaderEdge(Ray& ray, float distance, bool inside) const;
-	float lighting(Ray& ray) const;
+	inline int	get_iColor(Ray& ray) const {
+		(void)ray;
+		return _color.val; }
+	inline void set_nick(const std::string& nick) { _nick = nick; }
+	inline void set_name(const std::string& name) { _name = name; }
+	inline void set_type(Type type) { _type = type; }
+	inline void lookat(const Position& eye, const LookatAux& aux, const Vec3f& pos, float roll) {
+		(void)pos;
+		_pos.lookat(eye, aux, roll);
+	}
+	inline void roll(const Vec3f& pos, float roll) {
+		(void)pos;
+		_pos.roll(roll);
+	}
+	inline bool intersection(Ray& ray) const {
+		(void)ray;
+		return false;
+	}
+	inline void giveNormal(Ray& ray) const {
+		(void)ray;
+	}
+	inline float getDistanceToShaderEdge(Ray& ray, float distance, bool inside) const {
+		(void)ray; (void)distance; (void)inside;
+		return 1.;
+	}
+	inline float lighting(Ray& ray) const {
+		float k = 0;
+		switch (_type) {
+			case SPOTLIGHT: {
+				ray.dist = ray.dirL.substract(_pos.p, ray.pov).norm();
+				if (ray.dist != 0) (ray.dirL.product(1 / ray.dist));// optimal normalization
+				if ( (k = ray.dirL * ray.norm) <= 0) {
+					return 0;
+				}
+				break;
+			}
+			case SUNLIGHT: {
+				if ( (k = _pos.n * ray.norm) <= 0) {
+					return 0;
+				}
+				ray.dist = _INFINITY;
+				ray.dirL = _pos.n;
+				break;
+			}
+			case SUNLIGHT_LIMITED: {
+				if ( (k = _pos.n * ray.norm) <= 0) {
+					return 0;
+				}
+				rayPlaneIntersection(ray.pov, _pos.n, _pos.p, ray.norm, ray.dist);
+				ray.dirL = _pos.n;
+				break;
+			}
+			default:
+				return 0;
+		}
+		ray.light = light.light;
+		return k;
+	}
 	void photonEmissions(int num, const PhotonMap& phMap, photonRays_t& rays) const;
 	virtual void output(std::ostringstream& os) const;
 	friend std::ostream& operator<<(std::ostream& o, const Light& sp);

@@ -187,7 +187,7 @@ void PhotonMap::tracePhotonRay(rand_distr_t& distr, a_scenerys_t& scenerys, Ray&
 	if (ray.recursion <= RECURSION_DEPTH) {
 		A_Scenery* scenery = ray.closestScenery(scenerys, _INFINITY);
 		if (scenery) {
-			Power	color(scenery->color);
+			Power	color(scenery->get_iColor(ray));
 			float	reflective = scenery->reflective;
 			float	refractive = scenery->refractive;
 			float	diffusion = f2limits(1. -  reflective - refractive, 0., 1.);

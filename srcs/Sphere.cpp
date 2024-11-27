@@ -15,7 +15,7 @@ _radius(radius), _sqrRadius(radius * radius) {
 	_nick = "sp";
 	_isLight = false;
 	_pos.p = center;
-	this->color = color;
+	_color = color;
 }
 
 Sphere::Sphere(const Sphere& other) :
@@ -29,11 +29,13 @@ _c(other._c)
 	_nick = other._nick;
 	_isLight = other._isLight;
 	_pos = other._pos;
-	color = other.color;
+	_color = other._color;
 	combineType = other.combineType;
+	light = other.light;
 	specular = other.specular;
 	reflective = other.reflective;
 	refractive = other.refractive;
+	diffusion = other.diffusion;
 	matIOR = other.matIOR;
 	matOIR = other.matOIR;
 }
@@ -41,69 +43,6 @@ _c(other._c)
 Sphere* Sphere::clone(void) const {
 	Sphere* sphere = new Sphere(*this);
 	return sphere;
-}
-
-void Sphere::lookat(const Position& eye, const LookatAux& aux, const Vec3f& pos, float roll) {
-	_pos.lookat(eye, aux, roll);
-	_k.substract(pos,_pos.p);
-	_c = _k * _k - _sqrRadius;
-}
-
-void Sphere::roll(const Vec3f& pos, float shiftRoll) {
-	if (shiftRoll != 0) {
-		_pos.roll(shiftRoll);
-		_k.substract(pos,_pos.p);
-		_c = _k * _k - _sqrRadius;
-	}
-}
-
-bool Sphere::intersection(Ray& ray) const {
-	bool result = false;
-	if (ray.hit == ANY_SHADOW || ray.hit == FIRST_SHADOW) {
-		ray.hit = FRONT;
-		result = raySphereIntersection(ray.dirL, ray.pov, _pos.p, _sqrRadius,
-									   ray.dist, ray.intersections.a.d, ray.intersections.b.d,
-									   ray.hit);
-	} else if (!ray.recursion) {
-		result = raySphereIntersection(ray.dir, _k, _c, ray.dist,
-									   ray.intersections.a.d, ray.intersections.b.d,
-									   ray.hit);
-	} else {
-		result = raySphereIntersection(ray.dir, ray.pov, _pos.p, _sqrRadius,
-									   ray.dist, ray.intersections.a.d, ray.intersections.b.d,
-									   ray.hit);
-	}
-	return result;
-}
-
-void Sphere::giveNormal(Ray& ray) const {
-	if (ray.hit == INSIDE) {
-		normalToRaySphereIntersect(_pos.p, ray.pov, ray.norm);
-	} else {
-		normalToRaySphereIntersect(ray.pov, _pos.p, ray.norm);
-	}
-}
-
-float Sphere::getDistanceToShaderEdge(Ray& ray, float distance, bool inside) const {
-	if (inside) {
-		return distanceToSphericalShaderEdge(_pos.p,
-											 ray.pov + (ray.dirL * distance),
-											 ray.dirL,
-											 _radius);
-	}
-	return distanceToSphericalShaderEdge(ray.pov + (ray.dirL * distance),
-										 _pos.p,
-										 ray.dirL,
-										 _radius);
-}
-
-float Sphere::lighting(Ray& ray) const {
-	(void)ray;
-	return 0;
-}
-
-void Sphere::photonEmissions(int num, const PhotonMap& phMap, photonRays_t& rays) const {
-	(void)num; (void)rays; (void)phMap;
 }
 
 void Sphere::output(std::ostringstream& os) const {
@@ -117,7 +56,7 @@ std::ostream& operator<<(std::ostream& o, const Sphere& sp) {
 	os << std::setw(2) << std::left << sp._nick;
 	os << " " << sp._pos.p;
 	os << " " << std::setw(5) << std::right << sp._radius * 2;
-	os << "   " << sp.color.rrggbb();
+	os << "   " << sp.get_color().rrggbb();
 	os << " " << std::setw(4) << std::right << sp.specular;
 	os << " " << std::setw(4) << std::right << sp.reflective;
 	os << " " << std::setw(4) << std::right << sp.refractive;
@@ -129,7 +68,7 @@ std::ostream& operator<<(std::ostream& o, const Sphere& sp) {
 
 std::istringstream& operator>>(std::istringstream& is, Sphere& sp) {
 	is >> sp._pos.p >> sp._radius;
-	is >> sp.color >> sp.specular >> sp.reflective >> sp.refractive >> sp.matIOR;
+	is >> sp._color >> sp.specular >> sp.reflective >> sp.refractive >> sp.matIOR;
 	sp._radius /= 2;
 	sp._sqrRadius = sp._radius * sp._radius;
 	sp.specular = i2limits(sp.specular, -1, 1000);

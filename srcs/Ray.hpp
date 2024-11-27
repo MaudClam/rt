@@ -172,12 +172,12 @@ struct Ray : public RayBasic {
 		if (!recursion)
 			dirС = dir;
 	}
-	inline void collectLight(const ARGBColor& sceneryColor, float k = 1) {
-		color.addition(color, light * sceneryColor * k);
+	inline void collectLight(int scenery_iColor, float k = 1) {
+		color.addition(color, (light *= scenery_iColor) * k);
 	}
-	inline void collectLight(const ARGBColor& sceneryColor, const ARGBColor& _light, float k = 1) {
+	inline void collectLight(int scenery_iColor, const ARGBColor& _light, float k = 1) {
 		light = _light;
-		collectLight(sceneryColor, k);
+		collectLight(scenery_iColor, k);
 	}
 	inline void collectShine(int specular, float d = 1.) {
 		if (specular != -1 && d > 0.) {
@@ -196,10 +196,10 @@ struct Ray : public RayBasic {
 		shine.addition(shine.product(reflective), light.product(previous));
 		light.val = colorsSafe.light;
 	}
-	inline void collectRefractiveLight(const ARGBColor& sceneryColor, const ColorsSafe& colorsSafe, float refractive) {
+	inline void collectRefractiveLight(int scenery_iColor, const ColorsSafe& colorsSafe, float refractive) {
 		float previous = 1. - refractive;
 		light.val = colorsSafe.color;
-		color.addition(color.product(color,sceneryColor).product(refractive), light.product(previous));
+		color.addition((color *= scenery_iColor).product(refractive), light.product(previous));
 		shine.addition(shine.product(refractive), colorsSafe.shine);
 		light.val = colorsSafe.light;
 	}
@@ -256,7 +256,7 @@ struct Ray : public RayBasic {
 		movePovByNormal(EPSILON);
 		recursion++;
 	}
-	inline void phMapLightings(float sqRadius, int estimate, int sceneryId, ARGBColor sceneryColor, float specular) {
+	inline void phMapLightings(float sqRadius, int estimate, int sceneryId, int scenery_iColor, float specular) {
 		(void)specular;//FIXME
 		struct Trace {
 			float k;
@@ -291,7 +291,7 @@ struct Ray : public RayBasic {
 //				}
 			}
 			lighting.product((float)n / (M_PI * last->first)).getARGBColor(light);
-			collectLight(sceneryColor);
+			collectLight(scenery_iColor);
 			if (ns > estimate * 0.1) {
 				shining.getARGBColor(light);
 				shine.addition(shine, light);

@@ -9,12 +9,13 @@ _name(),
 _nick(),
 _isLight(false),
 _pos(),
+_color(),
 combineType(END),
-color(),
 light(),
 specular(-1),
 reflective(0),
 refractive(0),
+diffusion(0),
 matIOR(1),
 matOIR(1)
 {}
@@ -27,25 +28,18 @@ _name(other._name),
 _nick(other._nick),
 _isLight(other._isLight),
 _pos(other._pos),
+_color(other._color),
 combineType(other.combineType),
-color(other.color),
 light(other.light),
 specular(other.specular),
 reflective(other.reflective),
 refractive(other.refractive),
+diffusion(other.diffusion),
 matIOR(other.matIOR),
 matOIR(other.matOIR)
 {}
 
-std::string A_Scenery::get_nick(void) const { return _nick; }
-
-bool A_Scenery::get_isLight(void) const { return _isLight; }
-
-Position A_Scenery::get_pos(void) const { return _pos; }
-
-void A_Scenery::set_id(int id) { _id = id; }
-
-void A_Scenery::set_pos(const Position& pos) { _pos = pos; }
+ARGBColor A_Scenery::get_color(void) const { return ARGBColor(_color); }
 
 
 // Non member functions

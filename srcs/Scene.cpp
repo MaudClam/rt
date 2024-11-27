@@ -328,7 +328,7 @@ void Scene::set_scenery(A_Scenery* scenery) {
 	scenerys.back()->set_id((int)scenerys.size());
 	if ( scenerys.back()->get_isLight() ) {
 		lightsIdx.push_back(scenery);
-		scenery->color = scenery->light.light;
+		scenery->set_color(scenery->light.light);
 	} else {
 		objsIdx.push_back(scenery);
 	}
