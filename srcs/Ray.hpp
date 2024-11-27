@@ -36,18 +36,16 @@ public:
 };
 
 
-struct RayBasic {
+struct HitTrace {
 	Vec3f		pov;	// ray POV (point of view)		| photon position
 	Vec3f		dir;	// normalized: ray direction	| photon incident direction
-	Vec3f		dirС;	// normalized: dir from camera vector
-	Vec3f		dirL;	// normalized: dir vector to light source
 	Vec3f		norm;	// normalized: normal vector from the ray hit point
-	float		dist;	// distance from POV to object hit point
 	Hit			hit;	// type of contact with an object
-	RayBasic(void);
-	~RayBasic(void);
-	RayBasic(const RayBasic& other);
-	RayBasic& operator=(const RayBasic& other);
+	A_Scenery*	scenery;
+	HitTrace(void);
+	~HitTrace(void);
+	HitTrace(const HitTrace& other);
+	HitTrace& operator=(const HitTrace& other);
 };
 
 struct Ray;
@@ -63,7 +61,7 @@ struct ColorsSafe {
 };
 
 
-struct Ray : public RayBasic {
+struct Ray : public HitTrace {
 	struct	Point;
 	struct	Segment;
 	typedef	std::forward_list<Segment>	segments_t;
@@ -134,6 +132,9 @@ struct Ray : public RayBasic {
 		}
 	};
 	int			recursion;		// current recursion number
+	float		dist;			// distance from POV to object hit point
+	Vec3f		dirC;			// normalized: dir from camera vector
+	Vec3f		dirL;			// normalized: dir vector to light source
 	Power		pow;			//				| photon power
 	PhotonPath	path;			//				| photon path
 	Segment		intersections;	// segment on ray - object entry and exit points
@@ -149,12 +150,12 @@ struct Ray : public RayBasic {
 	~Ray(void);
 	Ray(const Ray& other);
 	Ray& operator=(const Ray& other);
-	Ray& operator=(const RayBasic& raySafe);
+	Ray& operator=(const HitTrace& hitTrace);
 	Ray& operator=(const ColorsSafe& colorsSafe);
-	Ray& getRayBasic(RayBasic& rayBasic);
-	Ray& restore(const RayBasic& raySafe);
+	Ray& getHitTrace(HitTrace& rayBasic);
+	Ray& restore(const HitTrace& hitTrace);
 	Ray& restore(const ColorsSafe& colorsSafe);
-	Ray& restore(const RayBasic& raySafe, const ColorsSafe& colorsSafe);
+	Ray& restore(const HitTrace& hitTrace, const ColorsSafe& colorsSafe);
 	Ray& set_hit(Hit hit);
 	inline void emplace(const Segment& segment, bool _combine) {
 		emplace(segment.a, segment.b, _combine);
@@ -170,7 +171,7 @@ struct Ray : public RayBasic {
 	}
 	inline void fixDirFromCam(void) {
 		if (!recursion)
-			dirС = dir;
+			dirC = dir;
 	}
 	inline void collectLight(int scenery_iColor, float k = 1) {
 		color.addition(color, (light *= scenery_iColor) * k);
@@ -181,7 +182,7 @@ struct Ray : public RayBasic {
 	}
 	inline void collectShine(int specular, float d = 1.) {
 		if (specular != -1 && d > 0.) {
-			float k = dirL.get_reflect(norm) * dirС;
+			float k = dirL.get_reflect(norm) * dirC;
 			if (k > 0.) {
 				k = std::pow(k, specular);
 				shine.addition(shine, light * (k * d));
@@ -282,7 +283,7 @@ struct Ray : public RayBasic {
 				last = it;
 				n++;
 //				if (specular != -1) {
-//					float s = ( it->second.trace->pos.n * -1 ).reflect(norm) * dirС;
+//					float s = ( it->second.trace->pos.n * -1 ).reflect(norm) * dirC;
 //					if (s > 0) {
 //						s = std::pow(s, specular);
 //						shining.addition( shining, it->second.trace->pow * (s / (M_PI * it->first)) );

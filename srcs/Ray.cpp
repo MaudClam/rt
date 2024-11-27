@@ -23,40 +23,34 @@ PhotonPath& PhotonPath::operator=(const PhotonPath& other){
 }
 
 
-// struct RayBasic
+// struct HitTrace
 
-RayBasic::RayBasic(void) :
+HitTrace::HitTrace(void) :
 pov(),
 dir(),
-dirС(),
-dirL(),
 norm(),
-dist(0),
-hit(FRONT)
+hit(FRONT),
+scenery(NULL)
 {}
 
 
-RayBasic::~RayBasic(void) {}
+HitTrace::~HitTrace(void) {}
 
-RayBasic::RayBasic(const RayBasic& other) :
+HitTrace::HitTrace(const HitTrace& other) :
 pov(other.pov),
 dir(other.dir),
-dirС(other.dirС),
-dirL(other.dirL),
 norm(other.norm),
-dist(other.dist),
-hit(other.hit)
+hit(other.hit),
+scenery(other.scenery)
 {}
 
-RayBasic& RayBasic::operator=(const RayBasic& other) {
+HitTrace& HitTrace::operator=(const HitTrace& other) {
 	if (this != &other) {
 		pov = other.pov;
 		dir = other.dir;
-		dirС = other.dirС;
-		dirL = other.dirL;
 		norm = other.norm;
-		dist = other.dist;
 		hit = other.hit;
+		scenery = other.scenery;
 	}
 	return *this;
 }
@@ -89,6 +83,9 @@ ColorsSafe& ColorsSafe::operator=(const ColorsSafe& other) {
 
 Ray::Ray(void) :
 recursion(0),
+dist(0),
+dirC(),
+dirL(),
 pow(),
 path(),
 intersections(),
@@ -102,6 +99,9 @@ traces()
 
 Ray::Ray(rand_gen_t& gen, const Position pos, const Power& _pow) :
 recursion(1),
+dist(0),
+dirC(),
+dirL(),
 pow(_pow),
 path(),
 intersections(),
@@ -118,6 +118,9 @@ traces()
 
 Ray::Ray(rand_gen_t& gen, const Position pos, const Power& _pow, const LookatAux& aux) :
 recursion(1),
+dist(0),
+dirC(),
+dirL(),
 pow(_pow),
 path(),
 intersections(),
@@ -140,12 +143,12 @@ Ray& Ray::operator=(const Ray& other) {
 	if (this != & other) {
 		pov = other.pov;
 		dir = other.dir;
-		dirС = other.dirС;
-		dirL = other.dirL;
 		norm = other.norm;
-		dist = other.dist;
 		hit = other.hit;
 		recursion = other.recursion;
+		dist = other.dist;
+		dirC = other.dirC;
+		dirL = other.dirL;
 		pow = other.pow;
 		path = other.path;
 		intersections = other.intersections;
@@ -159,14 +162,11 @@ Ray& Ray::operator=(const Ray& other) {
 	return *this;
 }
 
-Ray& Ray::operator=(const RayBasic& raySafe) {
-	pov = raySafe.pov;
-	dir = raySafe.dir;
-	dirС = raySafe.dirС;
-	dirL = raySafe.dirL;
-	norm = raySafe.norm;
-	dist = raySafe.dist;
-	hit = raySafe.hit;
+Ray& Ray::operator=(const HitTrace& hitTrace) {
+	pov = hitTrace.pov;
+	dir = hitTrace.dir;
+	norm = hitTrace.norm;
+	hit = hitTrace.hit;
 	return *this;
 }
 
@@ -177,19 +177,16 @@ Ray& Ray::operator=(const ColorsSafe& colorsSafe) {
 	return *this;
 }
 
-Ray& Ray::getRayBasic(RayBasic& rayBasic) {
+Ray& Ray::getHitTrace(HitTrace& rayBasic) {
 	rayBasic.pov = pov;
 	rayBasic.dir = dir;
-	rayBasic.dirС = dirС;
-	rayBasic.dirL = dirL;
 	rayBasic.norm = norm;
-	rayBasic.dist = dist;
 	rayBasic.hit = hit;
 	return *this;
 }
 
-Ray& Ray::restore(const RayBasic& raySafe) {
-	*this = raySafe;
+Ray& Ray::restore(const HitTrace& hitTrace) {
+	*this = hitTrace;
 	return *this;
 }
 
@@ -198,8 +195,8 @@ Ray& Ray::restore(const ColorsSafe& colorsSafe) {
 	return *this;
 }
 
-Ray& Ray::restore(const RayBasic& raySafe, const ColorsSafe& colorsSafe) {
-	restore(raySafe);
+Ray& Ray::restore(const HitTrace& hitTrace, const ColorsSafe& colorsSafe) {
+	restore(hitTrace);
 	restore(colorsSafe);
 	return *this;
 }

@@ -436,10 +436,10 @@ void Camera::reflections(Ray& ray, const A_Scenery& scenery, int r) {
 		}
 		ColorsSafe	colorsSafe(ray);
 		if (scenery.refractive) {
-			RayBasic raySafe(ray);
+			HitTrace hitTrace(ray);
 			ray.dir.reflect(ray.norm);
 			traceRay(ray, ++r);
-			ray.restore(raySafe);
+			ray.restore(hitTrace);
 		} else {
 			ray.dir.reflect(ray.norm);
 			traceRay(ray, ++r);
@@ -502,44 +502,45 @@ float Camera::softShadowMultiplier(Ray& ray, float distToLight) {
 }
 
 void Camera::shadow(Ray& ray, const A_Scenery& scenery, float k, int r) {
+	(void)r;//FIXME
 	A_Scenery* shader = ray.closestScenery(scenerys, ray.dist, FIRST_SHADOW);
 	if (shader) {
-		if (shader->reflective || shader->refractive) {
-			LookatAux	aux(ray.dirL);
-			RayBasic	raySafe(ray);
-			ColorsSafe	colorsSafe(ray);
-			Power		light;
-			int n = SHADOW_RAYS;
-//			float _1_sqr = f2limits(0.3 / (raySafe.dist * raySafe.dist), 0, 0.3);
-			for (int i = 0; i < SHADOW_RAYS; i++) {
-//				if (SHADOW_RAYS > 1) {
-					ray.randomCosineWeightedDirectionInHemisphere(phMap.get_gen(), aux, 0.0001);
-//				} else {
-//					ray.dir = ray.dirL;
-//				}
-				float k1 = raySafe.norm * ray.dir;
-				ray.pov = raySafe.pov;
-				ray.color = ray.light = ray.shine = 0;
-				ray.dirL.toNull();
-				ray.dirС.toNull();
-				ray.norm.toNull();
-				ray.dist = 0;
-				ray.hit = FRONT;
-				ray.recursion = r;
-				int r1 = r;
-				traceRay(ray, ++r1, true);
-//				if (ray.color.val != space.val) {
-					if (k1 > 0)
-						light.collectRGB(ray.color.product(k1));
-//				} else {
-//					n--;
-//				}
-			}
-			ray.restore(raySafe, colorsSafe);
-			light.product(_1_256 / n * (1. - raySafe.dist * raySafe.dist / _INFINITY));
-			light.getARGBColor(ray.light);
-			ray.collectLight(scenery.get_iColor(ray));
-		}
+//		if (shader->reflective || shader->refractive) {
+//			LookatAux	aux(ray.dirL);
+//			HitTrace	hitTrace(ray);
+//			ColorsSafe	colorsSafe(ray);
+//			Power		light;
+////			int n = SHADOW_RAYS;
+////			float _1_sqr = f2limits(0.3 / (hitTrace.dist * hitTrace.dist), 0, 0.3);
+//			for (int i = 0; i < SHADOW_RAYS; i++) {
+////				if (SHADOW_RAYS > 1) {
+//					ray.randomCosineWeightedDirectionInHemisphere(phMap.get_gen(), aux, 0.0001);
+////				} else {
+////					ray.dir = ray.dirL;
+////				}
+//				float k1 = hitTrace.norm * ray.dir;
+//				ray.pov = hitTrace.pov;
+//				ray.color = ray.light = ray.shine = 0;
+//				ray.dirL.toNull();
+//				ray.dirC.toNull();
+//				ray.norm.toNull();
+//				ray.dist = 0;
+//				ray.hit = FRONT;
+//				ray.recursion = r;
+//				int r1 = r;
+//				traceRay(ray, ++r1, true);
+////				if (ray.color.val != space.val) {
+//					if (k1 > 0)
+//						light.collectRGB(ray.color.product(k1));
+////				} else {
+////					n--;
+////				}
+//			}
+//			ray.restore(hitTrace, colorsSafe);
+////			light.product(_1_256 / n * (1. - hitTrace.dist * hitTrace.dist / _INFINITY));
+//			light.getARGBColor(ray.light);
+//			ray.collectLight(scenery.get_iColor(ray));
+//		}
 	} else {
 		ray.collectLight(scenery.get_iColor(ray), k);
 		ray.collectShine(scenery.specular);
@@ -547,7 +548,7 @@ void Camera::shadow(Ray& ray, const A_Scenery& scenery, float k, int r) {
 }
 
 bool Camera::transparentShadow(Ray& ray, const A_Scenery& shader, float d, int r) {
-	RayBasic	raySafe(ray);
+	HitTrace	hitTrace(ray);
 	ray.dir = ray.dirL;
 	shader.giveNormal(ray);
 	if (ray.dir.refract(ray.norm, ray.hit == INSIDE ? shader.matIOR : shader.matOIR)) {
@@ -556,10 +557,10 @@ bool Camera::transparentShadow(Ray& ray, const A_Scenery& shader, float d, int r
 		traceRay(ray, ++r);
 //		ray.collectRefractiveLight(shader.color, colorsSafe.color, shader.refractive);
 		ray.collectShadowLight(colorsSafe, d);
-		ray.restore(raySafe);
+		ray.restore(hitTrace);
 		return true;
 	}
-	ray.restore(raySafe);
+	ray.restore(hitTrace);
 	return false;
 }
 
