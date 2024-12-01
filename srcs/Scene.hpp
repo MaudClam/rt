@@ -45,8 +45,6 @@ struct Scene {
 	a_scenerys_t	objsIdx;
 	a_scenerys_t	lightsIdx;
 	cameras_t		cameras;
-	rand_device_t	rand_device;
-	rand_gen_t		rand_gen;
 	PhotonMap		phMap;
 private:
 	Vec2i			_resolution;

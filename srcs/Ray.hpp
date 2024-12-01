@@ -2,19 +2,15 @@
 #define RAY_HPP
 
 # include <forward_list>
-# include <random>
 # include "geometry.hpp"
 # include "ARGBColor.hpp"
-# include "A_Scenery.hpp"
+# include "random.hpp"
 # include "PhotonMap.hpp"
 
 
 class	A_Scenery;
 typedef	std::vector<A_Scenery*>					a_scenerys_t;
 typedef	a_scenerys_t::iterator					a_scenerys_it;
-typedef	std::random_device						rand_device_t;
-typedef	std::mt19937							rand_gen_t;
-typedef	std::uniform_real_distribution<float>	rand_distr_t;
 
 
 class PhotonPath {
@@ -143,8 +139,8 @@ struct Ray : public HitRecord {
 	segments_t	segments;		// container for segments handling
 	traces_t	traces;
 	Ray(void);
-	Ray(rand_gen_t& gen, const Position pos, const Power& _pow);
-	Ray(rand_gen_t& gen, const Position pos, const Power& _pow, const LookatAux& aux);
+	Ray(const Position pos, const Power& _pow);
+	Ray(const Position pos, const Power& _pow, const LookatAux& aux);
 	~Ray(void);
 	Ray(const Ray& other);
 	Ray& operator=(const Ray& other);
@@ -308,23 +304,21 @@ struct Ray : public HitRecord {
 
 		}
 	}
-	inline void randomUniformDirectionInHemisphere(rand_gen_t& gen, const Vec3f& normal) {
-		rand_distr_t distr(0.0, 1.0);
-		float phi = distr(gen) * M_2PI;
-		float theta = distr(gen) * M_PI;
+	inline void randomUniformDirectionInHemisphere(const Vec3f& normal) {
+		float phi = random_double() * M_2PI;
+		float theta = random_double() * M_PI;
 		dir.sphericalDirection2cartesian(phi, theta);
 		if (!dir.isNull() && dir * normal < 0) {// if normal(0,0,0) then the full sphere direction will be generated
 			dir.product(-1);
 		}
 	}
-	inline void randomCosineWeightedDirectionInHemisphere(rand_gen_t& gen, const LookatAux& aux, float width = 1.) {
-		rand_distr_t distr(0.0, 1.0);
-		float phi = distr(gen) * M_2PI;
-		float theta = std::acos(std::sqrt(distr(gen))) * width;
+	inline void randomCosineWeightedDirectionInHemisphere(const LookatAux& aux, float width = 1.) {
+		float phi = random_double() * M_2PI;
+		float theta = std::acos(std::sqrt(random_double())) * width;
 		dir.sphericalDirection2cartesian(phi, theta).lookatDir(aux);
 	}
-	inline void randomCosineWeightedDirectionInHemisphere(rand_gen_t& gen, float width = 1. ) {
-		randomCosineWeightedDirectionInHemisphere(gen, LookatAux(norm), width);
+	inline void randomCosineWeightedDirectionInHemisphere(float width = 1. ) {
+		randomCosineWeightedDirectionInHemisphere(LookatAux(norm), width);
 	}
 	
 	

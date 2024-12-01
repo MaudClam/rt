@@ -9,9 +9,7 @@ scenerys(),
 objsIdx(),
 lightsIdx(),
 cameras(),
-rand_device(),
-rand_gen(rand_device()),
-phMap(rand_gen),
+phMap(),
 _resolution(DEFAULT_RESOLUTION),
 _header(),
 _ambient(1),
@@ -40,8 +38,6 @@ scenerys(other.scenerys),
 objsIdx(other.objsIdx),
 lightsIdx(other.lightsIdx),
 cameras(other.cameras),
-rand_device(),
-rand_gen(rand_device()),
 phMap(other.phMap),
 _resolution(other._resolution),
 _header(other._header),
@@ -71,9 +67,9 @@ std::string Scene::header(void) {
 }
 
 void Scene::systemDemo(void) {
-	set_any("R	800 600  SystemDemo  NO  500000  60  0.1");
+	set_any("R	800 600  SystemDemo  VOLUME  500000  60  0.1");
 	img.init(header(), _resolution);
-	cameras.push_back(Camera(img, rand_gen));
+	cameras.push_back(Camera(img));
 	set_any("A				0.2		0xFFFFEE");
 	set_any("l	2,1,0		0.5		0xFFFFFF");
 	set_any("l	1,4,4		0.3		0xFFFFFF");
@@ -184,7 +180,7 @@ int  Scene::parsing(int ac, char** av) {
 		_header = "Default";
 	}
 	img.init(header(), _resolution);
-	cameras.push_back(Camera(img, rand_gen));	// default camera '0'
+	cameras.push_back(Camera(img));	// default camera '0'
 	for (int ln = 2; !in.eof(); ln++) {
 		std::getline(in, line);
 		if ( line.compare(0, 1, "#") && !line.empty() ) {
@@ -267,7 +263,7 @@ int Scene::set_any(std::istringstream is) {
 			break;
 		}
 		case 2: {// c camera
-			cameras.push_back(Camera(img, rand_gen));
+			cameras.push_back(Camera(img));
 			is >> cameras.back();
 			break;
 		}

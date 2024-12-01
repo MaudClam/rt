@@ -165,7 +165,7 @@ float Matrix::get_fovDegree(void) { return _fov.get_degree(); }
 
 // class Camera
 
-Camera::Camera(const MlxImage& img, rand_gen_t& gen) :
+Camera::Camera(const MlxImage& img) :
 _base(BASE),
 _pos(_base),
 _roll(0),
@@ -173,7 +173,7 @@ _flybyRadius(0),
 scenerys(),
 objsIdx(),
 lightsIdx(),
-phMap(gen),
+phMap(),
 ambient(),
 space(),
 recursionDepth(RECURSION_DEPTH),

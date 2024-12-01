@@ -88,8 +88,7 @@ Claster& Claster::operator=(const Claster& other) {
 
 // Class PhotonMap
 
-PhotonMap::PhotonMap(rand_gen_t& gen) :
-_gen(gen),
+PhotonMap::PhotonMap(void) :
 _sizeGlobal(0),
 _sizeCaustic(0),
 _sizeVolume(0),
@@ -101,7 +100,6 @@ type(NO)
 {}
 
 PhotonMap::PhotonMap(const PhotonMap& other) :
-_gen(other._gen),
 _sizeGlobal(0),
 _sizeCaustic(0),
 _sizeVolume(0),
@@ -143,7 +141,6 @@ int PhotonMap::get_size(MapType type) const {
 
 void PhotonMap::swap_(PhotonMap& other) {
 	swap(other);
-	std::swap(_gen, other._gen);
 	std::swap(_sizeGlobal, other._sizeGlobal);
 	std::swap(_sizeCaustic, other._sizeCaustic);
 	std::swap(_sizeVolume, other._sizeVolume);
@@ -177,13 +174,12 @@ void PhotonMap::settotalPow(a_scenerys_t& lightsIdx) {
 }
 
 void PhotonMap::photonRayTracing_lll(a_scenerys_t& scenerys, photonRays_t& rays) {
-	rand_distr_t	distr(0.0, 1.0);
 	for (auto ray = rays.begin(), end = rays.end(); ray != end; ++ray) {
-		tracePhotonRay(distr, scenerys, *ray);
+		tracePhotonRay(scenerys, *ray);
 	}
 }
 
-void PhotonMap::tracePhotonRay(rand_distr_t& distr, a_scenerys_t& scenerys, Ray& ray) {
+void PhotonMap::tracePhotonRay(a_scenerys_t& scenerys, Ray& ray) {
 	if (ray.recursion <= RECURSION_DEPTH) {
 		if (ray.closestScenery(scenerys, _INFINITY)) {
 			Power	color(ray.scnr->get_iColor(ray));
@@ -191,21 +187,21 @@ void PhotonMap::tracePhotonRay(rand_distr_t& distr, a_scenerys_t& scenerys, Ray&
 			float	refractive = ray.scnr->refractive;
 			float	diffusion = ray.scnr->diffusion;
 			Power	chance(ray.pow, color, reflective, refractive, diffusion);
-			float	rand_ = distr(_gen);
+			float	rand_ = random_double();
 			if (rand_ <= chance.refl) {
 				ray.getNormal();
 				ray.photonReflection();
-				tracePhotonRay(distr, scenerys, ray);
+				tracePhotonRay(scenerys, ray);
 			} else if (rand_ <= chance.refl + chance.refr) {
 				ray.getNormal();
 				if (ray.photonRefraction(chance, color, refractive, ray.scnr->matIOR, ray.scnr->matOIR)) {
-					tracePhotonRay(distr, scenerys, ray);
+					tracePhotonRay(scenerys, ray);
 				}
 			} else if (rand_ <= chance.refl + chance.refr + chance.diff) {
 				ray.getNormal();
 				ray.newPhotonTrace(type, chance, color, diffusion, ray.scnr->get_id());
-				ray.randomCosineWeightedDirectionInHemisphere(_gen);
-				tracePhotonRay(distr, scenerys, ray);
+				ray.randomCosineWeightedDirectionInHemisphere();
+				tracePhotonRay(scenerys, ray);
 			}
 		}
 	}
@@ -248,10 +244,10 @@ void PhotonMap::randomDirectionsSampling(int n, const Position& pos, const Power
 	if (cosineWeighted) {
 		LookatAux aux(pos.n);
 		for (int i = 0; i < n; i++)
-			rays.emplace_back(_gen, pos, pow, aux);
+			rays.emplace_back(pos, pow, aux);
 	} else {
 		for (int i = 0; i < n; i++)
-			rays.emplace_back(_gen, pos, pow);
+			rays.emplace_back(pos, pow);
 	}
 }
 

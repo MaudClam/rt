@@ -3,7 +3,6 @@
 
 # include <map>
 # include <forward_list>
-# include <random>
 # include "PhotonTrace.hpp"
 # include "Ray.hpp"
 # include "A_Scenery.hpp"
@@ -12,9 +11,6 @@ struct	Ray;
 class	A_Scenery;
 typedef	std::vector<Ray>						photonRays_t;
 typedef	std::vector<A_Scenery*>					a_scenerys_t;
-typedef	std::mt19937							rand_gen_t;
-typedef	std::uniform_real_distribution<float>	rand_distr_t;
-typedef std::forward_list<PhotonTrace*>			traces_t;
 
 struct ClasterKey {
 	MapType	type;
@@ -56,7 +52,6 @@ typedef std::map<ClasterKey,Claster>	clasters_t;
 
 
 class PhotonMap : public clasters_t {
-	rand_gen_t&	_gen;
 	int _sizeGlobal, _sizeCaustic, _sizeVolume;
 public:
 	int		totalPhotons;
@@ -64,7 +59,7 @@ public:
 	float	gridStep;
 	Power	totalPow;
 	MapType	type;
-	PhotonMap(rand_gen_t& gen);
+	PhotonMap(void);
 	PhotonMap(const PhotonMap& other);
 	~PhotonMap(void);
 	PhotonMap& operator=(const PhotonMap& other);
@@ -75,7 +70,7 @@ private:
 	void deleteTraces(void);
 	void settotalPow(a_scenerys_t& lightsIdx);
 	void photonRayTracing_lll(a_scenerys_t& scenerys, photonRays_t& rays);
-	void tracePhotonRay(rand_distr_t& distr, a_scenerys_t& scenerys, Ray& ray);
+	void tracePhotonRay(a_scenerys_t& scenerys, Ray& ray);
 	inline void counter(MapType type) {
 		switch (type) {
 			case GLOBAL:	_sizeGlobal++; return;
@@ -106,7 +101,6 @@ private:
 		}
 	}
 public:
-	inline rand_gen_t& get_gen(void) const { return _gen; }
 	inline float get_sqr(void) const { return gridStep * gridStep; }
 	inline void get_traces(const Vec3f& point, traces_t& rayTraces, MapType type) const {
 		rayTraces.clear();

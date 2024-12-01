@@ -101,7 +101,7 @@ segments(),
 traces()
 {}
 
-Ray::Ray(rand_gen_t& gen, const Position pos, const Power& _pow) :
+Ray::Ray(const Position pos, const Power& _pow) :
 recursion(1),
 dist(0),
 pow(_pow),
@@ -115,10 +115,10 @@ segments(),
 traces()
 {
 	pov = pos.p;
-	randomUniformDirectionInHemisphere(gen, pos.n);
+	randomUniformDirectionInHemisphere(pos.n);
 }
 
-Ray::Ray(rand_gen_t& gen, const Position pos, const Power& _pow, const LookatAux& aux) :
+Ray::Ray(const Position pos, const Power& _pow, const LookatAux& aux) :
 recursion(1),
 dist(0),
 pow(_pow),
@@ -132,7 +132,7 @@ segments(),
 traces()
 {
 	pov = pos.p;
-	randomCosineWeightedDirectionInHemisphere(gen, aux);
+	randomCosineWeightedDirectionInHemisphere(aux);
 }
 
 Ray::~Ray(void) {}

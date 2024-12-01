@@ -76,7 +76,7 @@ public:
 	float				softShadowSoftness;
 	MapType				displayedPhMap;
 	bool				dualReflRefr;
-	Camera(const MlxImage& img, rand_gen_t& gen);
+	Camera(const MlxImage& img);
 	~Camera(void);
 	Camera(const Camera& other);
 	Camera& operator=(const Camera& other);

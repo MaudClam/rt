@@ -79,6 +79,7 @@
 		66D166C52C3C172F002E6F7E /* Sphere.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; path = Sphere.hpp; sourceTree = "<group>"; };
 		66D166C82C3D9281002E6F7E /* A_Scenery.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = A_Scenery.cpp; sourceTree = "<group>"; };
 		66D166C92C3D9281002E6F7E /* A_Scenery.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; path = A_Scenery.hpp; sourceTree = "<group>"; };
+		66DAF1302CFD121A00458D00 /* random.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; path = random.hpp; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -156,6 +157,7 @@
 				665806CA2CDE4D6D00143501 /* PhotonTrace.hpp */,
 				665806B72CD3947700143501 /* Power.cpp */,
 				665806B82CD3947700143501 /* Power.hpp */,
+				66DAF1302CFD121A00458D00 /* random.hpp */,
 				665241D02C5BA6E700BD3A64 /* Ray.cpp */,
 				665241D12C5BA6E700BD3A64 /* Ray.hpp */,
 				667951702C41AD05009C1DDD /* Scene.cpp */,
