@@ -16,8 +16,8 @@ public:
 	Sphere(const Vec3f& center, float radius, const ARGBColor& color);
 	Sphere(const Sphere& other);
 	Sphere* clone(void) const;
-	inline int	get_iColor(Ray& ray) const {
-		(void)ray;
+	inline int	get_iColor(const HitRecord& record) const {
+		(void)record;
 		return _color.val;
 	}
 	inline void	lookat(const Position& eye, const LookatAux& aux, const Vec3f& pos, float roll) {
@@ -34,9 +34,9 @@ public:
 	}
 	inline bool	intersection(Ray& ray) const {
 		bool result = false;
-		if (ray.hit == ANY_SHADOW || ray.hit == FIRST_SHADOW) {
+		if (ray.hit == ANY_SHADOW || ray.hit == ALL_SHADOWS) {
 			ray.hit = FRONT;
-			result = raySphereIntersection(ray.dirL, ray.pov, _pos.p, _sqrRadius,
+			result = raySphereIntersection(ray.dir, ray.pov, _pos.p, _sqrRadius,
 										   ray.dist, ray.intersections.a.d, ray.intersections.b.d,
 										   ray.hit);
 		} else if (!ray.recursion) {
@@ -50,7 +50,7 @@ public:
 		}
 		return result;
 	}
-	inline void giveNormal(Ray& ray) const {
+	inline void getNormal(Ray& ray) const {
 		if (ray.hit == INSIDE) {
 			normalToRaySphereIntersect(_pos.p, ray.pov, ray.norm);
 		} else {
@@ -63,13 +63,13 @@ public:
 	inline float getDistanceToShaderEdge(Ray& ray, float distance, bool inside) const {
 		if (inside) {
 			return distanceToSphericalShaderEdge(_pos.p,
-												 ray.pov + (ray.dirL * distance),
-												 ray.dirL,
+												 ray.pov + (ray.dir * distance),
+												 ray.dir,
 												 _radius);
 		}
-		return distanceToSphericalShaderEdge(ray.pov + (ray.dirL * distance),
+		return distanceToSphericalShaderEdge(ray.pov + (ray.dir * distance),
 											 _pos.p,
-											 ray.dirL,
+											 ray.dir,
 											 _radius);
 	}
 	inline float lighting(Ray& ray) const {

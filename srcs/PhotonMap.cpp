@@ -185,29 +185,25 @@ void PhotonMap::photonRayTracing_lll(a_scenerys_t& scenerys, photonRays_t& rays)
 
 void PhotonMap::tracePhotonRay(rand_distr_t& distr, a_scenerys_t& scenerys, Ray& ray) {
 	if (ray.recursion <= RECURSION_DEPTH) {
-		A_Scenery* scenery = ray.closestScenery(scenerys, _INFINITY);
-		if (scenery) {
-			Power	color(scenery->get_iColor(ray));
-			float	reflective = scenery->reflective;
-			float	refractive = scenery->refractive;
-			float	diffusion = f2limits(1. -  reflective - refractive, 0., 1.);
+		if (ray.closestScenery(scenerys, _INFINITY)) {
+			Power	color(ray.scnr->get_iColor(ray));
+			float	reflective = ray.scnr->reflective;
+			float	refractive = ray.scnr->refractive;
+			float	diffusion = ray.scnr->diffusion;
 			Power	chance(ray.pow, color, reflective, refractive, diffusion);
 			float	rand_ = distr(_gen);
 			if (rand_ <= chance.refl) {
-				ray.movePovByDirToDist();
-				scenery->giveNormal(ray);
+				ray.getNormal();
 				ray.photonReflection();
 				tracePhotonRay(distr, scenerys, ray);
 			} else if (rand_ <= chance.refl + chance.refr) {
-				ray.movePovByDirToDist();
-				scenery->giveNormal(ray);
-				if (ray.photonRefraction(chance, color, refractive, scenery->matIOR, scenery->matOIR)) {
+				ray.getNormal();
+				if (ray.photonRefraction(chance, color, refractive, ray.scnr->matIOR, ray.scnr->matOIR)) {
 					tracePhotonRay(distr, scenerys, ray);
 				}
 			} else if (rand_ <= chance.refl + chance.refr + chance.diff) {
-				ray.movePovByDirToDist();
-				scenery->giveNormal(ray);
-				ray.newPhotonTrace(type, chance, color, diffusion, scenery->get_id());
+				ray.getNormal();
+				ray.newPhotonTrace(type, chance, color, diffusion, ray.scnr->get_id());
 				ray.randomCosineWeightedDirectionInHemisphere(_gen);
 				tracePhotonRay(distr, scenerys, ray);
 			}

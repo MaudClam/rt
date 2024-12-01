@@ -4,6 +4,7 @@
 # include "Ray.hpp"
 # include "PhotonMap.hpp"
 
+struct	HitRecord;
 struct	Ray;
 class	PhotonMap;
 typedef	std::vector<Ray>	photonRays_t;
@@ -44,12 +45,12 @@ public:
 	inline void	set_pos(const Position& pos) { _pos = pos; }
 	inline void	set_color(const ARGBColor& color) { _color = color; }
 	
-	virtual int get_iColor(Ray& ray) const = 0;
+	virtual int get_iColor(const HitRecord& record) const = 0;
 	virtual A_Scenery* clone(void) const = 0;
 	virtual void lookat(const Position& eye, const LookatAux& aux, const Vec3f& pos, float roll) = 0;
 	virtual void roll(const Vec3f& pos, float shiftRoll) = 0;
 	virtual bool intersection(Ray& ray) const = 0;
-	virtual void giveNormal(Ray& ray) const = 0;
+	virtual void getNormal(Ray& ray) const = 0;
 	virtual float getDistanceToShaderEdge(Ray& ray, float distance, bool inside) const = 0;
 	virtual float lighting(Ray& ray) const = 0;
 	virtual void photonEmissions(int num, const PhotonMap& phMap, photonRays_t& rays) const = 0;

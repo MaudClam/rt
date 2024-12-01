@@ -7,7 +7,7 @@
 # include <vector>
 
 
-const float _1_256 = 1. / 256.;
+const float _1_255 = 1. / 255.;
 enum colorFormat { GRAY_SCALE=1, RGB=3, ARGB=4 };
 std::string colorFormat(int bpp);
 int   i2limits(int num, int min, int max);
@@ -40,9 +40,13 @@ struct ARGBColor {
 	inline ARGBColor operator*(float f) const { return ARGBColor(*this).product(f); }
 	ARGBColor& product(float f);
 	ARGBColor& negative(void);
-	ARGBColor& operator+=(int c);
-	ARGBColor& operator-=(int c);
-	ARGBColor& operator*=(int c);
+	ARGBColor& gamma(float g);
+	inline ARGBColor operator+=(int c) { return ARGBColor(*this).iAddition(c); }
+	ARGBColor& iAddition(int c);
+	inline ARGBColor operator-=(int c) { return ARGBColor(*this).iSubstract(c); }
+	ARGBColor& iSubstract(int c);
+	inline ARGBColor operator*=(int c) { return ARGBColor(*this).iProduct(c); }
+	ARGBColor& iProduct(int c);
 	inline unsigned char get_a(int val) { return 0xFF & (val >> 24); }
 	inline unsigned char get_r(int val) { return 0xFF & (val >> 16); }
 	inline unsigned char get_g(int val) { return 0xFF & (val >> 8); }

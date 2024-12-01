@@ -20,7 +20,7 @@ const float M_4PI = 4. * M_PI;
 const float M_PI_180 = M_PI / 180.;
 const float M_180_PI = 180. / M_PI;
 
-enum Hit { FRONT, BACK, OUTLINE, ANY_SHADOW, FIRST_SHADOW, INSIDE, OUTSIDE };
+enum Hit { FRONT, BACK, OUTLINE, ANY_SHADOW, ALL_SHADOWS, INSIDE, OUTSIDE };
 enum CombineType { END=0, UNION, SUBTRACTION, INTERSECTION };
 enum MapType {NO, CAUSTIC, GLOBAL, VOLUME, RESET};
 

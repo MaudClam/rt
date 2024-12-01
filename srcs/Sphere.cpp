@@ -73,7 +73,9 @@ std::istringstream& operator>>(std::istringstream& is, Sphere& sp) {
 	sp._sqrRadius = sp._radius * sp._radius;
 	sp.specular = i2limits(sp.specular, -1, 1000);
 	sp.reflective = f2limits(sp.reflective, 0., 1.);
-	sp.refractive = f2limits(sp.refractive, 0., 1.);
+	sp.refractive = f2limits(sp.refractive, 0., 1. - sp.reflective);
+	sp.diffusion = f2limits(1. -  sp.reflective - sp.refractive, 0., 1.);
+	sp.matIOR = f2limits(sp.matIOR, 0.1, 10.);
 	sp.matOIR = 1. / sp.matIOR;
 	return is;
 }

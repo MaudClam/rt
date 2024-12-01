@@ -14,8 +14,8 @@ public:
 	~Light(void);
 	Light(const Light& other);
 	Light* clone(void) const;
-	inline int	get_iColor(Ray& ray) const {
-		(void)ray;
+	inline int	get_iColor(const HitRecord& record) const {
+		(void)record;
 		return _color.val; }
 	inline void set_nick(const std::string& nick) { _nick = nick; }
 	inline void set_name(const std::string& name) { _name = name; }
@@ -32,7 +32,7 @@ public:
 		(void)ray;
 		return false;
 	}
-	inline void giveNormal(Ray& ray) const {
+	inline void getNormal(Ray& ray) const {
 		(void)ray;
 	}
 	inline float getDistanceToShaderEdge(Ray& ray, float distance, bool inside) const {
@@ -43,9 +43,9 @@ public:
 		float k = 0;
 		switch (_type) {
 			case SPOTLIGHT: {
-				ray.dist = ray.dirL.substract(_pos.p, ray.pov).norm();
-				if (ray.dist != 0) (ray.dirL.product(1 / ray.dist));// optimal normalization
-				if ( (k = ray.dirL * ray.norm) <= 0) {
+				ray.dist = ray.dir.substract(_pos.p, ray.pov).norm();
+				if (ray.dist != 0) (ray.dir.product(1. / ray.dist));// optimal normalization
+				if ( (k = ray.dir * ray.norm) <= 0) {
 					return 0;
 				}
 				break;
@@ -55,7 +55,7 @@ public:
 					return 0;
 				}
 				ray.dist = _INFINITY;
-				ray.dirL = _pos.n;
+				ray.dir = _pos.n;
 				break;
 			}
 			case SUNLIGHT_LIMITED: {
@@ -63,7 +63,7 @@ public:
 					return 0;
 				}
 				rayPlaneIntersection(ray.pov, _pos.n, _pos.p, ray.norm, ray.dist);
-				ray.dirL = _pos.n;
+				ray.dir = _pos.n;
 				break;
 			}
 			default:

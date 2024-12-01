@@ -105,15 +105,11 @@ public:
 	static void	takePicture(Camera* camera, MlxImage& img, size_t begin, size_t end);
 	void	rayTracing_lll(size_t begin, size_t end);
 	static void	rayTracing(Camera* camera, size_t begin, size_t end);
-	void	traceRay(Ray& ray, int r = 0, bool is_shader = false);
-	void	directLightings(Ray& ray, const A_Scenery& scenery, int r, bool is_shader);
+	bool	traceRay(Ray& ray, int r = 0);
+	void	reflections(Ray& ray, const HitRecord& record, int r);
+	void	refractions(Ray& ray, const HitRecord& record, int r);
 	void	phMapLightings(Ray& ray, const A_Scenery& scenery);
-	void	reflections(Ray& ray, const A_Scenery& scenery, int r);
-	void	refractions(Ray& ray, const A_Scenery& scenery, int r);
-	void	shadow_if(Ray& ray, const A_Scenery& scenery, float k, int r);
 	float	softShadowMultiplier(Ray& ray, float distToLight);
-	void	shadow(Ray& ray, const A_Scenery& scenery, float k, int r);
-	bool	transparentShadow(Ray& ray, const A_Scenery& shader, float d, int r);
 	void	calculateFlybyRadius(void);
 	void 	runThreadRoutine(int routine, MlxImage* img = NULL);
 

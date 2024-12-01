@@ -61,7 +61,7 @@ ARGBColor& ARGBColor::substract(const ARGBColor& c1, const ARGBColor& c2) {
 
 ARGBColor& ARGBColor::product(const ARGBColor& c1, const ARGBColor& c2) {
 	for (int i = 0; i < 4; ++i) {
-		raw[i] = (unsigned char)(c1.raw[i] * c2.raw[i] * _1_256);
+		raw[i] = (unsigned char)(c1.raw[i] * c2.raw[i] * _1_255);
 	}
 	return *this;
 }
@@ -80,7 +80,15 @@ ARGBColor& ARGBColor::negative(void) {
 	return *this;
 }
 
-ARGBColor& ARGBColor::operator+=(int c) {
+ARGBColor& ARGBColor::gamma(float g) {
+	g = 1. / g;
+	for (int i = 0; i < 3; ++i) {
+		raw[i] = i2limits(std::pow(_1_255 * raw[i], g) * 255, 0, 255);
+	}
+	return *this;
+}
+
+ARGBColor& ARGBColor::iAddition(int c) {
 	a = i2limits(a + get_a(c), 0, 255);
 	r = i2limits(r + get_r(c), 0, 255);
 	g = i2limits(g + get_g(c), 0, 255);
@@ -88,7 +96,7 @@ ARGBColor& ARGBColor::operator+=(int c) {
 	return *this;
 }
 
-ARGBColor& ARGBColor::operator-=(int c) {
+ARGBColor& ARGBColor::iSubstract(int c) {
 	a = i2limits(a - get_a(c), 0, 255);
 	r = i2limits(r - get_r(c), 0, 255);
 	g = i2limits(g - get_g(c), 0, 255);
@@ -96,11 +104,11 @@ ARGBColor& ARGBColor::operator-=(int c) {
 	return *this;
 }
 
-ARGBColor& ARGBColor::operator*=(int c) {
-	a = i2limits(a * get_a(c) * _1_256, 0, 255);
-	r = i2limits(r * get_r(c) * _1_256, 0, 255);
-	g = i2limits(g * get_g(c) * _1_256, 0, 255);
-	b = i2limits(b * get_b(c) * _1_256, 0, 255);
+ARGBColor& ARGBColor::iProduct(int c) {
+	a = i2limits(a * get_a(c) * _1_255, 0, 255);
+	r = i2limits(r * get_r(c) * _1_255, 0, 255);
+	g = i2limits(g * get_g(c) * _1_255, 0, 255);
+	b = i2limits(b * get_b(c) * _1_255, 0, 255);
 	return *this;
 }
 

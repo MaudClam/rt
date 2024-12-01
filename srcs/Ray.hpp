@@ -35,33 +35,33 @@ public:
 	inline bool is_volume(void) { return r || d || v; }
 };
 
+struct Ray;
 
-struct HitTrace {
+struct HitRecord {
 	Vec3f		pov;	// ray POV (point of view)		| photon position
 	Vec3f		dir;	// normalized: ray direction	| photon incident direction
 	Vec3f		norm;	// normalized: normal vector from the ray hit point
 	Hit			hit;	// type of contact with an object
-	A_Scenery*	scenery;
-	HitTrace(void);
-	~HitTrace(void);
-	HitTrace(const HitTrace& other);
-	HitTrace& operator=(const HitTrace& other);
-};
-
-struct Ray;
-
-struct ColorsSafe {
-	float	light;
-	float	shine;
-	float	color;
-	ColorsSafe(Ray& ray);
-	~ColorsSafe(void);
-	ColorsSafe(const ColorsSafe& other);
-	ColorsSafe& operator=(const ColorsSafe& other);
+	A_Scenery*	scnr;	// pointer to scenery
+	HitRecord(void);
+	~HitRecord(void);
+	HitRecord(const HitRecord& other);
+	HitRecord(const Ray& ray);
+	HitRecord& operator=(const HitRecord& other);
 };
 
 
-struct Ray : public HitTrace {
+struct ColorSafe {
+	int	shine;
+	int	color;
+	ColorSafe(Ray& ray);
+	~ColorSafe(void);
+	ColorSafe(const ColorSafe& other);
+	ColorSafe& operator=(const ColorSafe& other);
+};
+
+
+struct Ray : public HitRecord {
 	struct	Point;
 	struct	Segment;
 	typedef	std::forward_list<Segment>	segments_t;
@@ -133,8 +133,6 @@ struct Ray : public HitTrace {
 	};
 	int			recursion;		// current recursion number
 	float		dist;			// distance from POV to object hit point
-	Vec3f		dirC;			// normalized: dir from camera vector
-	Vec3f		dirL;			// normalized: dir vector to light source
 	Power		pow;			//				| photon power
 	PhotonPath	path;			//				| photon path
 	Segment		intersections;	// segment on ray - object entry and exit points
@@ -150,13 +148,44 @@ struct Ray : public HitTrace {
 	~Ray(void);
 	Ray(const Ray& other);
 	Ray& operator=(const Ray& other);
-	Ray& operator=(const HitTrace& hitTrace);
-	Ray& operator=(const ColorsSafe& colorsSafe);
-	Ray& getHitTrace(HitTrace& rayBasic);
-	Ray& restore(const HitTrace& hitTrace);
-	Ray& restore(const ColorsSafe& colorsSafe);
-	Ray& restore(const HitTrace& hitTrace, const ColorsSafe& colorsSafe);
+	Ray& operator=(const HitRecord& record);
+	Ray& operator=(const ColorSafe& colorSafe);
+	Ray& restore(const HitRecord& record);
+	Ray& restore(const ColorSafe& colorSafe);
+	Ray& restore(const HitRecord& record, const ColorSafe& colorSafe);
 	Ray& set_hit(Hit hit);
+	Ray& getNormal(void);
+	Ray& combination(void);
+	Ray& union_(Segment& segment1, Segment& segment2);
+	Ray& subtraction(Segment& segment1, Segment& segment2);
+	Ray& intersection(Segment& segment1, Segment& segment2);
+	bool closestScenery(a_scenerys_t& scenerys, float maxDistance, Hit target = FRONT);
+	Ray& combine(a_scenerys_it& scenery, a_scenerys_it& end, float distance, Hit target);	
+	Ray& ambientLiting(const HitRecord& record, const ARGBColor& ambient);
+	Ray& directLitings(const HitRecord& record, a_scenerys_t& scenerys, a_scenerys_t& lightsIdx);
+	inline A_Scenery* getCombine(Point& nearest) {
+		auto segment = segments.before_begin(), segmentNext = segments.begin();
+		for (; segment != segments.end(); ++segment) {
+			segmentNext = segment; segmentNext++;
+			while (segmentNext != segments.end() && segmentNext->removed) {
+				segmentNext = segments.erase_after(segment);
+			}
+			if (segmentNext != segments.end() && segmentNext->combine) {
+				if (nearest.d > segmentNext->a.d && segmentNext->a.d >= 0) {
+					nearest = segmentNext->a;
+				}
+				if (nearest.d > segmentNext->b.d && segmentNext->b.d >= 0) {
+					nearest = segmentNext->b;
+				}
+				segmentNext->combine = false;
+			}
+		}
+		if (nearest.s) {
+			dist = nearest.d;
+			hit = nearest.inside ? INSIDE : OUTSIDE;
+		}
+		return nearest.s;
+	}
 	inline void emplace(const Segment& segment, bool _combine) {
 		emplace(segment.a, segment.b, _combine);
 	}
@@ -164,14 +193,10 @@ struct Ray : public HitTrace {
 		segments.emplace_front(a.d, a.inside, a.s, b.d, b.inside, b.s, false, _combine);
 	}
 	inline void movePovByDirToDist(void) {
-		pov.addition( pov, dir * dist );
+		pov.addition(pov, dir * dist);
 	}
 	inline void movePovByNormal(float distance) {
 		pov.addition(pov, norm * distance);
-	}
-	inline void fixDirFromCam(void) {
-		if (!recursion)
-			dirC = dir;
 	}
 	inline void collectLight(int scenery_iColor, float k = 1) {
 		color.addition(color, (light *= scenery_iColor) * k);
@@ -180,36 +205,28 @@ struct Ray : public HitTrace {
 		light = _light;
 		collectLight(scenery_iColor, k);
 	}
-	inline void collectShine(int specular, float d = 1.) {
-		if (specular != -1 && d > 0.) {
-			float k = dirL.get_reflect(norm) * dirC;
+	inline void collectShine(const Vec3f& dirFromCam, int specular) {
+		if (specular > 1) {
+			float k = dir.reflect(norm) * dirFromCam;
 			if (k > 0.) {
 				k = std::pow(k, specular);
-				shine.addition(shine, light * (k * d));
+				shine.addition(shine, light * k);
 			}
 		}
 	}
-	inline void collectReflectiveLight(const ColorsSafe& colorsSafe, float reflective) {
-		float previous = 1. - reflective;
-		light.val = colorsSafe.color;
-		color.addition(color.product(reflective), light.product(previous));
-		light.val = colorsSafe.shine;
-		shine.addition(shine.product(reflective), light.product(previous));
-		light.val = colorsSafe.light;
+	inline void collectReflectiveLight(const ColorSafe& colorSafe, float factor) {
+		float previous = 1. - factor;
+		light.val = colorSafe.color;
+		color.addition(color.product(factor), light.product(previous));
+		light.val = colorSafe.shine;
+		shine.addition(shine.product(factor), light);
 	}
-	inline void collectRefractiveLight(int scenery_iColor, const ColorsSafe& colorsSafe, float refractive) {
-		float previous = 1. - refractive;
-		light.val = colorsSafe.color;
-		color.addition((color *= scenery_iColor).product(refractive), light.product(previous));
-		shine.addition(shine.product(refractive), colorsSafe.shine);
-		light.val = colorsSafe.light;
-	}
-	inline void collectShadowLight(const ColorsSafe& colorsSafe, float d) {
-		float l = 1. - d;
-		light.val = colorsSafe.light;
-		light.addition(light.product(d), color.product(l));
-		color.val = colorsSafe.color;
-		shine.val = colorsSafe.shine;
+	inline void collectRefractiveLight(int scenery_iColor, const ColorSafe& colorSafe, float factor) {
+		float previous = 1. - factor;
+		light.val = colorSafe.color;
+		color.addition(color.iProduct(scenery_iColor).product(factor), light.product(previous));
+		light.val = colorSafe.shine;
+		shine.addition(shine.iProduct(scenery_iColor).product(factor), light);
 	}
 	inline void photonReflection(void) {
 		movePovByNormal(EPSILON);
@@ -257,8 +274,7 @@ struct Ray : public HitTrace {
 		movePovByNormal(EPSILON);
 		recursion++;
 	}
-	inline void phMapLightings(float sqRadius, int estimate, int sceneryId, int scenery_iColor, float specular) {
-		(void)specular;//FIXME
+	inline void phMapLightings(float sqRadius, int estimate, int sceneryId, int scenery_iColor) {
 		struct Trace {
 			float k;
 			PhotonTrace* trace;
@@ -282,14 +298,6 @@ struct Ray : public HitTrace {
 				lighting.addition(lighting, it->second.trace->pow * it->second.k);
 				last = it;
 				n++;
-//				if (specular != -1) {
-//					float s = ( it->second.trace->pos.n * -1 ).reflect(norm) * dirC;
-//					if (s > 0) {
-//						s = std::pow(s, specular);
-//						shining.addition( shining, it->second.trace->pow * (s / (M_PI * it->first)) );
-//						ns++;
-//					}
-//				}
 			}
 			lighting.product((float)n / (M_PI * last->first)).getARGBColor(light);
 			collectLight(scenery_iColor);
@@ -318,13 +326,8 @@ struct Ray : public HitTrace {
 	inline void randomCosineWeightedDirectionInHemisphere(rand_gen_t& gen, float width = 1. ) {
 		randomCosineWeightedDirectionInHemisphere(gen, LookatAux(norm), width);
 	}
-	A_Scenery* closestScenery(a_scenerys_t& scenerys, float maxDistance, Hit target = FRONT);
-	A_Scenery* combine(a_scenerys_it& scenery, a_scenerys_it& end, float distance, Hit target);
-	A_Scenery* getCombine(Point& nearest);
-	void combination(void);
-	void union_(Segment& segment1, Segment& segment2);
-	void subtraction(Segment& segment1, Segment& segment2);
-	void intersection(Segment& segment1, Segment& segment2);
+	
+	
 };
 
 bool operator<(const Ray::Segment& left, const Ray::Segment& right);
