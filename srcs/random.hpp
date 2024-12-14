@@ -1,10 +1,3 @@
-//
-//  random.hpp
-//  rt
-//
-//  Created by uru on 01/12/2024.
-//
-
 #ifndef RANDOM_HPP
 # define RANDOM_HPP
 

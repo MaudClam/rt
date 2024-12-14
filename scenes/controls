@@ -18,26 +18,26 @@
 | 'Shift' + arrow keys       - yaw/pitch                      |
 | 'Shift' + '-'/'+'          - roll                           |
 |                                                             |
-| Flyby around the scene:                                     |
-| 'space'                    - on/reverse/off                 |
+| Flyby around the scene:    'space' - on/reverse/off         |
 |                                                             |
-| Dual processing of reflection/refraction:                   |
-| 'd'                        - on/off(default)                         |
-|                                                             |
-| Change Smoothing (antialiasing) factor:                     |
+| Smoothing (antialiasing) factor:    (1 - default)           |
 | num keys '1','2','3','4'   - 1, 4, 9, 16 rays per pixel     |
-| '1' - default                                               |
 |                                                             |
-| Change Recursion Depth:                                     |
-| 'Shift' + num keys '0','1', ...,'9'                         |
-| '5' - default                                               |
+| Recursion Depth:                                            |
+| 'Shift' + num keys '0','1',...,'9'  (5 - default)           |
 |                                                             |
-| Lighting by photon mapg:                                    |
-| 'Ctrl' n/c/g/v             - no/caustic/global/volume       |
+| Ambient Lighting:    'a'   - on/off (on  default)           |
+| Direct Lighting:     'd'   - on/off (on  default)           |
+| Background Light:    'b'   - on/of  (on  default)           |
+| Shadow Rays:         's'   - on/of  (off default)           |
+| Ray Tracing:         'r'   -        (on  default)           |
+| Path Tracing:        'p'   -        (off default)           |
 |                                                             |
-| False soft shadow:                                          |
-| 'Ctrl' +           '-'/'+' - length                         |
-| 'Ctrl' + 'Shift' + '-'/'+' - softness                       |
+| Paths Per Ray:                      (50 - default)          |
+| 'Ctrl' + num keys '1','2','3','4' - 25, 50, 100, 200 ppr    |
+|                                                             |
+| Lighting by photon map:                                     |
+| 'Ctrl' + n/c/g/v           - no/caustic/global/volume       |
 |                                                             |
 \-------------------------------------------------------------/
 Enjoy! :)

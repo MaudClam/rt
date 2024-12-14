@@ -4,11 +4,13 @@
 # include "Ray.hpp"
 # include "PhotonMap.hpp"
 
-struct	HitRecord;
+
 struct	Ray;
+struct	Rays;
+struct	HitRecord;
 class	PhotonMap;
-typedef	std::vector<Ray>	photonRays_t;
-typedef	std::mt19937		rand_gen_t;
+typedef	Rays			photonRays_t;
+typedef	std::mt19937	rand_gen_t;
 
 
 class A_Scenery {
@@ -45,7 +47,7 @@ public:
 	inline void	set_pos(const Position& pos) { _pos = pos; }
 	inline void	set_color(const ARGBColor& color) { _color = color; }
 	
-	virtual int get_iColor(const HitRecord& record) const = 0;
+	virtual int get_iColor(const HitRecord& rec) const = 0;
 	virtual A_Scenery* clone(void) const = 0;
 	virtual void lookat(const Position& eye, const LookatAux& aux, const Vec3f& pos, float roll) = 0;
 	virtual void roll(const Vec3f& pos, float shiftRoll) = 0;
@@ -57,5 +59,18 @@ public:
 	virtual void output(std::ostringstream& os) const = 0;
 	friend std::ostream& operator<<(std::ostream& o, const A_Scenery& s);
 };
+
+
+struct Scenerys : public std::vector<A_Scenery*> {
+	Scenerys(void) : std::vector<A_Scenery*>() {}
+	~Scenerys(void) {}
+	Scenerys& clear(int n) {
+		Scenerys tmp;
+		if (n) tmp.reserve(n);
+		swap(tmp);
+		return *this;
+	}
+};
+
 
 #endif /* A_SCENERY_HPP */

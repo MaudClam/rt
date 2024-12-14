@@ -20,7 +20,16 @@ struct PhotonTrace {
 	inline PhotonTrace* clone(void) const { return new PhotonTrace(*this); }
 };
 
-typedef	std::forward_list<PhotonTrace*>	traces_t;
+
+struct Traces : public std::forward_list<PhotonTrace*> {
+	Traces(void) : std::forward_list<PhotonTrace*>() {}
+	~Traces(void){}
+	Traces& clear_(void) {
+		if (!empty())
+			clear();
+		return *this;
+	}
+};
 
 
 #endif /* PHOTONTRACE_HPP */

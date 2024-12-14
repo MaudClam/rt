@@ -27,6 +27,8 @@ struct Power {
 		return c;
 	}
 	Power& collectRGB(ARGBColor& c);
+	Power& minRGB(ARGBColor& c);
+	Power& maxRGB(ARGBColor& c);
 	Power& addition(const Power& p1, const Power& p2);
 	inline Power operator+(const Power& p) { return Power(*this).addition(*this, p); }
 	Power& substract(const Power& p1, const Power& p2);
@@ -35,7 +37,11 @@ struct Power {
 	inline Power operator*(float f) { return Power(*this).product(f); }
 	Power& product(const Power& p1, const Power& p2);
 	inline Power operator*(const Power& p) { return Power(*this).product(*this, p); }
+	inline float norm(void) { return std::sqrt(r * r + g * g + b * b); }
+	inline float sqnorm(void) { return r * r + g * g + b * b; }
+	Power& normalize(float l = 1);
 	inline float maxBand(void) { return max_(r, g, b); }
+	inline float minBand(void) { return min_(r, g, b); }
 	Power& chance(const Power& pow, const Power& color, float _refl, float _refr, float _diff);
 	Power& reflAdjust(const Power& chance, float _refl);
 	Power& refrAdjust(const Power& chance, const Power& color, float _refr);

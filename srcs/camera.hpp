@@ -3,8 +3,15 @@
 
 # include <thread>
 # include "MlxImage.hpp"
-# include "PhotonMap.hpp"
 # include "Ray.hpp"
+# include "Average.hpp"
+
+
+//class	Fov;
+//struct	Pixel;
+//class	Matrix;
+//class	Camera;
+//struct	Camers;
 
 
 class Fov {
@@ -25,9 +32,9 @@ public:
 
 
 struct Pixel {
-	std::vector<Ray>	rays;
-	Vec3f				cPos; // relative xy-coordinate on RT canvas of width 1
-	ARGBColor			color;
+	Rays		rays;
+	Vec3f		cPos; // relative xy-coordinate on RT canvas of width 1
+	ARGBColor	color;
 	Pixel(const Vec3f& cPos, int smoothingFactor, float tan, const Vec3f& pos);
 	~Pixel(void);
 	Pixel(const Pixel& other);
@@ -54,6 +61,7 @@ public:
 	Matrix& operator=(const Matrix& other);
 	Fov   get_fov(void);
 	float get_fovDegree(void);
+	int   get_sm(void);
 };
 
 
@@ -66,16 +74,19 @@ protected:
 	float				_roll;	// Camera tilt (aviation term 'roll') relative to its optical axis (z-axis)
 	float				_flybyRadius;
 public:
-	a_scenerys_t		scenerys;
-	a_scenerys_t		objsIdx;
-	a_scenerys_t		lightsIdx;
+	Scenerys		scenerys;
+	Scenerys		objsIdx;
+	Scenerys		lightsIdx;
 	PhotonMap			phMap;
-	ARGBColor 			ambient, space;
-	int					recursionDepth;
-	float				softShadowLength;
-	float				softShadowSoftness;
-	MapType				displayedPhMap;
-	bool				dualReflRefr;
+	Lighting 			ambient;
+	Lighting			background;
+	int					depth;
+	int					paths;
+	MapType				photonMap;
+	TracingType			tracingType;
+	bool				ambientLight;
+	bool				directLight;
+	bool				shadowRays;
 	Camera(const MlxImage& img);
 	~Camera(void);
 	Camera(const Camera& other);
@@ -94,9 +105,8 @@ public:
 	static void resetRays(Camera* camera, size_t begin, size_t end);
 	bool	resetFovDegree(float degree);
 	void	resetSmoothingFactor(int smoothingFactor);
-	void	resetRecursionDepth(int recursionDepth);
-	void	resetSoftShadowLength(float softShadowLength);
-	void	resetSoftShadowSoftness(float softShadowSoftness);
+	void	resetRecursionDepth(int depth);
+	void	resetPathsPerRay(int key);
 	void	changePhotonMap(MapType type);
 	void	changeOther(Controls key);
 	void	resetRoll(float roll);
@@ -106,10 +116,14 @@ public:
 	void	rayTracing_lll(size_t begin, size_t end);
 	static void	rayTracing(Camera* camera, size_t begin, size_t end);
 	bool	traceRay(Ray& ray, int r = 0);
-	void	reflections(Ray& ray, const HitRecord& record, int r);
-	void	refractions(Ray& ray, const HitRecord& record, int r);
+	void	ambientLighting(Ray& ray, const HitRecord& rec);
+	void	directLightings(Ray& ray, const HitRecord& rec, int r);
+	void	transparentSadow(Ray& ray, const HitRecord& rec, float distTolight, int r);
+	void	reflections(Ray& ray, const HitRecord& rec, float reflective, int r);
+	void	refractions(Ray& ray, const HitRecord& rec, int r);
 	void	phMapLightings(Ray& ray, const A_Scenery& scenery);
-	float	softShadowMultiplier(Ray& ray, float distToLight);
+	void	pathTracing(Ray& ray, float fuzz, int r = 0);
+	bool	tracePath(Ray& ray, int r = 0, bool shader = false);
 	void	calculateFlybyRadius(void);
 	void 	runThreadRoutine(int routine, MlxImage* img = NULL);
 
@@ -117,6 +131,5 @@ public:
 	friend	std::istringstream& operator>>(std::istringstream& is, Camera& camera);
 };
 
-// Non member functions
 
 #endif /* CAMERA_HPP */

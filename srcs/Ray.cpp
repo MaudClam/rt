@@ -1,28 +1,6 @@
 #include "Ray.hpp"
 
 
-// Class PhotonPath
-
-PhotonPath::PhotonPath(void) : r(false), d(false), v(false) {}
-
-PhotonPath::~PhotonPath(void) {}
-
-PhotonPath::PhotonPath(const PhotonPath& other) :
-r(other.r),
-d(other.d),
-v(other.d)
-{}
-
-PhotonPath& PhotonPath::operator=(const PhotonPath& other){
-	if (this != &other) {
-		r = other.r;
-		d = other.d;
-		v = other.v;
-	}
-	return *this;
-}
-
-
 // struct HitRecord
 
 HitRecord::HitRecord(void) :
@@ -63,20 +41,20 @@ HitRecord& HitRecord::operator=(const HitRecord& other) {
 	return *this;
 }
 
-// sruct ColorSafe
+// sruct ColorRecord
 
-ColorSafe::ColorSafe(Ray& ray) : shine(ray.shine.val), color(ray.color.val) {
+ColorRecord::ColorRecord(Ray& ray) : shine(ray.shine.val), color(ray.color.val) {
 	ray.shine.val = ray.color.val = 0;
 }
 
-ColorSafe::~ColorSafe(void) {}
+ColorRecord::~ColorRecord(void) {}
 
-ColorSafe::ColorSafe(const ColorSafe& other) :
+ColorRecord::ColorRecord(const ColorRecord& other) :
 shine(other.shine),
 color(other.color)
 {}
 
-ColorSafe& ColorSafe::operator=(const ColorSafe& other) {
+ColorRecord& ColorRecord::operator=(const ColorRecord& other) {
 	if (this != &other) {
 		shine = other.shine;
 		color = other.color;
@@ -160,34 +138,34 @@ Ray& Ray::operator=(const Ray& other) {
 	return *this;
 }
 
-Ray& Ray::operator=(const HitRecord& record) {
-	pov = record.pov;
-	dir = record.dir;
-	norm = record.norm;
-	hit = record.hit;
-	scnr = record.scnr;
+Ray& Ray::operator=(const HitRecord& rec) {
+	pov = rec.pov;
+	dir = rec.dir;
+	norm = rec.norm;
+	hit = rec.hit;
+	scnr = rec.scnr;
 	return *this;
 }
 
-Ray& Ray::operator=(const ColorSafe& colorSafe) {
-	shine.val = colorSafe.shine;
-	color.val = colorSafe.color;
+Ray& Ray::operator=(const ColorRecord& cRec) {
+	shine.val = cRec.shine;
+	color.val = cRec.color;
 	return *this;
 }
 
-Ray& Ray::restore(const HitRecord& record) {
-	*this = record;
+Ray& Ray::restore(const HitRecord& rec) {
+	*this = rec;
 	return *this;
 }
 
-Ray& Ray::restore(const ColorSafe& colorSafe) {
-	*this = colorSafe;
+Ray& Ray::restore(const ColorRecord& cRec) {
+	*this = cRec;
 	return *this;
 }
 
-Ray& Ray::restore(const HitRecord& record, const ColorSafe& colorSafe) {
-	restore(record);
-	restore(colorSafe);
+Ray& Ray::restore(const HitRecord& rec, const ColorRecord& cRec) {
+	restore(rec);
+	restore(cRec);
 	return *this;
 }
 
@@ -200,47 +178,6 @@ Ray& Ray::getNormal(void) {
 	movePovByDirToDist();
 	scnr->getNormal(*this);
 	return *this;
-}
-
-bool Ray::closestScenery(a_scenerys_t& scenerys, float maxDistance, Hit target) {
-	float		_distance = maxDistance;
-	Hit			_hit = target;
-	A_Scenery*	_closest = NULL;
-	segments.clear();
-	for (auto scenery = scenerys.begin(), end = scenerys.end(); scenery != end; ++scenery) {
-		if ( (*scenery)->combineType == END ) {
-			if ( (*scenery)->intersection(set_hit(target)) && _distance > dist ) {
-				_closest = *scenery;
-				_distance = dist;
-				_hit = hit;
-				if (target == ALL_SHADOWS) {
-					intersections.activate(*scenery);
-					emplace(intersections, false);
-				}
-			}
-		} else {
-			combine(scenery, end, _distance, target);
-			if (scnr) {
-				_closest = scnr;
-				_distance = dist;
-				_hit = hit;
-			}
-		}
-		if (target == ANY_SHADOW && _closest) {
-			dist = _distance;
-			hit = _hit;
-			scnr = _closest;
-			return true;
-		}
-	}
-	if (_closest) {
-		dist = _distance;
-		hit = _hit;
-		scnr = _closest;
-		return true;
-	}
-	scnr = NULL;
-	return false;
 }
 
 Ray& Ray::combination(void) {
@@ -308,7 +245,27 @@ Ray& Ray::subtraction(Segment& segment1, Segment& segment2) {
 	return *this;
 }
 
-Ray& Ray::combine(a_scenerys_it& scenery, a_scenerys_it& end, float distance, Hit target) {
+Ray& Ray::intersection(Segment& segment1, Segment& segment2) {
+//	the result of the operation is placed in segment1
+//	∅ ∩ a2 = ∅; a1 ∩ ∅ = ∅; ∅ ∩ ∅ = ∅;
+	if (!segment1.empty() && !segment2.empty()) {
+		if (segment1.a.d > segment2.b.d || segment2.a.d > segment1.b.d) {
+			segment1.removed = true;
+			return *this;
+		}
+		if (segment1.a.d < segment2.a.d) {
+			segment1.a = segment2.a;
+		}
+		if (segment1.b.d > segment2.b.d) {
+			segment1.b = segment2.b;
+		}
+	} else {
+		segment1.removed = true;
+	}
+	return *this;
+}
+
+Ray& Ray::combine(auto& scenery, auto& end, float distance, Hit target) {
 	for (; scenery != end; ++scenery) {
 		if ( (*scenery)->intersection(set_hit(target)) ) {
 			intersections.activate(*scenery);
@@ -332,46 +289,45 @@ Ray& Ray::combine(a_scenerys_it& scenery, a_scenerys_it& end, float distance, Hi
 	return *this;
 }
 
-Ray& Ray::ambientLiting(const HitRecord& record, const ARGBColor& ambient) {
-	float k = record.norm * record.dir * -1;
-	if (k > 0)
-		collectLight(record.scnr->get_iColor(record), ambient, k);
-	return *this;
-}
-
-Ray& Ray::directLitings(const HitRecord& record, a_scenerys_t& scenerys, a_scenerys_t& lightsIdx) {
-	movePovByNormal(EPSILON);
-	for (auto light = lightsIdx.begin(), end = lightsIdx.end(); light != end; ++light) {
-		float k = (*light)->lighting(*this);
-		if (k > 0) {
-			if (!closestScenery(scenerys, dist, ANY_SHADOW)) {
-				collectLight(record.scnr->get_iColor(record), k);
-				collectShine(record.dir, record.scnr->specular);
+bool Ray::closestScenery(Scenerys& scenerys, float maxDistance, Hit target) {
+	float		_distance = maxDistance;
+	Hit			_hit = target;
+	A_Scenery*	_closest = NULL;
+	segments.clear_();
+	for (auto scenery = scenerys.begin(), end = scenerys.end(); scenery != end; ++scenery) {
+		if ( (*scenery)->combineType == END ) {
+			if ( (*scenery)->intersection(set_hit(target)) && _distance > dist ) {
+				_closest = *scenery;
+				_distance = dist;
+				_hit = hit;
+				if (target == ALL_SHADOWS) {
+					intersections.activate(*scenery);
+					emplace(intersections, false);
+				}
+			}
+		} else {
+			combine(scenery, end, _distance, target);
+			if (scnr) {
+				_closest = scnr;
+				_distance = dist;
+				_hit = hit;
 			}
 		}
+		if (target == ANY_SHADOW && _closest) {
+			dist = _distance;
+			hit = _hit;
+			scnr = _closest;
+			return true;
+		}
 	}
-	restore(record);
-	return *this;
-}
-
-Ray& Ray::intersection(Segment& segment1, Segment& segment2) {
-//	the result of the operation is placed in segment1
-//	∅ ∩ a2 = ∅; a1 ∩ ∅ = ∅; ∅ ∩ ∅ = ∅;
-	if (!segment1.empty() && !segment2.empty()) {
-		if (segment1.a.d > segment2.b.d || segment2.a.d > segment1.b.d) {
-			segment1.removed = true;
-			return *this;
-		}
-		if (segment1.a.d < segment2.a.d) {
-			segment1.a = segment2.a;
-		}
-		if (segment1.b.d > segment2.b.d) {
-			segment1.b = segment2.b;
-		}
-	} else {
-		segment1.removed = true;
+	if (_closest) {
+		dist = _distance;
+		hit = _hit;
+		scnr = _closest;
+		return true;
 	}
-	return *this;
+	scnr = NULL;
+	return false;
 }
 
 

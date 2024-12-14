@@ -12,9 +12,9 @@
 
 class	MlxImage;
 class	Camera;
+
 typedef std::vector<std::string>				stringSet_t;
 typedef std::vector<float>						floatSet_t;
-typedef std::vector<Camera>						cameras_t;
 typedef	std::random_device						rand_device_t;
 typedef	std::mt19937							rand_gen_t;
 typedef	std::uniform_real_distribution<float>	rand_distr_t;
@@ -30,28 +30,30 @@ enum MsgType {
 	WRNG_PARSING_ERROR3
 };
 
+
+struct Cameras : public std::vector<Camera> {
+	Cameras(void);
+	~Cameras(void);
+	Cameras& clear_(int n);
+};
+
+
 struct Scene {
 	const stringSet_t nicks {
 		"R","A","c","l","ls","ll","sp"
 	};
-	const floatSet_t softShadowLengths {
-		1., 1.1, 1.3, 1.5, 1.7, 1.9, 2.1, 2.3, 2.5, 3., 3.5, 4., 4.5, 5., 5.5, 6., 6.5, 7., 7.5, 8., 8.5, 9., 9.5, 100.0
-	};
-	const floatSet_t softShadowSoftnesses {
-		1.1, 1.3, 1.5, 1.7, 1.9, 2.3, 2.7, 3.1, 3.5, 3.9, 4.3, 4.7, 5.1, 5.5, 5.9, 6.3, 6.7, 7.1, 7.5
-	};
-	MlxImage&		img;
-	a_scenerys_t	scenerys;
-	a_scenerys_t	objsIdx;
-	a_scenerys_t	lightsIdx;
-	cameras_t		cameras;
-	PhotonMap		phMap;
+	MlxImage&	img;
+	Scenerys	scenerys;
+	Scenerys	objsIdx;
+	Scenerys	lightsIdx;
+	Cameras		cameras;
+	PhotonMap	phMap;
 private:
-	Vec2i			_resolution;
-	std::string		_header;
-	Lighting		_ambient;
-	Lighting		_space;
-	int				_currentCamera;
+	Vec2i		_resolution;
+	std::string	_header;
+	Lighting	_ambient;
+	Lighting	_background;
+	int			_currentCamera;
 public:
 	Scene(MlxImage& img);
 	~Scene(void);
@@ -75,10 +77,8 @@ public:
 	void rotateCamera(int ctrl);
 	void flybyCamera(void);
 	void changeCamerasOptions(int key, int option);
-	float giveValue(const floatSet_t& set, float val, int key);
 	friend std::ostream& operator<<(std::ostream& o, const Scene& sc);
 };
 	int  outputFile(const char* filename);
-
 
 #endif /* SCENE_HPP */

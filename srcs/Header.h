@@ -7,33 +7,38 @@
 # define DEBUG_PATH			"/Users/uru/Library/Mobile Documents/com~apple~CloudDocs/42_Projects/rt/"
 # define CONTROLS_FILE		"scenes/controls"
 # define PARSING_LOGFILE	"parsing.log"
-# define SUCCESS			0
-# define ERROR				-1
-# define DEBUG_MODE			true
-# define DEBUG_KEYS			false
-# define DEBUG_MOUSE		false
-# define RESOLUTION_MIN 	100
-# define RESOLUTION_MAX 	1920
-# define DEFAULT_RESOLUTION 800,600
-# define PRECISION			1e-9
-# define EPSILON 			1e-3
-# define _INFINITY			100
-# define GAMMA				2.
-# define BASE				Vec3f(0,0,0),Vec3f(0,0,1)
+# define SUCCESS					0
+# define ERROR						-1
+# define DEBUG_MODE					true
+# define DEBUG_KEYS					false
+# define DEBUG_MOUSE				false
+# define RESOLUTION_MIN 			100
+# define RESOLUTION_MAX 			1920
+# define DEFAULT_RESOLUTION 		800,600
+# define PRECISION					1e-9
+# define EPSILON 					1e-3
+# define _INFINITY					100
+# define GAMMA						2.
+# define BASE						Vec3f(0,0,0),Vec3f(0,0,1)
 # define MAX_PHOTONS_NUMBER			10000000
 # define MAX_ESTIMATE_PHOTONS		1000
 # define MAX_PHOTONS_GRID_STEP		1.
 # define TOTAL_PHOTONS_POWER		1
-# define SMOOTHING_FACTOR			1
-# define RECURSION_DEPTH			5
-# define SOFT_SHADOW_LENGTH_LIMIT	60
-# define SOFT_SHADOW_SOFTNESS		1.9
+# define DAFAULT_SMOOTHING_FACTOR	1
+# define DEFAULT_RECURSION_DEPTH	5
+# define DAFAULT_PATHS_PER_RAY		pprs[2]
+# define SHADOW_ANTINOISES_MIN		.4
+# define SHADOW_ANTINOISES_MAX		3.
+# define SHADOW_REFL_FADING_FACTOR	2
+# define SHADOW_REFR_FADING_FACTOR	2
+# define SHADOW_DIFF_FADING_FACTOR	200
 # define PIXELS_PER_THREAD			4000
 # define RESTORE_RAYS				1
 # define RESET_RAYS					2
 # define TAKE_PICTURE				3
 # define RAY_TRACING				4
 
+const int pprs[] = {0,25,50,100,200};	// set of values ​​of the variable 'paths'
 
 enum Controls {
 	OFF,
@@ -62,13 +67,17 @@ enum Controls {
 	STEP_ROTATION		= 1,
 	FLYBY_STEP			= 20,
 	FLYBY_RADIUS_MAX	= 100,
-	CHANGE_SMOOTHING_FACTOR,
-	CHANGE_RECURSION_DEPTH,
-	CHANGE_SOFT_SHADOW_LENGTH,
-	CHANGE_SOFT_SHADOW_SOFTNESS,
-	CHANGE_PHOTON_MAP,
-	CHANGE_OTHER,
-	OTHER_DUAL
+	SMOOTHING_FACTOR,
+	RECURSION_DEPTH,
+	PHOTON_MAP,
+	PATHS_PER_RAY,
+	OTHER,
+	AMBIENT_LIGHTING,
+	DIRECT_LIGHTING,
+	BACKGROUND_LIGHT,
+	SHADOW_RAYS,
+	RAYTRACING,
+	PATHTRACING
 };
 
 class MlxImage;

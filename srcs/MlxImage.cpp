@@ -279,12 +279,11 @@ int		keyDown(int key, void* param) {
 	if ( currentCameraRotation(hold.SHIFT_(),  _ARROWS_AND_MINUS_PLUS(key)) ) { return SUCCESS; }
 	if ( flybyAroundTheScene(  hold.UNHOLD_(), _KEY(KEY_SPACE == key))      ) { return SUCCESS; }
 	
-	if ( camerasOptions(CHANGE_SMOOTHING_FACTOR,		hold.UNHOLD_(),     _NUMERIC(key))    ) { return SUCCESS; }
-	if ( camerasOptions(CHANGE_RECURSION_DEPTH,			hold.SHIFT_(),      _NUMERIC(key))    ) { return SUCCESS; }
-	if ( camerasOptions(CHANGE_SOFT_SHADOW_LENGTH,		hold.CTRL_(),       _MINUS_PLUS(key)) ) { return SUCCESS; }
-	if ( camerasOptions(CHANGE_SOFT_SHADOW_SOFTNESS,	hold.CTRL_SHIFT_(), _MINUS_PLUS(key)) ) { return SUCCESS; }
-	if ( camerasOptions(CHANGE_PHOTON_MAP,				hold.CTRL_(), 		key)              ) { return SUCCESS; }
-	if ( camerasOptions(CHANGE_OTHER,					hold.UNHOLD_(), 	key)              ) { return SUCCESS; }
+	if ( camerasOptions(SMOOTHING_FACTOR,	hold.UNHOLD_(),		_NUMERIC(key))	) { return SUCCESS; }
+	if ( camerasOptions(RECURSION_DEPTH,	hold.SHIFT_(),		_NUMERIC(key))	) { return SUCCESS; }
+	if ( camerasOptions(PHOTON_MAP,			hold.CTRL_(),		key)			) { return SUCCESS; }
+	if ( camerasOptions(PATHS_PER_RAY,		hold.CTRL_(),		_NUMERIC(key))	) { return SUCCESS; }
+	if ( camerasOptions(OTHER,				hold.UNHOLD_(),		key)			) { return SUCCESS; }
 	return SUCCESS;
 }
 
@@ -293,6 +292,7 @@ int		keyUp(int key, void* param) {
 	HoldKeys& hold(var.img->hold);
 	if ( DEBUG_KEYS ) { std::cout << "keyUp: " << key << "\n"; }
 	if ( hold.unhold(key) ) return SUCCESS;
+	// Code for other keys
 	return SUCCESS;
 }
 
@@ -319,8 +319,7 @@ int		mouseKeyUp(int button, void* param) {
 }
 
 int		mouseMove(int button, void* param) {
-	(void)param;
-	(void)button;
+	(void)param; (void)button;
 	Vec2i	v;
 	mlx_mouse_get_pos(var.img->get_win(), &v.x, &v.y);
 	if (DEBUG_MOUSE && var.img->isInWinowXY(v)) {
@@ -487,13 +486,7 @@ bool	flybyAroundTheScene(bool hold,  int val) {
 
 bool	camerasOptions(int option, bool hold, int val) {
 	if (hold && val != ERROR) {
-		if (option == CHANGE_SOFT_SHADOW_LENGTH || option == CHANGE_SOFT_SHADOW_SOFTNESS) {
-			switch (val) {
-				case KEY_MINUS: val = PREVIOUS; break;
-				case KEY_PLUS:  val = NEXT; break;
-				default:		return false;
-			}
-		} else if (option == CHANGE_PHOTON_MAP) {
+		if (option == PHOTON_MAP) {
 			switch (val) {
 				case KEY_N:	val = NO; break;
 				case KEY_C: val = CAUSTIC; break;
@@ -501,9 +494,14 @@ bool	camerasOptions(int option, bool hold, int val) {
 				case KEY_V:	val = VOLUME; break;
 				default:	return false;
 			}
-		} else if (option == CHANGE_OTHER) {
+		} else if (option == OTHER) {
 			switch (val) {
-				case KEY_D:	val = OTHER_DUAL; break;
+				case KEY_A:	val = AMBIENT_LIGHTING; break;
+				case KEY_D:	val = DIRECT_LIGHTING; break;
+				case KEY_B:	val = BACKGROUND_LIGHT; break;
+				case KEY_S:	val = SHADOW_RAYS; break;
+				case KEY_R:	val = RAYTRACING; break;
+				case KEY_P:	val = PATHTRACING; break;
 				default:	return false;
 			}
 		}

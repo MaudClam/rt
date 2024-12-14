@@ -14,8 +14,8 @@ public:
 	~Light(void);
 	Light(const Light& other);
 	Light* clone(void) const;
-	inline int	get_iColor(const HitRecord& record) const {
-		(void)record;
+	inline int	get_iColor(const HitRecord& rec) const {
+		(void)rec;
 		return _color.val; }
 	inline void set_nick(const std::string& nick) { _nick = nick; }
 	inline void set_name(const std::string& name) { _name = name; }

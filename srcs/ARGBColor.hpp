@@ -7,13 +7,15 @@
 # include <vector>
 
 
-const float _1_255 = 1. / 255.;
+const float _1_255 = 1. / 255;
 enum colorFormat { GRAY_SCALE=1, RGB=3, ARGB=4 };
 std::string colorFormat(int bpp);
 int   i2limits(int num, int min, int max);
 float f2limits(float num, float min, float max);
 float max_(float a, float b);
 float max_(float a, float b, float c);
+float min_(float a, float b);
+float min_(float a, float b, float c);
 
 
 struct ARGBColor {
@@ -33,6 +35,7 @@ struct ARGBColor {
 	ARGBColor& operator=(const ARGBColor& c);
 	inline ARGBColor operator+(const ARGBColor& c) const { return ARGBColor().addition(*this, c); }
 	ARGBColor& addition(const ARGBColor& c1, const ARGBColor& c2);
+	ARGBColor& addition(const ARGBColor& c1, const ARGBColor& c2, const ARGBColor& c3);
 	inline ARGBColor operator-(const ARGBColor& c) const { return ARGBColor(*this).substract(*this, c); }
 	ARGBColor& substract(const ARGBColor& c1, const ARGBColor& c2);
 	inline ARGBColor operator*(const ARGBColor& c) const { return ARGBColor(*this).product(*this, c); }

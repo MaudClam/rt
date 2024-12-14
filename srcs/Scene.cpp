@@ -1,6 +1,18 @@
 #include "Scene.hpp"
 
 
+// struct Cameras
+
+Cameras::Cameras(void) : std::vector<Camera>() {}
+Cameras::~Cameras(void) {}
+Cameras& Cameras::clear_(int n) {
+	Cameras tmp;
+	if (n) tmp.reserve(n);
+	swap(tmp);
+	return *this;
+}
+
+
 // Class Scene
 
 Scene::Scene(MlxImage& img) :
@@ -13,10 +25,10 @@ phMap(),
 _resolution(DEFAULT_RESOLUTION),
 _header(),
 _ambient(1),
-_space(1),
+_background(1),
 _currentCamera(0) {
 	img.set_scene(this);
-	_space.invertBrightness();
+	_background.invertBrightness();
 }
 
 Scene::~Scene(void) {
@@ -42,7 +54,7 @@ phMap(other.phMap),
 _resolution(other._resolution),
 _header(other._header),
 _ambient(other._ambient),
-_space(other._space),
+_background(other._background),
 _currentCamera(other._currentCamera)
 {}
 
@@ -56,7 +68,7 @@ Scene& Scene::operator=(const Scene& other) {
 		_resolution = other._resolution;
 		_header = other._header;
 		_ambient = other._ambient;
-		_space = other._space;
+		_background = other._background;
 		_currentCamera = other._currentCamera;
 	}
 	return *this;
@@ -228,7 +240,7 @@ int Scene::set_any(std::istringstream is) {
 	std::string	iD;
 	std::string phMapType;
 	size_t		id = 0;
-	
+
 	is >> iD;
 	for (; id < nicks.size(); id++) {
 		if (nicks[id] == iD)
@@ -257,9 +269,9 @@ int Scene::set_any(std::istringstream is) {
 		}
 		case 1: {// A AmbientLightning
 			is >> _ambient;
-//			_space.light = img.white;
-			_space = _ambient;
-			_space.invertBrightness();
+//			_background.light = img.white;
+			_background = _ambient;
+			_background.invertBrightness();
 			break;
 		}
 		case 2: {// c camera
@@ -342,12 +354,13 @@ void Scene::makeLookatsForCameras(void) {
 	for (auto cam = cameras.begin(), End = cameras.end(); cam != End; ++cam) {
 		cam->lookatCamera(cam->get_pos());
 		cam->initMatrix();
-		cam->ambient = _ambient.light;
-		cam->space = _space.light;
+		cam->ambient = _ambient;
+		cam->background = _background;
 	}
 }
 
 void Scene::rt(void) {
+	if (DEBUG_MODE) std::cout << "Tracing..." << std::endl;
 	Camera* cCam = &cameras[_currentCamera];
 	cCam->runThreadRoutine(RAY_TRACING);
 	cCam->runThreadRoutine(TAKE_PICTURE, &this->img);
@@ -355,159 +368,149 @@ void Scene::rt(void) {
 }
 
 void Scene::selectCamera(int ctrl) {
-	switch (ctrl) {
-		case NEXT:		if (!set_currentCamera(_currentCamera +  1)) return;
-			break;
-		case PREVIOUS:	if (!set_currentCamera(_currentCamera -  1)) return;
-			break;
-		default:		if (!set_currentCamera(ctrl)) return;
-			break;
+	if (cameras[_currentCamera].tracingType == RAY) {
+		switch (ctrl) {
+			case NEXT:		if (!set_currentCamera(_currentCamera +  1)) return;
+				break;
+			case PREVIOUS:	if (!set_currentCamera(_currentCamera -  1)) return;
+				break;
+			default:		if (!set_currentCamera(ctrl)) return;
+				break;
+		}
+		img.flyby = OFF;
+		rt();
 	}
-	img.flyby = OFF;
-	rt();
 }
 
 void Scene::changeCameraFOV(int ctrl) {
-	Camera& cam(cameras[_currentCamera]);
-	float fovDegree = cam.get_fovDegree();
-	switch (ctrl) {
-		case INCREASE:	if (!cam.resetFovDegree(fovDegree + (float)STEP_FOV)) return;
-			break;
-		case DECREASE:	if (!cam.resetFovDegree(fovDegree - (float)STEP_FOV)) return;
-			break;
-		default:		if (!cam.resetFovDegree((float)ctrl)) return;
-			break;
+	if (cameras[_currentCamera].tracingType == RAY) {
+		Camera& cam(cameras[_currentCamera]);
+		float fovDegree = cam.get_fovDegree();
+		switch (ctrl) {
+			case INCREASE:	if (!cam.resetFovDegree(fovDegree + (float)STEP_FOV)) return;
+				break;
+			case DECREASE:	if (!cam.resetFovDegree(fovDegree - (float)STEP_FOV)) return;
+				break;
+			default:		if (!cam.resetFovDegree((float)ctrl)) return;
+				break;
+		}
+		rt();
 	}
-	rt();
 }
 
 void Scene::moveCamera(int ctrl) {
-	Camera&   cam(cameras[_currentCamera]);
-	Position  pos(cam.get_pos());
-	switch (ctrl) {
-		case RIGHT:		pos.p.x += (float)STEP_MOVE; break;
-		case LEFT:		pos.p.x -= (float)STEP_MOVE; break;
-		case UP:		pos.p.y += (float)STEP_MOVE; break;
-		case DOWN:		pos.p.y -= (float)STEP_MOVE; break;
-		case FORWARD:	pos.p.z += (float)STEP_MOVE; break;
-		case BACKWARD:	pos.p.z -= (float)STEP_MOVE; break;
-		default:		return;
+	if (cameras[_currentCamera].tracingType == RAY) {
+		Camera&   cam(cameras[_currentCamera]);
+		Position  pos(cam.get_pos());
+		switch (ctrl) {
+			case RIGHT:		pos.p.x += (float)STEP_MOVE; break;
+			case LEFT:		pos.p.x -= (float)STEP_MOVE; break;
+			case UP:		pos.p.y += (float)STEP_MOVE; break;
+			case DOWN:		pos.p.y -= (float)STEP_MOVE; break;
+			case FORWARD:	pos.p.z += (float)STEP_MOVE; break;
+			case BACKWARD:	pos.p.z -= (float)STEP_MOVE; break;
+			default:		return;
+		}
+		cam.lookatCamera(pos);
+		rt();
 	}
-	cam.lookatCamera(pos);
-	rt();
 }
 
 void Scene::rotateCamera(int ctrl) {
-	Camera&  cam(cameras[_currentCamera]);
-	Position pos(cam.get_pos());
-	switch (ctrl) {
-		case YAW_RIGHT:		pos.n.turnAroundY(degree2radian((float)STEP_ROTATION)); break;
-		case YAW_LEFT:		pos.n.turnAroundY(degree2radian(-(float)STEP_ROTATION)); break;
-		case PITCH_UP:		pos.n.turnAroundX(degree2radian((float)STEP_ROTATION)); break;
-		case PITCH_DOWN:	pos.n.turnAroundX(degree2radian(-(float)STEP_ROTATION)); break;
-		case ROLL_RIGHT:	cam.resetRoll(cam.get_rollDegree() + (float)STEP_ROTATION); rt(); return;
-		case ROLL_LEFT:		cam.resetRoll(cam.get_rollDegree() - (float)STEP_ROTATION); rt(); return;
-		default:			return;
+	if (cameras[_currentCamera].tracingType == RAY) {
+		Camera&  cam(cameras[_currentCamera]);
+		Position pos(cam.get_pos());
+		switch (ctrl) {
+			case YAW_RIGHT:		pos.n.turnAroundY(degree2radian((float)STEP_ROTATION)); break;
+			case YAW_LEFT:		pos.n.turnAroundY(degree2radian(-(float)STEP_ROTATION)); break;
+			case PITCH_UP:		pos.n.turnAroundX(degree2radian((float)STEP_ROTATION)); break;
+			case PITCH_DOWN:	pos.n.turnAroundX(degree2radian(-(float)STEP_ROTATION)); break;
+			case ROLL_RIGHT:	cam.resetRoll(cam.get_rollDegree() + (float)STEP_ROTATION); rt(); return;
+			case ROLL_LEFT:		cam.resetRoll(cam.get_rollDegree() - (float)STEP_ROTATION); rt(); return;
+			default:			return;
+		}
+		cam.lookatCamera(pos);
+		rt();
 	}
-	cam.lookatCamera(pos);
-	rt();
 }
 
 void Scene::flybyCamera(void) {
-	Camera&		cam(cameras[_currentCamera]);
-	Position	pos(cam.get_pos());
-	float angle = degree2radian(FLYBY_STEP / 10.), radius = cam.get_flybyRadius();
-	if (img.flyby == CLOCKWISE) {
-		angle = -angle;
+	if (cameras[_currentCamera].tracingType == RAY) {
+		Camera&		cam(cameras[_currentCamera]);
+		Position	pos(cam.get_pos());
+		float angle = degree2radian(FLYBY_STEP / 10.), radius = cam.get_flybyRadius();
+		if (img.flyby == CLOCKWISE) {
+			angle = -angle;
+		}
+		pos.p.z += radius;
+		pos.p.turnAroundY(angle);
+		pos.n.turnAroundY(-angle).normalize();
+		pos.p.z -= radius;
+		cam.lookatCamera(pos);
+		rt();
+	} else {
+		img.flyby = OFF;
 	}
-	pos.p.z += radius;
-	pos.p.turnAroundY(angle);
-	pos.n.turnAroundY(-angle).normalize();
-	pos.p.z -= radius;
-	cam.lookatCamera(pos);
-	rt();
 }
 
 void Scene::changeCamerasOptions(int key, int option) {
 	if (cameras.empty()) return;
-	float val = 0;
 	switch (option) {
-		case CHANGE_SMOOTHING_FACTOR: {
-			if (key == 0 || key > 4) return;
+		case SMOOTHING_FACTOR: {
+			if (key == 0 || key > 4 || key == cameras[0].get_sm()) return;
 			break;
 		}
-		case CHANGE_SOFT_SHADOW_LENGTH: {
-			val = cameras[0].softShadowLength;
-			float _val = giveValue(softShadowLengths, val, key);
-			if (val == _val) return;
-			val = _val;
-			if (DEBUG_MODE) std::cout << "softShadowLengths: " << val << std::endl;
+		case RECURSION_DEPTH: {
+			if (key == cameras[0].depth) return;
 			break;
 		}
-		case CHANGE_SOFT_SHADOW_SOFTNESS: {
-			val = cameras[0].softShadowSoftness;
-			float _val = giveValue(softShadowSoftnesses, val, key);
-			if (val == _val) return;
-			val = _val;
-			if (DEBUG_MODE) std::cout << "softShadowSoftnesses: " << val << std::endl;
+		case PATHS_PER_RAY: {
+			if (!(cameras[0].shadowRays || cameras[0].tracingType == PATH)) return;
+			if (key == 0 || key > 4 || pprs[key] == cameras[0].paths) return;
+			img.flyby = OFF;
 			break;
 		}
-		case CHANGE_PHOTON_MAP: {
-			if (cameras[0].phMap.type == NO ||
-				(cameras[0].displayedPhMap == NO && (MapType)key == NO))
-				return;
+		case PHOTON_MAP: {
+			if (cameras[0].phMap.type == NO) return;
+			if (cameras[0].tracingType == PATH) return;
+			if (cameras[0].photonMap == NO && (MapType)key == NO) return;
+			img.flyby = OFF;
 			break;
+		}
+		case OTHER: {
+			switch (key) {
+				case DIRECT_LIGHTING: { if (cameras[0].tracingType == PATH) return;
+					break;
+				}
+				case SHADOW_RAYS: { if (cameras[0].tracingType == PATH) return;
+					break;
+				}
+				case RAYTRACING: { if (cameras[0].tracingType == RAY) return;
+					img.flyby = OFF;
+					break;
+				}
+				case PATHTRACING: { if (cameras[0].tracingType == PATH) return;
+					img.flyby = OFF;
+					break;
+				}
+				default:
+					break;
+			}
 		}
 		default:
 			break;
 	}
 	for (auto cam = cameras.begin(), end = cameras.end(); cam != end; ++cam) {
 		switch (option) {
-			case CHANGE_SMOOTHING_FACTOR:
-				cam->resetSmoothingFactor(key);
-				break;
-			case CHANGE_RECURSION_DEPTH:
-				cam->resetRecursionDepth(key);
-				break;
-			case CHANGE_SOFT_SHADOW_LENGTH:
-				cam->resetSoftShadowLength(val);
-				break;
-			case CHANGE_SOFT_SHADOW_SOFTNESS:
-				cam->resetSoftShadowSoftness(val);
-				break;
-			case CHANGE_PHOTON_MAP: {
-				cam->changePhotonMap((MapType)key);
-				break;
-			}
-			case CHANGE_OTHER: {
-				cam->changeOther((Controls)key);
-				break;
-			}
-			default:
-				return;
+			case SMOOTHING_FACTOR:	cam->resetSmoothingFactor(key); break;
+			case RECURSION_DEPTH:	cam->resetRecursionDepth(key); break;
+			case PATHS_PER_RAY:		cam->resetPathsPerRay(key); break;
+			case PHOTON_MAP:		cam->changePhotonMap((MapType)key); break;
+			case OTHER:				cam->changeOther((Controls)key); break;
+			default: return;
 		}
 	}
 	rt();
-}
-
-float Scene::giveValue(const floatSet_t& set, float val, int key) {
-	size_t i = 0, size = set.size();
-	if (size > 0) {
-		while ( i < size && set[i] != val) {
-			i++;
-		}
-		if (i != size) {
-			switch (key) {
-				case NEXT:		i++; break;
-				case PREVIOUS:	i--; break;
-			}
-			if (i >= 0 && i < size)
-				val = set[i];
-		} else {
-			val = set[size / 2];
-		}
-	}
-	return val;
 }
 
 

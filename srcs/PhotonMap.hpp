@@ -8,9 +8,11 @@
 # include "A_Scenery.hpp"
 
 struct	Ray;
+struct	Rays;
 class	A_Scenery;
-typedef	std::vector<Ray>						photonRays_t;
-typedef	std::vector<A_Scenery*>					a_scenerys_t;
+struct	Scenerys;
+typedef	Rays		photonRays_t;
+
 
 struct ClasterKey {
 	MapType	type;
@@ -36,7 +38,7 @@ struct ClasterKey {
 
 struct Claster {
 	int			count;
-	traces_t	traces;
+	Traces	traces;
 	Claster(void);
 	Claster(const Claster& other);
 	~Claster(void);
@@ -68,9 +70,9 @@ private:
 	void swap_(PhotonMap& other);
 	void clear_(void);
 	void deleteTraces(void);
-	void settotalPow(a_scenerys_t& lightsIdx);
-	void photonRayTracing_lll(a_scenerys_t& scenerys, photonRays_t& rays);
-	void tracePhotonRay(a_scenerys_t& scenerys, Ray& ray);
+	void setTotalPow(Scenerys& lightsIdx);
+	void photonRayTracing_lll(Scenerys& scenerys, photonRays_t& rays);
+	void tracePhotonRay(Scenerys& scenerys, Ray& ray);
 	inline void counter(MapType type) {
 		switch (type) {
 			case GLOBAL:	_sizeGlobal++; return;
@@ -94,21 +96,21 @@ private:
 		it_bool.first->second.add_trace(trace);
 		counter(trace->type);
 	}
-	inline void get_traces(const ClasterKey& key, traces_t& rayTraces) const {
+	inline void get_traces(const ClasterKey& key, Traces& pathTracing) const {
 		auto search = find(key);
 		if (search != end()) {
-			rayTraces.insert_after(rayTraces.before_begin(), search->second.traces.begin(), search->second.traces.end());
+			pathTracing.insert_after(pathTracing.before_begin(), search->second.traces.begin(), search->second.traces.end());
 		}
 	}
 public:
 	inline float get_sqr(void) const { return gridStep * gridStep; }
-	inline void get_traces(const Vec3f& point, traces_t& rayTraces, MapType type) const {
-		rayTraces.clear();
+	inline void get_traces(const Vec3f& point, Traces& pathTracing, MapType type) const {
+		pathTracing.clear_();
 		ClasterKey	key(type, point, gridStep);
-		get_traces(key, rayTraces);
+		get_traces(key, pathTracing);
 	}
-	inline void get_traces27(const Vec3f& point, traces_t& rayTraces, MapType type) const {
-		rayTraces.clear();
+	inline void get_traces27(const Vec3f& point, Traces& pathTracing, MapType type) const {
+		pathTracing.clear_();
 		ClasterKey	key(type, point, gridStep);
 		int x_begin = key.x - 1, x_end = key.x + 2;
 		int y_begin = key.y - 1, y_end = key.y + 2;
@@ -116,13 +118,14 @@ public:
 		for (key.x = x_begin; key.x < x_end; key.x++)
 			for (key.y = y_begin; key.y < y_end; key.y++)
 				for (key.z = z_begin; key.z < z_end; key.z++) {
-					get_traces(key, rayTraces);
+					get_traces(key, pathTracing);
 				}
 	}
-	void make(a_scenerys_t& scenerys, a_scenerys_t& lightsIdx);
+	void make(Scenerys& scenerys, Scenerys& lightsIdx);
 	void lookat(const Position& eye, const LookatAux& aux, float roll);
 	void randomDirectionsSampling(int n, const Position& pos, const Power& pow, photonRays_t& rays, bool is_cosineDistr) const;
 	void outputPhotonMapParametrs(void);
 };
+
 
 #endif /* PHOTONMAP_HPP */

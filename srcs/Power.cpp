@@ -45,16 +45,30 @@ Power& Power::operator=(const ARGBColor& color) {
 }
 
 Power& Power::getARGBColor(ARGBColor& c) {
-	c.r = i2limits(std::round(r * 255.), 0, 255);
-	c.g = i2limits(std::round(g * 255.), 0, 255);
-	c.b = i2limits(std::round(b * 255.), 0, 255);
+	c.r = i2limits(int(r * 255.99), 0, 255);
+	c.g = i2limits(int(g * 255.99), 0, 255);
+	c.b = i2limits(int(b * 255.99), 0, 255);
 	return *this;
 }
 
 Power& Power::collectRGB(ARGBColor& c) {
-	r += c.r;
-	g += c.g;
-	b += c.b;
+	r += (_1_255 * c.r);
+	g += (_1_255 * c.g);
+	b += (_1_255 * c.b);
+	return *this;
+}
+
+Power& Power::minRGB(ARGBColor& c) {
+	r = std::min(r, _1_255 * c.r);
+	g = std::min(g, _1_255 * c.g);
+	b = std::min(b, _1_255 * c.b);
+	return *this;
+}
+
+Power& Power::maxRGB(ARGBColor& c) {
+	r = std::max(r, _1_255 * c.r);
+	g = std::max(g, _1_255 * c.g);
+	b = std::max(b, _1_255 * c.b);
 	return *this;
 }
 
@@ -83,6 +97,13 @@ Power& Power::product(const Power& p1, const Power& p2) {
 	r = p1.r * p2.r;
 	g = p1.g * p2.g;
 	b = p1.b * p2.b;
+	return *this;
+}
+
+Power& Power::normalize(float l) {
+	float _norm = norm();
+	if (_norm != 0)
+		product(l);
 	return *this;
 }
 

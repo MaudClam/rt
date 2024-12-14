@@ -13,13 +13,13 @@ c	0,25,0		0,-1,0		90
 
 #	Spheres
 #	center		diametr	color			specular	reflective	refractive	matIOR
-sp	-3,0.6,14	12		0xE0FFFF		500			0.0			1.0			1.33
+sp	-3,0.6,14	12		0xE0FFFF		500			0.0			1.0			1.5
 INTERSECTION
-sp	3,0.6,14	12		0xE0FFFF		500			0.0			1.0			1.33
+sp	3,0.6,14	12		0xE0FFFF		500			0.0			1.0			1.5
 INTERSECTION
-sp	0,0.7,8		12		0xE0FFFF		500			0.0			1.0			1.33
+sp	0,0.7,8		12		0xE0FFFF		500			0.0			1.0			1.5
 #
-sp	0,0,0		20		0xFFFFFF		500			0.2
+sp	0,0,0		20		0xFFFFFF		500			0.9
 SUBTRACTION
 sp	0,0,-6		12		0xFFFFFF
 SUBTRACTION
@@ -31,4 +31,4 @@ sp	-6,0,0		12		0xFFFFFF
 SUBTRACTION
 sp	0,0,0		19.5	0xFFFFFF		500
 UNION
-sp	0,-5004,0	10000	0xFFFFFF		1000		0.7
+sp	0,-5004,0	10000	0xFFFFFF		1000		0.2

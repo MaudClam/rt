@@ -80,6 +80,7 @@
 		66D166C82C3D9281002E6F7E /* A_Scenery.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = A_Scenery.cpp; sourceTree = "<group>"; };
 		66D166C92C3D9281002E6F7E /* A_Scenery.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; path = A_Scenery.hpp; sourceTree = "<group>"; };
 		66DAF1302CFD121A00458D00 /* random.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; path = random.hpp; sourceTree = "<group>"; };
+		66DAF1342D03D15700458D00 /* Average.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; path = Average.hpp; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -137,6 +138,7 @@
 				66D166C92C3D9281002E6F7E /* A_Scenery.hpp */,
 				667951912C5293BB009C1DDD /* ARGBColor.cpp */,
 				667951902C5293BB009C1DDD /* ARGBColor.hpp */,
+				66DAF1342D03D15700458D00 /* Average.hpp */,
 				667951772C427BFD009C1DDD /* camera.cpp */,
 				667951782C427BFD009C1DDD /* camera.hpp */,
 				665806E42CEA0CE400143501 /* geometry.cpp */,

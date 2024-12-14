@@ -89,6 +89,7 @@ Claster& Claster::operator=(const Claster& other) {
 // Class PhotonMap
 
 PhotonMap::PhotonMap(void) :
+clasters_t(),
 _sizeGlobal(0),
 _sizeCaustic(0),
 _sizeVolume(0),
@@ -100,6 +101,7 @@ type(NO)
 {}
 
 PhotonMap::PhotonMap(const PhotonMap& other) :
+clasters_t(),
 _sizeGlobal(0),
 _sizeCaustic(0),
 _sizeVolume(0),
@@ -152,7 +154,8 @@ void PhotonMap::swap_(PhotonMap& other) {
 }
 
 void PhotonMap::clear_(void) {
-	clear();
+	if (!empty())
+		clear();
 	counter(RESET);
 }
 
@@ -166,21 +169,21 @@ void PhotonMap::deleteTraces(void) {
 	clear_();
 }
 
-void PhotonMap::settotalPow(a_scenerys_t& lightsIdx) {
+void PhotonMap::setTotalPow(Scenerys& lightsIdx) {
 	for (auto light = lightsIdx.begin(), End = lightsIdx.end(); light != End; ++light) {
 		totalPow.addition(totalPow, Power((*light)->light.light));
 	}
 	totalPow.product(TOTAL_PHOTONS_POWER);
 }
 
-void PhotonMap::photonRayTracing_lll(a_scenerys_t& scenerys, photonRays_t& rays) {
+void PhotonMap::photonRayTracing_lll(Scenerys& scenerys, photonRays_t& rays) {
 	for (auto ray = rays.begin(), end = rays.end(); ray != end; ++ray) {
 		tracePhotonRay(scenerys, *ray);
 	}
 }
 
-void PhotonMap::tracePhotonRay(a_scenerys_t& scenerys, Ray& ray) {
-	if (ray.recursion <= RECURSION_DEPTH) {
+void PhotonMap::tracePhotonRay(Scenerys& scenerys, Ray& ray) {
+	if (ray.recursion <= DEFAULT_RECURSION_DEPTH) {
 		if (ray.closestScenery(scenerys, _INFINITY)) {
 			Power	color(ray.scnr->get_iColor(ray));
 			float	reflective = ray.scnr->reflective;
@@ -207,10 +210,10 @@ void PhotonMap::tracePhotonRay(a_scenerys_t& scenerys, Ray& ray) {
 	}
 }
 
-void PhotonMap::make(a_scenerys_t& scenerys, a_scenerys_t& lightsIdx) {
+void PhotonMap::make(Scenerys& scenerys, Scenerys& lightsIdx) {
 	if (type != NO) {
 		photonRays_t rays;
-		settotalPow(lightsIdx);
+		setTotalPow(lightsIdx);
 		for (auto it = lightsIdx.begin(), End = lightsIdx.end(); it != End; ++it) {
 			Power pow((*it)->light.light);
 			int n = pow.maxBand() / totalPow.maxBand() * totalPhotons;

@@ -10,7 +10,7 @@
 #
 # Each type of element separated by one or more line break(s).
 #
-# Each type of information from an element separated by one or more space(s).
+# Each type of information from an element separated by one or more background(s).
 #
 # Each element type except Resolution (1) can be set in any order in the file.
 #

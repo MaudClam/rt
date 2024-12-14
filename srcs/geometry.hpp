@@ -4,6 +4,7 @@
 # include <iomanip>
 # include <sstream>
 # include "Header.h"
+# include "random.hpp"
 
 template <class t> struct Vec2;
 template <class t> struct Vec3;
@@ -23,6 +24,7 @@ const float M_180_PI = 180. / M_PI;
 enum Hit { FRONT, BACK, OUTLINE, ANY_SHADOW, ALL_SHADOWS, INSIDE, OUTSIDE };
 enum CombineType { END=0, UNION, SUBTRACTION, INTERSECTION };
 enum MapType {NO, CAUSTIC, GLOBAL, VOLUME, RESET};
+enum TracingType { RAY, PATH };
 
 
 // Non class functions
@@ -39,6 +41,10 @@ float	reverse_(float n, float lim);
 int		reverse_(int n, int lim);
 float	cosineDistr(float x);
 float	inverseCumulativeDistr(float u);
+float	schlick(float cosine, float ref_idx);
+//float	shadowRaysFactor(float max = SHADOW_RAYS_MAX_FACTOR, float min = SHADOW_RAYS_MIN_FACTOR)
+float	shadowAntinoisesFactor(float refl, float refr, float diff);
+float	cosinePowerFading(float param, float factor);
 std::string  roundedString(float num, int factor = 2);
 void	dabugPrint(int each, float param1, float param2 = -1, int factor = 2);
 
@@ -166,23 +172,26 @@ template <class t> struct Vec3 {
 		substract(norm * (*this * norm * 2), *this).normalize();
 		return *this;
 	}
-	inline Vec3<t> get_reflect(const Vec3<t>& norm) {
+	inline Vec3<t> get_reflect(const Vec3<t>& norm) const {
 		Vec3<t> v(*this);
 		return v.reflect(norm);
 	}
-	inline bool refract(Vec3<t> normal, float eta) {
-//		float eta = 1. / matIOR; // eta = in_IOR/out_IOR
-		float cos_theta = -1 * (normal * *this);
-		if(cos_theta < 0.) {
-			cos_theta *= -1 ;
-			normal.product(-1);
-			eta = 1. / eta;
-		  }
+	inline bool refract_(Vec3<t>& normal, float& cos_theta, float& eta) {
 		float k = 1. - eta * eta * (1. - cos_theta * cos_theta);
 		if(k > 0) {
 			this->addition( this->product(eta), normal * (eta * cos_theta - std::sqrt(k)) ).normalize();
 		}
 		return (k > 0);
+	}
+	inline bool refract(Vec3<t>& normal, float eta) {
+//		float eta = 1. / matIOR; // eta = in_IOR/out_IOR
+		float cos_theta = -(*this * normal);
+		if(cos_theta < 0.) {
+			cos_theta *= -1 ;
+			normal.product(-1);
+			eta = 1. / eta;
+		  }
+		return refract_(normal, cos_theta, eta);
 	}
 	Vec3<t>& lookatDir(const LookatAuxiliary<t>& aux) {
 		t _x = *this * aux.right, _y = *this * aux.up, _z = *this * aux.dir;
@@ -241,6 +250,24 @@ template <class t> struct Vec3 {
 		x = sinTheta * std::cos(phi);
 		y = sinTheta * std::sin(phi);
 		z = std::cos(theta);
+		return *this;
+	}
+	Vec3<t>& randomInUnitSphere(void) {
+		do {
+			x = random_double() * 2 - 1;
+			y = random_double() * 2 - 1;
+			z = random_double() * 2 - 1;
+		} while (sqnorm() >= 1.);
+		return *this;
+	}
+	Vec3<t>& randomInUnitHemisphere(const Vec3<t>& normal) {
+		randomInUnitSphere();
+		if (*this * normal < 0)
+			this->product(-1);
+		return *this;
+	}
+	Vec3<t>& randomInSphere(t r) {
+		randomInUnitSphere().product(r);
 		return *this;
 	}
 	inline bool isNull(void) const { return x == 0 && y == 0 && z == 0;  }

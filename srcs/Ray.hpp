@@ -9,29 +9,13 @@
 
 
 class	A_Scenery;
-typedef	std::vector<A_Scenery*>					a_scenerys_t;
-typedef	a_scenerys_t::iterator					a_scenerys_it;
+struct	Scenerys;
 
+struct	Ray;
+struct	HitRecord;
+struct	ColorRecord;
+struct	Rays;
 
-class PhotonPath {
-	bool	r;	// passed reflection or refraction
-	bool	d;	// passed diffusion
-	bool	v;	// passed volume diffusion
-public:
-	PhotonPath(void);
-	~PhotonPath(void);
-	PhotonPath(const PhotonPath& other);
-	PhotonPath& operator=(const PhotonPath& other);
-	inline void set_reflection(void) { r = true; }
-	inline void set_refraction(void) { r = true; }
-	inline void set_diffusion(void) { d = true; }
-	inline void set_volume(void) { v = true; }
-	inline bool is_global(void) { return true; }
-	inline bool is_caustic(void) { return r; }
-	inline bool is_volume(void) { return r || d || v; }
-};
-
-struct Ray;
 
 struct HitRecord {
 	Vec3f		pov;	// ray POV (point of view)		| photon position
@@ -47,20 +31,64 @@ struct HitRecord {
 };
 
 
-struct ColorSafe {
+struct ColorRecord {
 	int	shine;
 	int	color;
-	ColorSafe(Ray& ray);
-	~ColorSafe(void);
-	ColorSafe(const ColorSafe& other);
-	ColorSafe& operator=(const ColorSafe& other);
+	ColorRecord(Ray& ray);
+	~ColorRecord(void);
+	ColorRecord(const ColorRecord& other);
+	ColorRecord& operator=(const ColorRecord& other);
 };
 
 
 struct Ray : public HitRecord {
 	struct	Point;
 	struct	Segment;
-	typedef	std::forward_list<Segment>	segments_t;
+	class	Path;
+	
+	struct Segments : public std::forward_list<Segment> {
+		Segments(void) : std::forward_list<Segment>() {}
+		~Segments(void) {}
+		Segments& clear_(void) {
+			if (!empty())
+				clear();
+			return *this;
+		}
+	};
+	
+	class Path {
+		union {
+			struct { bool _r, _d, _v; };
+			struct { bool _refr, _diff, _refl; };
+		};
+	public:
+		Path(void) : _r(false), _d(false), _v(false) {}
+		~Path(void) {}
+		Path(const Path& other) : _r(other._r), _d(other._d), _v(other._d) {}
+
+		Path& operator=(const Path& other) {
+			if (this != &other) {
+				_r = other._r;
+				_d = other._d;
+				_v = other._v;
+			}
+			return *this;
+		}
+		inline void reflPhoton(void) { _r = true; }
+		inline void refrPhoton(void) { _r = true; }
+		inline void diffPhoton(void) { _d = true; }
+		inline void volmPhoton(void) { _v = true; }
+		inline void set_refraction(void) { _refr = true; _diff = false; _refl = false; }
+		inline void set_diffusion(void) { _refr = false; _diff = true; _refl = false; }
+		inline void set_reflection(void) { _refr = false; _diff = false; _refl = true; }
+		inline bool isGlobal(void) const { return true; }
+		inline bool isCaustic(void) const { return _r; }
+		inline bool isVolume(void) const { return _r || _d || _v; }
+		inline bool isRefraction(void) const { return _refr; }
+		inline bool isDiffusion(void) const { return _diff; }
+		inline bool isReflection(void) const { return _refl; }
+	};
+	
 	struct Point {
 		float		d;
 		bool		inside;
@@ -89,6 +117,7 @@ struct Ray : public HitRecord {
 			std::swap(s, other.s);
 		}
 	};
+	
 	struct Segment {
 		Point a;
 		Point b;
@@ -127,38 +156,39 @@ struct Ray : public HitRecord {
 			std::swap(combine, other.combine);
 		}
 	};
+	
 	int			recursion;		// current recursion number
 	float		dist;			// distance from POV to object hit point
 	Power		pow;			//				| photon power
-	PhotonPath	path;			//				| photon path
-	Segment		intersections;	// segment on ray - object entry and exit points
-	ARGBColor	light;			// variable for light sources
-	ARGBColor	shine;			// variable for shines
-	ARGBColor	color;			// variable for pixel color
+	Path		path;			// ray path		| photon path
+	Segment		intersections;	// segment on ray - scenery entry and exit points
+	union {
+		struct { ARGBColor light, shine, color; };
+		struct { ARGBColor reflections, refractions, diffusions; };
+	};
 	CombineType	combineType;	// type of object combination
-	segments_t	segments;		// container for segments handling
-	traces_t	traces;
+	Segments	segments;		// container for segments handling
+	Traces		traces;			//				| photon traces
+	
 	Ray(void);
 	Ray(const Position pos, const Power& _pow);
 	Ray(const Position pos, const Power& _pow, const LookatAux& aux);
 	~Ray(void);
 	Ray(const Ray& other);
 	Ray& operator=(const Ray& other);
-	Ray& operator=(const HitRecord& record);
-	Ray& operator=(const ColorSafe& colorSafe);
-	Ray& restore(const HitRecord& record);
-	Ray& restore(const ColorSafe& colorSafe);
-	Ray& restore(const HitRecord& record, const ColorSafe& colorSafe);
+	Ray& operator=(const HitRecord& rec);
+	Ray& operator=(const ColorRecord& cRec);
+	Ray& restore(const HitRecord& rec);
+	Ray& restore(const ColorRecord& cRec);
+	Ray& restore(const HitRecord& rec, const ColorRecord& cRec);
 	Ray& set_hit(Hit hit);
 	Ray& getNormal(void);
 	Ray& combination(void);
 	Ray& union_(Segment& segment1, Segment& segment2);
 	Ray& subtraction(Segment& segment1, Segment& segment2);
 	Ray& intersection(Segment& segment1, Segment& segment2);
-	bool closestScenery(a_scenerys_t& scenerys, float maxDistance, Hit target = FRONT);
-	Ray& combine(a_scenerys_it& scenery, a_scenerys_it& end, float distance, Hit target);	
-	Ray& ambientLiting(const HitRecord& record, const ARGBColor& ambient);
-	Ray& directLitings(const HitRecord& record, a_scenerys_t& scenerys, a_scenerys_t& lightsIdx);
+	Ray& combine(auto& scenery, auto& end, float distance, Hit target);
+	bool closestScenery(Scenerys& scenerys, float maxDistance, Hit target = FRONT);
 	inline A_Scenery* getCombine(Point& nearest) {
 		auto segment = segments.before_begin(), segmentNext = segments.begin();
 		for (; segment != segments.end(); ++segment) {
@@ -194,6 +224,12 @@ struct Ray : public HitRecord {
 	inline void movePovByNormal(float distance) {
 		pov.addition(pov, norm * distance);
 	}
+	inline void movePovByNormal(const HitRecord& rec, float distance) {
+		pov.addition(rec.pov, rec.norm * distance);
+	}
+	inline void resetColors(void) {
+		color.val = shine.val = light.val = 0;
+	}
 	inline void collectLight(int scenery_iColor, float k = 1) {
 		color.addition(color, (light *= scenery_iColor) * k);
 	}
@@ -201,40 +237,45 @@ struct Ray : public HitRecord {
 		light = _light;
 		collectLight(scenery_iColor, k);
 	}
-	inline void collectShine(const Vec3f& dirFromCam, int specular) {
+	inline void collectShine(const Vec3f& dirFromCam, const Vec3f& dirToLight, int specular) {
 		if (specular > 1) {
-			float k = dir.reflect(norm) * dirFromCam;
+			float k = dirToLight.get_reflect(norm) * dirFromCam;
 			if (k > 0.) {
 				k = std::pow(k, specular);
 				shine.addition(shine, light * k);
 			}
 		}
 	}
-	inline void collectReflectiveLight(const ColorSafe& colorSafe, float factor) {
+	inline void collectReflectiveLight(const ColorRecord& cRec, float factor) {
 		float previous = 1. - factor;
-		light.val = colorSafe.color;
+		light.val = cRec.color;
 		color.addition(color.product(factor), light.product(previous));
-		light.val = colorSafe.shine;
+		light.val = cRec.shine;
 		shine.addition(shine.product(factor), light);
 	}
-	inline void collectRefractiveLight(int scenery_iColor, const ColorSafe& colorSafe, float factor) {
+	inline void collectRefractiveLight(int scenery_iColor, const ColorRecord& cRec, float factor) {
 		float previous = 1. - factor;
-		light.val = colorSafe.color;
+		light.val = cRec.color;
 		color.addition(color.iProduct(scenery_iColor).product(factor), light.product(previous));
-		light.val = colorSafe.shine;
+		light.val = cRec.shine;
 		shine.addition(shine.iProduct(scenery_iColor).product(factor), light);
+	}
+	inline void collectShadowLight(int shaded_iColor, const ColorRecord& colorRec) {
+		color.addition(diffusions, reflections, refractions).iProduct(shaded_iColor);
+		color.iAddition(colorRec.color);
+		shine = colorRec.shine;
 	}
 	inline void photonReflection(void) {
 		movePovByNormal(EPSILON);
 		dir.reflect(norm);
-		path.set_reflection();
-		recursion++;
+		path.reflPhoton();
+//		recursion++;
 	}
 	inline bool photonRefraction(const Power& chance, const Power& color, float refractive, float matIOR, float matOIR) {
 		if (dir.refract(norm, hit == INSIDE ? matIOR : matOIR)) {
 			movePovByNormal(-EPSILON);
 			pow.refrAdjust(chance, color, refractive);
-			path.set_refraction();
+			path.refrPhoton();
 			return true;
 		}
 		return false;
@@ -242,23 +283,23 @@ struct Ray : public HitRecord {
 	inline void newPhotonTrace(MapType type, const Power& chance, const Power& color, float diffusion, int sceneryId) {
 		switch (type) {
 			case CAUSTIC: {
-				if (path.is_caustic())
+				if (path.isCaustic())
 					traces.push_front(new PhotonTrace(CAUSTIC, pov, dir, pow, sceneryId));
 				break;
 			}
 			case GLOBAL: {
-				if (path.is_caustic())
+				if (path.isCaustic())
 					traces.push_front(new PhotonTrace(CAUSTIC, pov, dir, pow, sceneryId));
-				if (path.is_global())
+				if (path.isGlobal())
 					traces.push_front(new PhotonTrace(GLOBAL, pov, dir, pow, sceneryId));
 				break;
 			}
 			case VOLUME: {
-				if (path.is_caustic())
+				if (path.isCaustic())
 					traces.push_front(new PhotonTrace(CAUSTIC, pov, dir, pow, sceneryId));
-				if (path.is_global())
+				if (path.isGlobal())
 					traces.push_front(new PhotonTrace(GLOBAL, pov, dir, pow, sceneryId));
-				if (path.is_volume())
+				if (path.isVolume())
 					traces.push_front(new PhotonTrace(VOLUME, pov, dir, pow, sceneryId));
 				break;
 			}
@@ -266,7 +307,7 @@ struct Ray : public HitRecord {
 				break;
 		}
 		pow.diffAdjust(chance, color, diffusion);
-		path.set_diffusion();
+		path.diffPhoton();
 		movePovByNormal(EPSILON);
 		recursion++;
 	}
@@ -320,11 +361,21 @@ struct Ray : public HitRecord {
 	inline void randomCosineWeightedDirectionInHemisphere(float width = 1. ) {
 		randomCosineWeightedDirectionInHemisphere(LookatAux(norm), width);
 	}
-	
-	
 };
 
 bool operator<(const Ray::Segment& left, const Ray::Segment& right);
+
+
+struct Rays : public std::vector<Ray> {
+	Rays(void) : std::vector<Ray>() {}
+	~Rays(void) {}
+	Rays& clear_(int n = 0) {
+		Rays tmp;
+		if (n) tmp.reserve(n);
+		swap(tmp);
+		return *this;
+	}
+};
 
 
 #endif /* RAY_HPP */

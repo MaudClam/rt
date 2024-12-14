@@ -16,8 +16,8 @@ public:
 	Sphere(const Vec3f& center, float radius, const ARGBColor& color);
 	Sphere(const Sphere& other);
 	Sphere* clone(void) const;
-	inline int	get_iColor(const HitRecord& record) const {
-		(void)record;
+	inline int	get_iColor(const HitRecord& rec) const {
+		(void)rec;
 		return _color.val;
 	}
 	inline void	lookat(const Position& eye, const LookatAux& aux, const Vec3f& pos, float roll) {
