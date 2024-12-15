@@ -79,7 +79,7 @@ std::string Scene::header(void) {
 }
 
 void Scene::systemDemo(void) {
-	set_any("R	800 600  SystemDemo  VOLUME  500000  60  0.1");
+	set_any("R	800 600  SystemDemo");
 	img.init(header(), _resolution);
 	cameras.push_back(Camera(img));
 	set_any("A				0.2		0xFFFFEE");
@@ -99,8 +99,8 @@ void Scene::systemDemo(void) {
 	saveParsingLog(PARSING_LOGFILE);
 	phMap.make(scenerys, lightsIdx);
 	makeLookatsForCameras();
-//	cameras[_currentCamera].calculateFlybyRadius();
-//	img.flyby = COUNTER_CLOCKWISE;
+	cameras[_currentCamera].calculateFlybyRadius();
+	img.flyby = COUNTER_CLOCKWISE;
 }
 
 void Scene::mesage(MsgType type, int line, const std::string& hint, int error) {
