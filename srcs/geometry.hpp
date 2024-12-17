@@ -353,7 +353,6 @@ float softShadow(float distToEdge, float distToShader, float lenght, float softn
 bool  raySphereIntersection(const Vec3f& rayDir, const Vec3f& rayPov, const Vec3f& center, float sqrRadius, float& distance, float& min_t, float& max_t, Hit& rayHit);
 bool  raySphereIntersection(const Vec3f& rayDir, const Vec3f& k, float c, float& distance, float& min_t, float& max_t, Hit& rayHit);
 void  normalToRaySphereIntersect(const Vec3f& intersectPt, const Vec3f& center, Vec3f& normal);
-float distanceToSphericalShaderEdge(const Vec3f& intersectPt, const Vec3f& center, const Vec3f& dirToLight, float radius);
 bool  rayPlaneIntersection(const Vec3f& pos, const Vec3f& dir, const Vec3f& point, const Vec3f& norm, float& distance);
 
 #endif

@@ -301,15 +301,6 @@ void	normalToRaySphereIntersect(const Vec3f& intersectPt,
 	normal.substract(intersectPt, center).normalize();
 }
 
-float	distanceToSphericalShaderEdge(const Vec3f& intersectPt,
-									  const Vec3f& center,
-									  const Vec3f& dirToLight,
-									  float radius) {
-	(void)radius;
-	float d = (center - intersectPt).normalize() * dirToLight * radius;
-	return 	d > 0. ? d : 0.;
-}
-
 bool	rayPlaneIntersection(const Vec3f& pos,
 							 const Vec3f& dir,
 							 const Vec3f& point,
