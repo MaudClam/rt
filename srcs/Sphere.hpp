@@ -60,18 +60,6 @@ public:
 	inline void photonEmissions(int num, const PhotonMap& phMap, photonRays_t& rays) const {
 		(void)num; (void)rays; (void)phMap;
 	}
-	inline float getDistanceToShaderEdge(Ray& ray, float distance, bool inside) const {
-		if (inside) {
-			return distanceToSphericalShaderEdge(_pos.p,
-												 ray.pov + (ray.dir * distance),
-												 ray.dir,
-												 _radius);
-		}
-		return distanceToSphericalShaderEdge(ray.pov + (ray.dir * distance),
-											 _pos.p,
-											 ray.dir,
-											 _radius);
-	}
 	inline float lighting(Ray& ray) const {
 		(void)ray;
 		return 0;

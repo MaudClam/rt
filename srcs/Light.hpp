@@ -35,10 +35,6 @@ public:
 	inline void getNormal(Ray& ray) const {
 		(void)ray;
 	}
-	inline float getDistanceToShaderEdge(Ray& ray, float distance, bool inside) const {
-		(void)ray; (void)distance; (void)inside;
-		return 1.;
-	}
 	inline float lighting(Ray& ray) const {
 		float k = 0;
 		switch (_type) {

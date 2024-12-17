@@ -53,7 +53,6 @@ public:
 	virtual void roll(const Vec3f& pos, float shiftRoll) = 0;
 	virtual bool intersection(Ray& ray) const = 0;
 	virtual void getNormal(Ray& ray) const = 0;
-	virtual float getDistanceToShaderEdge(Ray& ray, float distance, bool inside) const = 0;
 	virtual float lighting(Ray& ray) const = 0;
 	virtual void photonEmissions(int num, const PhotonMap& phMap, photonRays_t& rays) const = 0;
 	virtual void output(std::ostringstream& os) const = 0;
