@@ -439,7 +439,9 @@ void Scene::rotateCamera(int ctrl) {
 }
 
 void Scene::flybyCamera(void) {
-	if (cameras[_currentCamera].tracingType == RAY) {
+	if (cameras[_currentCamera].tracingType == RAY &&
+		!cameras[_currentCamera].shadowRays &&
+		cameras[_currentCamera].photonMap == NO) {
 		Camera&		cam(cameras[_currentCamera]);
 		Position	pos(cam.get_pos());
 		float angle = degree2radian(FLYBY_STEP / 10.), radius = cam.get_flybyRadius();
