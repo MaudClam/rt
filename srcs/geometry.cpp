@@ -301,20 +301,35 @@ void	normalToRaySphereIntersect(const Vec3f& intersectPt,
 	normal.substract(intersectPt, center).normalize();
 }
 
-bool	rayPlaneIntersection(const Vec3f& pos,
-							 const Vec3f& dir,
+bool	rayPlaneIntersection(const Vec3f& rayDir,
+							 const Vec3f& rayPov,
 							 const Vec3f& point,
-							 const Vec3f& norm,
-							 float& distance) {
-	float k = dir * norm;
+							 const Vec3f& normal,
+							 float& distance,
+							 float& min_t,
+							 float& max_t,
+							 Hit& rayHit) {
+	Vec3f r;
+	r.substract(rayPov, point);
+	float k = rayDir * normal;
+	return rayPlaneIntersection(k, r, normal, distance, min_t, max_t, rayHit);
+}
+
+bool	rayPlaneIntersection(float k,
+							 const Vec3f r,
+							 const Vec3f& normal,
+							 float& distance,
+							 float& min_t,
+							 float& max_t,
+							 Hit& rayHit) {
 	if ( !almostEqual(k, 0, EPSILON) ) {
-		Vec3f r;
-		r.substract(pos, point);
-		float t = r.product(norm) / -k;
-		if (t > 0) {
-			distance = t;
+		min_t  = max_t = r * normal / -k;
+		if (min_t > 0) {
+			distance = min_t;
+			rayHit = OUTSIDE;
 			return true;
 		}
 	}
 	return false;
 }
+

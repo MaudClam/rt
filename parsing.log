@@ -1,7 +1,7 @@
-R   800 600 SystemDemo
-A                   0.2 255,255,238                      #ambient liting
-l     2,1,0         0.5 255,255,255                      #spotlight
-l     1,4,4         0.3 255,255,255                      #spotlight
+R   800 600 NiceBalls VOLUME 500000 60 0.1
+A                   0.2 255,255,255                      #ambient liting
+l     2,1,0         0.6 255,255,255                      #spotlight
+ls    0,0,0         0.4 255,255,255 0.174078,0.696311,0.696311 #sunlight
 c     0,0,-2        0,0,1      60                        #camera 0
 c     0,0,8         0,0,-1     60                        #camera 1
 c    -5,0,3         1,0,0      60                        #camera 2

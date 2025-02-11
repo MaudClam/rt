@@ -189,6 +189,7 @@ struct Ray : public HitRecord {
 	Ray& intersection(Segment& segment1, Segment& segment2);
 	Ray& combine(auto& scenery, auto& end, float distance, Hit target);
 	bool closestScenery(Scenerys& scenerys, float maxDistance, Hit target = FRONT);
+	bool isAlbedo(void);
 	inline A_Scenery* getCombine(Point& nearest) {
 		auto segment = segments.before_begin(), segmentNext = segments.begin();
 		for (; segment != segments.end(); ++segment) {

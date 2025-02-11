@@ -74,7 +74,7 @@ public:
 	Lighting(const Lighting& other);
 	Lighting& operator=(const Lighting& other);
 	float get_ratio(void) const;
-	ARGBColor get_color(void) const;
+	int get_albedo(void) const;
 	void set_ratio(float ratio);
 	void set_color(const ARGBColor& color);
 	void invertBrightness(void);

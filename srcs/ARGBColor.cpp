@@ -234,7 +234,7 @@ Lighting& Lighting::operator=(const Lighting& other) {
 
 float Lighting::get_ratio(void) const { return _ratio; }
 
-ARGBColor Lighting::get_color(void) const { return _color; }
+int Lighting::get_albedo(void) const { return _color.val; }
 
 void Lighting::set_ratio(float ratio) {
 	_ratio = f2limits(ratio, 0., 1.);

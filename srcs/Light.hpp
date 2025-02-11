@@ -16,7 +16,7 @@ public:
 	Light* clone(void) const;
 	inline int	get_iColor(const HitRecord& rec) const {
 		(void)rec;
-		return _color.val; }
+		return light.get_albedo(); }
 	inline void set_nick(const std::string& nick) { _nick = nick; }
 	inline void set_name(const std::string& name) { _name = name; }
 	inline void set_type(Type type) { _type = type; }
@@ -29,11 +29,19 @@ public:
 		_pos.roll(roll);
 	}
 	inline bool intersection(Ray& ray) const {
-		(void)ray;
+		(void)ray;//FIXME
+		if (_type == SUNLIGHT_LIMITED) {
+			if (ray.hit == ANY_SHADOW || ray.hit == ALL_SHADOWS)
+				ray.hit = FRONT;
+			return rayPlaneIntersection(ray.dir, ray.pov, _pos.p, _pos.n, ray.dist, ray.intersections.a.d, ray.intersections.b.d, ray.hit);
+		}
 		return false;
 	}
 	inline void getNormal(Ray& ray) const {
-		(void)ray;
+		(void)ray;//FIXME
+		ray.norm = _pos.n;
+		if (ray.dir * _pos.n > 0)
+			ray.norm.product(-1);
 	}
 	inline float lighting(Ray& ray) const {
 		float k = 0;
@@ -58,8 +66,10 @@ public:
 				if ( (k = _pos.n * ray.norm) <= 0) {
 					return 0;
 				}
-				rayPlaneIntersection(ray.pov, _pos.n, _pos.p, ray.norm, ray.dist);
 				ray.dir = _pos.n;
+				if (!rayPlaneIntersection(ray.dir, ray.pov, _pos.p, _pos.n, ray.dist, ray.intersections.a.d, ray.intersections.b.d, ray.hit))
+					return 0;
+				ray.dist -= (2 * EPSILON);
 				break;
 			}
 			default:

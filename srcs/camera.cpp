@@ -433,6 +433,8 @@ void Camera::rayTracing(Camera* camera, size_t begin, size_t end) {
 bool Camera::traceRay(Ray& ray, int r) {
 	if ((ray.recursion = r) <= depth) {
 		if (ray.closestScenery(scenerys, _INFINITY)) {
+			if (ray.isAlbedo())
+				return true;
 			HitRecord rec(ray.getNormal());
 			directLightings(ray, rec, r);
 			ambientLighting(ray, rec);
@@ -577,6 +579,8 @@ void Camera::pathTracing(Ray& ray, float fuzz, int r) {
 bool Camera::tracePath(Ray& ray, int r, bool shader) {
 	if ((ray.recursion = r) < depth) {
 		if (ray.closestScenery(scenerys, _INFINITY)) {
+			if (ray.isAlbedo())
+				return true;
 			ray.getNormal();
 			if (!shader)
 				ambientLighting(ray, ray);
@@ -616,6 +620,7 @@ bool Camera::tracePath(Ray& ray, int r, bool shader) {
 				ray.movePovByNormal(-EPSILON);
 				tracePath(ray, ++r);
 				ray.color.iProduct(attenuation).product(fading);
+//				ray.color.product(fading);
 				ray.path.set_refraction();
 			} else if (ray.path.isDiffusion()) {
 				fading = ray.dir * ray.norm;

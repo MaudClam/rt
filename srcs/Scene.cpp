@@ -84,7 +84,8 @@ void Scene::systemDemo(void) {
 	cameras.push_back(Camera(img));
 	set_any("A				0.2		0xFFFFEE");
 	set_any("l	2,1,0		0.5		0xFFFFFF");
-	set_any("l	1,4,4		0.3		0xFFFFFF");
+//	set_any("l	1,4,4		0.3		0xFFFFFF");
+	set_any("ll	1,4,4		0.3		0xFFFFFF	10,40,40");
 	set_any("c	0,0,-2		0,0,1		60");
 	set_any("c	0,0,8		0,0,-1		60");
 	set_any("c	-5,0,3		1,0,0		60");
@@ -100,7 +101,7 @@ void Scene::systemDemo(void) {
 	phMap.make(scenerys, lightsIdx);
 	makeLookatsForCameras();
 	cameras[_currentCamera].calculateFlybyRadius();
-	img.flyby = COUNTER_CLOCKWISE;
+//	img.flyby = COUNTER_CLOCKWISE;
 }
 
 void Scene::mesage(MsgType type, int line, const std::string& hint, int error) {
@@ -260,6 +261,9 @@ int Scene::set_any(std::istringstream is) {
 				phMap.type = CAUSTIC;
 			} else if (phMapType == "VOLUME") {
 				phMap.type = VOLUME;
+			} else if (phMapType == "NO") {
+				phMap.type = NO;
+				phMap.totalPhotons = phMap.estimate = phMap.gridStep = 0;
 			} else {
 				phMap.type = NO;
 				if (phMapType != "")
@@ -360,7 +364,7 @@ void Scene::makeLookatsForCameras(void) {
 }
 
 void Scene::rt(void) {
-	if (DEBUG_MODE) std::cout << "Tracing..." << std::endl;
+//	if (DEBUG_MODE) std::cout << "Tracing..." << std::endl;
 	Camera* cCam = &cameras[_currentCamera];
 	cCam->runThreadRoutine(RAY_TRACING);
 	cCam->runThreadRoutine(TAKE_PICTURE, &this->img);
@@ -483,6 +487,7 @@ void Scene::changeCamerasOptions(int key, int option) {
 					break;
 				}
 				case SHADOW_RAYS: { if (cameras[0].tracingType == PATH) return;
+					img.flyby = OFF;
 					break;
 				}
 				case RAYTRACING: { if (cameras[0].tracingType == RAY) return;
