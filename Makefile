@@ -5,8 +5,6 @@ SRC_DIR 	= srcs
 
 HEADER_DIR	= srcs
 
-OBJ_DIR		= obj
-
 SRC		= ${SRC_DIR}/main.cpp \
 			${SRC_DIR}/A_Scenery.cpp \
 			${SRC_DIR}/ARGBColor.cpp \
@@ -16,9 +14,12 @@ SRC		= ${SRC_DIR}/main.cpp \
 			${SRC_DIR}/MlxImage.cpp \
 			${SRC_DIR}/Ray.cpp \
 			${SRC_DIR}/Scene.cpp \
-			${SRC_DIR}/Sphere.cpp 
+			${SRC_DIR}/Sphere.cpp \
+			${SRC_DIR}/PhotonMap.cpp \
+			${SRC_DIR}/PhotonTrace.cpp \
+			${SRC_DIR}/Power.cpp
 
-OBJ		= ${SRC:%.cpp=${OBJ_DIR}/%.o}
+OBJ		= ${SRC:%.cpp=%.o}
 
 ifeq ($(shell uname -s), Linux)
 	MLX_DIR = mlx_linux
@@ -45,7 +46,12 @@ HEADERS	= ${HEADER_DIR}/Header.h \
 		  ${HEADER_DIR}/Ray.hpp \
 		  ${HEADER_DIR}/Scene.hpp \
 		  ${HEADER_DIR}/Sphere.hpp \
-		  ${HEADER_DIR}/keys.h
+		  ${HEADER_DIR}/keys.h \
+		  ${HEADER_DIR}/random.hpp \
+		  ${HEADER_DIR}/PhotonMap.h \
+		  ${HEADER_DIR}/PhotonTrace.h \
+		  ${HEADER_DIR}/Average.h \
+		  ${HEADER_DIR}/Power.hpp
 
 CPPFLAGS = -std=c++2a -O2
 
@@ -55,17 +61,17 @@ os_comp:
 	-cp srcs/${SPEC_HEADER} srcs/keys.h
 
 
-${OBJ_DIR}/%.o: %.cpp ${HEADERS}
+%.o: %.cpp ${HEADERS}
 	mkdir -p ${@D}
-	g++ ${CPPFLAGS} -Wall -Wextra -Werror -I${HEADER_DIR} -I${MLX_DIR} -o ${subst /${SRC_DIR},,$@} -c $<
+	g++ ${CPPFLAGS} -Wall -Wextra -Werror -I${HEADER_DIR} -I${MLX_DIR} -o $@ -c $<
 
 ${NAME}: ${OBJ}
-	make -C ${MLX_DIR} all
-	g++ ${CPPFLAGS} -Wall -Wextra -Werror ${subst /${SRC_DIR},,${OBJ}} ${MLX_LIB} -I${HEADER_DIR} -I${MLX_DIR} ${LIB_FLAGS} -o ${NAME}
+	@make -C ${MLX_DIR} all > /dev/null 2>&1
+	g++ ${CPPFLAGS} -Wall -Wextra -Werror ${OBJ} ${MLX_LIB} -I${HEADER_DIR} -I${MLX_DIR} ${LIB_FLAGS} -o ${NAME}
 
 clean:
 	make -C ${MLX_DIR} clean
-	rm -fr ${OBJ_DIR}
+	rm -fr ${OBJ} 
 
 fclean: clean
 	rm -fr ${NAME}
