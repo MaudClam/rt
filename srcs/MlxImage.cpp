@@ -248,6 +248,12 @@ void	MlxImage::mlxToRtXY(Vec2i& v) const {
 	v.toRt(width, height);
 }
 
+void	MlxImage::displayCommand(MlxImage::Command command) {
+	std::memset(this->lastCommand, 0, 100);
+	std::strcpy(this->lastCommand, this->commandDescriptions.at(command).c_str());
+	mlx_string_put(this->mlx, this->win, 20, 20, 0x00000000, this->lastCommand);
+}
+
 
 // Non-member functions
 
@@ -264,28 +270,73 @@ int		destroyNotify(int button, void* param) {
 	return 0;
 }
 
-int		keyDown(int key, void* param) {
+int keyDown(int key, void* param) {
 	(void)param;
+	MlxImage::Command command = MlxImage::Command::NotACommand;
 	HoldKeys& hold(var.img->hold);
-	if ( DEBUG_KEYS ) { std::cout << "keyDown: " << key << "\n"; }
-	if ( hold.hold(key) ) { return SUCCESS; }
-	
-	if ( quitTheProgram(       hold.UNHOLD_(), _KEY(KEY_ESCAPE == key))     ) { return SUCCESS; }
-	if ( camerasSwitching(     hold.ALT_(),    _ARROWS_LEFT_RIGHT(key))     ) { return SUCCESS; }
-	if ( camerasSwitching(     hold.ALT_(),    _NUMERIC(key))               ) { return SUCCESS; }
-	if ( currentCameraFOV(     hold.ALT_(),    _MINUS_PLUS(key))            ) { return SUCCESS; }
-	if ( currentCameraMoving(  hold.UNHOLD_(), _ARROWS(key))                ) { return SUCCESS; }
-	if ( currentCameraMoving_( hold.ALT_(),    _ARROWS_UP_DOWN(key))        ) { return SUCCESS; }
-	if ( currentCameraRotation(hold.SHIFT_(),  _ARROWS_AND_MINUS_PLUS(key)) ) { return SUCCESS; }
-	if ( flybyAroundTheScene(  hold.UNHOLD_(), _KEY(KEY_SPACE == key))      ) { return SUCCESS; }
-	
-	if ( camerasOptions(SMOOTHING_FACTOR,	hold.UNHOLD_(),		_NUMERIC(key))	) { return SUCCESS; }
-	if ( camerasOptions(RECURSION_DEPTH,	hold.SHIFT_(),		_NUMERIC(key))	) { return SUCCESS; }
-	if ( camerasOptions(PHOTON_MAP,			hold.CTRL_(),		key)			) { return SUCCESS; }
-	if ( camerasOptions(PATHS_PER_RAY,		hold.CTRL_(),		_NUMERIC(key))	) { return SUCCESS; }
-	if ( camerasOptions(OTHER,				hold.UNHOLD_(),		key)			) { return SUCCESS; }
+	if (DEBUG_KEYS) { std::cout << "keyDown: " << key << "\n"; }
+	/*
+	 *	Checks in a short-circuited logic chain.
+	 *	If one of the functions returns true, the following ones are not called.
+	 */
+	(void)( hold.hold(key)
+			|| ((command = quitTheProgram(hold.UNHOLD_(), _KEY(KEY_ESCAPE == key)))
+				== MlxImage::Command::QuitTheProgram)
+			|| ((command = camerasSwitching(hold.ALT_(), _ARROWS_LEFT_RIGHT(key)))
+				== MlxImage::Command::CameraSwitching)
+			|| ((command = camerasSwitching(hold.ALT_(), _NUMERIC(key)))
+				== MlxImage::Command::CameraSwitching)
+			|| ((command = currentCameraFOV(hold.ALT_(), _MINUS_PLUS(key)))
+				== MlxImage::Command::CurrentCameraFOV)
+			|| ((command = currentCameraMoving(hold.UNHOLD_(), _ARROWS(key)))
+				== MlxImage::Command::CurrentCameraMoving)
+			|| ((command = currentCameraMoving_(hold.ALT_(), _ARROWS_UP_DOWN(key)))
+				== MlxImage::Command::CurrentCameraMoving_)
+			|| ((command = currentCameraRotation(hold.SHIFT_(), _ARROWS_AND_MINUS_PLUS(key)))
+				== MlxImage::Command::CurrentCameraRotation)
+			|| ((command = flybyAroundTheScene(hold.UNHOLD_(), _KEY(KEY_SPACE == key)))
+				== MlxImage::Command::FlybyAroundScene)
+			|| ((command = camerasOptions(SMOOTHING_FACTOR, hold.UNHOLD_(), _NUMERIC(key)))
+				== MlxImage::Command::CameraOptionSmoothingFactor)
+			|| ((command = camerasOptions(RECURSION_DEPTH, hold.SHIFT_(), _NUMERIC(key)))
+				== MlxImage::Command::CameraOptionRecursionDepth)
+			|| ((command = camerasOptions(PHOTON_MAP, hold.CTRL_(), key))
+				== MlxImage::Command::CameraOptionPhotonMap)
+			|| ((command = camerasOptions(PATHS_PER_RAY, hold.CTRL_(), _NUMERIC(key)))
+				== MlxImage::Command::CameraOptionPathsPerRay)
+			|| ((command = camerasOptions(OTHER, hold.UNHOLD_(), key))
+		   == MlxImage::Command::CameraOptionOther)
+	);
+	var.img->displayCommand(command);
 	return SUCCESS;
 }
+
+//int		keyDown(int key, void* param) { // FIXME! Decide, which function version to delete!
+
+//	(void)param;
+//	HoldKeys& hold(var.img->hold);
+//	if ( DEBUG_KEYS ) { std::cout << "keyDown: " << key << "\n"; }
+//	if ( hold.hold(key) ) { return SUCCESS; }
+//	
+//	if ( quitTheProgram(       hold.UNHOLD_(), _KEY(KEY_ESCAPE == key))     ) {
+//		
+//		return SUCCESS;
+//	}
+//	if ( camerasSwitching(     hold.ALT_(),    _ARROWS_LEFT_RIGHT(key))     ) { return SUCCESS; }
+//	if ( camerasSwitching(     hold.ALT_(),    _NUMERIC(key))               ) { return SUCCESS; }
+//	if ( currentCameraFOV(     hold.ALT_(),    _MINUS_PLUS(key))            ) { return SUCCESS; }
+//	if ( currentCameraMoving(  hold.UNHOLD_(), _ARROWS(key))                ) { return SUCCESS; }
+//	if ( currentCameraMoving_( hold.ALT_(),    _ARROWS_UP_DOWN(key))        ) { return SUCCESS; }
+//	if ( currentCameraRotation(hold.SHIFT_(),  _ARROWS_AND_MINUS_PLUS(key)) ) { return SUCCESS; }
+//	if ( flybyAroundTheScene(  hold.UNHOLD_(), _KEY(KEY_SPACE == key))      ) { return SUCCESS; }
+//	
+//	if ( camerasOptions(SMOOTHING_FACTOR,	hold.UNHOLD_(),		_NUMERIC(key))	) { return SUCCESS; }
+//	if ( camerasOptions(RECURSION_DEPTH,	hold.SHIFT_(),		_NUMERIC(key))	) { return SUCCESS; }
+//	if ( camerasOptions(PHOTON_MAP,			hold.CTRL_(),		key)			) { return SUCCESS; }
+//	if ( camerasOptions(PATHS_PER_RAY,		hold.CTRL_(),		_NUMERIC(key))	) { return SUCCESS; }
+//	if ( camerasOptions(OTHER,				hold.UNHOLD_(),		key)			) { return SUCCESS; }
+//	return SUCCESS;
+//}
 
 int		keyUp(int key, void* param) {
 	(void)param;
@@ -405,72 +456,72 @@ int		_ARROWS_AND_MINUS_PLUS(int key) {
 	return ERROR;
 }
 
-bool	quitTheProgram(bool hold, int val) {
+MlxImage::Command	quitTheProgram(bool hold, int val) {
 	if (hold && val != ERROR) {
 		_exit(*var.img, *var.scene, SUCCESS);
-		return true;
+		return MlxImage::Command::QuitTheProgram;
 	}
-	return false;
+	return MlxImage::Command::NotACommand;
 }
 
-bool	camerasSwitching(bool hold, int val) {
+MlxImage::Command	camerasSwitching(bool hold, int val) {
 	if (hold && val != ERROR) {
 		switch (val) {
-			case KEY_ARROW_RIGHT:	var.scene->selectCamera(NEXT); return true;
-			case KEY_ARROW_LEFT:	var.scene->selectCamera(PREVIOUS);  return true;
-			default:				var.scene->selectCamera(val);  return true;
+			case KEY_ARROW_RIGHT:	var.scene->selectCamera(NEXT); return MlxImage::Command::CameraSwitching;
+			case KEY_ARROW_LEFT:	var.scene->selectCamera(PREVIOUS);  return MlxImage::Command::CameraSwitching;
+			default:				var.scene->selectCamera(val);  return MlxImage::Command::CameraSwitching;
 		}
 	}
-	return false;
+	return MlxImage::Command::NotACommand;
 }
 
-bool	currentCameraFOV(bool hold, int val) {
+MlxImage::Command	currentCameraFOV(bool hold, int val) {
 	if (hold && val != ERROR) {
 		switch (val) {
-			case KEY_PLUS:	var.scene->changeCameraFOV(INCREASE); return true;
-			case KEY_MINUS:	var.scene->changeCameraFOV(DECREASE); return true;
+			case KEY_PLUS:	var.scene->changeCameraFOV(INCREASE); return MlxImage::Command::CurrentCameraFOV;
+			case KEY_MINUS:	var.scene->changeCameraFOV(DECREASE); return MlxImage::Command::CurrentCameraFOV;
 		}
 	}
-	return false;
+	return MlxImage::Command::NotACommand;
 }
 
-bool	currentCameraMoving(bool hold, int val) {
+MlxImage::Command	currentCameraMoving(bool hold, int val) {
 	if (hold && val != ERROR) {
 		switch (val) {
-			case KEY_ARROW_RIGHT: var.scene->moveCamera(RIGHT); return true;
-			case KEY_ARROW_LEFT:  var.scene->moveCamera(LEFT); return true;
-			case KEY_ARROW_UP:    var.scene->moveCamera(UP); return true;
-			case KEY_ARROW_DOWN:  var.scene->moveCamera(DOWN); return true;
+			case KEY_ARROW_RIGHT: var.scene->moveCamera(RIGHT); return MlxImage::Command::CurrentCameraMoving;
+			case KEY_ARROW_LEFT:  var.scene->moveCamera(LEFT); return MlxImage::Command::CurrentCameraMoving;
+			case KEY_ARROW_UP:    var.scene->moveCamera(UP); return MlxImage::Command::CurrentCameraMoving;
+			case KEY_ARROW_DOWN:  var.scene->moveCamera(DOWN); return MlxImage::Command::CurrentCameraMoving;
 		}
 	}
-	return false;
+	return MlxImage::Command::NotACommand;
 }
 
-bool	currentCameraMoving_(bool hold, int val) {
+MlxImage::Command	currentCameraMoving_(bool hold, int val) {
 	if (hold && val != ERROR) {
 		switch (val) {
-			case KEY_ARROW_UP:   var.scene->moveCamera(FORWARD); return true;
-			case KEY_ARROW_DOWN: var.scene->moveCamera(BACKWARD); return true;
+			case KEY_ARROW_UP:   var.scene->moveCamera(FORWARD); return MlxImage::Command::CurrentCameraMoving_;
+			case KEY_ARROW_DOWN: var.scene->moveCamera(BACKWARD); return MlxImage::Command::CurrentCameraMoving_;
 		}
 	}
-	return false;
+	return MlxImage::Command::NotACommand;
 }
 
-bool	currentCameraRotation(bool hold, int val) {
+MlxImage::Command	currentCameraRotation(bool hold, int val) {
 	if (hold && val != ERROR) {
 		switch (val) {
-			case KEY_ARROW_RIGHT: var.scene->rotateCamera(YAW_RIGHT); return true;
-			case KEY_ARROW_LEFT:  var.scene->rotateCamera(YAW_LEFT);  return true;
-			case KEY_ARROW_UP:    var.scene->rotateCamera(PITCH_UP); return true;
-			case KEY_ARROW_DOWN:  var.scene->rotateCamera(PITCH_DOWN); return true;
-			case KEY_PLUS:    	  var.scene->rotateCamera(ROLL_RIGHT); return true;
-			case KEY_MINUS:       var.scene->rotateCamera(ROLL_LEFT); return true;
+			case KEY_ARROW_RIGHT: var.scene->rotateCamera(YAW_RIGHT); return MlxImage::Command::CurrentCameraRotation;
+			case KEY_ARROW_LEFT:  var.scene->rotateCamera(YAW_LEFT);  return MlxImage::Command::CurrentCameraRotation;
+			case KEY_ARROW_UP:    var.scene->rotateCamera(PITCH_UP); return MlxImage::Command::CurrentCameraRotation;
+			case KEY_ARROW_DOWN:  var.scene->rotateCamera(PITCH_DOWN); return MlxImage::Command::CurrentCameraRotation;
+			case KEY_PLUS:    	  var.scene->rotateCamera(ROLL_RIGHT); return MlxImage::Command::CurrentCameraRotation;
+			case KEY_MINUS:       var.scene->rotateCamera(ROLL_LEFT); return MlxImage::Command::CurrentCameraRotation;
 		}
 	}
-	return false;
+	return MlxImage::Command::NotACommand;
 }
 
-bool	flybyAroundTheScene(bool hold,  int val) {
+MlxImage::Command	flybyAroundTheScene(bool hold,  int val) {
 	if (hold && val != ERROR) {
 		Camera&	cam(var.scene->cameras[var.scene->get_currentCamera()]);
 		int&	flyby(var.img->flyby);
@@ -479,12 +530,12 @@ bool	flybyAroundTheScene(bool hold,  int val) {
 			case COUNTER_CLOCKWISE:	flyby = CLOCKWISE; break;
 			case CLOCKWISE:			flyby = OFF; break;
 		}
-		return true;
+		return MlxImage::Command::FlybyAroundScene;
 	}
-	return false;
+	return MlxImage::Command::NotACommand;
 }
 
-bool	camerasOptions(int option, bool hold, int val) {
+MlxImage::Command	camerasOptions(int option, bool hold, int val) {
 	if (hold && val != ERROR) {
 		if (option == PHOTON_MAP) {
 			switch (val) {
@@ -492,7 +543,7 @@ bool	camerasOptions(int option, bool hold, int val) {
 				case KEY_C: val = CAUSTIC; break;
 				case KEY_G:	val = GLOBAL; break;
 				case KEY_V:	val = VOLUME; break;
-				default:	return false;
+				default:	return MlxImage::Command::NotACommand;
 			}
 		} else if (option == OTHER) {
 			switch (val) {
@@ -502,11 +553,117 @@ bool	camerasOptions(int option, bool hold, int val) {
 				case KEY_S:	val = SHADOW_RAYS; break;
 				case KEY_R:	val = RAYTRACING; break;
 				case KEY_P:	val = PATHTRACING; break;
-				default:	return false;
+				default:	return MlxImage::Command::NotACommand;
 			}
 		}
 		var.scene->changeCamerasOptions(val, option);
-		return true;
+		return MlxImage::Command::CameraOptionPhotonMap;
 	}
-	return false;
+	return MlxImage::Command::NotACommand;
 }
+
+//bool	quitTheProgram(bool hold, int val) {
+//	if (hold && val != ERROR) {
+//		_exit(*var.img, *var.scene, SUCCESS);
+//		return true;
+//	}
+//	return false;
+//}
+
+//bool	camerasSwitching(bool hold, int val) {
+//	if (hold && val != ERROR) {
+//		switch (val) {
+//			case KEY_ARROW_RIGHT:	var.scene->selectCamera(NEXT); return true;
+//			case KEY_ARROW_LEFT:	var.scene->selectCamera(PREVIOUS);  return true;
+//			default:				var.scene->selectCamera(val);  return true;
+//		}
+//	}
+//	return false;
+//}
+//
+//bool	currentCameraFOV(bool hold, int val) {
+//	if (hold && val != ERROR) {
+//		switch (val) {
+//			case KEY_PLUS:	var.scene->changeCameraFOV(INCREASE); return true;
+//			case KEY_MINUS:	var.scene->changeCameraFOV(DECREASE); return true;
+//		}
+//	}
+//	return false;
+//}
+//
+//bool	currentCameraMoving(bool hold, int val) {
+//	if (hold && val != ERROR) {
+//		switch (val) {
+//			case KEY_ARROW_RIGHT: var.scene->moveCamera(RIGHT); return true;
+//			case KEY_ARROW_LEFT:  var.scene->moveCamera(LEFT); return true;
+//			case KEY_ARROW_UP:    var.scene->moveCamera(UP); return true;
+//			case KEY_ARROW_DOWN:  var.scene->moveCamera(DOWN); return true;
+//		}
+//	}
+//	return false;
+//}
+//
+//bool	currentCameraMoving_(bool hold, int val) {
+//	if (hold && val != ERROR) {
+//		switch (val) {
+//			case KEY_ARROW_UP:   var.scene->moveCamera(FORWARD); return true;
+//			case KEY_ARROW_DOWN: var.scene->moveCamera(BACKWARD); return true;
+//		}
+//	}
+//	return false;
+//}
+//
+//bool	currentCameraRotation(bool hold, int val) {
+//	if (hold && val != ERROR) {
+//		switch (val) {
+//			case KEY_ARROW_RIGHT: var.scene->rotateCamera(YAW_RIGHT); return true;
+//			case KEY_ARROW_LEFT:  var.scene->rotateCamera(YAW_LEFT);  return true;
+//			case KEY_ARROW_UP:    var.scene->rotateCamera(PITCH_UP); return true;
+//			case KEY_ARROW_DOWN:  var.scene->rotateCamera(PITCH_DOWN); return true;
+//			case KEY_PLUS:    	  var.scene->rotateCamera(ROLL_RIGHT); return true;
+//			case KEY_MINUS:       var.scene->rotateCamera(ROLL_LEFT); return true;
+//		}
+//	}
+//	return false;
+//}
+//
+//bool	flybyAroundTheScene(bool hold,  int val) {
+//	if (hold && val != ERROR) {
+//		Camera&	cam(var.scene->cameras[var.scene->get_currentCamera()]);
+//		int&	flyby(var.img->flyby);
+//		switch (flyby) {
+//			case OFF:				cam.calculateFlybyRadius(); flyby = COUNTER_CLOCKWISE; break;
+//			case COUNTER_CLOCKWISE:	flyby = CLOCKWISE; break;
+//			case CLOCKWISE:			flyby = OFF; break;
+//		}
+//		return true;
+//	}
+//	return false;
+//}
+//
+//bool	camerasOptions(int option, bool hold, int val) {
+//	if (hold && val != ERROR) {
+//		if (option == PHOTON_MAP) {
+//			switch (val) {
+//				case KEY_N:	val = NO; break;
+//				case KEY_C: val = CAUSTIC; break;
+//				case KEY_G:	val = GLOBAL; break;
+//				case KEY_V:	val = VOLUME; break;
+//				default:	return false;
+//			}
+//		} else if (option == OTHER) {
+//			switch (val) {
+//				case KEY_A:	val = AMBIENT_LIGHTING; break;
+//				case KEY_D:	val = DIRECT_LIGHTING; break;
+//				case KEY_B:	val = BACKGROUND_LIGHT; break;
+//				case KEY_S:	val = SHADOW_RAYS; break;
+//				case KEY_R:	val = RAYTRACING; break;
+//				case KEY_P:	val = PATHTRACING; break;
+//				default:	return false;
+//			}
+//		}
+//		var.scene->changeCamerasOptions(val, option);
+//		return true;
+//	}
+//	return false;
+//}

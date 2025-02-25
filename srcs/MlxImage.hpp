@@ -2,6 +2,7 @@
 # define MLXIMAGE_HPP
 
 # include <stack>
+# include <unordered_map>
 # include "geometry.hpp"
 # include "ARGBColor.hpp"
 # include "mlx.h"
@@ -48,7 +49,6 @@ public:
 	bool SHIFT_ALT_(void);
 };
 
-
 class MlxImage : public ImageOptions {
 private:
 	void*				mlx;
@@ -67,6 +67,48 @@ public:
 	int					mouseHoldKey;
 	int					flyby;
 	enum ClearWhat { BOTH, DRAW_IMG, SHOW_IMG };
+
+/*
+ * Enum class below: A strongly-typed,
+ * scoped enumeration that prevents implicit conversion
+ * to int and avoids name clashes. Introduced in C++11
+ * for safer enum usage.
+ * To convert an enum class value to an integer, use:
+ *     static_cast<int>(enum_value)
+ */
+	enum class Command {
+		QuitTheProgram,
+		CameraSwitching,
+		CurrentCameraFOV,
+		CurrentCameraMoving,
+		CurrentCameraMoving_,
+		CurrentCameraRotation,
+		FlybyAroundScene,
+		CameraOptionSmoothingFactor,
+		CameraOptionRecursionDepth,
+		CameraOptionPhotonMap,
+		CameraOptionPathsPerRay,
+		CameraOptionOther,
+		CommandCount,
+		NotACommand
+	};
+	const std::unordered_map<Command, std::string> commandDescriptions = {
+		{Command::QuitTheProgram,  "Quit The Program"},
+		{Command::CameraSwitching,   "Camera Switching"},
+		{Command::CurrentCameraFOV,  "Current Camera FOV"},
+		{Command::CurrentCameraMoving, "Current Camera Moving"},
+		{Command::CurrentCameraMoving_, "Current Camera Moving_"},
+		{Command::CurrentCameraRotation, "Current Camera Rotation"},
+		{Command::FlybyAroundScene, "Flyby Around Scene"},
+		{Command::CameraOptionSmoothingFactor, "Camera Option Smoothing Factor"},
+		{Command::CameraOptionRecursionDepth, "Camera Option Recursion Depth"},
+		{Command::CameraOptionPhotonMap, "Option Photon Map"},
+		{Command::CameraOptionPathsPerRay, "Camera Option Paths Per Ray"},
+		{Command::CameraOptionOther, "Camera Option Other"},
+		{Command::NotACommand, "Not A Command"}
+	};
+	char	lastCommand[100];
+	
 	MlxImage(void);
 	~MlxImage();
 	void*	get_mlx(void) const;
@@ -87,6 +129,8 @@ public:
 	bool	isInWinowXY(const Vec2i& v) const;
 	void	rtToMlxXY(Vec2i& v) const;
 	void	mlxToRtXY(Vec2i& v) const;
+	void	displayCommand(MlxImage::Command command);
+
 };
 
 
@@ -107,12 +151,20 @@ int		_ARROWS_UP_DOWN(int key);
 int		_ARROWS(int key);
 int		_MINUS_PLUS(int key);
 int		_ARROWS_AND_MINUS_PLUS(int key);
-bool	quitTheProgram(bool hold, int val);
-bool	camerasSwitching(bool hold, int val);
-bool	currentCameraFOV(bool hold, int val);
-bool	currentCameraMoving(bool hold, int val);
-bool	currentCameraMoving_(bool hold, int val);
-bool	currentCameraRotation(bool hold, int val);
-bool	flybyAroundTheScene(bool hold, int val);
-bool	camerasOptions(int option, bool hold, int val);
+MlxImage::Command	quitTheProgram(bool hold, int val);
+MlxImage::Command	camerasSwitching(bool hold, int val);
+MlxImage::Command	currentCameraFOV(bool hold, int val);
+MlxImage::Command	currentCameraMoving(bool hold, int val);
+MlxImage::Command	currentCameraMoving_(bool hold, int val);
+MlxImage::Command	currentCameraRotation(bool hold, int val);
+MlxImage::Command	flybyAroundTheScene(bool hold, int val);
+MlxImage::Command	camerasOptions(int option, bool hold, int val);
+//bool	quitTheProgram(bool hold, int val);
+//bool	camerasSwitching(bool hold, int val);
+//bool	currentCameraFOV(bool hold, int val);
+//bool	currentCameraMoving(bool hold, int val);
+//bool	currentCameraMoving_(bool hold, int val);
+//bool	currentCameraRotation(bool hold, int val);
+//bool	flybyAroundTheScene(bool hold, int val);
+//bool	camerasOptions(int option, bool hold, int val);
 #endif /* MLXIMAGE_HPP */
