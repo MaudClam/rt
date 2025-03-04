@@ -312,7 +312,7 @@ int keyDown(int key, void* param) {
 }
 
 //int		keyDown(int key, void* param) { // FIXME! Decide, which function version to delete!
-
+//
 //	(void)param;
 //	HoldKeys& hold(var.img->hold);
 //	if ( DEBUG_KEYS ) { std::cout << "keyDown: " << key << "\n"; }
@@ -569,7 +569,7 @@ MlxImage::Command	camerasOptions(int option, bool hold, int val) {
 //	}
 //	return false;
 //}
-
+//
 //bool	camerasSwitching(bool hold, int val) {
 //	if (hold && val != ERROR) {
 //		switch (val) {

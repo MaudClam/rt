@@ -102,10 +102,10 @@ public:
 		{Command::FlybyAroundScene, "Flyby Around Scene"},
 		{Command::CameraOptionSmoothingFactor, "Camera Option Smoothing Factor"},
 		{Command::CameraOptionRecursionDepth, "Camera Option Recursion Depth"},
-		{Command::CameraOptionPhotonMap, "Option Photon Map"},
+		{Command::CameraOptionPhotonMap, "Camera Option Photon Map"},
 		{Command::CameraOptionPathsPerRay, "Camera Option Paths Per Ray"},
 		{Command::CameraOptionOther, "Camera Option Other"},
-		{Command::NotACommand, "Not A Command"}
+		{Command::NotACommand, ""}
 	};
 	char	lastCommand[100];
 	
