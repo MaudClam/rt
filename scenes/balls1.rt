@@ -16,7 +16,7 @@ c	6,0,0		-1,0,0		60
 c	0,30,0		0,-1,0		60
 
 #	Spheres
-#	center		diametr	color			specular	reflective	refractive	matIOR
+#	center		diametr	color			glossy		reflective	refractive	matIOR
 sp	0,-1,0		2		0xFF0000		500			0.1
 sp	-2,0,0		2		0xFFFFFF		1000		0.0			1.0			1.5
 sp	2,0,0		2		0xFFFFFF		1000		0.9

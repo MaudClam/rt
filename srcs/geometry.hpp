@@ -41,9 +41,9 @@ float	reverse_(float n, float lim);
 int		reverse_(int n, int lim);
 float	cosineDistr(float x);
 float	inverseCumulativeDistr(float u);
+float	shine(const Vec3f& dirFromPov, const Vec3f& normal, const Vec3f& dirToLight, float glossy);
+float	shine_(const Vec3f& dirFromPov, const Vec3f& normal, Vec3f dirToLight, float glossy);
 float	schlick(float cosine, float ref_idx);
-//float	shadowRaysFactor(float max = SHADOW_RAYS_MAX_FACTOR, float min = SHADOW_RAYS_MIN_FACTOR)
-float	shadowAntinoisesFactor(float refl, float refr, float diff);
 float	cosinePowerFading(float param, float factor);
 std::string  roundedString(float num, int factor = 2);
 void	dabugPrint(int each, float param1, float param2 = -1, int factor = 2);
@@ -171,10 +171,6 @@ template <class t> struct Vec3 {
 		product(-1);
 		substract(norm * (*this * norm * 2), *this).normalize();
 		return *this;
-	}
-	inline Vec3<t> get_reflect(const Vec3<t>& norm) const {
-		Vec3<t> v(*this);
-		return v.reflect(norm);
 	}
 	inline bool refract_(Vec3<t>& normal, float& cos_theta, float& eta) {
 		float k = 1. - eta * eta * (1. - cos_theta * cos_theta);

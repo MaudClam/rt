@@ -75,7 +75,6 @@ public:
 			default:
 				return 0;
 		}
-		ray.light = light.light;
 		return k;
 	}
 	void photonEmissions(int num, const PhotonMap& phMap, photonRays_t& rays) const;

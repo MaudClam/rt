@@ -97,26 +97,23 @@ float	inverseCumulativeDistr(float u) {
 	return std::cos(u * M_PI_2);
 }
 
+float	shine(const Vec3f& dirFromPov, const Vec3f& normal, const Vec3f& dirToLight, float glossy) {
+	return shine_(dirFromPov, normal, dirToLight, glossy);
+}
+
+float	shine_(const Vec3f& dirFromPov, const Vec3f& normal, Vec3f dirToLight, float glossy) {
+	if (glossy) {
+		float k = dirFromPov * dirToLight.reflect(normal);
+		if (k > 0)
+			return std::pow(k, glossy);
+	}
+	return 0;
+}
+
 float schlick(float cosine, float eta) {
 	float r0 = (1 - eta) / (1 + eta);
 	r0 = r0 * r0;
 	return r0 + (1 - r0) * pow((1 - cosine), 5);
-}
-
-float shadowAntinoisesFactor(float refl, float refr, float diff) {
-	float min = SHADOW_ANTINOISES_MIN;
-	float max = SHADOW_ANTINOISES_MAX;
-	if ( (refl > 0 && refl < min) || (refr > 0 && refr < min) || (diff > 0 && diff < min) ) {
-		float factor;
-		if ( !(factor = std::min(std::min(refl,refr), diff)) )
-			if ( !(factor = std::min(refl, refr)) )
-				if ( !(factor = std::min(refr, diff)) )
-					if ( !(factor = std::min(refl, diff)) )
-						return 1;
-		factor = 1. / factor;
-		return factor > max ? max : factor;
-	}
-	return 1;
 }
 
 float	cosinePowerFading(float param, float factor) {

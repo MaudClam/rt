@@ -33,6 +33,8 @@ struct ARGBColor {
 	ARGBColor(int v, int bpp = ARGB);
 	ARGBColor(const ARGBColor& c);
 	ARGBColor& operator=(const ARGBColor& c);
+	ARGBColor& set(const ARGBColor& c);
+	ARGBColor& set(int c);
 	inline ARGBColor operator+(const ARGBColor& c) const { return ARGBColor().addition(*this, c); }
 	ARGBColor& addition(const ARGBColor& c1, const ARGBColor& c2);
 	ARGBColor& addition(const ARGBColor& c1, const ARGBColor& c2, const ARGBColor& c3);
@@ -44,12 +46,11 @@ struct ARGBColor {
 	ARGBColor& product(float f);
 	ARGBColor& negative(void);
 	ARGBColor& gamma(float g);
-	inline ARGBColor operator+=(int c) { return ARGBColor(*this).iAddition(c); }
 	ARGBColor& iAddition(int c);
-	inline ARGBColor operator-=(int c) { return ARGBColor(*this).iSubstract(c); }
-	ARGBColor& iSubstract(int c);
-	inline ARGBColor operator*=(int c) { return ARGBColor(*this).iProduct(c); }
+	ARGBColor& operator+=(int c);
+	ARGBColor& operator+=(const ARGBColor& c);
 	ARGBColor& iProduct(int c);
+	ARGBColor& attenuate(int attenuation, float fading = 1);
 	inline unsigned char get_a(int val) { return 0xFF & (val >> 24); }
 	inline unsigned char get_r(int val) { return 0xFF & (val >> 16); }
 	inline unsigned char get_g(int val) { return 0xFF & (val >> 8); }
@@ -78,6 +79,16 @@ public:
 	void set_ratio(float ratio);
 	void set_color(const ARGBColor& color);
 	void invertBrightness(void);
+	inline int get_lighting(float fading = 1) const {
+		if (fading == 1)
+			return light.val;
+		int lighting = 0;
+		for (int i = 0; i < 3; i++) {
+			int tmp = i2limits(fading * light.raw[i], 0, 255);
+			lighting += (tmp << (8 * i));
+		}
+		return lighting;
+	}
 	friend std::ostream& operator<<(std::ostream& o, const Lighting& al);
 	friend std::istringstream& operator>>(std::istringstream& is, Lighting& l);
 };

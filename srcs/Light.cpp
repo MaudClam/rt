@@ -19,7 +19,7 @@ Light::Light(const Light& other) : _type(other._type) {
 	_color = other._color;
 	combineType = other.combineType;
 	light = other.light;
-	specular = other.specular;
+	glossy = other.glossy;
 	reflective = other.reflective;
 	refractive = other.refractive;
 	diffusion = other.diffusion;

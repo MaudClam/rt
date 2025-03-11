@@ -499,7 +499,6 @@ bool	camerasOptions(int option, bool hold, int val) {
 				case KEY_A:	val = AMBIENT_LIGHTING; break;
 				case KEY_D:	val = DIRECT_LIGHTING; break;
 				case KEY_B:	val = BACKGROUND_LIGHT; break;
-				case KEY_S:	val = SHADOW_RAYS; break;
 				case KEY_R:	val = RAYTRACING; break;
 				case KEY_P:	val = PATHTRACING; break;
 				default:	return false;

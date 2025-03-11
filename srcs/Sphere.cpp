@@ -32,7 +32,7 @@ _c(other._c)
 	_color = other._color;
 	combineType = other.combineType;
 	light = other.light;
-	specular = other.specular;
+	glossy = other.glossy;
 	reflective = other.reflective;
 	refractive = other.refractive;
 	diffusion = other.diffusion;
@@ -57,7 +57,7 @@ std::ostream& operator<<(std::ostream& o, const Sphere& sp) {
 	os << " " << sp._pos.p;
 	os << " " << std::setw(5) << std::right << sp._radius * 2;
 	os << "   " << sp.get_color().rrggbb();
-	os << " " << std::setw(4) << std::right << sp.specular;
+	os << " " << std::setw(4) << std::right << sp.glossy;
 	os << " " << std::setw(4) << std::right << sp.reflective;
 	os << " " << std::setw(4) << std::right << sp.refractive;
 	os << " " << std::setw(4) << std::right << sp.matIOR;
@@ -68,10 +68,10 @@ std::ostream& operator<<(std::ostream& o, const Sphere& sp) {
 
 std::istringstream& operator>>(std::istringstream& is, Sphere& sp) {
 	is >> sp._pos.p >> sp._radius;
-	is >> sp._color >> sp.specular >> sp.reflective >> sp.refractive >> sp.matIOR;
+	is >> sp._color >> sp.glossy >> sp.reflective >> sp.refractive >> sp.matIOR;
 	sp._radius /= 2;
 	sp._sqrRadius = sp._radius * sp._radius;
-	sp.specular = i2limits(sp.specular, -1, 1000);
+	sp.glossy = f2limits(sp.glossy, 0, 1000);
 	sp.reflective = f2limits(sp.reflective, 0., 1.);
 	sp.refractive = f2limits(sp.refractive, 0., 1. - sp.reflective);
 	sp.diffusion = f2limits(1. -  sp.reflective - sp.refractive, 0., 1.);

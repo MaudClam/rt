@@ -44,6 +44,10 @@ ARGBColor& ARGBColor::operator=(const ARGBColor& c) {
 	return *this;
 }
 
+ARGBColor& ARGBColor::set(const ARGBColor& c) { *this = c; return *this; }
+
+ARGBColor& ARGBColor::set(int c) { this->val = c; return *this; }
+
 ARGBColor& ARGBColor::addition(const ARGBColor& c1, const ARGBColor& c2) {
 	for (int i = 0; i < 4; ++i) {
 		raw[i] = (unsigned char)i2limits((int)c1.raw[i] + (int)c2.raw[i], 0, 255);
@@ -95,6 +99,11 @@ ARGBColor& ARGBColor::gamma(float g) {
 }
 
 ARGBColor& ARGBColor::iAddition(int c) {
+	*this += c;
+	return *this;
+}
+
+ARGBColor& ARGBColor::operator+=(int c) {
 	a = (unsigned char)i2limits((int)a + get_a(c), 0, 255);
 	r = (unsigned char)i2limits((int)r + get_r(c), 0, 255);
 	g = (unsigned char)i2limits((int)g + get_g(c), 0, 255);
@@ -102,11 +111,8 @@ ARGBColor& ARGBColor::iAddition(int c) {
 	return *this;
 }
 
-ARGBColor& ARGBColor::iSubstract(int c) {
-	a = (unsigned char)i2limits((int)a - get_a(c), 0, 255);
-	r = (unsigned char)i2limits((int)r - get_r(c), 0, 255);
-	g = (unsigned char)i2limits((int)g - get_g(c), 0, 255);
-	b = (unsigned char)i2limits((int)b - get_b(c), 0, 255);
+ARGBColor& ARGBColor::operator+=(const ARGBColor& c) {
+	this->addition(*this, c);
 	return *this;
 }
 
@@ -117,6 +123,15 @@ ARGBColor& ARGBColor::iProduct(int c) {
 	b = (unsigned char)i2limits(_1_255 * (float)b * (float)get_b(c), 0, 255);
 	return *this;
 }
+
+ARGBColor& ARGBColor::attenuate(int attenuation, float fading) {
+	if (attenuation != -1) {
+		iProduct(attenuation);
+	}
+	product(fading);
+	return *this;
+}
+
 
 
 

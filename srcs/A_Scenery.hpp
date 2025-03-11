@@ -24,7 +24,7 @@ protected:
 public:
 	CombineType		combineType;// combination type with the following primitive
 	Lighting 		light;		// light for light source
-	int				specular;	// in range [-1,1000]
+	float			glossy;	// in range [0,1] matteness, (1,1000] glossy
 	float			reflective;	// in range [0,1]
 	float			refractive; // in range [0,1]
 	float			diffusion;	// in range [0,1]
@@ -39,7 +39,15 @@ public:
 	inline std::string	get_nick(void) const { return std::string(_nick); }
 	inline bool			get_isLight(void) const { return _isLight; }
 	inline Position		get_pos(void) const { return Position(_pos); }
-	ARGBColor	get_color(void) const;
+	inline ARGBColor	get_color(void) const { return ARGBColor(_color); }
+	inline float		get_mattness(void) { return glossy > 0 && glossy <= 1 ? glossy : 0; }
+	inline float		get_glossy(void) {
+		if (glossy > 1)
+			return glossy;
+		if (glossy <= MATTNESS_GLOSSY_LIMIT)
+			return MATTNESS_GLOSSY_RATIO / glossy;
+		return 0;
+	}
 	inline void	set_id(int id) { _id = id; }
 	inline void	set_name(const std::string& name) { _name = name; }
 	inline void	set_nick(const std::string& nick) { _nick = nick; }

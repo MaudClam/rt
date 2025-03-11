@@ -59,13 +59,11 @@ struct Ray : public HitRecord {
 	class Path {
 		union {
 			struct { bool _r, _d, _v; };
-			struct { bool _refr, _diff, _refl; };
 		};
 	public:
 		Path(void) : _r(false), _d(false), _v(false) {}
 		~Path(void) {}
 		Path(const Path& other) : _r(other._r), _d(other._d), _v(other._d) {}
-
 		Path& operator=(const Path& other) {
 			if (this != &other) {
 				_r = other._r;
@@ -74,19 +72,16 @@ struct Ray : public HitRecord {
 			}
 			return *this;
 		}
+		inline void clear(void) { _r = false; _d = false; _v = false; }
 		inline void reflPhoton(void) { _r = true; }
 		inline void refrPhoton(void) { _r = true; }
 		inline void diffPhoton(void) { _d = true; }
 		inline void volmPhoton(void) { _v = true; }
-		inline void set_refraction(void) { _refr = true; _diff = false; _refl = false; }
-		inline void set_diffusion(void) { _refr = false; _diff = true; _refl = false; }
-		inline void set_reflection(void) { _refr = false; _diff = false; _refl = true; }
+		inline void diffusion(bool d) { _d = d; }
+		inline bool diffusion(void) const { return _d; }
 		inline bool isGlobal(void) const { return true; }
 		inline bool isCaustic(void) const { return _r; }
 		inline bool isVolume(void) const { return _r || _d || _v; }
-		inline bool isRefraction(void) const { return _refr; }
-		inline bool isDiffusion(void) const { return _diff; }
-		inline bool isReflection(void) const { return _refl; }
 	};
 	
 	struct Point {
@@ -189,7 +184,7 @@ struct Ray : public HitRecord {
 	Ray& intersection(Segment& segment1, Segment& segment2);
 	Ray& combine(auto& scenery, auto& end, float distance, Hit target);
 	bool closestScenery(Scenerys& scenerys, float maxDistance, Hit target = FRONT);
-	bool isAlbedo(void);
+	bool isGlowing(void);
 	inline A_Scenery* getCombine(Point& nearest) {
 		auto segment = segments.before_begin(), segmentNext = segments.begin();
 		for (; segment != segments.end(); ++segment) {
@@ -228,43 +223,20 @@ struct Ray : public HitRecord {
 	inline void movePovByNormal(const HitRecord& rec, float distance) {
 		pov.addition(rec.pov, rec.norm * distance);
 	}
+	inline void getMatt(float mattness) {
+		if (mattness) {
+			dir.addition(dir, Vec3f().randomInSphere(mattness)).normalize();
+			path.diffusion(true);
+		}
+	}
 	inline void resetColors(void) {
 		color.val = shine.val = light.val = 0;
 	}
-	inline void collectLight(int scenery_iColor, float k = 1) {
-		color.addition(color, (light *= scenery_iColor) * k);
-	}
-	inline void collectLight(int scenery_iColor, const ARGBColor& _light, float k = 1) {
-		light = _light;
-		collectLight(scenery_iColor, k);
-	}
-	inline void collectShine(const Vec3f& dirFromCam, const Vec3f& dirToLight, int specular) {
-		if (specular > 1) {
-			float k = dirToLight.get_reflect(norm) * dirFromCam;
-			if (k > 0.) {
-				k = std::pow(k, specular);
-				shine.addition(shine, light * k);
-			}
-		}
-	}
-	inline void collectReflectiveLight(const ColorRecord& cRec, float factor) {
-		float previous = 1. - factor;
-		light.val = cRec.color;
-		color.addition(color.product(factor), light.product(previous));
-		light.val = cRec.shine;
-		shine.addition(shine.product(factor), light);
-	}
-	inline void collectRefractiveLight(int scenery_iColor, const ColorRecord& cRec, float factor) {
-		float previous = 1. - factor;
-		light.val = cRec.color;
-		color.addition(color.iProduct(scenery_iColor).product(factor), light.product(previous));
-		light.val = cRec.shine;
-		shine.addition(shine.iProduct(scenery_iColor).product(factor), light);
-	}
-	inline void collectShadowLight(int shaded_iColor, const ColorRecord& colorRec) {
-		color.addition(diffusions, reflections, refractions).iProduct(shaded_iColor);
-		color.iAddition(colorRec.color);
-		shine = colorRec.shine;
+	inline void collectReflections(int attenuation, const ColorRecord& cRec, float fading) {
+		color.attenuate(attenuation, fading);
+		shine.attenuate(attenuation, fading);
+		color += cRec.color;
+		shine += cRec.shine;
 	}
 	inline void photonReflection(void) {
 		movePovByNormal(EPSILON);
@@ -338,7 +310,9 @@ struct Ray : public HitRecord {
 				n++;
 			}
 			lighting.product((float)n / (M_PI * last->first)).getARGBColor(light);
-			collectLight(scenery_iColor);
+			light.attenuate(scenery_iColor);
+			color += light;
+//			collectLight(scenery_iColor);
 			if (ns > estimate * 0.1) {
 				shining.getARGBColor(light);
 				shine.addition(shine, light);

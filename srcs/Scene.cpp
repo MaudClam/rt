@@ -28,7 +28,8 @@ _ambient(1),
 _background(1),
 _currentCamera(0) {
 	img.set_scene(this);
-	_background.invertBrightness();
+	_background.set_ratio(_ambient.get_ratio() * BACKGRND_VISIBILITY_FACTOR);
+//	_background.invertBrightness();
 }
 
 Scene::~Scene(void) {
@@ -84,8 +85,8 @@ void Scene::systemDemo(void) {
 	cameras.push_back(Camera(img));
 	set_any("A				0.2		0xFFFFEE");
 	set_any("l	2,1,0		0.5		0xFFFFFF");
-//	set_any("l	1,4,4		0.3		0xFFFFFF");
-	set_any("ll	1,4,4		0.3		0xFFFFFF	10,40,40");
+	set_any("l	1,4,4		0.3		0xFFFFFF");
+//	set_any("ll	1,4,4		0.3		0xFFFFFF	10,40,40");
 	set_any("c	0,0,-2		0,0,1		60");
 	set_any("c	0,0,8		0,0,-1		60");
 	set_any("c	-5,0,3		1,0,0		60");
@@ -273,9 +274,9 @@ int Scene::set_any(std::istringstream is) {
 		}
 		case 1: {// A AmbientLightning
 			is >> _ambient;
-//			_background.light = img.white;
 			_background = _ambient;
-			_background.invertBrightness();
+			_background.set_ratio(_ambient.get_ratio() * BACKGRND_VISIBILITY_FACTOR);
+//			_background.invertBrightness();
 			break;
 		}
 		case 2: {// c camera
@@ -440,7 +441,6 @@ void Scene::rotateCamera(int ctrl) {
 
 void Scene::flybyCamera(void) {
 	if (cameras[_currentCamera].tracingType == RAY &&
-		!cameras[_currentCamera].shadowRays &&
 		cameras[_currentCamera].photonMap == NO) {
 		Camera&		cam(cameras[_currentCamera]);
 		Position	pos(cam.get_pos());
@@ -471,27 +471,20 @@ void Scene::changeCamerasOptions(int key, int option) {
 			break;
 		}
 		case PATHS_PER_RAY: {
-			if (!(cameras[0].shadowRays || cameras[0].tracingType == PATH)) return;
+			if (cameras[0].tracingType != PATH) return;
 			if (key == 0 || key > 4 || pprs[key] == cameras[0].paths) return;
 			img.flyby = OFF;
 			break;
 		}
 		case PHOTON_MAP: {
 			if (cameras[0].phMap.type == NO) return;
-			if (cameras[0].tracingType == PATH) return;
+//			if (cameras[0].tracingType == PATH) return;
 			if (cameras[0].photonMap == NO && (MapType)key == NO) return;
 			img.flyby = OFF;
 			break;
 		}
 		case OTHER: {
 			switch (key) {
-				case DIRECT_LIGHTING: { if (cameras[0].tracingType == PATH) return;
-					break;
-				}
-				case SHADOW_RAYS: { if (cameras[0].tracingType == PATH) return;
-					img.flyby = OFF;
-					break;
-				}
 				case RAYTRACING: { if (cameras[0].tracingType == RAY) return;
 					img.flyby = OFF;
 					break;

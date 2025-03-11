@@ -1,7 +1,7 @@
 R   800 600 SystemDemo
 A                   0.2 255,255,238                      #ambient liting
 l     2,1,0         0.5 255,255,255                      #spotlight
-ll   10,40,40       0.3 255,255,255 0.174078,0.696311,0.696311 #sunlight limited by plane
+l     1,4,4         0.3 255,255,255                      #spotlight
 c     0,0,-2        0,0,1      60                        #camera 0
 c     0,0,8         0,0,-1     60                        #camera 1
 c    -5,0,3         1,0,0      60                        #camera 2

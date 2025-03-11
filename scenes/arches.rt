@@ -12,7 +12,7 @@ c	0,1,-25		0,0,1		90
 c	0,25,0		0,-1,0		90
 
 #	Spheres
-#	center		diametr	color			specular	reflective	refractive	matIOR
+#	center		diametr	color			glossy		reflective	refractive	matIOR
 sp	-3,0.6,14	12		0xE0FFFF		500			0.0			1.0			1.5
 INTERSECTION
 sp	3,0.6,14	12		0xE0FFFF		500			0.0			1.0			1.5

@@ -12,7 +12,7 @@ _pos(),
 _color(),
 combineType(END),
 light(),
-specular(-1),
+glossy(0),
 reflective(0),
 refractive(0),
 diffusion(0),
@@ -31,15 +31,13 @@ _pos(other._pos),
 _color(other._color),
 combineType(other.combineType),
 light(other.light),
-specular(other.specular),
+glossy(other.glossy),
 reflective(other.reflective),
 refractive(other.refractive),
 diffusion(other.diffusion),
 matIOR(other.matIOR),
 matOIR(other.matOIR)
 {}
-
-ARGBColor A_Scenery::get_color(void) const { return ARGBColor(_color); }
 
 
 // Non member functions

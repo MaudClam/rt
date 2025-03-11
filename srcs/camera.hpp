@@ -84,9 +84,8 @@ public:
 	int					paths;
 	MapType				photonMap;
 	TracingType			tracingType;
-	bool				ambientLight;
-	bool				directLight;
-	bool				shadowRays;
+	bool				ambientLightOn;
+	bool				directLightOn;
 	Camera(const MlxImage& img);
 	~Camera(void);
 	Camera(const Camera& other);
@@ -117,13 +116,13 @@ public:
 	static void	rayTracing(Camera* camera, size_t begin, size_t end);
 	bool	traceRay(Ray& ray, int r = 0);
 	void	ambientLighting(Ray& ray, const HitRecord& rec);
-	void	directLightings(Ray& ray, const HitRecord& rec, int r);
-	void	transparentSadow(Ray& ray, const HitRecord& rec, float distTolight, int r);
+	void	diffusions(Ray& ray, const HitRecord& rec, int r);
+	void	onePath(Ray& ray, const HitRecord& rec, int r);
+	void	directLightings(Ray& ray, const HitRecord& rec);
 	void	reflections(Ray& ray, const HitRecord& rec, float reflective, int r);
-	void	refractions(Ray& ray, const HitRecord& rec, int r);
-	void	phMapLightings(Ray& ray, const A_Scenery& scenery);
-	void	pathTracing(Ray& ray, float fuzz, int r = 0);
-	bool	tracePath(Ray& ray, int r = 0, bool shader = false);
+	void	refractions(Ray& ray, const HitRecord& rec, float refractive, int r);
+	void	phMapLightings(Ray& ray, const HitRecord& rec);
+	void	pathTracing(Ray& ray, int r = 0);
 	void	calculateFlybyRadius(void);
 	void 	runThreadRoutine(int routine, MlxImage* img = NULL);
 

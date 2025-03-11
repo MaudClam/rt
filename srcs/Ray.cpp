@@ -330,7 +330,7 @@ bool Ray::closestScenery(Scenerys& scenerys, float maxDistance, Hit target) {
 	return false;
 }
 
-bool Ray::isAlbedo(void) {
+bool Ray::isGlowing(void) {
 	if (scnr->get_isLight()) {
 		color = scnr->get_iColor(*this);
 		return true;

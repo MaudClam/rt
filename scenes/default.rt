@@ -40,7 +40,7 @@
 # component is in the range [0,FF].
 #
 # (5)Optional. To activate an optional parameter, the previous optional
-# parameters must be active or marked '0' ('-1' for specular).
+# parameters must be active or marked '0'.
 #
 # (6)Refractive index is inactive if the refractive is '0'.
 #
@@ -96,7 +96,7 @@
 # x,y,z coordinates of the sphere center:                          0.0,0.0,20.6
 # Diameter:                                                        12.6
 # R,G,B (4) colors in range (3) [0,255]:                           10,0,255
-# (5) Specular in range (3) [-1,1000] (-1 not specular):           500
+# (5) Glossy in range (3) [0,1] matteness, (1,1000] glossy:        500
 # (5) Reflective in range (3) [0.0,1.0]:                           0.1
 # (5) Refractive in range (3) [0.0,1.0]:                           0.9
 # (5,6) Refractive index at the material1/material2 interface:     1.33
