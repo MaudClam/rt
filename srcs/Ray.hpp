@@ -183,6 +183,7 @@ struct Ray : public HitRecord {
 	Ray& subtraction(Segment& segment1, Segment& segment2);
 	Ray& intersection(Segment& segment1, Segment& segment2);
 	Ray& combine(auto& scenery, auto& end, float distance, Hit target);
+	Ray& refract(const HitRecord& rec, float& schlick, bool& fullReflection);
 	bool closestScenery(Scenerys& scenerys, float maxDistance, Hit target = FRONT);
 	bool isGlowing(void);
 	inline A_Scenery* getCombine(Point& nearest) {
@@ -232,9 +233,9 @@ struct Ray : public HitRecord {
 	inline void resetColors(void) {
 		color.val = shine.val = light.val = 0;
 	}
-	inline void collectReflections(int attenuation, const ColorRecord& cRec, float fading) {
-		color.attenuate(attenuation, fading);
-		shine.attenuate(attenuation, fading);
+	inline void collectReflections(int attenuation, const ColorRecord& cRec, float intensity) {
+		color.attenuate(attenuation, intensity);
+		shine.attenuate(attenuation, intensity);
 		color += cRec.color;
 		shine += cRec.shine;
 	}
@@ -312,7 +313,6 @@ struct Ray : public HitRecord {
 			lighting.product((float)n / (M_PI * last->first)).getARGBColor(light);
 			light.attenuate(scenery_iColor);
 			color += light;
-//			collectLight(scenery_iColor);
 			if (ns > estimate * 0.1) {
 				shining.getARGBColor(light);
 				shine.addition(shine, light);

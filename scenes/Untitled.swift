@@ -16,7 +16,7 @@ bool Camera::tracePath(Ray& ray, int r, bool shader) {
 			A_Scenery*	scnr(ray.scnr);
 			int			attenuation(scnr->get_iColor(ray));
 			int			color(ray.color.val); ray.color.val = 0;
-			float		fading = 1;
+			float		intensity = 1;
 			double		chance = random_double();
 			if (chance <= scnr->reflective) {	// reflections
 				ray.dir.reflect(ray.norm);
@@ -39,23 +39,23 @@ bool Camera::tracePath(Ray& ray, int r, bool shader) {
 				ray.dir.randomInUnitHemisphere(ray.norm);
 			}
 			if (ray.path.isReflection()) {
-				fading = shader ? ray.dir * ray.norm : 1;
+				intensity = shader ? ray.dir * ray.norm : 1;
 				ray.movePovByNormal(EPSILON);
 				tracePath(ray, ++r);
-				ray.color.product(fading);
+				ray.color.product(intensity);
 				ray.path.set_reflection();
 			} else if (ray.path.isRefraction()) {
-				fading = shader ? -(ray.dir * ray.norm) : 1;
+				intensity = shader ? -(ray.dir * ray.norm) : 1;
 				ray.movePovByNormal(-EPSILON);
 				tracePath(ray, ++r);
-				ray.color.iProduct(attenuation).product(fading);
-//				ray.color.product(fading);
+				ray.color.iProduct(attenuation).product(intensity);
+//				ray.color.product(intensity);
 				ray.path.set_refraction();
 			} else if (ray.path.isDiffusion()) {
-				fading = ray.dir * ray.norm;
+				intensity = ray.dir * ray.norm;
 				ray.movePovByNormal(EPSILON);
 				tracePath(ray, ++r);
-				ray.color.iProduct(attenuation).product(fading);
+				ray.color.iProduct(attenuation).product(intensity);
 				ray.path.set_diffusion();
 			}
 			ray.color.iAddition(color);

@@ -124,11 +124,11 @@ ARGBColor& ARGBColor::iProduct(int c) {
 	return *this;
 }
 
-ARGBColor& ARGBColor::attenuate(int attenuation, float fading) {
+ARGBColor& ARGBColor::attenuate(int attenuation, float intensity) {
 	if (attenuation != -1) {
 		iProduct(attenuation);
 	}
-	product(fading);
+	product(intensity);
 	return *this;
 }
 

@@ -289,6 +289,19 @@ Ray& Ray::combine(auto& scenery, auto& end, float distance, Hit target) {
 	return *this;
 }
 
+Ray& Ray::refract(const HitRecord& rec, float& schlick, bool& fullReflection) {
+	float eta = rec.hit == INSIDE ? rec.scnr->matIOR : rec.scnr->matOIR;
+	float cos_theta = -(rec.dir * rec.norm);
+	schlick = schlick == -1 ? 0 : getSchlick(cos_theta, eta);
+	if (dir.refract_(rec.norm, cos_theta, eta)) {
+		fullReflection = false;
+	} else {
+		schlick = 1;
+		fullReflection = true;
+	}
+	return *this;
+}
+
 bool Ray::closestScenery(Scenerys& scenerys, float maxDistance, Hit target) {
 	float		_distance = maxDistance;
 	Hit			_hit = target;

@@ -1,5 +1,5 @@
 R   800 600 SystemDemo
-A                   0.2 255,255,238                      #ambient liting
+A                  0.25 255,255,238                      #ambient liting
 l     2,1,0         0.5 255,255,255                      #spotlight
 l     1,4,4         0.3 255,255,255                      #spotlight
 c     0,0,-2        0,0,1      60                        #camera 0

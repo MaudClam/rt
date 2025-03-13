@@ -110,7 +110,7 @@ float	shine_(const Vec3f& dirFromPov, const Vec3f& normal, Vec3f dirToLight, flo
 	return 0;
 }
 
-float schlick(float cosine, float eta) {
+float getSchlick(float cosine, float eta) {
 	float r0 = (1 - eta) / (1 + eta);
 	r0 = r0 * r0;
 	return r0 + (1 - r0) * pow((1 - cosine), 5);

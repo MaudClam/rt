@@ -114,7 +114,8 @@ public:
 	static void	takePicture(Camera* camera, MlxImage& img, size_t begin, size_t end);
 	void	rayTracing_lll(size_t begin, size_t end);
 	static void	rayTracing(Camera* camera, size_t begin, size_t end);
-	bool	traceRay(Ray& ray, int r = 0);
+	bool	rayEnd(Ray& ray, int r);
+	void	traceRay(Ray& ray, int r = 0);
 	void	ambientLighting(Ray& ray, const HitRecord& rec);
 	void	diffusions(Ray& ray, const HitRecord& rec, int r);
 	void	onePath(Ray& ray, const HitRecord& rec, int r);
@@ -123,6 +124,7 @@ public:
 	void	refractions(Ray& ray, const HitRecord& rec, float refractive, int r);
 	void	phMapLightings(Ray& ray, const HitRecord& rec);
 	void	pathTracing(Ray& ray, int r = 0);
+	void	tracePath(Ray& ray, int r);
 	void	calculateFlybyRadius(void);
 	void 	runThreadRoutine(int routine, MlxImage* img = NULL);
 

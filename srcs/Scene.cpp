@@ -83,7 +83,7 @@ void Scene::systemDemo(void) {
 	set_any("R	800 600  SystemDemo");
 	img.init(header(), _resolution);
 	cameras.push_back(Camera(img));
-	set_any("A				0.2		0xFFFFEE");
+	set_any("A				0.25		0xFFFFEE");
 	set_any("l	2,1,0		0.5		0xFFFFFF");
 	set_any("l	1,4,4		0.3		0xFFFFFF");
 //	set_any("ll	1,4,4		0.3		0xFFFFFF	10,40,40");

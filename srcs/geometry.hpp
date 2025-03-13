@@ -43,7 +43,7 @@ float	cosineDistr(float x);
 float	inverseCumulativeDistr(float u);
 float	shine(const Vec3f& dirFromPov, const Vec3f& normal, const Vec3f& dirToLight, float glossy);
 float	shine_(const Vec3f& dirFromPov, const Vec3f& normal, Vec3f dirToLight, float glossy);
-float	schlick(float cosine, float ref_idx);
+float	getSchlick(float cosine, float ref_idx);
 float	cosinePowerFading(float param, float factor);
 std::string  roundedString(float num, int factor = 2);
 void	dabugPrint(int each, float param1, float param2 = -1, int factor = 2);
@@ -172,7 +172,7 @@ template <class t> struct Vec3 {
 		substract(norm * (*this * norm * 2), *this).normalize();
 		return *this;
 	}
-	inline bool refract_(Vec3<t>& normal, float& cos_theta, float& eta) {
+	inline bool refract_(const Vec3<t>& normal, float& cos_theta, float& eta) {
 		float k = 1. - eta * eta * (1. - cos_theta * cos_theta);
 		if(k > 0) {
 			this->addition( this->product(eta), normal * (eta * cos_theta - std::sqrt(k)) ).normalize();
