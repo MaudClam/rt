@@ -87,14 +87,15 @@ void Scene::systemDemo(void) {
 	set_any("l	2,1,0		0.5		0xFFFFFF");
 	set_any("l	1,4,4		0.3		0xFFFFFF");
 //	set_any("ll	1,4,4		0.3		0xFFFFFF	10,40,40");
-	set_any("c	0,0,-2		0,0,1		60");
+	set_any("c	0,0,-2.5	0,0,1		60");
 	set_any("c	0,0,8		0,0,-1		60");
 	set_any("c	-5,0,3		1,0,0		60");
 	set_any("c	5,0,3		-1,0,0		60");
 	set_any("c	0,5,3		0,-1,0		60");
 	set_any("sp	0,-1,3		2		0xFF0000	500		0.1");
 	set_any("sp	2,0,4		2		0xFFFFFF	500		0.0		1.0		1.5");
-	set_any("sp	-2,0,4		2		0x00FF00	10		0.2");
+	set_any("sp	0,0.25,5.5		2.5		0xF0F0F0	500		1.0");
+	set_any("sp	-2,0,4		2		0x00FF00	0.2		0.2");
 	set_any("sp	0,-5001,0	10000	0xFFFF00	1000	0.3");
 	if (cameras.size() > 1)
 		_currentCamera = 1;

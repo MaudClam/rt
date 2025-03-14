@@ -403,18 +403,36 @@ void Camera::takePicture(Camera* camera, MlxImage& img, size_t begin, size_t end
 
 void Camera::rayTracing_lll(size_t begin, size_t end) {
 	for (auto pixel = matrix.begin() + begin, End = matrix.begin() + end; pixel != End; ++pixel) {
-		for (auto ray = pixel->rays.begin(), _end = pixel->rays.end(); ray != _end; ++ray) {
-			if (tracingType == PATH)
-				pathTracing(*ray);
-			else
-				traceRay(*ray);
-		}
+		for (auto ray = pixel->rays.begin(), _end = pixel->rays.end(); ray != _end; ++ray)
+			tarcing(*ray);
 		pixel->averageColor();
 	}
 }
 
 void Camera::rayTracing(Camera* camera, size_t begin, size_t end) {
 	camera->rayTracing_lll(begin, end);
+}
+
+void Camera::tarcing(Ray& ray, int r) {
+	if (!rayEnd(ray, r)){
+		HitRecord rec(ray.getNormal());
+		if (tracingType == RAY) {
+			reflections(ray, rec, rec.scnr->reflective, r);
+			refractions(ray, rec, rec.scnr->refractive, r);
+		} else if (tracingType == PATH) {
+			if (ray.path.diffusion()) {
+				pathTracing(ray, rec, r);
+			} else {
+				reflections(ray, rec, rec.scnr->reflective, r);
+				refractions(ray, rec, rec.scnr->refractive, r);
+				if (ray.path.diffusion())
+					pathTracing(ray, rec, r);
+			}
+		}
+		directLightings(ray, rec);
+		ambientLighting(ray, rec);
+		phMapLightings(ray, rec);
+	}
 }
 
 bool Camera::rayEnd(Ray& ray, int r) {
@@ -438,23 +456,110 @@ bool Camera::rayEnd(Ray& ray, int r) {
 			return true;
 		}
 	}
+	ray.markPath();
 	return false;
 }
 
 void Camera::traceRay(Ray& ray, int r) {
 	if (!rayEnd(ray, r)){
 		HitRecord rec(ray.getNormal());
-		ambientLighting(ray, rec);
-		phMapLightings(ray, rec);
-		
-//		diffusions(ray, rec, r);
-		
-		
 		reflections(ray, rec, rec.scnr->reflective, r);
 		refractions(ray, rec, rec.scnr->refractive, r);
 		directLightings(ray, rec);
-
+		ambientLighting(ray, rec);
+		phMapLightings(ray, rec);
 	}
+}
+
+void Camera::reflections(Ray& ray, const HitRecord& rec, float intensity, int r) {
+	if (intensity > _1_255) {
+		ColorRecord cRec(ray);
+		int   attenuation = rec.scnr->get_iColor(rec);
+		ray.reflect();
+		traceRay(ray, ++r);
+		if (rec.scnr->diffusion)
+			attenuation = -1;
+		ray.collectReflections(attenuation, intensity, cRec);
+		ray.restore(rec);
+	}
+}
+
+void Camera::refractions(Ray& ray, const HitRecord& rec, float intensity, int r) {
+	if (intensity > _1_255) {
+		ColorRecord cRec(ray);
+		int   attenuation = rec.scnr->get_iColor(rec);
+		float schlick = 0;
+		if (ray.refract((rec.hit == INSIDE ? rec.scnr->matIOR : rec.scnr->matOIR), schlick)) {
+			traceRay(ray, r + 1);
+			ray.collectReflections(attenuation, intensity - schlick, cRec);
+			ray.restore(rec);
+			if (schlick > _1_255)
+				reflections(ray, rec, schlick, r);
+		} else {
+			ray.restore(rec);
+			reflections(ray, rec, 1.0, r);
+			if (ray.color.val == 0)
+				ray.color = background.light;
+			ray.collectReflections(-1, intensity, cRec);
+		}
+	}
+}
+
+void Camera::pathTracing(Ray& ray, const HitRecord& rec, int r) {
+	Average3i	averageColor;
+	Average3i	averageShine;
+	for (int i = 0; i < paths; i++) {
+		ray.resetColors();
+		path(ray, rec, r);
+		averageColor.add(ray.color);
+		averageShine.add(ray.shine);
+	}
+	averageColor.getARGBColor(ray.color);
+	averageShine.getARGBColor(ray.shine);
+}
+
+void Camera::tracePath(Ray& ray, int r) {
+	if (rayEnd(ray, r))
+		return;
+	HitRecord	rec(ray.getNormal());
+	path(ray, rec, r);
+	ambientLighting(ray, rec);
+	directLightings(ray, rec);
+	phMapLightings(ray, rec);
+}
+
+void Camera::path(Ray& ray, const HitRecord& rec, int r) {
+	float	mattness = rec.scnr->get_mattness();
+	float	attenuation = rec.scnr->get_iColor(rec);
+	float	intensity = 1;
+	float	shining = -1;
+	double	chance = random_double();
+	if (chance < rec.scnr->reflective) { /*REFLECTION*/
+		ray.reflect(mattness);
+		if (rec.scnr->diffusion) attenuation = -1;
+	} else if (chance < rec.scnr->reflective + rec.scnr->refractive) { /*REFRACTION*/
+		float schlick = mattness >= MATTNESS_GLOSSY_LIMIT ? -1 : 0;
+		if (ray.refract(rec.hit == INSIDE ? rec.scnr->matIOR : rec.scnr->matOIR, schlick, mattness)) {
+			chance = random_double();
+			if (chance > _1_255 && chance < schlick) { /*PARTIAL REFLECTION*/
+				ray.restore(rec);
+				ray.reflect(mattness);
+			}
+		} else { /*FULL REFLECTION*/
+			ray.reflect(mattness);
+			if (rec.scnr->diffusion) attenuation = -1;
+		}
+	} else { /*DIFFUSION*/
+		ray.diffusion();
+		intensity = ray.dir * rec.norm;
+		shining = shine(rec.dir, rec.norm, ray.dir, rec.scnr->get_glossy());
+	}
+	tracePath(ray, ++r);
+	if (shining == -1)
+		ray.collectReflections(attenuation, intensity);
+	else
+		ray.collectDiffusions(attenuation, intensity, shining);
+	ray.restore(rec);
 }
 
 void Camera::ambientLighting(Ray& ray, const HitRecord& rec) {
@@ -467,47 +572,6 @@ void Camera::ambientLighting(Ray& ray, const HitRecord& rec) {
 			ray.color += ray.light;
 		}
 	}
-}
-
-void Camera::diffusions(Ray& ray, const HitRecord& rec, int r) {
-	float diffusion = rec.scnr->diffusion;
-	if (tracingType == PATH && diffusion) {
-		ColorRecord cRec(ray);
-		if (ray.path.diffusion()) {
-			onePath(ray, rec, r);
-		} else {
-			ray.path.diffusion(true);
-			Average3i	averageColor;
-			Average3i	averageShine;
-			for (int i = 0; i < paths; i++) {
-				onePath(ray, rec, r);
-				averageColor.add(ray.color);
-				averageShine.add(ray.shine);
-			}
-			averageColor.getARGBColor(ray.color);
-			averageShine.getARGBColor(ray.shine);
-			ray.path.diffusion(false);
-		}
-		ray.color.product(diffusion) += cRec.color;
-		ray.shine.product(diffusion) += cRec.shine;
-		ray.restore(rec);
-	}
-}
-
-void Camera::onePath(Ray& ray, const HitRecord& rec, int r) {
-	ray.dir.randomInUnitHemisphere(rec.norm);
-	float intensity = rec.norm * ray.dir;
-	float shining = shine(rec.dir, rec.norm, ray.dir, rec.scnr->get_glossy());
-	ray.resetColors();
-	ray.pov = rec.pov;
-	ray.movePovByNormal(rec, EPSILON);
-	traceRay(ray, ++r);
-	ray.light.addition(ray.color, ray.shine);
-	ray.color.val = ray.shine.val = 0;
-	if (intensity > _1_255)
-		ray.color.set(ray.light.val).attenuate(rec.scnr->get_iColor(rec), intensity);
-	if (shining > _1_255)
-		ray.shine.set(ray.light.val).attenuate(-1, shining);
 }
 
 void Camera::directLightings(Ray& ray, const HitRecord& rec) {
@@ -540,48 +604,6 @@ void Camera::directLightings(Ray& ray, const HitRecord& rec) {
 	}
 }
 
-void Camera::reflections(Ray& ray, const HitRecord& rec, float reflective, int r) {
-	if (reflective) {
-		ColorRecord cRec(ray);
-		int   attenuation = rec.scnr->get_iColor(rec);
-		float mattness = tracingType == PATH ? rec.scnr->get_mattness() : 0;
-		ray.dir.reflect(rec.norm);
-		ray.getMatt(mattness);
-		ray.movePovByNormal(EPSILON);
-		traceRay(ray, ++r);
-		if (rec.scnr->diffusion)
-			attenuation = -1;
-		ray.collectReflections(attenuation, cRec, reflective);
-		ray.restore(rec);
-	}
-}
-
-void Camera::refractions(Ray& ray, const HitRecord& rec, float refractive, int r) {
-	if (refractive) {
-		ColorRecord cRec(ray);
-		int   attenuation = rec.scnr->get_iColor(rec);
-		float mattness = tracingType != PATH ? 0 : rec.scnr->get_mattness();
-		float schlick = r > SCHLICK_RECURSION_DEPTH || mattness > MATTNESS_GLOSSY_LIMIT ? -1 : 0;
-		bool  fullReflection = false;
-		ray.refract(rec, schlick, fullReflection);
-		if (!fullReflection) {
-			ray.getMatt(mattness);
-			ray.movePovByNormal(rec, -EPSILON);
-			traceRay(ray, ++r);
-			ray.collectReflections(attenuation, cRec, refractive - schlick);
-			ray.restore(rec);
-			if (schlick > _1_255)
-				reflections(ray, rec, schlick, r);
-		} else {
-//			ray.restore(rec);
-			reflections(ray, rec, 1.0, r);
-			if (ray.color.val == 0)
-				ray.color = background.light;
-			ray.collectReflections(attenuation, cRec, refractive);
-		}
-	}
-}
-
 void Camera::phMapLightings(Ray& ray, const HitRecord& rec) {
 	if (photonMap != NO && rec.scnr->diffusion) {
 		phMap.get_traces27(ray.pov, ray.traces, photonMap);
@@ -590,73 +612,6 @@ void Camera::phMapLightings(Ray& ray, const HitRecord& rec) {
 							   rec.scnr->get_iColor(rec));
 		}
 	}
-}
-
-void Camera::pathTracing(Ray& ray, int r) {
-	Vec3f		pov(ray.pov);
-	Average3i	averageColor;
-	Average3i	averageShine;
-	for (int i = 0; i < paths; i++) {
-		tracePath(ray, r);
-		averageColor.add(ray.color);
-		averageShine.add(ray.shine);
-		ray.resetColors();
-		ray.pov = pov;
-	}
-	averageColor.getARGBColor(ray.color);
-	averageShine.getARGBColor(ray.shine);
-}
-
-void Camera::tracePath(Ray& ray, int r) {
-	if (rayEnd(ray, r))
-		return;
-	HitRecord	rec(ray.getNormal());
-	float		mattness = rec.scnr->get_mattness();
-	float		attenuation = rec.scnr->get_iColor(rec);
-	float		intensity = 1;
-//	float		shining = 0;
-	double		chance = random_double();
-	if (chance < rec.scnr->reflective) {
-//		REFLECTION
-		ray.dir.reflect(rec.norm);
-		ray.getMatt(mattness);
-		if (rec.scnr->diffusion)
-			attenuation = -1;
-		ray.movePovByNormal(EPSILON);
-	} else if (chance < rec.scnr->reflective + rec.scnr->refractive) {
-//		REFRACTION
-		float schlick = mattness >= MATTNESS_GLOSSY_LIMIT ? -1 : 0;
-		bool  fullReflection = false;
-		ray.refract(rec, schlick, fullReflection);
-		chance = random_double();
-		if (chance > _1_255 && chance < schlick) {
-//			REFLECTION
-			if (!fullReflection)
-				ray.dir = rec.dir;
-			ray.dir.reflect(rec.norm);
-			ray.getMatt(mattness);
-			if (rec.scnr->diffusion)
-				attenuation = -1;
-			ray.movePovByNormal(EPSILON);
-		} else {
-//			REFRACTION CONTINUATION
-			ray.getMatt(0.5 * mattness);
-			ray.movePovByNormal(-EPSILON);
-		}
-	} else {
-//		DIFFUSION
-		ray.dir.randomInUnitHemisphere(rec.norm);
-		intensity = ray.dir * rec.norm;
-//		float shining = shine(rec.dir, rec.norm, ray.dir, rec.scnr->get_glossy());
-		ray.movePovByNormal(EPSILON);
-	}
-	tracePath(ray, ++r);
-	ray.color.attenuate(attenuation, intensity);
-	ray.shine.attenuate(attenuation, intensity);
-	ray.restore(rec);
-	ambientLighting(ray, rec);
-	directLightings(ray, rec);
-	phMapLightings(ray, rec);
 }
 
 void Camera::calculateFlybyRadius(void) {

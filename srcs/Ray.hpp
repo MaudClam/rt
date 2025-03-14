@@ -183,7 +183,7 @@ struct Ray : public HitRecord {
 	Ray& subtraction(Segment& segment1, Segment& segment2);
 	Ray& intersection(Segment& segment1, Segment& segment2);
 	Ray& combine(auto& scenery, auto& end, float distance, Hit target);
-	Ray& refract(const HitRecord& rec, float& schlick, bool& fullReflection);
+	Ray& markPath(void);
 	bool closestScenery(Scenerys& scenerys, float maxDistance, Hit target = FRONT);
 	bool isGlowing(void);
 	inline A_Scenery* getCombine(Point& nearest) {
@@ -219,25 +219,60 @@ struct Ray : public HitRecord {
 		pov.addition(pov, dir * dist);
 	}
 	inline void movePovByNormal(float distance) {
-		pov.addition(pov, norm * distance);
+		pov.addition(pov, norm.product(distance));
 	}
 	inline void movePovByNormal(const HitRecord& rec, float distance) {
 		pov.addition(rec.pov, rec.norm * distance);
 	}
-	inline void getMatt(float mattness) {
-		if (mattness) {
-			dir.addition(dir, Vec3f().randomInSphere(mattness)).normalize();
-			path.diffusion(true);
+	inline void reflect(float mattness = 0) {
+		dir.reflect(norm);
+		getMatt(mattness);
+		movePovByNormal(EPSILON);
+	}
+	inline bool refract(float eta, float& schlick, float mattness = 0) {
+		float cos_theta = -(dir * norm);
+		if (dir.refract_(norm, cos_theta, eta)) {
+			getMatt(mattness);
+			schlick = schlick == -1 ? 0 : getSchlick(cos_theta, eta);
+			movePovByNormal(-EPSILON);
+			return true;
 		}
+		schlick = 1;
+		return false;
+	}
+	inline void diffusion(void) {
+		dir.randomInUnitHemisphere(norm);
+		movePovByNormal(EPSILON);
+	}
+	inline void getMatt(float mattness) {
+		if (mattness)
+			dir.addition(dir, Vec3f().randomInSphere(mattness)).normalize();
 	}
 	inline void resetColors(void) {
 		color.val = shine.val = light.val = 0;
 	}
-	inline void collectReflections(int attenuation, const ColorRecord& cRec, float intensity) {
+	inline void collectReflections(int attenuation, float intensity, const ColorRecord& cRec) {
 		color.attenuate(attenuation, intensity);
 		shine.attenuate(attenuation, intensity);
 		color += cRec.color;
 		shine += cRec.shine;
+	}
+	inline void collectReflections(int attenuation, float intensity) {
+		if (intensity > _1_255) {
+			color.attenuate(attenuation, intensity);
+			shine.attenuate(attenuation, intensity);
+		} else {
+			color.val = 0;
+			shine.val = 0;
+		}
+	}
+	inline void collectDiffusions(int attenuation, float intensity, float shining) {
+		light.addition(color, shine);
+		color.val = shine.val = 0;
+		if (intensity > _1_255)
+			color.set(light.val).attenuate(attenuation, intensity);
+		if (shining > _1_255)
+			shine.set(light.val).attenuate(-1, shining);
 	}
 	inline void photonReflection(void) {
 		movePovByNormal(EPSILON);
