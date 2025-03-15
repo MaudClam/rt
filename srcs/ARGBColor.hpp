@@ -7,7 +7,7 @@
 # include <vector>
 
 
-const float _1_255 = 1. / 255;
+const float _1_255 = 1. / 255.99;
 enum colorFormat { GRAY_SCALE=1, RGB=3, ARGB=4 };
 std::string colorFormat(int bpp);
 int   i2limits(int num, int min, int max);

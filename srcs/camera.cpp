@@ -441,20 +441,12 @@ bool Camera::rayEnd(Ray& ray, int r) {
 		return true;
 	}
 	if (!ray.closestScenery(scenerys, _INFINITY)) {
-		ray.resetColors();
 		ray.color.val = background.light.val;
 		return true;
 	}
 	if (ray.scnr->get_isLight()) {
-		if (directLightOn) {
-			ray.resetColors();
-			ray.color = ray.scnr->get_iColor(ray);
-			return true;
-		} else {
-			ray.resetColors();
-			ray.color.val = background.light.val;
-			return true;
-		}
+		ray.color = ray.scnr->get_iColor(ray);
+		return true;
 	}
 	ray.markPath();
 	return false;
@@ -500,7 +492,6 @@ void Camera::refractions(Ray& ray, const HitRecord& rec, float intensity, int r)
 			reflections(ray, rec, 1.0, r);
 			if (ray.color.val == 0)
 				ray.color = background.light;
-			ray.collectReflections(-1, intensity, cRec);
 		}
 	}
 }
@@ -544,6 +535,7 @@ void Camera::path(Ray& ray, const HitRecord& rec, int r) {
 			if (chance > _1_255 && chance < schlick) { /*PARTIAL REFLECTION*/
 				ray.restore(rec);
 				ray.reflect(mattness);
+				if (rec.scnr->diffusion) attenuation = -1;
 			}
 		} else { /*FULL REFLECTION*/
 			ray.reflect(mattness);
