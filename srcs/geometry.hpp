@@ -16,6 +16,7 @@ typedef Vec3<float>				Vec3f;
 typedef Vec3<int>				Vec3i;
 typedef LookatAuxiliary<float>	LookatAux;
 
+const float _1_256 = 1. / 255.99;
 const float M_2PI = 2. * M_PI;
 const float M_4PI = 4. * M_PI;
 const float M_PI_180 = M_PI / 180.;
@@ -106,6 +107,7 @@ template <class t> struct Vec3 {
 	union {
 		struct {t x, y, z;};
 		struct { t ivert, iuv, inorm; };
+		struct { t b, g, r; };
 		t raw[3];
 	};
 	Vec3(void) : x(0), y(0), z(0) {}
@@ -340,10 +342,38 @@ struct Position {
 	Position& roll(float roll);
 };
 std::ostream& operator<<(std::ostream& o, const Position& pos);
+// struct Position end
 
 
-// Soft Sadow
-float softShadow(float distToEdge, float distToShader, float lenght, float softness);
+// struct rgb
+struct rgb : public Vec3f {
+	rgb(int argb) {
+		for (int i = 0; i < 3; i++) {
+			int val(argb);
+			raw[i] = 0xFF & (val >> (8 * i));
+		}
+	}
+	~rgb(void) {}
+	rgb& toUnit(void) {
+		for (int i = 0; i < 3; i++) {
+			if (raw[i] > 1) raw[i] = 1;
+			if (raw[i] < 0) raw[i] = 0;
+		}
+		return *this;
+	}
+	inline int argb(void) {
+		int argb = 0;
+		for (int i = 0; i < 3; i++) {
+			if (raw[i] > 1) raw[i] = 1;
+			if (raw[i] < 0) raw[i] = 0;
+			argb += ( int(255.99 * raw[i]) << (8 * i) );
+		}
+		return argb;
+	}
+	inline float maxBand(void) { return std::max(std::max(raw[0], raw[1]), raw[2]);
+	}
+};
+
 
 // Intersections, normals, rays
 bool  raySphereIntersection(const Vec3f& rayDir, const Vec3f& rayPov, const Vec3f& center, float sqrRadius, float& distance, float& min_t, float& max_t, Hit& rayHit);

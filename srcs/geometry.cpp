@@ -210,26 +210,6 @@ std::ostream& operator<<(std::ostream& o, const Position& pos) {
 }
 
 
-
-// Soft Sadow
-
-float	softShadow(float distToEdge,
-				 float distToShader,
-				 float lenght,
-				 float softness) {
-	if (distToEdge > 0.) {
-		float d = std::pow( lenght * distToEdge / distToShader, softness );
-		if (d < 0.003922)
-			return 1.;
-		if (d > 0.996078)
-			return 0.;
-		else
-			return 1. - d;
-	}
-	return 0.;
-}
-
-
 // Intersections, normals, rays
 
 bool	raySphereIntersection(const Vec3f& rayDir,
