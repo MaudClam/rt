@@ -42,6 +42,15 @@ struct Pixel {
 	void reset(int smoothingFactor, float tan, const Vec3f& pov);
 	void restoreRays(int smoothingFactor, float tan, const Vec3f& pov);
 	void averageColor(void);
+//	inline int meanPaint(void) {
+//		int paint = 0;
+//		if (rays.size()) {
+//			Mean3f mean;
+//			for (auto ray = rays.begin(), end = rays.end(); ray != end; ++ray)
+//				mean += ray->paint;
+//		}
+//		return paint;
+//	}
 };
 
 	

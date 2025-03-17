@@ -19,6 +19,7 @@
 		667951792C427BFD009C1DDD /* camera.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 667951772C427BFD009C1DDD /* camera.cpp */; settings = {COMPILER_FLAGS = "-Wall -Wextra -Werror -O2"; }; };
 		6679518B2C5216B7009C1DDD /* Light.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 667951892C5216B7009C1DDD /* Light.cpp */; settings = {COMPILER_FLAGS = "-Wall -Wextra -Werror -O2"; }; };
 		667951922C5293BB009C1DDD /* ARGBColor.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 667951912C5293BB009C1DDD /* ARGBColor.cpp */; settings = {COMPILER_FLAGS = "-Wall -Wextra -Werror -O2"; }; };
+		668B635B2D885609006DBF53 /* Rgb.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 668B635A2D885609006DBF53 /* Rgb.cpp */; settings = {COMPILER_FLAGS = "-Wall -Wextra -Werror -O2"; }; };
 		66B3B0A42C93E9C9005085BC /* Scene.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 667951702C41AD05009C1DDD /* Scene.cpp */; settings = {COMPILER_FLAGS = "-Wall -Wextra -Werror -O2"; }; };
 		66D1668D2C3B4243002E6F7E /* libmlx.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 66D1668C2C3B4243002E6F7E /* libmlx.a */; };
 		66D166C62C3C172F002E6F7E /* Sphere.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 66D166C42C3C172F002E6F7E /* Sphere.cpp */; settings = {COMPILER_FLAGS = "-Wall -Wextra -Werror -O2"; }; };
@@ -70,6 +71,8 @@
 		6679518F2C5293BB009C1DDD /* geometry.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = geometry.hpp; sourceTree = "<group>"; };
 		667951902C5293BB009C1DDD /* ARGBColor.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = ARGBColor.hpp; sourceTree = "<group>"; };
 		667951912C5293BB009C1DDD /* ARGBColor.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = ARGBColor.cpp; sourceTree = "<group>"; };
+		668B63572D873531006DBF53 /* Rgb.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; path = Rgb.hpp; sourceTree = "<group>"; };
+		668B635A2D885609006DBF53 /* Rgb.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = Rgb.cpp; sourceTree = "<group>"; };
 		6696E8882CEF4E0200E3CFBB /* parsing.log */ = {isa = PBXFileReference; lastKnownFileType = text; path = parsing.log; sourceTree = SOURCE_ROOT; };
 		66B3B0A52C94B81E005085BC /* default.rt */ = {isa = PBXFileReference; lastKnownFileType = text; path = default.rt; sourceTree = "<group>"; };
 		66B3B0A62C950387005085BC /* balls.rt */ = {isa = PBXFileReference; lastKnownFileType = text; path = balls.rt; sourceTree = "<group>"; };
@@ -143,6 +146,8 @@
 				667951782C427BFD009C1DDD /* camera.hpp */,
 				665806E42CEA0CE400143501 /* geometry.cpp */,
 				6679518F2C5293BB009C1DDD /* geometry.hpp */,
+				668B63572D873531006DBF53 /* Rgb.hpp */,
+				668B635A2D885609006DBF53 /* Rgb.cpp */,
 				66B6D1C42C3AD3B9008FD6E6 /* Header.h */,
 				6628EB072C91F1D200BC90BD /* keys.h */,
 				667951892C5216B7009C1DDD /* Light.cpp */,
@@ -238,6 +243,7 @@
 				6659C4E32C399E8A00CC7FAB /* MlxImage.cpp in Sources */,
 				667951792C427BFD009C1DDD /* camera.cpp in Sources */,
 				66D166C62C3C172F002E6F7E /* Sphere.cpp in Sources */,
+				668B635B2D885609006DBF53 /* Rgb.cpp in Sources */,
 				66B3B0A42C93E9C9005085BC /* Scene.cpp in Sources */,
 				667951922C5293BB009C1DDD /* ARGBColor.cpp in Sources */,
 			);

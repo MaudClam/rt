@@ -4,6 +4,7 @@
 # include <forward_list>
 # include "geometry.hpp"
 # include "ARGBColor.hpp"
+# include "Rgb.hpp"
 # include "random.hpp"
 # include "PhotonMap.hpp"
 
@@ -18,6 +19,7 @@ struct	Rays;
 
 
 struct HitRecord {
+	Rgb			paint;	// paint for pixel
 	Vec3f		pov;	// ray POV (point of view)		| photon position
 	Vec3f		dir;	// normalized: ray direction	| photon incident direction
 	Vec3f		norm;	// normalized: normal vector from the ray hit point

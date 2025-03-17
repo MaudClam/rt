@@ -4,6 +4,7 @@
 // struct HitRecord
 
 HitRecord::HitRecord(void) :
+paint(),
 pov(),
 dir(),
 norm(),
@@ -15,6 +16,7 @@ scnr(NULL)
 HitRecord::~HitRecord(void) {}
 
 HitRecord::HitRecord(const HitRecord& other) :
+paint(other.paint),
 pov(other.pov),
 dir(other.dir),
 norm(other.norm),
@@ -23,6 +25,7 @@ scnr(other.scnr)
 {}
 
 HitRecord::HitRecord(const Ray& ray) :
+paint(ray.paint),
 pov(ray.pov),
 dir(ray.dir),
 norm(ray.norm),
@@ -32,6 +35,7 @@ scnr(ray.scnr)
 
 HitRecord& HitRecord::operator=(const HitRecord& other) {
 	if (this != &other) {
+		paint = other.paint;
 		pov = other.pov;
 		dir = other.dir;
 		norm = other.norm;
@@ -66,6 +70,7 @@ ColorRecord& ColorRecord::operator=(const ColorRecord& other) {
 // struct Ray
 
 Ray::Ray(void) :
+HitRecord(),
 recursion(0),
 dist(0),
 pow(),
@@ -80,6 +85,7 @@ traces()
 {}
 
 Ray::Ray(const Position pos, const Power& _pow) :
+HitRecord(),
 recursion(1),
 dist(0),
 pow(_pow),
@@ -97,6 +103,7 @@ traces()
 }
 
 Ray::Ray(const Position pos, const Power& _pow, const LookatAux& aux) :
+HitRecord(),
 recursion(1),
 dist(0),
 pow(_pow),
@@ -119,6 +126,7 @@ Ray::Ray(const Ray& other) { *this = other; }
 
 Ray& Ray::operator=(const Ray& other) {
 	if (this != & other) {
+		paint = other.paint;
 		pov = other.pov;
 		dir = other.dir;
 		norm = other.norm;
@@ -139,6 +147,7 @@ Ray& Ray::operator=(const Ray& other) {
 }
 
 Ray& Ray::operator=(const HitRecord& rec) {
+	paint = rec.paint;
 	pov = rec.pov;
 	dir = rec.dir;
 	norm = rec.norm;

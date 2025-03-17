@@ -437,15 +437,18 @@ void Camera::tarcing(Ray& ray, int r) {
 
 bool Camera::rayEnd(Ray& ray, int r) {
 	if ((ray.recursion = r) > depth) {
-		ray.resetColors();
+		ray.resetColors();//FIXME
+//		ray.paint.reset();
 		return true;
 	}
 	if (!ray.closestScenery(scenerys, _INFINITY)) {
-		ray.color.val = background.light.val;
+		ray.color.val = background.light.val;//FIXME
+		ray.paint = background.light.val;
 		return true;
 	}
 	if (ray.scnr->get_isLight()) {
-		ray.color = ray.scnr->get_iColor(ray);
+		ray.color = ray.scnr->get_iColor(ray);//FIXME
+		ray.paint = ray.scnr->get_iColor(ray);
 		return true;
 	}
 	ray.markPath();
