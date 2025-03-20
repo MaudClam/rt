@@ -185,7 +185,7 @@ void PhotonMap::photonRayTracing_lll(Scenerys& scenerys, photonRays_t& rays) {
 void PhotonMap::tracePhotonRay(Scenerys& scenerys, Ray& ray) {
 	if (ray.recursion <= DEFAULT_RECURSION_DEPTH) {
 		if (ray.closestScenery(scenerys, _INFINITY)) {
-			Power	color(ray.scnr->get_iColor(ray));
+			Power	color(Rgb(ray.scnr->get_iColor(ray)));
 			float	reflective = ray.scnr->reflective;
 			float	refractive = ray.scnr->refractive;
 			float	diffusion = ray.scnr->diffusion;

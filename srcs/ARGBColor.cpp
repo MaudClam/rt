@@ -217,19 +217,18 @@ std::istringstream& operator>>(std::istringstream& is, ARGBColor& c) {
 
 // Struct Lighting
 
-Lighting::Lighting(void) : _ratio(1.), _color(0x00FFFFFF), light() {
-	_ratio = f2limits(_ratio, 0., 1.);
-	light.product(_ratio);
+Lighting::Lighting(void) : _ratio(1), _color(0x00FFFFFF), light() {
+	_ratio = f2limits(_ratio, 0., 1);
+	light = _color.val;
+	light *= _ratio;
 }
-
-Lighting::~Lighting(void) {}
 
 Lighting::Lighting(float ratio, const ARGBColor& color) :
 _ratio(ratio),
 _color(color),
-light(color) {
-	_ratio = f2limits(_ratio, 0., 1.);
-	light.product(ratio);
+light(color.val) {
+	_ratio = f2limits(_ratio, 0., 1);
+	light *= _ratio;
 }
 
 Lighting::Lighting(const Lighting& other) :
@@ -237,6 +236,8 @@ _ratio(other._ratio),
 _color(other._color),
 light(other.light)
 {}
+
+Lighting::~Lighting(void) {}
 
 Lighting& Lighting::operator=(const Lighting& other) {
 	if (this != &other) {
@@ -253,19 +254,19 @@ int Lighting::get_albedo(void) const { return _color.val; }
 
 void Lighting::set_ratio(float ratio) {
 	_ratio = f2limits(ratio, 0., 1.);
-	light = _color;
-	light.product(_ratio);
+	light = _color.val;
+	light *= _ratio;
 }
 
 void Lighting::set_color(const ARGBColor& color) {
-	light = color;
-	light.product(_ratio);
+	light = color.val;
+	light *= _ratio;
 }
 
 void Lighting::invertBrightness(void) {
 	_ratio = 1 - _ratio;
-	light = _color;
-	light.product(_ratio);
+	light = _color.val;
+	light *= _ratio;
 }
 
 
@@ -283,8 +284,8 @@ std::istringstream& operator>>(std::istringstream& is, Lighting& l) {
 	is >> l._ratio;
 	is >> l._color;
 	l._ratio = f2limits(l._ratio, 0., 1.);
-	l.light = l._color;
-	l.light.product(l._ratio);
+	l.light = l._color.val;
+	l.light *= l._ratio;
 	return is;
 }
 

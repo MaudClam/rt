@@ -97,11 +97,11 @@ float	inverseCumulativeDistr(float u) {
 	return std::cos(u * M_PI_2);
 }
 
-float	shine(const Vec3f& dirFromPov, const Vec3f& normal, const Vec3f& dirToLight, float glossy) {
-	return shine_(dirFromPov, normal, dirToLight, glossy);
+float	getShining(const Vec3f& dirFromPov, const Vec3f& normal, const Vec3f& dirToLight, float glossy) {
+	return getShining_(dirFromPov, normal, dirToLight, glossy);
 }
 
-float	shine_(const Vec3f& dirFromPov, const Vec3f& normal, Vec3f dirToLight, float glossy) {
+float	getShining_(const Vec3f& dirFromPov, const Vec3f& normal, Vec3f dirToLight, float glossy) {
 	if (glossy) {
 		float k = dirFromPov * dirToLight.reflect(normal);
 		if (k > 0)

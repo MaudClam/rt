@@ -18,23 +18,23 @@
 # define PRECISION					1e-9
 # define EPSILON 					1e-3
 # define _INFINITY					100
-# define GAMMA						2.
+# define GAMMA						float(2.0)
 # define BASE						Vec3f(0,0,0),Vec3f(0,0,1)
 # define MAX_PHOTONS_NUMBER			10000000
 # define MAX_ESTIMATE_PHOTONS		1000
-# define MAX_PHOTONS_GRID_STEP		1.
+# define MAX_PHOTONS_GRID_STEP		float(1.0)
 # define TOTAL_PHOTONS_POWER		1
 # define DAFAULT_SMOOTHING_FACTOR	1
 # define DEFAULT_RECURSION_DEPTH	5
 # define BACKGRND_VISIBILITY_FACTOR	3
 # define DAFAULT_PATHS_PER_RAY		pprs[2]
 # define MATTNESS_GLOSSY_RATIO		10
-# define MATTNESS_GLOSSY_LIMIT		0.3
+# define MATTNESS_GLOSSY_LIMIT		float(0.3)
 # define PIXELS_PER_THREAD			4000
 # define RESTORE_RAYS				1
 # define RESET_RAYS					2
 # define TAKE_PICTURE				3
-# define RAY_TRACING				4
+# define RAYS_TRACING				4
 
 const int pprs[] = {0,25,50,100,200};	// set of values ​​of the variable 'paths'
 

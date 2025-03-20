@@ -29,7 +29,7 @@ struct ARGBColor {
 	ARGBColor(void);
 	~ARGBColor(void);
 	ARGBColor(unsigned char R, unsigned char G, unsigned char B, unsigned char A = 0);
-	ARGBColor(int v, int bpp = ARGB);
+	ARGBColor(int v, int bpp = RGB);
 	ARGBColor(const ARGBColor& c);
 	ARGBColor& operator=(const ARGBColor& c);
 	ARGBColor& set(const ARGBColor& c);
@@ -67,27 +67,17 @@ class Lighting {
 	float		_ratio;
 	ARGBColor	_color;
 public:
-	ARGBColor	light;
+	Rgb			light;
 	Lighting(void);
 	Lighting(float ratio, const ARGBColor& color = ARGBColor(0x00FFFFFF));
-	~Lighting(void);
 	Lighting(const Lighting& other);
+	~Lighting(void);
 	Lighting& operator=(const Lighting& other);
 	float get_ratio(void) const;
 	int get_albedo(void) const;
 	void set_ratio(float ratio);
 	void set_color(const ARGBColor& color);
 	void invertBrightness(void);
-	inline int get_lighting(float intensity = 1) const {
-		if (intensity == 1)
-			return light.val;
-		int lighting = 0;
-		for (int i = 0; i < 3; i++) {
-			int tmp = i2limits(intensity * light.raw[i], 0, 255);
-			lighting += (tmp << (8 * i));
-		}
-		return lighting;
-	}
 	friend std::ostream& operator<<(std::ostream& o, const Lighting& al);
 	friend std::istringstream& operator>>(std::istringstream& is, Lighting& l);
 };

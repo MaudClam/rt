@@ -11,35 +11,33 @@
 
 class	A_Scenery;
 struct	Scenerys;
+class	PhotonMap;
 
 struct	Ray;
 struct	HitRecord;
-struct	ColorRecord;
 struct	Rays;
 
+enum Choice {
+	ABSORPTION,
+	REFLECTION,
+	PARTIAL_REFLECTION,
+	FULL_REFLECTION,
+	REFRACTION,
+	DIFFUSION
+};
 
 struct HitRecord {
-	Rgb			paint;	// paint for pixel
-	Vec3f		pov;	// ray POV (point of view)		| photon position
-	Vec3f		dir;	// normalized: ray direction	| photon incident direction
-	Vec3f		norm;	// normalized: normal vector from the ray hit point
-	Hit			hit;	// type of contact with an object
+	Rgb		paint;	// paint for pixel
+	Vec3f	pov;	// ray POV (point of view)		| photon position
+	Vec3f	dir;	// normalized: ray direction	| photon incident direction
+	Vec3f	norm;	// normalized: normal vector from the ray hit point
+	Hit		hit;	// type of contact with an object
 	A_Scenery*	scnr;	// pointer to scenery
 	HitRecord(void);
 	~HitRecord(void);
 	HitRecord(const HitRecord& other);
-	HitRecord(const Ray& ray);
+	HitRecord(Ray& ray);
 	HitRecord& operator=(const HitRecord& other);
-};
-
-
-struct ColorRecord {
-	int	shine;
-	int	color;
-	ColorRecord(Ray& ray);
-	~ColorRecord(void);
-	ColorRecord(const ColorRecord& other);
-	ColorRecord& operator=(const ColorRecord& other);
 };
 
 
@@ -159,10 +157,7 @@ struct Ray : public HitRecord {
 	Power		pow;			//				| photon power
 	Path		path;			// ray path		| photon path
 	Segment		intersections;	// segment on ray - scenery entry and exit points
-	union {
-		struct { ARGBColor light, shine, color; };
-		struct { ARGBColor reflections, refractions, diffusions; };
-	};
+	ARGBColor	light, shine, color;
 	CombineType	combineType;	// type of object combination
 	Segments	segments;		// container for segments handling
 	Traces		traces;			//				| photon traces
@@ -173,11 +168,9 @@ struct Ray : public HitRecord {
 	~Ray(void);
 	Ray(const Ray& other);
 	Ray& operator=(const Ray& other);
-	Ray& operator=(const HitRecord& rec);
-	Ray& operator=(const ColorRecord& cRec);
+	Ray& operator=(const HitRecord& other);
+	Ray& reset(HitRecord& rec);
 	Ray& restore(const HitRecord& rec);
-	Ray& restore(const ColorRecord& cRec);
-	Ray& restore(const HitRecord& rec, const ColorRecord& cRec);
 	Ray& set_hit(Hit hit);
 	Ray& getNormal(void);
 	Ray& combination(void);
@@ -186,8 +179,15 @@ struct Ray : public HitRecord {
 	Ray& intersection(Segment& segment1, Segment& segment2);
 	Ray& combine(auto& scenery, auto& end, float distance, Hit target);
 	Ray& markPath(void);
-	bool closestScenery(Scenerys& scenerys, float maxDistance, Hit target = FRONT);
+	Ray& fakeAmbientLighting(HitRecord& rec, const Rgb& ambient);
+	Ray& directLightings(HitRecord& rec, const Scenerys& scenerys, const Scenerys& lightsIdx);
+	Ray& phMapLightings(HitRecord& rec, const PhotonMap& phMap, MapType type);
+	bool end(const Scenerys& scenerys, const Lighting& background, int depth, int r);
+	bool closestScenery(const Scenerys& scenerys, float maxDistance, Hit target = FRONT);
 	bool isGlowing(void);
+	float probability(Choice choice, bool isPhoton);
+	Choice chooseDirection(HitRecord& rec, bool isPhoton);
+	int	   getAttenuation(HitRecord& rec, Choice choice, float& intensity, float& shining);
 	inline A_Scenery* getCombine(Point& nearest) {
 		auto segment = segments.before_begin(), segmentNext = segments.begin();
 		for (; segment != segments.end(); ++segment) {
@@ -252,29 +252,6 @@ struct Ray : public HitRecord {
 	}
 	inline void resetColors(void) {
 		color.val = shine.val = light.val = 0;
-	}
-	inline void collectReflections(int attenuation, float intensity, const ColorRecord& cRec) {
-		color.attenuate(attenuation, intensity);
-		shine.attenuate(attenuation, intensity);
-		color += cRec.color;
-		shine += cRec.shine;
-	}
-	inline void collectReflections(int attenuation, float intensity) {
-		if (intensity > _1_255) {
-			color.attenuate(attenuation, intensity);
-			shine.attenuate(attenuation, intensity);
-		} else {
-			color.val = 0;
-			shine.val = 0;
-		}
-	}
-	inline void collectDiffusions(int attenuation, float intensity, float shining) {
-		light.addition(color, shine);
-		color.val = shine.val = 0;
-		if (intensity > _1_255)
-			color.set(light.val).attenuate(attenuation, intensity);
-		if (shining > _1_255)
-			shine.set(light.val).attenuate(-1, shining);
 	}
 	inline void photonReflection(void) {
 		movePovByNormal(EPSILON);

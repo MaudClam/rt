@@ -15,6 +15,12 @@ Power::Power(const ARGBColor& color) : r(0), g(0), b(0) {
 	*this = color;
 }
 
+Power::Power(const Rgb& rgb) :
+r(rgb.get_band(0)),
+g(rgb.get_band(1)),
+b(rgb.get_band(2))
+{}
+
 Power::Power(const Vec3f& vec) : r(0), g(0), b(0) {
 	*this = vec;
 }
@@ -45,9 +51,9 @@ Power& Power::operator=(const ARGBColor& color) {
 }
 
 Power& Power::getARGBColor(ARGBColor& c) {
-	c.r = i2limits(int(r * 255.99), 0, 255);
-	c.g = i2limits(int(g * 255.99), 0, 255);
-	c.b = i2limits(int(b * 255.99), 0, 255);
+	c.r = i2limits(int(r * 255), 0, 255);
+	c.g = i2limits(int(g * 255), 0, 255);
+	c.b = i2limits(int(b * 255), 0, 255);
 	return *this;
 }
 

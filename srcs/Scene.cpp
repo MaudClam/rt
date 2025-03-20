@@ -341,7 +341,7 @@ void Scene::set_scenery(A_Scenery* scenery) {
 	scenerys.back()->set_id((int)scenerys.size());
 	if ( scenerys.back()->get_isLight() ) {
 		lightsIdx.push_back(scenery);
-		scenery->set_color(scenery->light.light);
+//		scenery->set_color(scenery->light.light);
 	} else {
 		objsIdx.push_back(scenery);
 	}
@@ -367,7 +367,7 @@ void Scene::makeLookatsForCameras(void) {
 void Scene::rt(void) {
 //	if (DEBUG_MODE) std::cout << "Tracing..." << std::endl;
 	Camera* cCam = &cameras[_currentCamera];
-	cCam->runThreadRoutine(RAY_TRACING);
+	cCam->runThreadRoutine(RAYS_TRACING);
 	cCam->runThreadRoutine(TAKE_PICTURE, &this->img);
 	mlx_put_image_to_window(img.get_mlx(), img.get_win(), img.get_image(), 0, 0);
 }

@@ -7,13 +7,6 @@
 # include "Average.hpp"
 
 
-//class	Fov;
-//struct	Pixel;
-//class	Matrix;
-//class	Camera;
-//struct	Camers;
-
-
 class Fov {
 protected:
 	float _degree;
@@ -34,23 +27,13 @@ public:
 struct Pixel {
 	Rays		rays;
 	Vec3f		cPos; // relative xy-coordinate on RT canvas of width 1
-	ARGBColor	color;
+	MeanRgb		paint;
 	Pixel(const Vec3f& cPos, int smoothingFactor, float tan, const Vec3f& pos);
 	~Pixel(void);
 	Pixel(const Pixel& other);
 	Pixel& operator=(const Pixel& other);
 	void reset(int smoothingFactor, float tan, const Vec3f& pov);
 	void restoreRays(int smoothingFactor, float tan, const Vec3f& pov);
-	void averageColor(void);
-//	inline int meanPaint(void) {
-//		int paint = 0;
-//		if (rays.size()) {
-//			Mean3f mean;
-//			for (auto ray = rays.begin(), end = rays.end(); ray != end; ++ray)
-//				mean += ray->paint;
-//		}
-//		return paint;
-//	}
 };
 
 	
@@ -83,29 +66,27 @@ protected:
 	float				_roll;	// Camera tilt (aviation term 'roll') relative to its optical axis (z-axis)
 	float				_flybyRadius;
 public:
-	Scenerys		scenerys;
-	Scenerys		objsIdx;
-	Scenerys		lightsIdx;
-	PhotonMap			phMap;
-	Lighting 			ambient;
-	Lighting			background;
-	int					depth;
-	int					paths;
-	MapType				photonMap;
-	TracingType			tracingType;
-	bool				ambientLightOn;
-	bool				directLightOn;
+	Scenerys	scenerys;
+	Scenerys	objsIdx;
+	Scenerys	lightsIdx;
+	PhotonMap	phMap;
+	Lighting	ambient;
+	Lighting	background;
+	int			depth;
+	int			paths;
+	MapType		photonMap;
+	TracingType	tracingType;
+	bool		fakeAmbientLightOn;
+	bool		directLightOn;
 	Camera(const MlxImage& img);
 	~Camera(void);
 	Camera(const Camera& other);
 	Camera& operator=(const Camera& other);
 	Position get_pos(void) const;
 	float	get_rollDegree(void) const;
-	float	get_roll(void) const;
 	float	get_flybyRadius(void) const;
 	void	set_scenery(A_Scenery* scenery);
 	void	set_posToBase(void);
-	void	set_flybyRadius(float flybyRadius);
 	void	initMatrix(void);
 	void	restoreRays_lll(size_t begin, size_t end);
 	static void restoreRays(Camera* camera, size_t begin, size_t end);
@@ -121,19 +102,17 @@ public:
 	void	lookatCamera(const Position& pos);
 	void	takePicture_lll(MlxImage& img, size_t begin, size_t end);
 	static void	takePicture(Camera* camera, MlxImage& img, size_t begin, size_t end);
-	void	rayTracing_lll(size_t begin, size_t end);
-	static void	rayTracing(Camera* camera, size_t begin, size_t end);
+	void	raysTracing_lll(size_t begin, size_t end);
+	static void	raysTracing(Camera* camera, size_t begin, size_t end);
+	
 	void	tarcing(Ray& ray, int r = 0);
-	bool	rayEnd(Ray& ray, int r);
 	void	traceRay(Ray& ray, int r = 0);
-	void	reflections(Ray& ray, const HitRecord& rec, float intensity, int r);
-	void	refractions(Ray& ray, const HitRecord& rec, float intensity, int r);
-	void	pathTracing(Ray& ray, const HitRecord& rec, int r = 0);
-	void	tracePath(Ray& ray, int r);
-	void	path(Ray& ray, const HitRecord& rec, int r);
-	void	ambientLighting(Ray& ray, const HitRecord& rec);
-	void	directLightings(Ray& ray, const HitRecord& rec);
-	void	phMapLightings(Ray& ray, const HitRecord& rec);
+	void	reflections(Ray& ray, HitRecord& rec, float intensity, int r);
+	void	refractions(Ray& ray, HitRecord& rec, float intensity, int r);
+	void	lightings(Ray& ray, HitRecord& rec);
+	void	ambientLightPathsTarcing(Ray& ray, HitRecord& rec, int r);
+	void	tracePath(Ray& ray, int r = 0);
+	void	ambientLightPath(Ray& ray, HitRecord& rec, int r);
 	void	calculateFlybyRadius(void);
 	void 	runThreadRoutine(int routine, MlxImage* img = NULL);
 

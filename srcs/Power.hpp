@@ -15,6 +15,7 @@ struct Power {
 	Power(const Power& p, const Power& c, float _refl, float _refr, float _diff);
 	Power(const Power& other);
 	Power(const ARGBColor& color);
+	Power(const Rgb& rgb);
 	Power(const Vec3f& vec);
 	~Power(void);
 	Power& operator=(const Power& other);

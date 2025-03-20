@@ -9,12 +9,14 @@ Rgb::Rgb(const Rgb& other) : raw{0,0,0} { *this = other; }
 
 Rgb::Rgb(int rgba) : raw{0,0,0} { *this = rgba; }
 
+Rgb::Rgb(float _r, float _g, float _b) : b(_b), g(_g), r(_r) {}
+
 Rgb::~Rgb(void) {}
 
 Rgb& Rgb::operator=(const Rgb& other) {
 	if (this != &other) {
 		for (int i = 0; i < 3; i++)
-			raw[i] = other.raw[i];
+			raw[i] = other.get_band(i);
 	}
 	return *this;
 }
@@ -27,19 +29,20 @@ Rgb& Rgb::operator=(int rgba) {
 
 Rgb& Rgb::operator+=(const Rgb& other) {
 	for (int i = 0; i < 3; i++)
-		raw[i] += other.raw[i];
+		raw[i] += other.get_band(i);
 	return *this;
 }
 
 Rgb& Rgb::operator+=(int rgba) {
-	for (int i = 0; i < 3; i++)
-		raw[i] += float(_1_255 * _getСhar(rgba, i));
+	if (rgba != 0)
+		for (int i = 0; i < 3; i++)
+			raw[i] += float(_1_255 * _getСhar(rgba, i));
 	return *this;
 }
 
 Rgb& Rgb::operator*=(const Rgb& other) {
 	for (int i = 0; i < 3; i++)
-		raw[i] *= other.raw[i];
+		raw[i] *= other.get_band(i);
 	return *this;
 }
 
@@ -68,6 +71,8 @@ Rgb& Rgb::attenuate(int attenuation, float intensity) {
 MeanRgb::MeanRgb(void) : Rgb(), _n(0) {}
 
 MeanRgb::MeanRgb(const Rgb& other) : Rgb(), _n(0) { *this = other; }
+
+MeanRgb::MeanRgb(float _r, float _g, float _b) : Rgb(_r, _g, _b), _n(1) {}
 
 MeanRgb::~MeanRgb(void) {}
 

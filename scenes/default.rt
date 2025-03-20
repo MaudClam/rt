@@ -62,10 +62,10 @@
 # 3d normalized (2) vector in range (3) [-1.0,1.0] for each axis:  0,0,1
 # FOV (horizontal field of view) in degrees in range (3) [0,180]:  70
 #
-# Ambient lightning:
+# Fake ambient lightning:
 # A  0.2  255,255,255
 # Identifier:                                                      A
-# Ambient lighting ratio in range (3) [0.0,1.0]:                   0.2
+# Fake ambient lighting ratio in range (3) [0.0,1.0]:              0.2
 # R,G,B (4) colors in range (3) [0,255]:                           255,255,255
 #
 # Spot Light:
