@@ -3,7 +3,6 @@
 
 # include <map>
 # include <forward_list>
-# include "PhotonTrace.hpp"
 # include "Ray.hpp"
 # include "A_Scenery.hpp"
 
@@ -11,8 +10,21 @@ struct	Ray;
 struct	Rays;
 class	A_Scenery;
 struct	Scenerys;
-typedef	Rays		photonRays_t;
+struct	PhotonTrace;
+typedef	Rays phRays_t;
 
+
+//struct Traces : public std::forward_list<PhotonTrace*> {
+//	Traces(void) : std::forward_list<PhotonTrace*>() {}
+//	~Traces(void){}
+//	Traces& clear_(void) {
+//		if (!empty())
+//			clear();
+//		return *this;
+//	}
+//};
+
+typedef std::forward_list<PhotonTrace*> phTraces_t;
 
 struct ClasterKey {
 	MapType	type;
@@ -38,7 +50,7 @@ struct ClasterKey {
 
 struct Claster {
 	int			count;
-	Traces	traces;
+	phTraces_t	traces;
 	Claster(void);
 	Claster(const Claster& other);
 	~Claster(void);
@@ -54,12 +66,12 @@ typedef std::map<ClasterKey,Claster>	clasters_t;
 
 
 class PhotonMap : public clasters_t {
-	int _sizeGlobal, _sizeCaustic, _sizeVolume;
+	int _sizeGlobal, _sizeCaustic, _sizeVolume, _looped;
 public:
 	int		totalPhotons;
 	int		estimate;
 	float	gridStep;
-	Power	totalPow;
+	Rgb		totalPow;
 	MapType	type;
 	PhotonMap(void);
 	PhotonMap(const PhotonMap& other);
@@ -70,9 +82,9 @@ private:
 	void swap_(PhotonMap& other);
 	void clear_(void);
 	void deleteTraces(void);
-	void setTotalPow(Scenerys& lightsIdx);
-	void photonRayTracing_lll(Scenerys& scenerys, photonRays_t& rays);
-	void tracePhotonRay(Scenerys& scenerys, Ray& ray);
+	void set_trace(PhotonTrace* trace);
+	void photonPathsTracing_lll(Scenerys& scenerys, phRays_t& rays);
+	bool tracePhotonPath(Scenerys& scenerys, Ray& ray, int r);
 	inline void counter(MapType type) {
 		switch (type) {
 			case GLOBAL:	_sizeGlobal++; return;
@@ -82,35 +94,21 @@ private:
 		}
 		_sizeGlobal = _sizeCaustic = _sizeVolume = 0;
 	}
-	inline void counterMinus(MapType type) {
-		switch (type) {
-			case GLOBAL:	_sizeGlobal--; return;
-			case CAUSTIC:	_sizeCaustic--; return;
-			case VOLUME:	_sizeVolume--; return;
-			default:		break;
-		}
-		_sizeGlobal = _sizeCaustic = _sizeVolume = 0;
-	}
-	inline void set_trace(PhotonTrace* trace) {
-		auto it_bool = try_emplace(ClasterKey().make(*trace, gridStep), Claster());
-		it_bool.first->second.add_trace(trace);
-		counter(trace->type);
-	}
-	inline void get_traces(const ClasterKey& key, Traces& pathTracing) const {
+	inline void get_traces(const ClasterKey& key, phTraces_t& traces) const {
 		auto search = find(key);
 		if (search != end()) {
-			pathTracing.insert_after(pathTracing.before_begin(), search->second.traces.begin(), search->second.traces.end());
+			traces.insert_after(traces.before_begin(), search->second.traces.begin(), search->second.traces.end());
 		}
 	}
 public:
 	inline float get_sqr(void) const { return gridStep * gridStep; }
-	inline void get_traces(const Vec3f& point, Traces& pathTracing, MapType type) const {
-		pathTracing.clear_();
+	inline void get_traces(const Vec3f& point, phTraces_t& traces, MapType type) const {
+		if (!traces.empty()) traces.clear();
 		ClasterKey	key(type, point, gridStep);
-		get_traces(key, pathTracing);
+		get_traces(key, traces);
 	}
-	inline void get_traces27(const Vec3f& point, Traces& pathTracing, MapType type) const {
-		pathTracing.clear_();
+	inline void get_traces27(const Vec3f& point, phTraces_t& traces, MapType type) const {
+		if (!traces.empty()) traces.clear();
 		ClasterKey	key(type, point, gridStep);
 		int x_begin = key.x - 1, x_end = key.x + 2;
 		int y_begin = key.y - 1, y_end = key.y + 2;
@@ -118,12 +116,12 @@ public:
 		for (key.x = x_begin; key.x < x_end; key.x++)
 			for (key.y = y_begin; key.y < y_end; key.y++)
 				for (key.z = z_begin; key.z < z_end; key.z++) {
-					get_traces(key, pathTracing);
+					get_traces(key, traces);
 				}
 	}
 	void make(Scenerys& scenerys, Scenerys& lightsIdx);
 	void lookat(const Position& eye, const LookatAux& aux, float roll);
-	void randomDirectionsSampling(int n, const Position& pos, const Power& pow, photonRays_t& rays, bool is_cosineDistr) const;
+	void randomDirectionsSampling(int n, const Position& pos, const Rgb& pow, phRays_t& rays, bool cosine) const;
 	void outputPhotonMapParametrs(void);
 };
 

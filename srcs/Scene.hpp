@@ -6,7 +6,6 @@
 # include "MlxImage.hpp"
 # include "camera.hpp"
 # include "PhotonMap.hpp"
-# include "Power.hpp"
 # include "Sphere.hpp"
 # include "Light.hpp"
 

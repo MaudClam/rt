@@ -107,8 +107,8 @@ public:
 	
 	void	tarcing(Ray& ray, int r = 0);
 	void	traceRay(Ray& ray, int r = 0);
-	void	reflections(Ray& ray, HitRecord& rec, float intensity, int r);
-	void	refractions(Ray& ray, HitRecord& rec, float intensity, int r);
+	void	reflections(Ray& ray, HitRecord& rec, float fading, int r);
+	void	refractions(Ray& ray, HitRecord& rec, float fading, int r);
 	void	lightings(Ray& ray, HitRecord& rec);
 	void	ambientLightPathsTarcing(Ray& ray, HitRecord& rec, int r);
 	void	tracePath(Ray& ray, int r = 0);

@@ -24,7 +24,7 @@ hit(other.hit),
 scnr(other.scnr)
 {}
 
-HitRecord::HitRecord(Ray& ray) :
+HitRecord::HitRecord(Ray& ray, bool photon) :
 paint(),
 pov(ray.pov),
 dir(ray.dir),
@@ -32,7 +32,10 @@ norm(ray.norm),
 hit(ray.hit),
 scnr(ray.scnr)
 {
-	ray.paint.reset();
+	if (photon)
+		paint = ray.paint;
+	else
+		ray.paint.reset();
 }
 
 HitRecord& HitRecord::operator=(const HitRecord& other) {
@@ -48,57 +51,78 @@ HitRecord& HitRecord::operator=(const HitRecord& other) {
 }
 
 
+// Struct PhotonTrace
+
+PhotonTrace::PhotonTrace(void) : type(GLOBAL), pos(), pow(), scnrId(0) {}
+
+PhotonTrace::PhotonTrace(MapType _type, const HitRecord& rec) :
+type(_type),
+pos(rec.pov, rec.dir),
+pow(rec.pow),
+scnrId(rec.scnr->get_id())
+{}
+
+PhotonTrace::PhotonTrace(const PhotonTrace& other) :
+type(other.type),
+pos(other.pos),
+pow(other.pow),
+scnrId(other.scnrId)
+{}
+
+PhotonTrace::~PhotonTrace(void) {}
+
+PhotonTrace& PhotonTrace::operator=(const PhotonTrace& other) {
+	if (this != &other) {
+		type = other.type;
+		pos = other.pos;
+		pow = other.pow;
+		scnrId = other.scnrId;
+	}
+	return *this;
+}
+
+
 // struct Ray
 
 Ray::Ray(void) :
 HitRecord(),
 recursion(0),
 dist(0),
-pow(),
 path(),
 intersections(),
-light(),
-shine(),
-color(),
 combineType(END),
 segments(),
 traces()
 {}
 
-Ray::Ray(const Position pos, const Power& _pow) :
+Ray::Ray(const Position pos, const Rgb& _pow) :
 HitRecord(),
 recursion(1),
 dist(0),
-pow(_pow),
 path(),
 intersections(),
-light(),
-shine(),
-color(),
 combineType(END),
 segments(),
 traces()
 {
+	pow = _pow;
 	pov = pos.p;
-	randomUniformDirectionInHemisphere(pos.n);
+	dir.randomInUnitHemisphere(pos.n);
 }
 
-Ray::Ray(const Position pos, const Power& _pow, const LookatAux& aux) :
+Ray::Ray(const Position pos, const Rgb& _pow, const LookatAux& aux) :
 HitRecord(),
 recursion(1),
 dist(0),
-pow(_pow),
 path(),
 intersections(),
-light(),
-shine(),
-color(),
 combineType(END),
 segments(),
 traces()
 {
+	pow = _pow;
 	pov = pos.p;
-	randomCosineWeightedDirectionInHemisphere(aux);
+	dir.randomInUnitHemisphereCosineWeighted(aux);
 }
 
 Ray::~Ray(void) {}
@@ -117,9 +141,6 @@ Ray& Ray::operator=(const Ray& other) {
 		pow = other.pow;
 		path = other.path;
 		intersections = other.intersections;
-		light = other.light;
-		shine = other.shine;
-		color = other.color;
 		combineType = other.combineType;
 		segments = other.segments;
 		traces = other.traces;
@@ -144,13 +165,15 @@ Ray& Ray::reset(HitRecord& rec) {
 	return *this;
 }
 
-Ray& Ray::restore(const HitRecord& rec) {
-	paint.reset();
+Ray& Ray::restore(const HitRecord& rec, bool part) {
 	pov = rec.pov;
 	dir = rec.dir;
 	norm = rec.norm;
-	hit = rec.hit;
-	scnr = rec.scnr;
+	if (!part) {
+		paint.reset();
+		hit = rec.hit;
+		scnr = rec.scnr;
+	}
 	return *this;
 }
 
@@ -276,17 +299,17 @@ Ray& Ray::combine(auto& scenery, auto& end, float distance, Hit target) {
 
 Ray& Ray::markPath(void) {
 	if (scnr->diffusion || scnr->get_mattness())
-		path.diffusion(true);
+		path.mark(DIFFUSION);
 	return *this;
 }
 
 Ray& Ray::fakeAmbientLighting(HitRecord& rec, const Rgb& ambient) {
 	float diffusion = rec.scnr->diffusion;
 	if (diffusion) {
-		float intensity = -(rec.norm * rec.dir) * diffusion;
-		if (intensity > 0) {
+		float fading = -(rec.norm * rec.dir) * diffusion;
+		if (fading > +0) {
 			paint = ambient;
-			paint.attenuate(rec.scnr->get_iColor(rec), intensity);
+			paint.attenuate(rec.scnr->get_iColor(rec), fading);
 			reset(rec);
 		}
 	}
@@ -322,13 +345,43 @@ Ray& Ray::directLightings(HitRecord& rec, const Scenerys& scenerys, const Scener
 }
 
 Ray& Ray::phMapLightings(HitRecord& rec, const PhotonMap& phMap, MapType type) {
-	if (rec.scnr->diffusion) {
+	float diffusion = rec.scnr->diffusion;
+	if (diffusion) {
 		phMap.get_traces27(pov, traces, type);
 		if (!traces.empty()) {
-			phMapLightings(phMap.get_sqr(), phMap.estimate,
-						   rec.scnr->get_id(), rec.scnr->get_iColor(rec));
-			rec.paint += color.val;
-			rec.paint += shine.val;
+			struct TraceAround {
+				float fading;
+				PhotonTrace* trace;
+				TraceAround(float i, PhotonTrace* t) : fading(i), trace(t) {}
+				TraceAround(void) {}
+			};
+			std::map<float, TraceAround> sortedTraces;
+			float sqRadius = phMap.get_sqr();
+			int scnrId = rec.scnr->get_id(), estimate = phMap.estimate;
+			for (auto trace = traces.begin(), end = traces.end(); trace != end; ++trace) {
+				if ((*trace)->scnrId == scnrId) {
+					float sqDistance = std::abs((rec.pov - (*trace)->pos.p).sqnorm());
+					if (sqDistance <= sqRadius) {
+						float fading = deNaN(-((*trace)->pos.n * rec.norm));
+						if (fading > +0)
+							sortedTraces.emplace(sqDistance, TraceAround(fading, *trace));
+					}
+				}
+			}
+			if (!traces.empty()) traces.clear();
+			int n = 0;
+			auto it = sortedTraces.begin(), last = sortedTraces.begin(), End = sortedTraces.end();
+			for (; it != End && n <= estimate; ++it, n++) {
+				pow += Rgb(it->second.trace->pow).attenuate(-1, it->second.fading);
+				last = it;
+			}
+			if (!pow.isNull() && n > estimate * 0.2) {
+				pow *= float(1.0f / (M_PI * last->first) * n);
+				pow.attenuate(rec.scnr->get_iColor(rec), diffusion);
+				reset(rec);
+			} else {
+				restore(rec);
+			}
 		}
 	}
 	return *this;
@@ -348,6 +401,16 @@ bool Ray::end(const Scenerys& scenerys, const Lighting& background, int depth, i
 		return true;
 	}
 	markPath();
+	return false;
+}
+
+bool Ray::photonEnd(const Scenerys& scenerys, int r) {
+	if ((recursion = r) > MAX_PHOTON_COLLISIONS)
+		return true;
+	if (!closestScenery(scenerys, _INFINITY))
+		return true;
+	if (scnr->get_isLight())
+		return true;
 	return false;
 }
 
@@ -394,87 +457,89 @@ bool Ray::closestScenery(const Scenerys& scenerys, float maxDistance, Hit target
 
 bool Ray::isGlowing(void) {
 	if (scnr->get_isLight()) {
-		color = scnr->get_iColor(*this);
+		paint = scnr->get_iColor(*this);
 		return true;
 	}
 	return false;
 }
 
-float Ray::probability(Choice choice, bool isPhoton) {
-	if (!isPhoton) {
-		switch (choice) {
-			case REFLECTION: return scnr->reflective;
-			case REFRACTION: return scnr->reflective + scnr->refractive;
-			case DIFFUSION:  return scnr->reflective + scnr->refractive + scnr->diffusion;
-			default: break;
-		}
-	}
-	return ERROR;
-}
-
-Choice Ray::chooseDirection(HitRecord& rec, bool isPhoton) {
-	float	mattness = scnr->get_mattness();
+Choice Ray::chooseDirection(const HitRecord& rec, const Probability& p) {
+	Choice choice = ABSORPTION;
+	float mattness = scnr->get_mattness();
 	double	chance = random_double();
-	if (chance < probability(REFLECTION, isPhoton)) {
+	if (chance < p.refl()) {
+		choice = REFLECTION;
 		reflect(mattness);
-		return REFLECTION;
-	} else if (chance < probability(REFRACTION, isPhoton)) {
+	} else if (chance < p.refr()) {
+		choice = REFRACTION;
 		float schlick = mattness >= MATTNESS_GLOSSY_LIMIT ? -1 : 0;
 		if (refract(hit == INSIDE ? scnr->matIOR : scnr->matOIR, schlick, mattness)) {
 			if (random_double() < schlick) {
-				restore(rec);
+				choice = PARTIAL_REFLECTION;
+				restore(rec, true);
 				reflect(mattness);
-				return PARTIAL_REFLECTION;
 			}
-			return REFRACTION;
 		} else {
+			choice = FULL_REFLECTION;
 			reflect(mattness);
-			return FULL_REFLECTION;
 		}
-	} else if (chance < probability(DIFFUSION, isPhoton)) {
-		diffusion();
-		return DIFFUSION;
+	} else if (chance < p.diff()) {
+		if (hit == IN_VOLUME) {
+			choice = DIFFUSION_IN_VOLUME;
+			diffusionInVolume();
+		} else {
+			choice = DIFFUSION;
+			diffusion();
+		}
 	}
-	return ABSORPTION;
+	return choice;
 }
 
-int Ray::getAttenuation(HitRecord& rec, Choice choice, float& intensity, float& shining) {
+int Ray::getAttenuation(HitRecord& rec, Choice choice, float& fading, float& shining) {
 	int attenuation = 0;
 	switch (choice) {
 		case ABSORPTION: {
 			attenuation = 0;
-			intensity = 0;
+			fading = 0;
 			shining = 0;
 			break;
 		}
 		case REFLECTION: {
 			attenuation = rec.scnr->diffusion ? -1 : rec.scnr->get_iColor(rec);
-			intensity = 1;
+			fading = 1;
 			shining = 0;
 			break;
 		}
 		case PARTIAL_REFLECTION: {
 			attenuation = rec.scnr->diffusion ? -1 : rec.scnr->get_iColor(rec);
-			intensity = 1;
+			fading = 1;
 			shining = 0;
 			break;
 		}
 		case FULL_REFLECTION: {
 			attenuation = rec.scnr->diffusion ? -1 : rec.scnr->get_iColor(rec);
-			intensity = 1;
+			fading = 1;
 			shining = 0;
 			break;
 		}
 		case REFRACTION: {
 			attenuation = rec.scnr->get_iColor(rec);
-			intensity = 1;
+			fading = 1;
 			shining = 0;
 			break;
 		}
 		case DIFFUSION: {
 			attenuation = rec.scnr->get_iColor(rec);
-			intensity = dir * rec.norm;
-			shining = getShining(rec.dir, rec.norm, dir, rec.scnr->get_glossy());
+			fading *= (dir * rec.norm);
+			float glossy = rec.scnr->get_glossy();
+			if (glossy)
+				shining = getShining(rec.dir, rec.norm, dir, glossy);
+			break;
+		}
+		case DIFFUSION_IN_VOLUME: {
+			attenuation = rec.scnr->get_iColor(rec);
+			fading *= -(dir * rec.dir);
+			fading = fading > +0 ? fading : 0;
 			break;
 		}
 		default: break;

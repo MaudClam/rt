@@ -33,19 +33,16 @@ Light* Light::clone(void) const {
 	return light;
 }
 
-void Light::photonEmissions(int num, const PhotonMap& phMap, photonRays_t& rays) const {
+void Light::photonEmissions(int num, const PhotonMap& phMap, phRays_t& rays) const {
 	switch (_type) {
 		case SPOTLIGHT: {
-			Power pow(light.light);
-			phMap.randomDirectionsSampling(num, _pos, pow.product(1. / num), rays, false);
+			phMap.randomDirectionsSampling(num, _pos, Rgb(light.light) *= float(1.0f / num), rays, false);
 			break;
 		}
 		case SUNLIGHT: {
 			Position pos(_pos);
-			Power    pow(light.light);
-			pos.p = pos.n * _INFINITY;
-			pos.n.product(-1);
-			phMap.randomDirectionsSampling(num * 0.5, pos, pow.product(1. / num), rays, false);
+			pos.p = pos.n * (_INFINITY / 2);
+			phMap.randomDirectionsSampling(num * 0.5, pos, Rgb(light.light) *= float(1.0f / num), rays, true);
 			break;
 		}
 		case SUNLIGHT_LIMITED: {//FIXME

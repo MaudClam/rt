@@ -12,6 +12,7 @@ template <class t> struct LookatAuxiliary;
 
 typedef Vec2<float>				Vec2f;
 typedef Vec2<int>				Vec2i;
+typedef Vec3<double>			Vec3d;
 typedef Vec3<float>				Vec3f;
 typedef Vec3<int>				Vec3i;
 typedef LookatAuxiliary<float>	LookatAux;
@@ -22,7 +23,7 @@ const float M_4PI = 4. * M_PI;
 const float M_PI_180 = M_PI / 180.;
 const float M_180_PI = 180. / M_PI;
 
-enum Hit { FRONT, BACK, OUTLINE, ANY_SHADOW, ALL_SHADOWS, INSIDE, OUTSIDE };
+enum Hit { FRONT, BACK, OUTLINE, ANY_SHADOW, ALL_SHADOWS, INSIDE, OUTSIDE, IN_VOLUME };
 enum CombineType { END=0, UNION, SUBTRACTION, INTERSECTION };
 enum MapType {NO, CAUSTIC, GLOBAL, VOLUME, RESET};
 enum TracingType { RAY, PATH };
@@ -48,7 +49,7 @@ float	getSchlick(float cosine, float ref_idx);
 float	cosinePowerFading(float param, float factor);
 std::string  roundedString(float num, int factor = 2);
 void	dabugPrint(int each, float param1, float param2 = -1, int factor = 2);
-
+template <class t> t deNaN(t n) { return !(n == n) ? 0 : n; }
 
 // struct Vec2
 template <class t> struct Vec2 {
@@ -107,7 +108,6 @@ template <class t> struct Vec3 {
 	union {
 		struct {t x, y, z;};
 		struct { t ivert, iuv, inorm; };
-		struct { t b, g, r; };
 		t raw[3];
 	};
 	Vec3(void) : x(0), y(0), z(0) {}
@@ -169,12 +169,13 @@ template <class t> struct Vec3 {
 		}
 		return *this;
 	}
+	inline bool isNull(void) const { return x == 0 && y == 0 && z == 0;  }
 	Vec3<t>& reflect(const Vec3<t>& norm) {
 		product(-1);
 		substract(norm * (*this * norm * 2), *this).normalize();
 		return *this;
 	}
-	inline bool refract_(const Vec3<t>& normal, float& cos_theta, float& eta) {
+	inline bool refract_(const Vec3<t>& normal, float cos_theta, float eta) {
 		float k = 1. - eta * eta * (1. - cos_theta * cos_theta);
 		if(k > 0) {
 			this->addition( this->product(eta), normal * (eta * cos_theta - std::sqrt(k)) ).normalize();
@@ -250,25 +251,28 @@ template <class t> struct Vec3 {
 		z = std::cos(theta);
 		return *this;
 	}
-	Vec3<t>& randomInUnitSphere(void) {
-		do {
-			x = random_double() * 2 - 1;
-			y = random_double() * 2 - 1;
-			z = random_double() * 2 - 1;
-		} while (sqnorm() >= 1.);
-		return *this;
-	}
-	Vec3<t>& randomInUnitHemisphere(const Vec3<t>& normal) {
-		randomInUnitSphere();
-		if (*this * normal < 0)
-			this->product(-1);
-		return *this;
-	}
 	Vec3<t>& randomInSphere(t r) {
 		randomInUnitSphere().product(r);
 		return *this;
 	}
-	inline bool isNull(void) const { return x == 0 && y == 0 && z == 0;  }
+	Vec3<t>& randomInUnitSphere(void) {
+		do {
+			x = random_double() * 2.0 - 1.0;
+			y = random_double() * 2.0 - 1.0;
+			z = random_double() * 2.0 - 1.0;
+		} while (sqnorm() >= 1.0);
+		return *this;
+	}
+	Vec3<t>& randomInUnitHemisphere(const Vec3<t>& normal) {
+		addition(randomInUnitSphere(), normal).normalize();
+		return *this;
+	}
+	Vec3<t>& randomInUnitHemisphereCosineWeighted(const LookatAux& aux) {
+		float phi = random_double() * M_2PI;
+		float theta = std::acos(std::sqrt(random_double()));
+		sphericalDirection2cartesian(phi, theta).lookatDir(aux);
+		return *this;
+	}
 	Vec3<t>& toRt(int width, int height) { x -= width / 2; y = height / 2 - y - 1; return *this; }
 	std::string roundedOutput(int factor = 2) const {
 		std::ostringstream o;
@@ -342,6 +346,28 @@ struct Position {
 std::ostream& operator<<(std::ostream& o, const Position& pos);
 // struct Position end
 
+
+// struct Probability
+struct Probability : public Vec3f {
+	Probability(void) : Vec3f() {}
+	Probability(float refl, float refr, float diff, float max = 1) : Vec3f() {
+		raw[0] = refl * max;
+		raw[1] = raw[0] + refr * max;
+		raw[2] = raw[1] + diff * max;
+	}
+	~Probability(void) {}
+	Probability operator*=(float f) {
+		for (int i = 0; i < 3; i++)
+			raw[i] *= f;
+		return *this;
+	}
+	inline float refl(void) const { return raw[0]; }
+	inline float refr(void) const { return raw[1]; }
+	inline float diff(void) const { return raw[2]; }
+	inline bool  isDiffusion(void) const { return raw[2] != raw[1]; }
+
+};
+// struct Probability end
 
 // Intersections, normals, rays
 bool  raySphereIntersection(const Vec3f& rayDir, const Vec3f& rayPov, const Vec3f& center, float sqrRadius, float& distance, float& min_t, float& max_t, Hit& rayHit);

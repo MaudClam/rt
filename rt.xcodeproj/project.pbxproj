@@ -9,8 +9,6 @@
 /* Begin PBXBuildFile section */
 		660BE1792CBAD9890061AA16 /* PhotonMap.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 660BE1772CBAD9890061AA16 /* PhotonMap.cpp */; settings = {COMPILER_FLAGS = "-Wall -Wextra -Werror -O2"; }; };
 		665241D22C5BA6E700BD3A64 /* Ray.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 665241D02C5BA6E700BD3A64 /* Ray.cpp */; settings = {COMPILER_FLAGS = "-Wall -Wextra -Werror -O2"; }; };
-		665806B92CD3947700143501 /* Power.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 665806B72CD3947700143501 /* Power.cpp */; settings = {COMPILER_FLAGS = "-Wall -Wextra -Werror -O2"; }; };
-		665806CB2CDE4D6D00143501 /* PhotonTrace.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 665806C92CDE4D6D00143501 /* PhotonTrace.cpp */; settings = {COMPILER_FLAGS = "-Wall -Wextra -Werror -O2"; }; };
 		665806E52CEA0CE400143501 /* geometry.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 665806E42CEA0CE400143501 /* geometry.cpp */; settings = {COMPILER_FLAGS = "-Wall -Wextra -Werror -O2"; }; };
 		6659C4E32C399E8A00CC7FAB /* MlxImage.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 6659C4E12C399E8A00CC7FAB /* MlxImage.cpp */; settings = {COMPILER_FLAGS = "-Wall -Wextra -Werror -O2"; }; };
 		6659C4E62C39A8B200CC7FAB /* OpenGL.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 6659C4E52C39A8B200CC7FAB /* OpenGL.framework */; };
@@ -40,7 +38,6 @@
 
 /* Begin PBXFileReference section */
 		660BE1772CBAD9890061AA16 /* PhotonMap.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = PhotonMap.cpp; sourceTree = "<group>"; };
-		660BE1782CBAD9890061AA16 /* PhotonMap.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; path = PhotonMap.hpp; sourceTree = "<group>"; };
 		6628EB052C91F0D900BC90BD /* macKeys.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = macKeys.h; sourceTree = "<group>"; };
 		6628EB062C91F0D900BC90BD /* linuxKeys.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = linuxKeys.h; sourceTree = "<group>"; };
 		6628EB072C91F1D200BC90BD /* keys.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = keys.h; sourceTree = "<group>"; };
@@ -50,10 +47,6 @@
 		6628EB0F2C936E3F00BC90BD /* balls1.rt */ = {isa = PBXFileReference; lastKnownFileType = text; path = balls1.rt; sourceTree = "<group>"; };
 		665241D02C5BA6E700BD3A64 /* Ray.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = Ray.cpp; sourceTree = "<group>"; };
 		665241D12C5BA6E700BD3A64 /* Ray.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; path = Ray.hpp; sourceTree = "<group>"; };
-		665806B72CD3947700143501 /* Power.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = Power.cpp; sourceTree = "<group>"; };
-		665806B82CD3947700143501 /* Power.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; path = Power.hpp; sourceTree = "<group>"; };
-		665806C92CDE4D6D00143501 /* PhotonTrace.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = PhotonTrace.cpp; sourceTree = "<group>"; };
-		665806CA2CDE4D6D00143501 /* PhotonTrace.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; path = PhotonTrace.hpp; sourceTree = "<group>"; };
 		665806E42CEA0CE400143501 /* geometry.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; name = geometry.cpp; path = tests/../geometry.cpp; sourceTree = "<group>"; };
 		6659C4E12C399E8A00CC7FAB /* MlxImage.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = MlxImage.cpp; sourceTree = "<group>"; };
 		6659C4E22C399E8A00CC7FAB /* MlxImage.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; path = MlxImage.hpp; sourceTree = "<group>"; };
@@ -73,6 +66,7 @@
 		667951912C5293BB009C1DDD /* ARGBColor.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = ARGBColor.cpp; sourceTree = "<group>"; };
 		668B63572D873531006DBF53 /* Rgb.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; path = Rgb.hpp; sourceTree = "<group>"; };
 		668B635A2D885609006DBF53 /* Rgb.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = Rgb.cpp; sourceTree = "<group>"; };
+		668B635C2D8DB467006DBF53 /* PhotonMap.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; path = PhotonMap.hpp; sourceTree = "<group>"; };
 		6696E8882CEF4E0200E3CFBB /* parsing.log */ = {isa = PBXFileReference; lastKnownFileType = text; path = parsing.log; sourceTree = SOURCE_ROOT; };
 		66B3B0A52C94B81E005085BC /* default.rt */ = {isa = PBXFileReference; lastKnownFileType = text; path = default.rt; sourceTree = "<group>"; };
 		66B3B0A62C950387005085BC /* balls.rt */ = {isa = PBXFileReference; lastKnownFileType = text; path = balls.rt; sourceTree = "<group>"; };
@@ -137,40 +131,36 @@
 		6679518D2C5217A4009C1DDD /* srcs */ = {
 			isa = PBXGroup;
 			children = (
-				66D166C82C3D9281002E6F7E /* A_Scenery.cpp */,
 				66D166C92C3D9281002E6F7E /* A_Scenery.hpp */,
-				667951912C5293BB009C1DDD /* ARGBColor.cpp */,
+				66D166C82C3D9281002E6F7E /* A_Scenery.cpp */,
 				667951902C5293BB009C1DDD /* ARGBColor.hpp */,
+				667951912C5293BB009C1DDD /* ARGBColor.cpp */,
 				66DAF1342D03D15700458D00 /* Average.hpp */,
-				667951772C427BFD009C1DDD /* camera.cpp */,
 				667951782C427BFD009C1DDD /* camera.hpp */,
-				665806E42CEA0CE400143501 /* geometry.cpp */,
+				667951772C427BFD009C1DDD /* camera.cpp */,
 				6679518F2C5293BB009C1DDD /* geometry.hpp */,
-				668B63572D873531006DBF53 /* Rgb.hpp */,
-				668B635A2D885609006DBF53 /* Rgb.cpp */,
+				665806E42CEA0CE400143501 /* geometry.cpp */,
 				66B6D1C42C3AD3B9008FD6E6 /* Header.h */,
 				6628EB072C91F1D200BC90BD /* keys.h */,
-				667951892C5216B7009C1DDD /* Light.cpp */,
 				6679518A2C5216B7009C1DDD /* Light.hpp */,
+				667951892C5216B7009C1DDD /* Light.cpp */,
 				6628EB062C91F0D900BC90BD /* linuxKeys.h */,
 				6628EB052C91F0D900BC90BD /* macKeys.h */,
 				6661C21A2C38071100D58CDC /* main.cpp */,
 				6659C4EB2C39A8F700CC7FAB /* mlx.h */,
-				6659C4E12C399E8A00CC7FAB /* MlxImage.cpp */,
 				6659C4E22C399E8A00CC7FAB /* MlxImage.hpp */,
+				6659C4E12C399E8A00CC7FAB /* MlxImage.cpp */,
+				668B635C2D8DB467006DBF53 /* PhotonMap.hpp */,
 				660BE1772CBAD9890061AA16 /* PhotonMap.cpp */,
-				660BE1782CBAD9890061AA16 /* PhotonMap.hpp */,
-				665806C92CDE4D6D00143501 /* PhotonTrace.cpp */,
-				665806CA2CDE4D6D00143501 /* PhotonTrace.hpp */,
-				665806B72CD3947700143501 /* Power.cpp */,
-				665806B82CD3947700143501 /* Power.hpp */,
 				66DAF1302CFD121A00458D00 /* random.hpp */,
-				665241D02C5BA6E700BD3A64 /* Ray.cpp */,
 				665241D12C5BA6E700BD3A64 /* Ray.hpp */,
-				667951702C41AD05009C1DDD /* Scene.cpp */,
+				665241D02C5BA6E700BD3A64 /* Ray.cpp */,
+				668B63572D873531006DBF53 /* Rgb.hpp */,
+				668B635A2D885609006DBF53 /* Rgb.cpp */,
 				667951712C41AD05009C1DDD /* Scene.hpp */,
-				66D166C42C3C172F002E6F7E /* Sphere.cpp */,
+				667951702C41AD05009C1DDD /* Scene.cpp */,
 				66D166C52C3C172F002E6F7E /* Sphere.hpp */,
+				66D166C42C3C172F002E6F7E /* Sphere.cpp */,
 			);
 			path = srcs;
 			sourceTree = "<group>";
@@ -237,8 +227,6 @@
 				6661C21B2C38071100D58CDC /* main.cpp in Sources */,
 				665241D22C5BA6E700BD3A64 /* Ray.cpp in Sources */,
 				665806E52CEA0CE400143501 /* geometry.cpp in Sources */,
-				665806B92CD3947700143501 /* Power.cpp in Sources */,
-				665806CB2CDE4D6D00143501 /* PhotonTrace.cpp in Sources */,
 				66D166CA2C3D9281002E6F7E /* A_Scenery.cpp in Sources */,
 				6659C4E32C399E8A00CC7FAB /* MlxImage.cpp in Sources */,
 				667951792C427BFD009C1DDD /* camera.cpp in Sources */,

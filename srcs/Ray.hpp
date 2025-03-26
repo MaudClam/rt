@@ -13,9 +13,13 @@ class	A_Scenery;
 struct	Scenerys;
 class	PhotonMap;
 
-struct	Ray;
-struct	HitRecord;
-struct	Rays;
+struct HitRecord;
+struct PhotonTrace;
+struct Traces;
+struct Ray;
+struct Rays;
+
+typedef std::forward_list<PhotonTrace*> phTraces_t;
 
 enum Choice {
 	ABSORPTION,
@@ -23,21 +27,39 @@ enum Choice {
 	PARTIAL_REFLECTION,
 	FULL_REFLECTION,
 	REFRACTION,
-	DIFFUSION
+	DIFFUSION,
+	DIFFUSION_IN_VOLUME
 };
 
 struct HitRecord {
-	Rgb		paint;	// paint for pixel
-	Vec3f	pov;	// ray POV (point of view)		| photon position
-	Vec3f	dir;	// normalized: ray direction	| photon incident direction
-	Vec3f	norm;	// normalized: normal vector from the ray hit point
-	Hit		hit;	// type of contact with an object
+	union {
+		Rgb paint;		// paint for pixel
+		Rgb pow;		//								| photon power
+	};
+	Vec3f	pov;		// ray POV (point of view)		| photon position
+	Vec3f	dir;		// normalized: ray direction	| photon incident direction
+	Vec3f	norm;		// normalized: normal vector from the ray hit point
+	Hit		hit;		// type of contact with an object
 	A_Scenery*	scnr;	// pointer to scenery
 	HitRecord(void);
 	~HitRecord(void);
 	HitRecord(const HitRecord& other);
-	HitRecord(Ray& ray);
+	HitRecord(Ray& ray, bool photon = false);
 	HitRecord& operator=(const HitRecord& other);
+};
+
+
+struct PhotonTrace {
+	MapType		type;
+	Position	pos;
+	Rgb			pow;
+	int			scnrId;
+	PhotonTrace(void);
+	PhotonTrace(MapType _type, const HitRecord& rec);
+	PhotonTrace(const PhotonTrace& other);
+	~PhotonTrace(void);
+	PhotonTrace& operator=(const PhotonTrace& other);
+	inline PhotonTrace* clone(void) const { return new PhotonTrace(*this); }
 };
 
 
@@ -73,12 +95,18 @@ struct Ray : public HitRecord {
 			return *this;
 		}
 		inline void clear(void) { _r = false; _d = false; _v = false; }
-		inline void reflPhoton(void) { _r = true; }
-		inline void refrPhoton(void) { _r = true; }
-		inline void diffPhoton(void) { _d = true; }
-		inline void volmPhoton(void) { _v = true; }
-		inline void diffusion(bool d) { _d = d; }
-		inline bool diffusion(void) const { return _d; }
+		inline void mark(Choice choice) {
+			switch (choice) {
+				case ABSORPTION:			_d = true;	return;
+				case REFLECTION:			_r = true;	return;
+				case PARTIAL_REFLECTION:	_r = true;	return;
+				case FULL_REFLECTION:		_r = true;	return;
+				case REFRACTION:			_r = true;	return;
+				case DIFFUSION:				_d = true;	return;
+				case DIFFUSION_IN_VOLUME:	_v = true;	return;
+			}
+		}
+		inline bool isDiffusion(void) const { return _d; }
 		inline bool isGlobal(void) const { return true; }
 		inline bool isCaustic(void) const { return _r; }
 		inline bool isVolume(void) const { return _r || _d || _v; }
@@ -154,23 +182,21 @@ struct Ray : public HitRecord {
 	
 	int			recursion;		// current recursion number
 	float		dist;			// distance from POV to object hit point
-	Power		pow;			//				| photon power
 	Path		path;			// ray path		| photon path
 	Segment		intersections;	// segment on ray - scenery entry and exit points
-	ARGBColor	light, shine, color;
 	CombineType	combineType;	// type of object combination
 	Segments	segments;		// container for segments handling
-	Traces		traces;			//				| photon traces
+	phTraces_t	traces;			//				| photon traces
 	
 	Ray(void);
-	Ray(const Position pos, const Power& _pow);
-	Ray(const Position pos, const Power& _pow, const LookatAux& aux);
+	Ray(const Position pos, const Rgb& _pow);
+	Ray(const Position pos, const Rgb& _pow, const LookatAux& aux);
 	~Ray(void);
 	Ray(const Ray& other);
 	Ray& operator=(const Ray& other);
 	Ray& operator=(const HitRecord& other);
 	Ray& reset(HitRecord& rec);
-	Ray& restore(const HitRecord& rec);
+	Ray& restore(const HitRecord& rec, bool part = false);
 	Ray& set_hit(Hit hit);
 	Ray& getNormal(void);
 	Ray& combination(void);
@@ -183,11 +209,11 @@ struct Ray : public HitRecord {
 	Ray& directLightings(HitRecord& rec, const Scenerys& scenerys, const Scenerys& lightsIdx);
 	Ray& phMapLightings(HitRecord& rec, const PhotonMap& phMap, MapType type);
 	bool end(const Scenerys& scenerys, const Lighting& background, int depth, int r);
+	bool photonEnd(const Scenerys& scenerys, int r);
 	bool closestScenery(const Scenerys& scenerys, float maxDistance, Hit target = FRONT);
 	bool isGlowing(void);
-	float probability(Choice choice, bool isPhoton);
-	Choice chooseDirection(HitRecord& rec, bool isPhoton);
-	int	   getAttenuation(HitRecord& rec, Choice choice, float& intensity, float& shining);
+	Choice chooseDirection(const HitRecord& rec, const Probability& p);
+	int	   getAttenuation(HitRecord& rec, Choice choice, float& fading, float& shining);
 	inline A_Scenery* getCombine(Point& nearest) {
 		auto segment = segments.before_begin(), segmentNext = segments.begin();
 		for (; segment != segments.end(); ++segment) {
@@ -223,9 +249,6 @@ struct Ray : public HitRecord {
 	inline void movePovByNormal(float distance) {
 		pov.addition(pov, norm.product(distance));
 	}
-	inline void movePovByNormal(const HitRecord& rec, float distance) {
-		pov.addition(rec.pov, rec.norm * distance);
-	}
 	inline void reflect(float mattness = 0) {
 		dir.reflect(norm);
 		getMatt(mattness);
@@ -246,110 +269,41 @@ struct Ray : public HitRecord {
 		dir.randomInUnitHemisphere(norm);
 		movePovByNormal(EPSILON);
 	}
+	inline void diffusionInVolume(void) {
+		dir.randomInUnitSphere();
+		movePovByNormal(EPSILON);
+	}
 	inline void getMatt(float mattness) {
 		if (mattness)
 			dir.addition(dir, Vec3f().randomInSphere(mattness)).normalize();
 	}
-	inline void resetColors(void) {
-		color.val = shine.val = light.val = 0;
-	}
-	inline void photonReflection(void) {
-		movePovByNormal(EPSILON);
-		dir.reflect(norm);
-		path.reflPhoton();
-//		recursion++;
-	}
-	inline bool photonRefraction(const Power& chance, const Power& color, float refractive, float matIOR, float matOIR) {
-		if (dir.refract(norm, hit == INSIDE ? matIOR : matOIR)) {
-			movePovByNormal(-EPSILON);
-			pow.refrAdjust(chance, color, refractive);
-			path.refrPhoton();
-			return true;
-		}
-		return false;
-	}
-	inline void newPhotonTrace(MapType type, const Power& chance, const Power& color, float diffusion, int sceneryId) {
+	inline void newPhotonTrace(MapType type, const HitRecord& rec) {
 		switch (type) {
 			case CAUSTIC: {
 				if (path.isCaustic())
-					traces.push_front(new PhotonTrace(CAUSTIC, pov, dir, pow, sceneryId));
+					traces.push_front(new PhotonTrace(CAUSTIC, rec));
 				break;
 			}
 			case GLOBAL: {
 				if (path.isCaustic())
-					traces.push_front(new PhotonTrace(CAUSTIC, pov, dir, pow, sceneryId));
+					traces.push_front(new PhotonTrace(CAUSTIC, rec));
 				if (path.isGlobal())
-					traces.push_front(new PhotonTrace(GLOBAL, pov, dir, pow, sceneryId));
+					traces.push_front(new PhotonTrace(GLOBAL, rec));
 				break;
 			}
 			case VOLUME: {
 				if (path.isCaustic())
-					traces.push_front(new PhotonTrace(CAUSTIC, pov, dir, pow, sceneryId));
+					traces.push_front(new PhotonTrace(CAUSTIC, rec));
 				if (path.isGlobal())
-					traces.push_front(new PhotonTrace(GLOBAL, pov, dir, pow, sceneryId));
+					traces.push_front(new PhotonTrace(GLOBAL, rec));
 				if (path.isVolume())
-					traces.push_front(new PhotonTrace(VOLUME, pov, dir, pow, sceneryId));
+					traces.push_front(new PhotonTrace(VOLUME, rec));
 				break;
 			}
-			default:
-				break;
+			default: break;
 		}
-		pow.diffAdjust(chance, color, diffusion);
-		path.diffPhoton();
-		movePovByNormal(EPSILON);
-		recursion++;
 	}
-	inline void phMapLightings(float sqRadius, int estimate, int sceneryId, int scenery_iColor) {
-		struct Trace {
-			float k;
-			PhotonTrace* trace;
-			Trace(float _k, PhotonTrace* _trace) : k(_k), trace(_trace) {}
-			Trace(void) {}
-		};
-		std::map<float, Trace> tMap;
-		float sqr = 0., k = 0.;
-		for (auto trace = traces.begin(), end = traces.end(); trace != end; ++trace) {
-			if ((*trace)->sceneryId == sceneryId &&
-				(sqr = (pov - (*trace)->pos.p).sqnorm()) <= sqRadius &&
-				(k = (*trace)->pos.n * norm * -1) > 0) {
-				tMap.emplace(sqr, Trace(k, *trace));
-			}
-		}
-		if (tMap.size() > estimate * 0.1) {
-			int n = 0, ns = 0;
-			Power lighting, shining;
-			auto last = tMap.begin();
-			for (auto it = tMap.begin(), end = tMap.end(); it != end && n < estimate; ++it) {
-				lighting.addition(lighting, it->second.trace->pow * it->second.k);
-				last = it;
-				n++;
-			}
-			lighting.product((float)n / (M_PI * last->first)).getARGBColor(light);
-			light.attenuate(scenery_iColor);
-			color += light;
-			if (ns > estimate * 0.1) {
-				shining.getARGBColor(light);
-				shine.addition(shine, light);
-			}
 
-		}
-	}
-	inline void randomUniformDirectionInHemisphere(const Vec3f& normal) {
-		float phi = random_double() * M_2PI;
-		float theta = random_double() * M_PI;
-		dir.sphericalDirection2cartesian(phi, theta);
-		if (!dir.isNull() && dir * normal < 0) {// if normal(0,0,0) then the full sphere direction will be generated
-			dir.product(-1);
-		}
-	}
-	inline void randomCosineWeightedDirectionInHemisphere(const LookatAux& aux, float width = 1.) {
-		float phi = random_double() * M_2PI;
-		float theta = std::acos(std::sqrt(random_double())) * width;
-		dir.sphericalDirection2cartesian(phi, theta).lookatDir(aux);
-	}
-	inline void randomCosineWeightedDirectionInHemisphere(float width = 1. ) {
-		randomCosineWeightedDirectionInHemisphere(LookatAux(norm), width);
-	}
 };
 
 bool operator<(const Ray::Segment& left, const Ray::Segment& right);

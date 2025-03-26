@@ -9,7 +9,7 @@ struct	Ray;
 struct	Rays;
 struct	HitRecord;
 class	PhotonMap;
-typedef	Rays			photonRays_t;
+typedef	Rays			phRays_t;
 typedef	std::mt19937	rand_gen_t;
 
 
@@ -24,7 +24,7 @@ protected:
 public:
 	CombineType		combineType;// combination type with the following primitive
 	Lighting 		light;		// light for light source
-	float			glossy;	// in range [0,1] matteness, (1,1000] glossy
+	float			glossy;		// in range [0,1] matteness, (1,1000] glossy
 	float			reflective;	// in range [0,1]
 	float			refractive; // in range [0,1]
 	float			diffusion;	// in range [0,1]
@@ -41,13 +41,20 @@ public:
 	inline Position		get_pos(void) const { return Position(_pos); }
 	inline ARGBColor	get_color(void) const { return ARGBColor(_color); }
 	inline float		get_mattness(void) { return glossy > 0 && glossy <= 1 ? glossy : 0; }
-	inline float		get_glossy(void) {
+	inline float		get_glossy(void) const {
 		if (glossy > 1)
 			return glossy;
 		if (glossy <= MATTNESS_GLOSSY_LIMIT)
 			return MATTNESS_GLOSSY_RATIO / glossy;
 		return 0;
 	}
+	inline Probability	get_probability(void) const {
+		return Probability(reflective, refractive, diffusion); }
+	inline void			get_probability(Probability& p, float max = 1) const {
+		p.raw[0] = reflective * (diffusion ? 1 : max);
+		p.raw[1] = p.raw[0] + refractive * max;
+		p.raw[2] = p.raw[1] + diffusion * max;
+}
 	inline void	set_id(int id) { _id = id; }
 	inline void	set_name(const std::string& name) { _name = name; }
 	inline void	set_nick(const std::string& nick) { _nick = nick; }
@@ -62,7 +69,7 @@ public:
 	virtual bool intersection(Ray& ray) const = 0;
 	virtual void getNormal(Ray& ray) const = 0;
 	virtual float lighting(Ray& ray) const = 0;
-	virtual void photonEmissions(int num, const PhotonMap& phMap, photonRays_t& rays) const = 0;
+	virtual void photonEmissions(int num, const PhotonMap& phMap, phRays_t& rays) const = 0;
 	virtual void output(std::ostringstream& os) const = 0;
 	friend std::ostream& operator<<(std::ostream& o, const A_Scenery& s);
 };

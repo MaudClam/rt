@@ -29,7 +29,6 @@ public:
 		_pos.roll(roll);
 	}
 	inline bool intersection(Ray& ray) const {
-		(void)ray;//FIXME
 		if (_type == SUNLIGHT_LIMITED) {
 			if (ray.hit == ANY_SHADOW || ray.hit == ALL_SHADOWS)
 				ray.hit = FRONT;
@@ -38,7 +37,6 @@ public:
 		return false;
 	}
 	inline void getNormal(Ray& ray) const {
-		(void)ray;//FIXME
 		ray.norm = _pos.n;
 		if (ray.dir * _pos.n > 0)
 			ray.norm.product(-1);
@@ -77,7 +75,7 @@ public:
 		}
 		return k;
 	}
-	void photonEmissions(int num, const PhotonMap& phMap, photonRays_t& rays) const;
+	void photonEmissions(int num, const PhotonMap& phMap, phRays_t& rays) const;
 	virtual void output(std::ostringstream& os) const;
 	friend std::ostream& operator<<(std::ostream& o, const Light& sp);
 	friend std::istringstream& operator>>(std::istringstream& is, Light& sp);

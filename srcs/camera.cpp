@@ -87,14 +87,12 @@ void Pixel::restoreRays(int sm, float tan, const Vec3f& pov) {
 	paint.reset();
 	for (int j = 0; j < sm; j++) {
 		for (int i = 0; i < sm && ray != end; i++, ++ray) {
-			ray->resetColors();
 			ray->dir.x = (cPos.x + i * cPos.z) * tan;
 			ray->dir.y = (cPos.y + j * cPos.z) * tan;
 			ray->dir.z = 1;
 			ray->dir.normalize();
 			ray->pov = pov;
 			ray->recursion = 0;
-			ray->traces.clear_();
 			ray->path.clear();
 			ray->scnr = NULL;
 		}
@@ -397,12 +395,12 @@ void Camera::tarcing(Ray& ray, int r) {
 			reflections(ray, rec, rec.scnr->reflective, r);
 			refractions(ray, rec, rec.scnr->refractive, r);
 		} else if (tracingType == PATH) {
-			if (ray.path.diffusion()) {
+			if (ray.path.isDiffusion()) {
 				ambientLightPathsTarcing(ray, rec, r);
 			} else {
 				reflections(ray, rec, rec.scnr->reflective, r);
 				refractions(ray, rec, rec.scnr->refractive, r);
-				if (ray.path.diffusion())
+				if (ray.path.isDiffusion())
 					ambientLightPathsTarcing(ray, rec, r);
 			}
 		}
@@ -421,22 +419,22 @@ void Camera::traceRay(Ray& ray, int r) {
 	}
 }
 
-void Camera::reflections(Ray& ray, HitRecord& rec, float intensity, int r) {
-	if (intensity) {
+void Camera::reflections(Ray& ray, HitRecord& rec, float fading, int r) {
+	if (fading) {
 		ray.reflect();
 		traceRay(ray, ++r);
-		ray.paint.attenuate(rec.scnr->diffusion ? -1 : rec.scnr->get_iColor(rec), intensity);
+		ray.paint.attenuate(rec.scnr->diffusion ? -1 : rec.scnr->get_iColor(rec), fading);
 		ray.reset(rec);
 	}
 }
 
-void Camera::refractions(Ray& ray, HitRecord& rec, float intensity, int r) {
-	if (intensity) {
+void Camera::refractions(Ray& ray, HitRecord& rec, float fading, int r) {
+	if (fading) {
 		int attenuation = rec.scnr->get_iColor(rec);
 		float schlick = 0;
 		if (ray.refract((rec.hit == INSIDE ? rec.scnr->matIOR : rec.scnr->matOIR), schlick)) {
 			traceRay(ray, r + 1);
-			ray.paint.attenuate(attenuation, intensity - schlick);
+			ray.paint.attenuate(attenuation, fading - schlick);
 			ray.reset(rec);
 			if (schlick > 0)
 				reflections(ray, rec, schlick, r);
@@ -451,7 +449,7 @@ void Camera::refractions(Ray& ray, HitRecord& rec, float intensity, int r) {
 void Camera::lightings(Ray& ray, HitRecord& rec) {
 	if (fakeAmbientLightOn) ray.fakeAmbientLighting(rec, ambient.light);
 	if (directLightOn) ray.directLightings(rec, scenerys, lightsIdx);
-	if (photonMap != NO) ray.phMapLightings(rec, phMap, photonMap);
+	if (directLightOn && photonMap != NO) ray.phMapLightings(rec, phMap, photonMap);
 }
 
 void Camera::ambientLightPathsTarcing(Ray& ray, HitRecord& rec, int r) {
@@ -474,39 +472,43 @@ void Camera::tracePath(Ray& ray, int r) {
 }
 
 void Camera::ambientLightPath(Ray& ray, HitRecord& rec, int r) {
-	float	intensity = 0, shining = 0;
-	Choice	choice = ray.chooseDirection(rec, false);
-	int	attenuation = ray.getAttenuation(rec, choice, intensity, shining);
+	float fading = ambient.get_ratio(), shining = 0;
+	Probability p;
+	rec.scnr->get_probability(p);
+	Choice choice = ray.chooseDirection(rec, p);
+	int	attenuation = ray.getAttenuation(rec, choice, fading, shining);
 	tracePath(ray, ++r);
 	if (choice == FULL_REFLECTION && ray.recursion > depth)
 		ray.paint = background.light;
-	ray.paint = (ray.paint * shining) += ray.paint.attenuate(attenuation, intensity);
+	if (shining > +0)
+		ray.paint = (Rgb(ray.paint).attenuate(-1, shining)) += ray.paint.attenuate(attenuation, fading);
+	else
+		ray.paint.attenuate(attenuation, fading);
 }
 
 void Camera::calculateFlybyRadius(void) {
 	float	back = 0;
 	float	front = FLYBY_RADIUS_MAX;
 	for (auto pixel = matrix.begin(), END = matrix.end(); pixel != END; ++pixel) {
-		pixel->restoreRays(_sm, _fov.get_tan(), _pos.p);
-		for (auto ray = pixel->rays.begin(), End = pixel->rays.end(); ray != End; ++ray) {
-			for (auto sc = objsIdx.begin(), end = objsIdx.end(); sc != end; ++sc) {
-				ray->hit = FRONT;
-				if ( (*sc)->intersection(*ray) ) {
-					if (front > ray->dist) {
-						front = ray->dist;
-					}
+		pixel->restoreRays(1, _fov.get_tan(), _pos.p);
+		auto ray = pixel->rays.begin();
+		for (auto sc = objsIdx.begin(), end = objsIdx.end(); sc != end; ++sc) {
+			ray->hit = FRONT;
+			if ( (*sc)->intersection(*ray) ) {
+				if (front > ray->dist) {
+					front = ray->dist;
 				}
-				ray->hit = BACK;
-				if ( (*sc)->intersection(*ray) ) {
-					if (back < ray->dist && ray->dist < FLYBY_RADIUS_MAX) {
-						back = ray->dist;
-					}
+			}
+			ray->hit = BACK;
+			if ( (*sc)->intersection(*ray) ) {
+				if (back < ray->dist && ray->dist < FLYBY_RADIUS_MAX) {
+					back = ray->dist;
 				}
 			}
 		}
 	}
 	if ( back > 0) {
-		_flybyRadius = (back - front) / 2 + front;
+		_flybyRadius = (back - front) / 2. + front;
 	}
 }
 

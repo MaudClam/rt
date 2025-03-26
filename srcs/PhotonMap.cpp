@@ -93,6 +93,7 @@ clasters_t(),
 _sizeGlobal(0),
 _sizeCaustic(0),
 _sizeVolume(0),
+_looped(0),
 totalPhotons(0),
 estimate(0),
 gridStep(0),
@@ -105,6 +106,7 @@ clasters_t(),
 _sizeGlobal(0),
 _sizeCaustic(0),
 _sizeVolume(0),
+_looped(0),
 totalPhotons(other.totalPhotons),
 estimate(other.estimate),
 gridStep(other.gridStep),
@@ -119,6 +121,7 @@ PhotonMap::~PhotonMap(void) {
 PhotonMap& PhotonMap::operator=(const PhotonMap& other) {
 	if (this != &other) {
 		deleteTraces();
+		_looped = other._looped;
 		totalPhotons = other.totalPhotons;
 		estimate = other.estimate;
 		gridStep = other.gridStep;
@@ -169,59 +172,57 @@ void PhotonMap::deleteTraces(void) {
 	clear_();
 }
 
-void PhotonMap::setTotalPow(Scenerys& lightsIdx) {
-	for (auto light = lightsIdx.begin(), End = lightsIdx.end(); light != End; ++light) {
-		totalPow.addition(totalPow, Power((*light)->light.light));
-	}
-	totalPow.product(TOTAL_PHOTONS_POWER);
+void PhotonMap::set_trace(PhotonTrace* trace) {
+	auto it_bool = try_emplace(ClasterKey().make(*trace, gridStep), Claster());
+	it_bool.first->second.add_trace(trace);
+	counter(trace->type);
 }
 
-void PhotonMap::photonRayTracing_lll(Scenerys& scenerys, photonRays_t& rays) {
+void PhotonMap::photonPathsTracing_lll(Scenerys& scenerys, phRays_t& rays) {
+	_looped = 0;
 	for (auto ray = rays.begin(), end = rays.end(); ray != end; ++ray) {
-		tracePhotonRay(scenerys, *ray);
+		for(int r = 1; tracePhotonPath(scenerys, *ray, r); r++)
+			if (r >= MAX_PHOTON_COLLISIONS) _looped++;
 	}
 }
 
-void PhotonMap::tracePhotonRay(Scenerys& scenerys, Ray& ray) {
-	if (ray.recursion <= DEFAULT_RECURSION_DEPTH) {
-		if (ray.closestScenery(scenerys, _INFINITY)) {
-			Power	color(Rgb(ray.scnr->get_iColor(ray)));
-			float	reflective = ray.scnr->reflective;
-			float	refractive = ray.scnr->refractive;
-			float	diffusion = ray.scnr->diffusion;
-			Power	chance(ray.pow, color, reflective, refractive, diffusion);
-			float	rand_ = random_double();
-			if (rand_ <= chance.refl) {
-				ray.getNormal();
-				ray.photonReflection();
-				tracePhotonRay(scenerys, ray);
-			} else if (rand_ <= chance.refl + chance.refr) {
-				ray.getNormal();
-				if (ray.photonRefraction(chance, color, refractive, ray.scnr->matIOR, ray.scnr->matOIR)) {
-					tracePhotonRay(scenerys, ray);
-				}
-			} else if (rand_ <= chance.refl + chance.refr + chance.diff) {
-				ray.getNormal();
-				ray.newPhotonTrace(type, chance, color, diffusion, ray.scnr->get_id());
-				ray.randomCosineWeightedDirectionInHemisphere();
-				tracePhotonRay(scenerys, ray);
-			}
+bool PhotonMap::tracePhotonPath(Scenerys& scenerys, Ray& ray, int r) {
+	if (!ray.photonEnd(scenerys, r)) {
+		HitRecord rec(ray.getNormal(), true);
+		Probability p;
+		ray.pow *= rec.scnr->get_iColor(rec);
+		float max = ray.pow.get_maxBand() / rec.pow.get_maxBand();
+		rec.scnr->get_probability(p, max *  PHOTON_SURVIVAL);
+		Choice choice = ray.chooseDirection(rec, p);
+		ray.path.mark(choice);
+		if (choice != ABSORPTION) {
+			if (choice < REFRACTION && p.isDiffusion())
+				ray.pow = rec.pow;
+			ray.pow *= float(1.0 / max);
+			if (choice == DIFFUSION || choice == DIFFUSION_IN_VOLUME)
+				ray.newPhotonTrace(type, rec);
+			return true;
 		}
+		if (p.isDiffusion())
+			ray.newPhotonTrace(type, rec);
 	}
+	return false;
 }
 
 void PhotonMap::make(Scenerys& scenerys, Scenerys& lightsIdx) {
 	if (type != NO) {
-		photonRays_t rays;
-		setTotalPow(lightsIdx);
-		for (auto it = lightsIdx.begin(), End = lightsIdx.end(); it != End; ++it) {
-			Power pow((*it)->light.light);
-			int n = pow.maxBand() / totalPow.maxBand() * totalPhotons;
-			(*it)->photonEmissions(n, *this, rays);
+		phRays_t rays;
+		auto Begin = lightsIdx.begin(), End = lightsIdx.end();
+		for (auto lightSrc = Begin; lightSrc != End; ++lightSrc)
+			totalPow += (*lightSrc)->light.light;
+		totalPow *= float(TOTAL_PHOTONS_POWER);
+		for (auto lightSrc = Begin; lightSrc != End; ++lightSrc) {
+			int n = (*lightSrc)->light.light.get_maxBand() / totalPow.get_maxBand() * totalPhotons;
+			(*lightSrc)->photonEmissions(n, *this, rays);
 		}
-		photonRayTracing_lll(scenerys, rays);
+		photonPathsTracing_lll(scenerys, rays);
 		deleteTraces();
-		for (auto ray = rays.begin(), End = rays.end(); ray != End; ++ray) {
+		for (auto ray = rays.begin(), end = rays.end(); ray != end; ++ray) {
 			for (auto trace = ray->traces.begin(), end = ray->traces.end(); trace != end; ++trace) {
 				set_trace(*trace);
 			}
@@ -231,20 +232,21 @@ void PhotonMap::make(Scenerys& scenerys, Scenerys& lightsIdx) {
 }
 
 void PhotonMap::lookat(const Position& eye, const LookatAux& aux, float roll) {
-	if (type == NO) return;
-	PhotonMap tmp(*this);
-	for (auto claster = begin(), End = end(); claster != End; ++claster) {
-		for (auto trace = claster->second.traces.begin(), End = claster->second.traces.end(); trace != End;  ++trace) {
-			(*trace)->pos.lookat(eye, aux, roll);
-			tmp.set_trace(*trace);
+	if (type != NO) {
+		PhotonMap tmp(*this);
+		for (auto claster = begin(), End = end(); claster != End; ++claster) {
+			for (auto trace = claster->second.traces.begin(), end = claster->second.traces.end(); trace != end;  ++trace) {
+				(*trace)->pos.lookat(eye, aux, roll);
+				tmp.set_trace(*trace);
+			}
 		}
+		swap_(tmp);
+		tmp.clear_();
 	}
-	swap_(tmp);
-	tmp.clear_();
 }
 
-void PhotonMap::randomDirectionsSampling(int n, const Position& pos, const Power& pow, photonRays_t& rays, bool cosineWeighted) const {
-	if (cosineWeighted) {
+void PhotonMap::randomDirectionsSampling(int n, const Position& pos, const Rgb& pow, phRays_t& rays, bool cosine) const {
+	if (cosine) {
 		LookatAux aux(pos.n);
 		for (int i = 0; i < n; i++)
 			rays.emplace_back(pos, pow, aux);
@@ -261,10 +263,15 @@ void PhotonMap::outputPhotonMapParametrs(void) {
 	std::cout << "Grid step............" << gridStep << std::endl;
 	std::cout << "Total photon power..." << totalPow << std::endl;
 	std::cout << "Assessment number...." << estimate << std::endl;
-	std::cout << "Photon trasces maps:"  << std::endl;
+	std::cout << "Photon traces maps:"   << std::endl;
+	if (_looped)
+		std::cout << "!>looped photons....." << _looped << std::endl;
 	std::cout << "  clasters..........." << size() << std::endl;
-	std::cout << "  caustic traces....." << _sizeCaustic << std::endl;
-	std::cout << "  global traces......" << _sizeGlobal << std::endl;
-	std::cout << "  volume traces......" << _sizeVolume << std::endl;
+	if (_sizeCaustic)
+		std::cout << "  caustic traces....." << _sizeCaustic << std::endl;
+	if (_sizeGlobal)
+		std::cout << "  global traces......" << _sizeGlobal << std::endl;
+	if (_sizeVolume)
+		std::cout << "  volume traces......" << _sizeVolume << std::endl;
 }
 

@@ -26,10 +26,9 @@
 | Recursion Depth:                                            |
 | 'Shift' + num keys '0','1',...,'9'  (5 - default)           |
 |                                                             |
-| Ambient Lighting:    'a'   - on/off (on  default)           |
-| Direct Lighting:     'd'   - on/off (on  default)           |
+| Fake Ambient Light:  'a'   - on/off (on  default)           |
+| Direct Light:        'd'   - on/off (on  default)           |
 | Background Light:    'b'   - on/of  (on  default)           |
-| Shadow Rays:         's'   - on/of  (off default)           |
 | Ray Tracing:         'r'   -        (on  default)           |
 | Path Tracing:        'p'   -        (off default)           |
 |                                                             |

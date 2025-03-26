@@ -49,7 +49,7 @@ struct ARGBColor {
 	ARGBColor& operator+=(int c);
 	ARGBColor& operator+=(const ARGBColor& c);
 	ARGBColor& iProduct(int c);
-	ARGBColor& attenuate(int attenuation, float intensity = 1);
+	ARGBColor& attenuate(int attenuation, float fading = 1);
 	inline unsigned char get_a(int val) { return 0xFF & (val >> 24); }
 	inline unsigned char get_r(int val) { return 0xFF & (val >> 16); }
 	inline unsigned char get_g(int val) { return 0xFF & (val >> 8); }

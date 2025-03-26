@@ -1,7 +1,7 @@
 #ifndef RGB_HPP
 # define RGB_HPP
 
-# include <iostream>
+# include "geometry.hpp"
 
 
 const float _1_255(1. / 255);
@@ -30,13 +30,13 @@ public:
 	virtual Rgb& operator=(int rgba);
 	virtual Rgb& operator+=(const Rgb& other);
 	virtual Rgb& operator+=(int rgba);
-	virtual inline Rgb   operator*(float f) const { return Rgb(r * f, g * f, b * f); }
-	virtual inline void  reset() { raw[0] = raw[1] = raw[2] = 0; }
-	virtual inline float get_band(int i) const { return raw[i]; }
+	virtual inline void  reset() { raw[0] = 0; raw[1] = 0; raw[2] = 0; }
+	virtual inline float get_band(int i) const { return deNaN(raw[i]); }
 	Rgb& operator*=(const Rgb& other);
 	Rgb& operator*=(int rgba);
 	Rgb& operator*=(float f);
-	Rgb& attenuate(int attenuation, float intensity);
+	Rgb& attenuate(int attenuation, float fading);
+//	inline Rgb   operator*(float f) const { return Rgb(*this) *= f; }
 	inline float get_unitBand(int i) const {
 		return get_band(i) > 1 ? 1 : (get_band(i) < 0 ? 0 : get_band(i));
 	}
@@ -49,7 +49,10 @@ public:
 		}
 		return rgba;
 	}
-	inline bool  isNull(void) const { return raw[0] || raw[1] || raw[2];}
+	inline bool  isNull(void) const { return get_band(0) == 0 && get_band(1) == 0 && get_band(2) == 0;}
+	inline bool  isNaN(void) { return raw[0] != raw[0] || raw[1] != raw[1] || raw[2] != raw[2]; }
+	inline bool  isUnit(void) { return get_band(0) <= 1 && get_band(1) <= 1 && get_band(2) <= 1; }
+	friend std::ostream& operator<<(std::ostream& o, const Rgb& p);
 };
 
 
@@ -65,9 +68,9 @@ public:
 	MeanRgb& operator=(int rgba);
 	MeanRgb& operator+=(const Rgb& rgb);
 	MeanRgb& operator+=(int rgba);
-	inline Rgb   operator*(float f) const { return Rgb(r * f / _n, g * f / _n, b * f / _n); }
-	inline void  reset() { _n = 0; raw[0] = raw[1] = raw[2] = 0; }
-	inline float get_band(int i) const { return raw[i] / _n; }
+//	inline MeanRgb operator*(float f) const { return MeanRgb(*this) *= f; }
+	inline void    reset() { _n = 0; raw[0] = 0; raw[1] = 0; raw[2] = 0; }
+	inline float   get_band(int i) const { return _n > 0 ? deNaN(raw[i] * float(1. / _n)) : 0; }
 };
 
 

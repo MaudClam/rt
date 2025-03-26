@@ -80,28 +80,29 @@ std::string Scene::header(void) {
 }
 
 void Scene::systemDemo(void) {
-	set_any("R	800 600  SystemDemo");
+//	set_any("R	800 600");
+	set_any("R	800 600  SystemDemo CAUSTIC  500000  60  0.1");
 	img.init(header(), _resolution);
 	cameras.push_back(Camera(img));
-	set_any("A				0.25		0xFFFFEE");
-	set_any("l	2,1,0		0.5		0xFFFFFF");
-	set_any("l	1,4,4		0.3		0xFFFFFF");
+	set_any("A				0.3		0xFFFFEE");
+	set_any("l	2,2,0		0.5		0xFFFFFF");
+	set_any("l	1,2,4		0.3		0xFFFFFF");
 //	set_any("ll	1,4,4		0.3		0xFFFFFF	10,40,40");
-	set_any("c	0,0,-2.5	0,0,1		60");
-	set_any("c	0,0,8		0,0,-1		60");
-	set_any("c	-5,0,3		1,0,0		60");
-	set_any("c	5,0,3		-1,0,0		60");
-	set_any("c	0,5,3		0,-1,0		60");
+	set_any("c	0,0,-2.5	0,0,1		70");
+	set_any("c	0,0,8.5		0,0,-1		70");
+	set_any("c	-5.5,0,3	1,0,0		70");
+	set_any("c	5.5,0,3		-1,0,0		70");
+	set_any("c	0,5,2		0,-1,0		70");
 	set_any("sp	0,-1,3		2		0xFF0000	500		0.1");
 	set_any("sp	2,0,4		2		0xFFFFFF	500		0.0		1.0		1.5");
 	set_any("sp	-2,0,4		2		0x00FF00	10		0.2");
-	set_any("sp	0,-5001,0	10000	0xFFFF00	1000	0.3");
+	set_any("sp	0,-5001,0	10000	0xFFFF00	0.05	0.3");
 	if (cameras.size() > 1)
 		_currentCamera = 1;
 	saveParsingLog(PARSING_LOGFILE);
-	phMap.make(scenerys, lightsIdx);
+	phMap.make(objsIdx, lightsIdx);
 	makeLookatsForCameras();
-	cameras[_currentCamera].calculateFlybyRadius();
+//	cameras[_currentCamera].calculateFlybyRadius();
 //	img.flyby = COUNTER_CLOCKWISE;
 }
 
@@ -216,7 +217,7 @@ int  Scene::parsing(int ac, char** av) {
 		mesage(WRNG_PARSING_ERROR3, 0, av[1]);
 	}
 	saveParsingLog(PARSING_LOGFILE);
-	phMap.make(scenerys, lightsIdx);
+	phMap.make(objsIdx, lightsIdx);
 	makeLookatsForCameras();
 	return SUCCESS;
 }
@@ -341,7 +342,6 @@ void Scene::set_scenery(A_Scenery* scenery) {
 	scenerys.back()->set_id((int)scenerys.size());
 	if ( scenerys.back()->get_isLight() ) {
 		lightsIdx.push_back(scenery);
-//		scenery->set_color(scenery->light.light);
 	} else {
 		objsIdx.push_back(scenery);
 	}
@@ -357,8 +357,8 @@ void Scene::makeLookatsForCameras(void) {
 			cam->phMap = phMap;
 	}
 	for (auto cam = cameras.begin(), End = cameras.end(); cam != End; ++cam) {
-		cam->lookatCamera(cam->get_pos());
 		cam->initMatrix();
+		cam->lookatCamera(cam->get_pos());
 		cam->ambient = _ambient;
 		cam->background = _background;
 	}

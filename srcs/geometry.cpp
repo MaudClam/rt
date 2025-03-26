@@ -104,7 +104,7 @@ float	getShining(const Vec3f& dirFromPov, const Vec3f& normal, const Vec3f& dirT
 float	getShining_(const Vec3f& dirFromPov, const Vec3f& normal, Vec3f dirToLight, float glossy) {
 	if (glossy) {
 		float k = dirFromPov * dirToLight.reflect(normal);
-		if (k > 0)
+		if (k > +0)
 			return std::pow(k, glossy);
 	}
 	return 0;
