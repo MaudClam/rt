@@ -36,12 +36,12 @@ public:
 	Rgb& operator*=(int rgba);
 	Rgb& operator*=(float f);
 	Rgb& attenuate(int attenuation, float fading);
-//	inline Rgb   operator*(float f) const { return Rgb(*this) *= f; }
 	inline float get_unitBand(int i) const {
 		return get_band(i) > 1 ? 1 : (get_band(i) < 0 ? 0 : get_band(i));
 	}
 	inline float get_maxBand(void) const {
-		return std::max(std::max(get_band(0), get_band(1)), get_band(2)); }
+		return std::max(std::max(get_band(0), get_band(1)), get_band(2));
+	}
 	inline int   get_rgba(float gamma = 1) const {
 		int rgba = 0;
 		for (int i = 0; i < 3; i++) {
@@ -68,7 +68,6 @@ public:
 	MeanRgb& operator=(int rgba);
 	MeanRgb& operator+=(const Rgb& rgb);
 	MeanRgb& operator+=(int rgba);
-//	inline MeanRgb operator*(float f) const { return MeanRgb(*this) *= f; }
 	inline void    reset() { _n = 0; raw[0] = 0; raw[1] = 0; raw[2] = 0; }
 	inline float   get_band(int i) const { return _n > 0 ? deNaN(raw[i] * float(1. / _n)) : 0; }
 };

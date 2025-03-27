@@ -3,6 +3,63 @@
 
 // Non class functions
 
+double	random_double(void) {
+	static std::uniform_real_distribution<double> distribution(0.0, 1.0);
+	static std::mt19937				generator;
+	static std::function<double()>	rand_generator = std::bind(distribution, generator);
+	return rand_generator();
+}
+
+bool	almostEqual(float a, float b, float precision) { return std::fabs(a - b) < precision; }
+
+float	degree2radian(float degree) {
+	return (degree * M_PI_180);
+}
+
+float	radian2degree(float radian) {
+	return (radian * M_180_PI);
+}
+
+float	getShining(const Vec3f& dirFromPov, const Vec3f& normal, const Vec3f& dirToLight, float glossy) {
+	return getShining_(dirFromPov, normal, dirToLight, glossy);
+}
+
+float	getShining_(const Vec3f& dirFromPov, const Vec3f& normal, Vec3f dirToLight, float glossy) {
+	if (glossy) {
+		float k = dirFromPov * dirToLight.reflect(normal);
+		if (k > +0)
+			return std::pow(k, glossy);
+	}
+	return 0;
+}
+
+float	getSchlick(float cosine, float eta) {
+	float r0 = (1 - eta) / (1 + eta);
+	r0 = r0 * r0;
+	return r0 + (1 - r0) * pow((1 - cosine), 5);
+}
+
+std::string roundedString(float num, int factor) {
+	std::string sign("");
+	if (num < 0) {
+		sign = "-";
+		num = -num;
+	}
+	if (factor > 0) {
+		factor = std::pow(10, factor);
+	} else {
+		factor = 1;
+	}
+	num *= factor;
+	int intgr = (int)std::round(num);
+	int frctnl = intgr % factor;
+	intgr /= factor;
+	if (intgr == 0 && frctnl == 0) {
+		sign = "";
+	}
+	return sign + std::to_string(intgr) + "." + std::to_string(frctnl);
+}
+
 std::string combineType(CombineType type) {
 	switch (type) {
 		case END:
@@ -31,130 +88,6 @@ std::string mapType(MapType type) {
 			return "RESET";
 	}
 	return "";
-}
-
-bool	almostEqual(float a, float b, float precision) { return std::fabs(a - b) < precision; }
-
-bool	almostMore(float a, float b, float precision) { return a - b > precision; }
-
-bool	almostLess(float a, float b, float precision) { return b - a > precision; }
-
-float	degree2radian(float degree) {
-	return (degree * M_PI_180);
-}
-
-float	radian2degree(float radian) {
-	return (radian * M_180_PI);
-}
-
-float	loop_(float n, float lim) {
-	lim = std::abs(lim);
-	if (n >= 0 && n < lim)
-		return n;
-	int mult = (int)(n / lim);
-	n = n - lim * mult;
-	n = (n < 0 ? lim + n : n);
-	return n;
-}
-
-int		loop_(int n, int lim) {
-	lim = std::abs(lim);
-	if (n >= 0 && n < lim)
-		return n;
-	n = n % lim;
-	n = (n < 0 ? lim + n : n);
-	return n;
-}
-
-float	reverse_(float n, float lim) {
-	lim = std::abs(lim);
-	if (n >= 0 && n <= lim)
-		return n;
-	n = std::abs(n);
-	int mult = (int)(n / lim);
-	n = n - lim * mult;
-	n = (mult % 2 ? lim - n : n);
-	return n;
-}
-
-int		reverse_(int n, int lim) {
-	lim = std::abs(lim);
-	if (n >= 0 && n <= lim)
-		return n;
-	n = std::abs(n);
-	int mult = n / lim;
-	n = n % lim;
-	n = (mult % 2 ? lim - n : n);
-	return n;
-}
-
-float	cosineDistr(float x) {
-	int sign = x < 0 ? -1 : 1;
-	return sign * (1.0 / M_PI) * std::sqrt(1.0 - x * x);
-}
-
-float	inverseCumulativeDistr(float u) {
-	return std::cos(u * M_PI_2);
-}
-
-float	getShining(const Vec3f& dirFromPov, const Vec3f& normal, const Vec3f& dirToLight, float glossy) {
-	return getShining_(dirFromPov, normal, dirToLight, glossy);
-}
-
-float	getShining_(const Vec3f& dirFromPov, const Vec3f& normal, Vec3f dirToLight, float glossy) {
-	if (glossy) {
-		float k = dirFromPov * dirToLight.reflect(normal);
-		if (k > +0)
-			return std::pow(k, glossy);
-	}
-	return 0;
-}
-
-float getSchlick(float cosine, float eta) {
-	float r0 = (1 - eta) / (1 + eta);
-	r0 = r0 * r0;
-	return r0 + (1 - r0) * pow((1 - cosine), 5);
-}
-
-float	cosinePowerFading(float param, float factor) {
-	return std::pow( std::cos(param), factor ); // param must be [0,1] * M_PI
-}
-
-std::string  roundedString(float num, int factor) {
-	std::string sign("");
-	if (num < 0) {
-		sign = "-";
-		num = -num;
-	}
-	if (factor > 0) {
-		factor = std::pow(10, factor);
-	} else {
-		factor = 1;
-	}
-	num *= factor;
-	int intgr = (int)std::round(num);
-	int frctnl = intgr % factor;
-	intgr /= factor;
-	if (intgr == 0 && frctnl == 0) {
-		sign = "";
-	}
-	return sign + std::to_string(intgr) + "." + std::to_string(frctnl);
-}
-
-void	dabugPrint(int each, float param1, float param2, int factor) {
-	static int i;
-
-	i++;
-	if (!(i % each)) {
-		std::cout<< std::setw(factor + 6) << std::right << std::setfill(' ');
-		std::cout << roundedString(param1,factor) << "\t" ;
-		if (param2 != -1) {
-			std::cout<< std::setw(factor + 6) << std::right << std::setfill(' ');
-			std::cout << roundedString(param2, factor) << "\t" ;
-		}
-		std::cout<< std::setw(factor + 8) << std::right << std::setfill(' ');
-		std::cout << i <<std::endl;
-	}
 }
 
 

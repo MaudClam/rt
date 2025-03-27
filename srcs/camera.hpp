@@ -4,7 +4,6 @@
 # include <thread>
 # include "MlxImage.hpp"
 # include "Ray.hpp"
-# include "Average.hpp"
 
 
 class Fov {

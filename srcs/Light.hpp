@@ -16,7 +16,7 @@ public:
 	Light* clone(void) const;
 	inline int	get_iColor(const HitRecord& rec) const {
 		(void)rec;
-		return light.get_albedo(); }
+		return light.get_glow(); }
 	inline void set_nick(const std::string& nick) { _nick = nick; }
 	inline void set_name(const std::string& name) { _name = name; }
 	inline void set_type(Type type) { _type = type; }

@@ -349,12 +349,6 @@ Ray& Ray::phMapLightings(HitRecord& rec, const PhotonMap& phMap, MapType type) {
 	if (diffusion) {
 		phMap.get_traces27(pov, traces, type);
 		if (!traces.empty()) {
-			struct TraceAround {
-				float fading;
-				PhotonTrace* trace;
-				TraceAround(float i, PhotonTrace* t) : fading(i), trace(t) {}
-				TraceAround(void) {}
-			};
 			std::map<float, TraceAround> sortedTraces;
 			float sqRadius = phMap.get_sqr();
 			int scnrId = rec.scnr->get_id(), estimate = phMap.estimate;
@@ -375,7 +369,7 @@ Ray& Ray::phMapLightings(HitRecord& rec, const PhotonMap& phMap, MapType type) {
 				pow += Rgb(it->second.trace->pow).attenuate(-1, it->second.fading);
 				last = it;
 			}
-			if (!pow.isNull() && n > estimate * 0.2) {
+			if (!pow.isNull() && n >= MIN_ESTIMATE_PHOTONS) {
 				pow *= float(1.0f / (M_PI * last->first) * n);
 				pow.attenuate(rec.scnr->get_iColor(rec), diffusion);
 				reset(rec);
@@ -397,7 +391,6 @@ bool Ray::end(const Scenerys& scenerys, const Lighting& background, int depth, i
 		return true;
 	}
 	if (isGlowing()) {
-		paint = scnr->get_iColor(*this);
 		return true;
 	}
 	markPath();
@@ -457,7 +450,7 @@ bool Ray::closestScenery(const Scenerys& scenerys, float maxDistance, Hit target
 
 bool Ray::isGlowing(void) {
 	if (scnr->get_isLight()) {
-		paint = scnr->get_iColor(*this);
+		paint = scnr->light.get_glow();
 		return true;
 	}
 	return false;

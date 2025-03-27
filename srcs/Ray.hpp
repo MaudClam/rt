@@ -5,7 +5,6 @@
 # include "geometry.hpp"
 # include "ARGBColor.hpp"
 # include "Rgb.hpp"
-# include "random.hpp"
 # include "PhotonMap.hpp"
 
 
@@ -66,7 +65,84 @@ struct PhotonTrace {
 struct Ray : public HitRecord {
 	struct	Point;
 	struct	Segment;
+	struct	Segments;
+	struct	TraceAround;
 	class	Path;
+
+	struct Point {
+		float		d;
+		bool		inside;
+		A_Scenery*	s;
+		Point(void) : d(0), inside(false), s(NULL) {}
+		Point(float d, bool inside, A_Scenery* s) : d(d), inside(inside), s(s) {}
+		~Point(void) {}
+		Point(const Point& other) : d(other.d), inside(other.inside), s(other.s) {}
+		Point& operator=(const Point& other) {
+			if (this != &other) {
+				d = other.d;
+				inside = other.inside;
+				s = other.s;
+			}
+			return *this;
+		}
+		Point& set(float _d, bool _inside, A_Scenery* _s) {
+			d = _d;
+			inside = _inside;
+			s = _s;
+			return *this;
+		}
+		inline void swap(Point& other) {
+			std::swap(d, other.d);
+			std::swap(inside, other.inside);
+			std::swap(s, other.s);
+		}
+	};
+
+	struct Segment {
+		Point a;
+		Point b;
+		bool  removed;
+		bool  combine;
+		Segment(void) : a(), b() {}
+		Segment(const Point& a, const Point& b) : a(a), b(b), removed(false), combine(false) {}
+		Segment(float ad, bool ai, A_Scenery* as, float bd, bool bi, A_Scenery* bs, bool r, bool c) :
+		a(ad,ai,as), b(bd,bi,bs), removed(r), combine(c) {}
+		Segment(const Segment& other) : a(other.a), b(other.b), removed(other.removed), combine(other.combine) {}
+		~Segment(void) {}
+		Segment& operator=(const Segment& other) {
+			if (this != &other) {
+				a = other.a;
+				b = other.b;
+				removed = other.removed;
+				combine = other.combine;
+			}
+			return *this;
+		}
+		inline void activate(A_Scenery* scenery) {
+			if (scenery) {
+				a.inside = false;
+				b.inside = a.d == b.d ? false : true;
+			}
+			a.s = scenery;
+			b.s = scenery;
+			removed = false;
+			combine = true;
+		}
+		inline bool empty(void) { return a.s == NULL; }
+		inline void swap(Segment& other) {
+			a.swap(other.a);
+			b.swap(other.b);
+			std::swap(removed, other.removed);
+			std::swap(combine, other.combine);
+		}
+	};
+
+	struct TraceAround {
+		float fading;
+		PhotonTrace* trace;
+		TraceAround(float i, PhotonTrace* t) : fading(i), trace(t) {}
+		TraceAround(void) {}
+	};
 	
 	struct Segments : public std::forward_list<Segment> {
 		Segments(void) : std::forward_list<Segment>() {}
@@ -110,74 +186,6 @@ struct Ray : public HitRecord {
 		inline bool isGlobal(void) const { return true; }
 		inline bool isCaustic(void) const { return _r; }
 		inline bool isVolume(void) const { return _r || _d || _v; }
-	};
-	
-	struct Point {
-		float		d;
-		bool		inside;
-		A_Scenery*	s;
-		Point(void) : d(0), inside(false), s(NULL) {}
-		Point(float d, bool inside, A_Scenery* s) : d(d), inside(inside), s(s) {}
-		~Point(void) {}
-		Point(const Point& other) : d(other.d), inside(other.inside), s(other.s) {}
-		Point& operator=(const Point& other) {
-			if (this != &other) {
-				d = other.d;
-				inside = other.inside;
-				s = other.s;
-			}
-			return *this;
-		}
-		Point& set(float _d, bool _inside, A_Scenery* _s) {
-			d = _d;
-			inside = _inside;
-			s = _s;
-			return *this;
-		}
-		inline void swap(Point& other) {
-			std::swap(d, other.d);
-			std::swap(inside, other.inside);
-			std::swap(s, other.s);
-		}
-	};
-	
-	struct Segment {
-		Point a;
-		Point b;
-		bool  removed;
-		bool  combine;
-		Segment(void) : a(), b() {}
-		Segment(const Point& a, const Point& b) : a(a), b(b), removed(false), combine(false) {}
-		Segment(float ad, bool ai, A_Scenery* as, float bd, bool bi, A_Scenery* bs, bool r, bool c) :
-		a(ad,ai,as), b(bd,bi,bs), removed(r), combine(c) {}
-		Segment(const Segment& other) : a(other.a), b(other.b), removed(other.removed), combine(other.combine) {}
-		~Segment(void) {}
-		Segment& operator=(const Segment& other) {
-			if (this != &other) {
-				a = other.a;
-				b = other.b;
-				removed = other.removed;
-				combine = other.combine;
-			}
-			return *this;
-		}
-		inline void activate(A_Scenery* scenery) {
-			if (scenery) {
-				a.inside = false;
-				b.inside = a.d == b.d ? false : true;
-			}
-			a.s = scenery;
-			b.s = scenery;
-			removed = false;
-			combine = true;
-		}
-		inline bool empty(void) { return a.s == NULL; }
-		inline void swap(Segment& other) {
-			a.swap(other.a);
-			b.swap(other.b);
-			std::swap(removed, other.removed);
-			std::swap(combine, other.combine);
-		}
 	};
 	
 	int			recursion;		// current recursion number

@@ -75,6 +75,7 @@ std::ostream& operator<<(std::ostream& o, const Rgb& p) {
 
 
 // class MeanRgb
+
 MeanRgb::MeanRgb(void) : Rgb(), _n(0) {}
 
 MeanRgb::MeanRgb(const Rgb& other) : Rgb(), _n(0) { *this = other; }

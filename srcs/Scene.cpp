@@ -29,7 +29,6 @@ _background(1),
 _currentCamera(0) {
 	img.set_scene(this);
 	_background.set_ratio(_ambient.get_ratio() * BACKGRND_VISIBILITY_FACTOR);
-//	_background.invertBrightness();
 }
 
 Scene::~Scene(void) {
@@ -84,18 +83,18 @@ void Scene::systemDemo(void) {
 	set_any("R	800 600  SystemDemo CAUSTIC  500000  60  0.1");
 	img.init(header(), _resolution);
 	cameras.push_back(Camera(img));
-	set_any("A				0.3		0xFFFFEE");
-	set_any("l	2,2,0		0.5		0xFFFFFF");
-	set_any("l	1,2,4		0.3		0xFFFFFF");
+	set_any("A				0.2		0xFFFFEE");
+	set_any("l	2,2,0		0.4		0xFFFFFF");
+	set_any("l	1,2,4		0.4		0xFFFFFF");
 //	set_any("ll	1,4,4		0.3		0xFFFFFF	10,40,40");
-	set_any("c	0,0,-2.5	0,0,1		70");
-	set_any("c	0,0,8.5		0,0,-1		70");
-	set_any("c	-5.5,0,3	1,0,0		70");
-	set_any("c	5.5,0,3		-1,0,0		70");
-	set_any("c	0,5,2		0,-1,0		70");
-	set_any("sp	0,-1,3		2		0xFF0000	500		0.1");
+	set_any("c	0,0,-2.5	0,0,1		60");
+	set_any("c	0,0,8.5		0,0,-1		60");
+	set_any("c	-5.5,0,3	1,0,0		60");
+	set_any("c	5.5,0,3		-1,0,0		60");
+	set_any("c	0,5,2		0,-1,0		60");
+	set_any("sp	0,-1,3		2		0xFF0000	0.1		0.1");
 	set_any("sp	2,0,4		2		0xFFFFFF	500		0.0		1.0		1.5");
-	set_any("sp	-2,0,4		2		0x00FF00	10		0.2");
+	set_any("sp	-2,0,4		2		0x00FF00	0.2		0.2");
 	set_any("sp	0,-5001,0	10000	0xFFFF00	0.05	0.3");
 	if (cameras.size() > 1)
 		_currentCamera = 1;
@@ -255,7 +254,7 @@ int Scene::set_any(std::istringstream is) {
 			_resolution.x = i2limits(_resolution.x, RESOLUTION_MIN, RESOLUTION_MAX);
 			_resolution.y = i2limits(_resolution.y, RESOLUTION_MIN, RESOLUTION_MAX);
 			phMap.totalPhotons = i2limits(phMap.totalPhotons, 0, MAX_PHOTONS_NUMBER);
-			phMap.estimate = i2limits(phMap.estimate, 0, MAX_ESTIMATE_PHOTONS);
+			phMap.estimate = i2limits(phMap.estimate, MIN_ESTIMATE_PHOTONS, MAX_ESTIMATE_PHOTONS);
 			phMap.gridStep = f2limits(phMap.gridStep, 0.01, MAX_PHOTONS_GRID_STEP);
 			if (phMapType == "GLOBAL") {
 				phMap.type = GLOBAL;

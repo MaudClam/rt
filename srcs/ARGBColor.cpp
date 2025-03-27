@@ -44,20 +44,9 @@ ARGBColor& ARGBColor::operator=(const ARGBColor& c) {
 	return *this;
 }
 
-ARGBColor& ARGBColor::set(const ARGBColor& c) { *this = c; return *this; }
-
-ARGBColor& ARGBColor::set(int c) { this->val = c; return *this; }
-
 ARGBColor& ARGBColor::addition(const ARGBColor& c1, const ARGBColor& c2) {
 	for (int i = 0; i < 4; ++i) {
 		raw[i] = (unsigned char)i2limits((int)c1.raw[i] + (int)c2.raw[i], 0, 255);
-	}
-	return *this;
-}
-
-ARGBColor& ARGBColor::addition(const ARGBColor& c1, const ARGBColor& c2, const ARGBColor& c3) {
-	for (int i = 0; i < 4; ++i) {
-		raw[i] = (unsigned char)i2limits((int)c1.raw[i] + (int)c2.raw[i] + (int)c3.raw[i], 0, 255);
 	}
 	return *this;
 }
@@ -78,61 +67,10 @@ ARGBColor& ARGBColor::product(const ARGBColor& c1, const ARGBColor& c2) {
 
 ARGBColor& ARGBColor::product(float f) {
 	for (int i = 0; i < 4; ++i) {
-		raw[i] = (unsigned char)f2limits((float)raw[i] * f, 0., 255.);
+		raw[i] = (unsigned char)f2limits((float)raw[i] * f, 0, 255);
 	}
 	return *this;
 }
-
-ARGBColor& ARGBColor::negative(void) {
-	for (int i = 0; i < 3; ++i) {
-		raw[i] = 255 - raw[i];
-	}
-	return *this;
-}
-
-ARGBColor& ARGBColor::gamma(float g) {
-	g = 1. / g;
-	for (int i = 0; i < 3; ++i) {
-		raw[i] = (unsigned char)i2limits(std::pow(_1_255 * (float)raw[i], g) * 255, 0, 255);
-	}
-	return *this;
-}
-
-ARGBColor& ARGBColor::iAddition(int c) {
-	*this += c;
-	return *this;
-}
-
-ARGBColor& ARGBColor::operator+=(int c) {
-	a = (unsigned char)i2limits((int)a + get_a(c), 0, 255);
-	r = (unsigned char)i2limits((int)r + get_r(c), 0, 255);
-	g = (unsigned char)i2limits((int)g + get_g(c), 0, 255);
-	b = (unsigned char)i2limits((int)b + get_b(c), 0, 255);
-	return *this;
-}
-
-ARGBColor& ARGBColor::operator+=(const ARGBColor& c) {
-	this->addition(*this, c);
-	return *this;
-}
-
-ARGBColor& ARGBColor::iProduct(int c) {
-	a = (unsigned char)i2limits(_1_255 * (float)a * (float)get_a(c), 0, 255);
-	r = (unsigned char)i2limits(_1_255 * (float)r * (float)get_r(c), 0, 255);
-	g = (unsigned char)i2limits(_1_255 * (float)g * (float)get_g(c), 0, 255);
-	b = (unsigned char)i2limits(_1_255 * (float)b * (float)get_b(c), 0, 255);
-	return *this;
-}
-
-ARGBColor& ARGBColor::attenuate(int attenuation, float fading) {
-	if (attenuation != -1) {
-		iProduct(attenuation);
-	}
-	product(fading);
-	return *this;
-}
-
-
 
 
 // Non member functions
@@ -218,7 +156,7 @@ std::istringstream& operator>>(std::istringstream& is, ARGBColor& c) {
 // Struct Lighting
 
 Lighting::Lighting(void) : _ratio(1), _color(0x00FFFFFF), light() {
-	_ratio = f2limits(_ratio, 0., 1);
+	_ratio = f2limits(_ratio, 0, 1);
 	light = _color.val;
 	light *= _ratio;
 }
@@ -227,7 +165,7 @@ Lighting::Lighting(float ratio, const ARGBColor& color) :
 _ratio(ratio),
 _color(color),
 light(color.val) {
-	_ratio = f2limits(_ratio, 0., 1);
+	_ratio = f2limits(_ratio, 0, 1);
 	light *= _ratio;
 }
 
@@ -250,22 +188,16 @@ Lighting& Lighting::operator=(const Lighting& other) {
 
 float Lighting::get_ratio(void) const { return _ratio; }
 
-int Lighting::get_albedo(void) const { return _color.val; }
+int Lighting::get_glow(void) const { return _color.val; }
 
 void Lighting::set_ratio(float ratio) {
-	_ratio = f2limits(ratio, 0., 1.);
+	_ratio = f2limits(ratio, 0, 1.);
 	light = _color.val;
 	light *= _ratio;
 }
 
 void Lighting::set_color(const ARGBColor& color) {
 	light = color.val;
-	light *= _ratio;
-}
-
-void Lighting::invertBrightness(void) {
-	_ratio = 1 - _ratio;
-	light = _color.val;
 	light *= _ratio;
 }
 
@@ -283,7 +215,7 @@ std::ostream& operator<<(std::ostream& o, const Lighting& l) {
 std::istringstream& operator>>(std::istringstream& is, Lighting& l) {
 	is >> l._ratio;
 	is >> l._color;
-	l._ratio = f2limits(l._ratio, 0., 1.);
+	l._ratio = f2limits(l._ratio, 0, 1.);
 	l.light = l._color.val;
 	l.light *= l._ratio;
 	return is;
@@ -305,20 +237,4 @@ float f2limits(float num, float min, float max) {
 		return max;
 	}
 	return num;
-}
-
-float max_(float a, float b) {
-	return std::max(a, b);
-}
-
-float max_(float a, float b, float c) {
-	return max_(max_(a, b), c);
-}
-
-float min_(float a, float b) {
-	return std::min(a, b);
-}
-
-float min_(float a, float b, float c) {
-	return min_(min_(a, b), c);
 }

@@ -76,8 +76,6 @@
 		66D166C52C3C172F002E6F7E /* Sphere.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; path = Sphere.hpp; sourceTree = "<group>"; };
 		66D166C82C3D9281002E6F7E /* A_Scenery.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = A_Scenery.cpp; sourceTree = "<group>"; };
 		66D166C92C3D9281002E6F7E /* A_Scenery.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; path = A_Scenery.hpp; sourceTree = "<group>"; };
-		66DAF1302CFD121A00458D00 /* random.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; path = random.hpp; sourceTree = "<group>"; };
-		66DAF1342D03D15700458D00 /* Average.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; path = Average.hpp; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -135,7 +133,6 @@
 				66D166C82C3D9281002E6F7E /* A_Scenery.cpp */,
 				667951902C5293BB009C1DDD /* ARGBColor.hpp */,
 				667951912C5293BB009C1DDD /* ARGBColor.cpp */,
-				66DAF1342D03D15700458D00 /* Average.hpp */,
 				667951782C427BFD009C1DDD /* camera.hpp */,
 				667951772C427BFD009C1DDD /* camera.cpp */,
 				6679518F2C5293BB009C1DDD /* geometry.hpp */,
@@ -152,7 +149,6 @@
 				6659C4E12C399E8A00CC7FAB /* MlxImage.cpp */,
 				668B635C2D8DB467006DBF53 /* PhotonMap.hpp */,
 				660BE1772CBAD9890061AA16 /* PhotonMap.cpp */,
-				66DAF1302CFD121A00458D00 /* random.hpp */,
 				665241D12C5BA6E700BD3A64 /* Ray.hpp */,
 				665241D02C5BA6E700BD3A64 /* Ray.cpp */,
 				668B63572D873531006DBF53 /* Rgb.hpp */,

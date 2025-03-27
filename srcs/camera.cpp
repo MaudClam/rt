@@ -364,7 +364,7 @@ void Camera::takePicture_lll(MlxImage& img, size_t begin, size_t end) {
 		ARGBColor color;
 		data += _bytespp * begin;
 		for (auto pixel = matrix.begin() + begin, _end = matrix.begin() + end; pixel != _end; ++pixel) {
-			color = pixel->paint.get_rgba(GAMMA);
+			color.val = pixel->paint.get_rgba(GAMMA);
 			memcpy(data, color.raw, _bytespp);
 			data += _bytespp;
 		}
