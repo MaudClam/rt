@@ -559,8 +559,8 @@ std::ostream& operator<<(std::ostream& o, const Camera& camera) {
 	os << " " << camera._pos.p;
 	os << " " << camera._pos.n;
 	os << " " << std::setw(4) << camera._fov.get_degree();
-	o << std::setw(56) << std::left << os.str();
-	o << " #" << camera._name;
+	o << std::setw(36) << std::left << os.str();
+	o << "  #" << camera._name;
 	return o;
 }
 

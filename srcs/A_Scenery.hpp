@@ -61,6 +61,24 @@ public:
 	inline void	set_isLight(bool isLight) { _isLight = isLight; }
 	inline void	set_pos(const Position& pos) { _pos = pos; }
 	inline void	set_color(const ARGBColor& color) { _color = color; }
+	inline void set_material(std::istringstream& is) {
+		is >> _color >> glossy >> reflective >> refractive >> matIOR;
+		glossy = f2limits(glossy, 0, 1000);
+		reflective = f2limits(reflective, 0., 1.);
+		refractive = f2limits(refractive, 0., 1. - reflective);
+		diffusion = f2limits(1. -  reflective - refractive, 0., 1.);
+		matIOR = f2limits(matIOR, 0.1, 10.);
+		matOIR = 1. / matIOR;
+	}
+	inline std::string output_material(void) const {
+		std::ostringstream os;
+		os << "   " << _color.rrggbb();
+		os << " " << std::setw(4) << std::right << glossy;
+		os << " " << std::setw(4) << std::right << reflective;
+		os << " " << std::setw(4) << std::right << refractive;
+		os << " " << std::setw(4) << std::right << matIOR;
+		return os.str();
+	}
 	
 	virtual int get_iColor(const HitRecord& rec) const = 0;
 	virtual A_Scenery* clone(void) const = 0;

@@ -85,8 +85,8 @@ void Scene::systemDemo(void) {
 	cameras.push_back(Camera(img));
 	set_any("A				0.2		0xFFFFEE");
 	set_any("l	2,2,0		0.4		0xFFFFFF");
-	set_any("l	1,2,4		0.4		0xFFFFFF");
-//	set_any("ll	1,4,4		0.3		0xFFFFFF	10,40,40");
+//	set_any("l	1,2,4		0.4		0xFFFFFF");
+	set_any("ll	1,4,4		0.3		0x00FFFF	10,40,40");
 	set_any("c	0,0,-2.5	0,0,1		60");
 	set_any("c	0,0,8.5		0,0,-1		60");
 	set_any("c	-5.5,0,3	1,0,0		60");
@@ -524,8 +524,8 @@ std::ostream& operator<<(std::ostream& o, const Scene& sc) {
 	}
 	o	<< std::endl;
 	os	<< "A  " << std::setw(32) << sc._ambient;
-	o	<< std::setw(56) << std::left << os.str();
-	o	<< " #ambient liting" << std::endl;
+	o	<< std::setw(40) << std::left << os.str();
+	o	<< "  #ambient liting" << std::endl;
 	for (auto light = sc.lightsIdx.begin(); light != sc.lightsIdx.end(); ++light) {
 		o << *(*light) << std::endl;
 	}

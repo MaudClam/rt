@@ -68,8 +68,8 @@ std::ostream& operator<<(std::ostream& o, const Light& l) {
 	if (!l._pos.n.isNull()) {
 		os << " " << l._pos.n;
 	}
-	o  << std::setw(56) << std::left << os.str();
-	o  << " #" << l._name;
+	o  << std::setw(40) << std::left << os.str();
+	o  << "  #" << l._name;
 	return o;
 }
 

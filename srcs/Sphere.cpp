@@ -56,26 +56,16 @@ std::ostream& operator<<(std::ostream& o, const Sphere& sp) {
 	os << std::setw(2) << std::left << sp._nick;
 	os << " " << sp._pos.p;
 	os << " " << std::setw(5) << std::right << sp._radius * 2;
-	os << "   " << sp.get_color().rrggbb();
-	os << " " << std::setw(4) << std::right << sp.glossy;
-	os << " " << std::setw(4) << std::right << sp.reflective;
-	os << " " << std::setw(4) << std::right << sp.refractive;
-	os << " " << std::setw(4) << std::right << sp.matIOR;
+	os << "   " << sp.output_material();
 	o  << std::setw(54) << std::left << os.str();
-	o  << " #" << sp._name;
+	o  << "  #" << sp._name;
 	return o;
 }
 
 std::istringstream& operator>>(std::istringstream& is, Sphere& sp) {
 	is >> sp._pos.p >> sp._radius;
-	is >> sp._color >> sp.glossy >> sp.reflective >> sp.refractive >> sp.matIOR;
 	sp._radius /= 2;
 	sp._sqrRadius = sp._radius * sp._radius;
-	sp.glossy = f2limits(sp.glossy, 0, 1000);
-	sp.reflective = f2limits(sp.reflective, 0., 1.);
-	sp.refractive = f2limits(sp.refractive, 0., 1. - sp.reflective);
-	sp.diffusion = f2limits(1. -  sp.reflective - sp.refractive, 0., 1.);
-	sp.matIOR = f2limits(sp.matIOR, 0.1, 10.);
-	sp.matOIR = 1. / sp.matIOR;
+	sp.set_material(is);
 	return is;
 }

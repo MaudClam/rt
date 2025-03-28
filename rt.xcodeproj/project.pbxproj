@@ -67,6 +67,7 @@
 		668B63572D873531006DBF53 /* Rgb.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; path = Rgb.hpp; sourceTree = "<group>"; };
 		668B635A2D885609006DBF53 /* Rgb.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = Rgb.cpp; sourceTree = "<group>"; };
 		668B635C2D8DB467006DBF53 /* PhotonMap.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; path = PhotonMap.hpp; sourceTree = "<group>"; };
+		668B635D2D96B6FD006DBF53 /* Untitled.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Untitled.swift; sourceTree = "<group>"; };
 		6696E8882CEF4E0200E3CFBB /* parsing.log */ = {isa = PBXFileReference; lastKnownFileType = text; path = parsing.log; sourceTree = SOURCE_ROOT; };
 		66B3B0A52C94B81E005085BC /* default.rt */ = {isa = PBXFileReference; lastKnownFileType = text; path = default.rt; sourceTree = "<group>"; };
 		66B3B0A62C950387005085BC /* balls.rt */ = {isa = PBXFileReference; lastKnownFileType = text; path = balls.rt; sourceTree = "<group>"; };
@@ -95,6 +96,7 @@
 		6628EB0C2C93334900BC90BD /* scenes */ = {
 			isa = PBXGroup;
 			children = (
+				668B635D2D96B6FD006DBF53 /* Untitled.swift */,
 				6696E8882CEF4E0200E3CFBB /* parsing.log */,
 				6628EB0E2C933BC900BC90BD /* arches.rt */,
 				66B3B0A62C950387005085BC /* balls.rt */,
