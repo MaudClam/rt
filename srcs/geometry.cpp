@@ -3,11 +3,37 @@
 
 // Non class functions
 
+int		i2limits(int num, int min, int max) {
+	if (num < min) {
+		return min;
+	} else if (num > max) {
+		return max;
+	}
+	return num;
+}
+
+float	f2limits(float num, float min, float max) {
+	if (num < min) {
+		return min;
+	} else if (num > max) {
+		return max;
+	}
+	return num;
+}
+
 double	random_double(void) {
 	static std::uniform_real_distribution<double> distribution(0.0, 1.0);
 	static std::mt19937				generator;
 	static std::function<double()>	rand_generator = std::bind(distribution, generator);
 	return rand_generator();
+}
+
+double	randomUnitCoordinate(void) {
+	return (random_double() * 2.0 - 1.0);
+}
+
+float	randomCoordinate(float n) {
+	return randomUnitCoordinate() * n;
 }
 
 bool	almostEqual(float a, float b, float precision) { return std::fabs(a - b) < precision; }
@@ -136,10 +162,118 @@ Position& Position::roll(float roll) {
 	return *this;
 }
 
+
 std::ostream& operator<<(std::ostream& o, const Position& pos) {
 	o << "(" << pos.p.x << "," << pos.p.y << "," << pos.p.z << "),";
 	o << "(" << pos.n.x << "," << pos.n.y << "," << pos.n.z << ")";
 	return o;
+}
+
+// class Texture2
+
+Texture2::Texture2(void) : texture2_t(), _id(), _width(0), _height(0) {}
+
+Texture2::Texture2(const Texture2& other) : texture2_t(), _id(), _width(0), _height(0) { *this = other; }
+
+Texture2& Texture2::operator=(const Texture2& other) {
+	if (this != &other) {
+		clear();
+		insert(begin(), other.begin(), other.end());
+		set_id(other._id);
+		set_width(other._width);
+	}
+	return *this;
+}
+
+Texture2::~Texture2(void) {}
+
+
+// struct A_Planar
+
+A_Planar::A_Planar(void) :
+pos(),
+u(),
+v(),
+angle(0),
+txtr(NULL)
+{ u.x = 1; v.y = 1; pos.n.z = 1; }
+
+A_Planar::A_Planar(Texture2* _txtr) :
+pos(),
+u(),
+v(),
+angle(0),
+txtr(_txtr)
+{ u.x = 1; v.y = 1; pos.n.z = 1; }
+
+A_Planar::A_Planar(const A_Planar& other) : A_Planar() { *this = other; }
+
+A_Planar::~A_Planar(void) {}
+
+A_Planar& A_Planar::operator=(const A_Planar& other) {
+	if (this != &other) {
+		pos = other.pos;
+		u = other.u;
+		v = other.v;
+		angle = other.angle;
+		txtr = other.txtr;
+	}
+	return *this;
+}
+
+
+// struct Plane
+
+Plane::Plane(Texture2* _txtr) : A_Planar(_txtr) {}
+
+Plane::~Plane(void) {}
+
+
+// struct Сircle
+
+Сircle::Сircle(void) : A_Planar(), r(0), sqR(0) {}
+
+Сircle::Сircle(Texture2* _txtr) : A_Planar(_txtr), r(0), sqR(0) {}
+
+Сircle::Сircle(const Сircle& other) : A_Planar(), r(0), sqR(0) { *this = other; }
+
+Сircle::~Сircle(void) {}
+
+Сircle& Сircle::operator=(const Сircle& other) {
+	if (this != &other) {
+		pos = other.pos;
+		u = other.u;
+		v = other.v;
+		angle = other.angle;
+		txtr = other.txtr;
+		r = other.r;
+		sqR = other.sqR;
+	}
+	return *this;
+}
+
+
+// struct Rectangle
+
+Rectangle::Rectangle(void) : A_Planar(), w_2(0), h_2(0) {}
+
+Rectangle::Rectangle(Texture2* _txtr) : A_Planar(_txtr), w_2(0), h_2(0) {}
+
+Rectangle::Rectangle(const Rectangle& other) : A_Planar(), w_2(0), h_2(0) { *this = other; }
+
+Rectangle::~Rectangle(void) {}
+
+Rectangle& Rectangle::operator=(const Rectangle& other) {
+	if (this != &other) {
+		pos = other.pos;
+		u = other.u;
+		v = other.v;
+		angle = other.angle;
+		txtr = other.txtr;
+		w_2 = other.w_2;
+		h_2 = other.h_2;
+	}
+	return *this;
 }
 
 
@@ -228,3 +362,16 @@ bool	rayPlaneIntersection(const Vec3f& rayDir,
 	return false;
 }
 
+bool	rayRectangleIntersection(const Vec3f& rayDir,
+								 const Vec3f& rayPov,
+								 const Vec3f& center,
+								 const Vec3f& normal,
+								 float& distance,
+								 float& min_t,
+								 float& max_t,
+								 Hit& rayHit) {
+	if (rayPlaneIntersection(rayDir, rayPov, center, normal, distance, min_t, max_t, rayHit)) {
+		
+	}
+	return false;
+}

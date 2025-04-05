@@ -9,8 +9,6 @@
 
 enum colorFormat { GRAY_SCALE=1, RGB=3, ARGB=4 };
 std::string colorFormat(int bpp);
-int   i2limits(int num, int min, int max);
-float f2limits(float num, float min, float max);
 
 
 struct ARGBColor {
@@ -55,10 +53,36 @@ public:
 	Lighting(const Lighting& other);
 	~Lighting(void);
 	Lighting& operator=(const Lighting& other);
-	float get_ratio(void) const;
-	int get_glow(void) const;
-	void set_ratio(float ratio);
-	void set_color(const ARGBColor& color);
+	inline float get_ratio(void) const { return _ratio; }
+	inline int   get_glow(void) const { return _color.val; }
+	inline void  set_ratio(float ratio) {
+		_ratio = f2limits(ratio, 0, 1.);
+		light = _color.val;
+		light *= _ratio;
+	}
+	inline void  setLighting_if(std::istringstream& is, bool txtr) {
+		if (txtr) {
+			std::string trash;
+			is >> _ratio >> trash;
+		} else {
+			is >> _ratio;
+			is >> _color;
+		}
+		set_ratio(_ratio);
+	}
+	inline void  set_color(const ARGBColor& color) {
+		light = color.val;
+		light *= _ratio;
+	}
+	inline std::string outputLiting_if(const std::string& txtr) const {
+		std::ostringstream os;
+		os << " " << std::setw(4) << std::right << _ratio;
+		if (!txtr.empty())
+			os << " " << TEXTURE_KEY << txtr;
+		else
+			os << " " << _color.rrggbb();
+		return os.str();
+	}
 	friend std::ostream& operator<<(std::ostream& o, const Lighting& al);
 	friend std::istringstream& operator>>(std::istringstream& is, Lighting& l);
 };

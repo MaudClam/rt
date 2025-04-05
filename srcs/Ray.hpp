@@ -219,9 +219,8 @@ struct Ray : public HitRecord {
 	bool end(const Scenerys& scenerys, const Lighting& background, int depth, int r);
 	bool photonEnd(const Scenerys& scenerys, int r);
 	bool closestScenery(const Scenerys& scenerys, float maxDistance, Hit target = FRONT);
-	bool isGlowing(void);
 	Choice chooseDirection(const HitRecord& rec, const Probability& p);
-	int	   getAttenuation(HitRecord& rec, Choice choice, float& fading, float& shining);
+	int getAttenuation(HitRecord& rec, Choice choice, float& fading, float& shining);
 	inline A_Scenery* getCombine(Point& nearest) {
 		auto segment = segments.before_begin(), segmentNext = segments.begin();
 		for (; segment != segments.end(); ++segment) {
@@ -245,6 +244,7 @@ struct Ray : public HitRecord {
 		}
 		return nearest.s;
 	}
+	inline Vec3f getHitPoint(void) const { return Vec3f(pov + (dir * dist)); }
 	inline void emplace(const Segment& segment, bool _combine) {
 		emplace(segment.a, segment.b, _combine);
 	}
@@ -255,7 +255,7 @@ struct Ray : public HitRecord {
 		pov.addition(pov, dir * dist);
 	}
 	inline void movePovByNormal(float distance) {
-		pov.addition(pov, norm.product(distance));
+		pov.addition(pov, norm * distance);
 	}
 	inline void reflect(float mattness = 0) {
 		dir.reflect(norm);

@@ -4,7 +4,7 @@ R	800 600		NiceBalls  CAUSTIC  500000  60  0.1
 #				ratio	color
 A				0.2		0xFFFFFF
 l	2,1,0		0.5		0xFFFFFF
-ls	1,4,4		0.3		0xFFFFFF
+lrd	1,4,4		0.3		0xFFFFFF
 
 #	Cameras
 #	center		direction	FOV

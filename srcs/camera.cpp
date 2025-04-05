@@ -93,6 +93,7 @@ void Pixel::restoreRays(int sm, float tan, const Vec3f& pov) {
 			ray->dir.normalize();
 			ray->pov = pov;
 			ray->recursion = 0;
+//			ray->paint.reset();
 			ray->path.clear();
 			ray->scnr = NULL;
 		}
@@ -319,7 +320,7 @@ void Camera::changeOther(Controls key) {
 		}
 		case PATHTRACING: {
 			paths = DAFAULT_PATHS_PER_RAY;
-			fakeAmbientLightOn = false;
+			fakeAmbientLightOn = true;
 			tracingType = PATH;
 			break;
 		}
@@ -447,7 +448,7 @@ void Camera::refractions(Ray& ray, HitRecord& rec, float fading, int r) {
 }
 
 void Camera::lightings(Ray& ray, HitRecord& rec) {
-	if (fakeAmbientLightOn) ray.fakeAmbientLighting(rec, ambient.light);
+	if (fakeAmbientLightOn && tracingType == RAY) ray.fakeAmbientLighting(rec, ambient.light);
 	if (directLightOn) ray.directLightings(rec, scenerys, lightsIdx);
 	if (directLightOn && photonMap != NO) ray.phMapLightings(rec, phMap, photonMap);
 }
@@ -472,7 +473,7 @@ void Camera::tracePath(Ray& ray, int r) {
 }
 
 void Camera::ambientLightPath(Ray& ray, HitRecord& rec, int r) {
-	float fading = ambient.get_ratio(), shining = 0;
+	float fading = fakeAmbientLightOn ? ambient.get_ratio() : 1, shining = 0;
 	Probability p;
 	rec.scnr->get_probability(p);
 	Choice choice = ray.chooseDirection(rec, p);
@@ -555,7 +556,7 @@ void Camera::runThreadRoutine(int routine, MlxImage* img) {
 
 std::ostream& operator<<(std::ostream& o, const Camera& camera) {
 	std::ostringstream os;
-	os << std::setw(2) << std::left << camera._nick;
+	os << std::setw(3) << std::left << camera._nick;
 	os << " " << camera._pos.p;
 	os << " " << camera._pos.n;
 	os << " " << std::setw(4) << camera._fov.get_degree();

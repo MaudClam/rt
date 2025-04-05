@@ -77,14 +77,14 @@
 #
 # Direct Light:
 # l  0,-1,0  0.3  10,0,255
-# Identifier:                                                      ls
+# Identifier:                                                      lrd
 # 3d normalized (2) vector in range (3) [-1.0,1.0] for each axis:  0,-1,0
 # Light brightness ratio in range (3) [0.0,1.0]:                   0.3
 # R,G,B (4) colors in range (3) [0,255]:                           10,0,255
 #
 # Direct Light Limited By Plane:
-# ll  1,4,4  0.3  10,0,255  1,4,4
-# Identifier:                                                      ll
+# lrf  1,4,4  0.3  10,0,255  1,4,4
+# Identifier:                                                      lrf
 # 3d normalized (2) vector in range (3) [-1.0,1.0] for each axis:  1,4,4
 # Light brightness ratio in range (3) [0.0,1.0]:                   0.3
 # R,G,B (4) colors in range (3) [0,255]:                           10,0,255

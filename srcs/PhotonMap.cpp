@@ -214,10 +214,10 @@ void PhotonMap::make(Scenerys& scenerys, Scenerys& lightsIdx) {
 		phRays_t rays;
 		auto Begin = lightsIdx.begin(), End = lightsIdx.end();
 		for (auto lightSrc = Begin; lightSrc != End; ++lightSrc)
-			totalPow += (*lightSrc)->light.light;
+			totalPow += (*lightSrc)->get_light();
 		totalPow *= float(TOTAL_PHOTONS_POWER);
 		for (auto lightSrc = Begin; lightSrc != End; ++lightSrc) {
-			int n = (*lightSrc)->light.light.get_maxBand() / totalPow.get_maxBand() * totalPhotons;
+			int n = (*lightSrc)->get_light().get_maxBand() / totalPow.get_maxBand() * totalPhotons;
 			(*lightSrc)->photonEmissions(n, *this, rays);
 		}
 		photonPathsTracing_lll(scenerys, rays);

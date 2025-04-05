@@ -4,13 +4,8 @@
 // struct Cameras
 
 Cameras::Cameras(void) : std::vector<Camera>() {}
+
 Cameras::~Cameras(void) {}
-Cameras& Cameras::clear_(int n) {
-	Cameras tmp;
-	if (n) tmp.reserve(n);
-	swap(tmp);
-	return *this;
-}
 
 
 // Class Scene
@@ -22,6 +17,7 @@ objsIdx(),
 lightsIdx(),
 cameras(),
 phMap(),
+textures2(),
 _resolution(DEFAULT_RESOLUTION),
 _header(),
 _ambient(1),
@@ -42,6 +38,10 @@ Scene::~Scene(void) {
 			*scenery = NULL;
 		}
 	}
+	for (auto txtr = textures2.begin(), ENd = textures2.end(); txtr != ENd; ++txtr) {
+		delete txtr->second;
+		txtr->second = NULL;
+	}
 }
 
 Scene::Scene(const Scene& other) :
@@ -51,6 +51,7 @@ objsIdx(other.objsIdx),
 lightsIdx(other.lightsIdx),
 cameras(other.cameras),
 phMap(other.phMap),
+textures2(other.textures2),
 _resolution(other._resolution),
 _header(other._header),
 _ambient(other._ambient),
@@ -65,6 +66,7 @@ Scene& Scene::operator=(const Scene& other) {
 		lightsIdx = other.lightsIdx;
 		cameras = other.cameras;
 		phMap = other.phMap;
+		textures2 = other.textures2;
 		_resolution = other._resolution;
 		_header = other._header;
 		_ambient = other._ambient;
@@ -78,24 +80,48 @@ std::string Scene::header(void) {
 	return std::string(_header + " " + std::to_string(_resolution.x) + "x" + std::to_string(_resolution.y));
 }
 
+Texture2* Scene::findTexture(std::string str) {
+	std::string key(TEXTURE_KEY);
+	size_t pos = str.find(key) + str.size();
+	if (pos < str.size()) {
+		std::istringstream(str.erase(pos)) >> key;
+		auto it = textures2.find(key);
+		if (it != textures2.end())
+			return it->second;
+	}
+	return NULL;
+}
+
+void Scene::systemTexture(void) {
+	std::string id("system");
+	Texture2* txtr = new Texture2();
+	txtr->emplace_back(0xFFFFFF);
+	txtr->emplace_back(0xFF0000);
+	txtr->emplace_back(0x00FF00);
+	txtr->emplace_back(0x0000FF);
+	txtr->set_id(id);
+	txtr->set_width(2);
+	textures2.try_emplace(id, txtr);
+}
+
 void Scene::systemDemo(void) {
 //	set_any("R	800 600");
-	set_any("R	800 600  SystemDemo CAUSTIC  500000  60  0.1");
+	set_any("R	800 600  SystemDemo NO  500000  60  0.1");
 	img.init(header(), _resolution);
 	cameras.push_back(Camera(img));
-	set_any("A				0.2		0xFFFFEE");
-	set_any("l	2,2,0		0.4		0xFFFFFF");
-//	set_any("l	1,2,4		0.4		0xFFFFFF");
-	set_any("ll	1,4,4		0.3		0x00FFFF	10,40,40");
+	set_any("A				0.5 0xAAAAAA");
+	set_any("ldr	0,-1,0	0.5 0xFFFFFF	0,2,3	0,-1,0	0	5.0	5.0");
+	set_any("ld		-2,-2,0	0.4 0xFFFFFF");
+//	set_any("ls		1,2,4	0.4 0xFFFFFF");
 	set_any("c	0,0,-2.5	0,0,1		60");
-	set_any("c	0,0,8.5		0,0,-1		60");
-	set_any("c	-5.5,0,3	1,0,0		60");
-	set_any("c	5.5,0,3		-1,0,0		60");
+//	set_any("c	0,0,8.5		0,0,-1		60");
+//	set_any("c	-5.5,0,3	1,0,0		60");
+//	set_any("c	5.5,0,3		-1,0,0		60");
 	set_any("c	0,5,2		0,-1,0		60");
 	set_any("sp	0,-1,3		2		0xFF0000	0.1		0.1");
 	set_any("sp	2,0,4		2		0xFFFFFF	500		0.0		1.0		1.5");
-	set_any("sp	-2,0,4		2		0x00FF00	0.2		0.2");
-	set_any("sp	0,-5001,0	10000	0xFFFF00	0.05	0.3");
+	set_any("sp	-2,1,4		2		0x00FF00	0.2		0.2");
+	set_any("sp	0,-5001,0	10000	0xFFFF00	500		0.3");
 	if (cameras.size() > 1)
 		_currentCamera = 1;
 	saveParsingLog(PARSING_LOGFILE);
@@ -173,6 +199,7 @@ int Scene::saveParsingLog(const char* filename) {
 int  Scene::parsing(int ac, char** av) {
 	if (ac != 2) {
 		mesage(WRNG_FILE_MISSING);
+		systemTexture();
 		systemDemo();
 		return SUCCESS;
 	}
@@ -285,33 +312,56 @@ int Scene::set_any(std::istringstream is) {
 			break;
 		}
 		case 3: {// l spotlight
-			Light* l = new Light();
-			l->set_nick(nicks[id]);
-			l->set_name("spotlight");
-			l->set_type(Light::SPOTLIGHT);
+			Light* l = new Light("spotlight", nicks[id], Light::SPOTLIGHT, NULL);
 			is >> *l;
 			set_scenery(l);
 			break;
 		}
-		case 4: {// ls sunlitght
-			Light* l = new Light();
-			l->set_nick(nicks[id]);
-			l->set_name("sunlight");
-			l->set_type(Light::SUNLIGHT);
+		case 4: {// ls spotlight
+			Light* l = new Light("spotlight", nicks[id], Light::SPOTLIGHT, NULL);
 			is >> *l;
 			set_scenery(l);
 			break;
 		}
-		case 5: {// ll sunlight limited by plane
-			Light* l = new Light();
-			l->set_nick(nicks[id]);
-			l->set_name("sunlight limited by plane");
-			l->set_type(Light::SUNLIGHT_LIMITED);
+		case 5: {// ls directlight
+			Light* l = new Light("directlight", nicks[id], Light::DIRECTLIGHT, NULL);
 			is >> *l;
 			set_scenery(l);
 			break;
 		}
-		case 6: {// sp sphere
+		case 6: {// lsс spotlight circular
+			Light* l = new Light("spotlight circular", nicks[id],
+								 Light::SPOTLIGHT_CIRCULAR,
+								 new Сircle(findTexture(is.str())));
+			is >> *l;
+			set_scenery(l);
+			break;
+		}
+		case 7: {// ldс directlight circular
+			Light* l = new Light("directlight circular", nicks[id],
+								 Light::DIRECTLIGHT_CIRCULAR,
+								 new Сircle(findTexture(is.str())));
+			is >> *l;
+			set_scenery(l);
+			break;
+		}
+		case 8: {// lsr spotlight rectangular
+			Light* l = new Light("spotlight rectangular", nicks[id],
+								 Light::SPOTLIGHT_RECTANGULAR,
+								 new Rectangle(findTexture(is.str())));
+			is >> *l;
+			set_scenery(l);
+			break;
+		}
+		case 9: {// ldr directlight rectangular
+			Light* l = new Light("directlight rectangular", nicks[id],
+								 Light::DIRECTLIGHT_RECTANGULAR,
+								 new Rectangle(findTexture(is.str())));
+			is >> *l;
+			set_scenery(l);
+			break;
+		}
+		case 10: {// sp sphere
 			Sphere* sp = new Sphere;
 			is >> *sp;
 			set_scenery(sp);
@@ -523,8 +573,9 @@ std::ostream& operator<<(std::ostream& o, const Scene& sc) {
 			<< sc.phMap.estimate << " " << sc.phMap.gridStep;
 	}
 	o	<< std::endl;
-	os	<< "A  " << std::setw(32) << sc._ambient;
-	o	<< std::setw(40) << std::left << os.str();
+	os	<< "A ";
+	o	<< std::setw(53) << std::left << os.str();
+	o	<< sc._ambient;
 	o	<< "  #ambient liting" << std::endl;
 	for (auto light = sc.lightsIdx.begin(); light != sc.lightsIdx.end(); ++light) {
 		o << *(*light) << std::endl;

@@ -59,7 +59,7 @@ bool intersectRayRectangle(const Vector3& rayPov,
 	iPoint = rayPov + rayDir * t;
 
 	// Step 2: Check if the intersection point is inside the rectangle
-	Vector3 localPoint = intersectionPoint - rectCenter;
+	Vector3 localPoint = iPoint - rectCenter;
 
 	// Get the rectangle's local axes
 	Vector3 u = {1, 0, 0}; // Example: local X axis
@@ -88,6 +88,194 @@ int main() {
 	} else {
 		std::cout << "No intersection.\n";
 	}
+
+	return 0;
+}
+
+
+#include <iostream>
+#include <cstdlib>
+
+using namespace std;
+
+// Функция для перехода из первой системы координат в вторую
+void firstToSecond(int w, int h, int x1, int y1, int &x2, int &y2) {
+	x2 = x1 - w / 2;
+	y2 = h / 2 - y1;
+}
+
+// Функция для перехода из второй системы координат в первую
+void secondToFirst(int w, int h, int x2, int y2, int &x1, int &y1) {
+	x1 = x2 + w / 2;
+	y1 = h / 2 - y2;
+}
+
+// Функция для перехода из первой системы координат в "построчную"
+void firstToRow(int w, int h, int x1, int y1, size_t &l) {
+	l = y1 * w + x1;
+}
+
+// Функция для перехода из "построчной" системы в первую
+void rowToFirst(int w, size_t l, int &x1, int &y1) {
+	y1 = l / w;
+	x1 = l % w;
+}
+
+// Функция для перехода из второй системы координат в "построчную"
+void secondToRow(int w, int h, int x2, int y2, size_t &l) {
+	int x1, y1;
+	secondToFirst(w, h, x2, y2, x1, y1);
+	firstToRow(w, h, x1, y1, l);
+}
+
+// Функция для перехода из "построчной" системы в вторую
+void rowToSecond(int w, int h, size_t l, int &x2, int &y2) {
+	int x1, y1;
+	rowToFirst(w, l, x1, y1);
+	// Переход из первой системы во вторую
+	firstToSecond(w, h, x1, y1, x2, y2);
+}
+
+int main() {
+	int w = 800; // Ширина экрана
+	int h = 600; // Высота экрана
+
+	// Пример использования функций
+	int x1 = 100, y1 = 200;
+	int x2, y2;
+	size_t l;
+
+	// Перевод из первой системы во вторую
+	firstToSecond(w, h, x1, y1, x2, y2);
+	cout << "First to Second: (" << x1 << ", " << y1 << ") -> (" << x2 << ", " << y2 << ")\n";
+
+	// Перевод из первой системы в "построчную"
+	firstToRow(w, h, x1, y1, l);
+	cout << "First to Row: (" << x1 << ", " << y1 << ") -> " << l << "\n";
+
+	// Перевод из второй системы в "построчную"
+	secondToRow(w, h, x2, y2, l);
+	cout << "Second to Row: (" << x2 << ", " << y2 << ") -> " << l << "\n";
+
+	// Перевод из "построчной" системы в первую
+	rowToFirst(w, l, x1, y1);
+	cout << "Row to First: " << l << " -> (" << x1 << ", " << y1 << ")\n";
+
+	// Перевод из "построчной" системы во вторую
+	rowToSecond(w, h, l, x2, y2);
+	cout << "Row to Second: " << l << " -> (" << x2 << ", " << y2 << ")\n";
+
+	return 0;
+}
+
+
+#include <cstdlib>
+#include <cmath>
+
+struct Point {
+	double x, y, z;
+};
+
+Point randomPointInRectangle(double w, double h, Point c, Point n) {
+	// Генерируем случайные смещения по осям X и Y
+	double halfWidth = w / 2.0;
+	double halfHeight = h / 2.0;
+
+	// Случайные смещения
+	double randomX = ((double)rand() / RAND_MAX) * w - halfWidth;
+	double randomY = ((double)rand() / RAND_MAX) * h - halfHeight;
+
+	// Вычисляем координаты точки
+	Point p;
+	p.x = c.x + randomX * n.x;
+	p.y = c.y + randomY * n.y;
+	p.z = c.z + randomY * n.z; // Замените на нужное вам смещение по Z
+
+	return p;
+}
+
+#include <iostream>
+#include <cstdlib>
+#include <ctime>
+#include <cmath>
+
+struct Point {
+	float x, y, z;
+};
+
+Point randomPointInRectangle(float w, float h, Point c, Point n) {
+	// Генерируем случайные смещения в пределах ширины и высоты
+	float halfW = w / 2.0f;
+	float halfH = h / 2.0f;
+
+	// Генерация случайных смещений
+	float offsetX = ((float)rand() / RAND_MAX) * w - halfW;
+	float offsetY = ((float)rand() / RAND_MAX) * h - halfH;
+
+	// Вычисляем координаты случайной точки
+	Point p;
+	p.x = c.x + offsetX * (1 - n.x);
+	p.y = c.y + offsetY * (1 - n.y);
+	p.z = c.z + (n.z > 0 ? 0 : (float)rand() / RAND_MAX); // Учитываем нормаль
+
+	return p;
+}
+
+int main() {
+	srand(static_cast<unsigned int>(time(0))); // Инициализация генератора случайных чисел
+
+	Point center = {0.0f, 0.0f, 0.0f};
+	Point normal = {0.5f, 0.5f, 0.5f}; // Нормаль должна быть нормализирована
+
+	float width = 10.0f;
+	float height = 5.0f;
+
+	Point randomPoint = randomPointInRectangle(width, height, center, normal);
+	std::cout << "Random Point: (" << randomPoint.x << ", " << randomPoint.y << ", " << randomPoint.z << ")\n";
+
+	return 0;
+}
+
+
+#include <iostream>
+#include <cstdlib>
+#include <ctime>
+#include <cmath>
+
+struct Point {
+	double x, y, z;
+};
+
+Point randomPointInRectangle(const Point& c, const Point& u, const Point& v, double w, double h) {
+	// Инициализация генератора случайных чисел
+	std::srand(static_cast<unsigned int>(std::time(0)));
+
+	// Генерация случайных координат в пределах прямоугольника
+	double halfWidth = w / 2.0;
+	double halfHeight = h / 2.0;
+
+	// Случайные смещения от центра
+	double randomX = (static_cast<double>(std::rand()) / RAND_MAX) * w - halfWidth;
+	double randomY = (static_cast<double>(std::rand()) / RAND_MAX) * h - halfHeight;
+
+	// Вычисляем координаты точки p
+	Point p;
+	p.x = c.x + randomX * u.x + randomY * v.x;
+	p.y = c.y + randomX * u.y + randomY * v.y;
+	p.z = c.z + randomX * u.z + randomY * v.z;
+
+	return p;
+}
+
+int main() {
+	Point c = {0.0, 0.0, 0.0}; // Центр прямоугольника
+	Point u = {1.0, 0.0, 0.0}; // Направление горизонтали
+	Point v = {0.0, 1.0, 0.0}; // Направление вертикали
+	double w = 4.0; // Длина горизонтали
+	double h = 2.0; // Длина вертикали
+
+	Point randomPoint = randomPointInRectangle(c, u, v, w, h);
+	std::cout << "Random Point: (" << randomPoint.x << ", " << randomPoint.y << ", " << randomPoint.z << ")\n";
 
 	return 0;
 }

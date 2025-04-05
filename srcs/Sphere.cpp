@@ -1,22 +1,13 @@
 #include "Sphere.hpp"
 
 
-Sphere::Sphere(void) : _radius(0), _sqrRadius(0), _k(), _c(0) {
+Sphere::Sphere(void) : A_Scenery(), _radius(0), _sqrRadius(0), _k(), _c(0) {
 	_name = "sphere";
 	_nick = "sp";
 	_isLight = false;
 }
 
 Sphere::~Sphere(void) {}
-
-Sphere::Sphere(const Vec3f& center, float radius, const ARGBColor& color) :
-_radius(radius), _sqrRadius(radius * radius) {
-	_name = "sphere";
-	_nick = "sp";
-	_isLight = false;
-	_pos.p = center;
-	_color = color;
-}
 
 Sphere::Sphere(const Sphere& other) :
 _radius(other._radius),
@@ -30,8 +21,8 @@ _c(other._c)
 	_isLight = other._isLight;
 	_pos = other._pos;
 	_color = other._color;
+	_light = other._light;
 	combineType = other.combineType;
-	light = other.light;
 	glossy = other.glossy;
 	reflective = other.reflective;
 	refractive = other.refractive;
@@ -53,7 +44,7 @@ void Sphere::output(std::ostringstream& os) const {
 
 std::ostream& operator<<(std::ostream& o, const Sphere& sp) {
 	std::ostringstream os;
-	os << std::setw(2) << std::left << sp._nick;
+	os << std::setw(3) << std::left << sp._nick;
 	os << " " << sp._pos.p;
 	os << " " << std::setw(5) << std::right << sp._radius * 2;
 	os << "   " << sp.output_material();

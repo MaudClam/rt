@@ -36,6 +36,7 @@ public:
 	Rgb& operator*=(int rgba);
 	Rgb& operator*=(float f);
 	Rgb& attenuate(int attenuation, float fading);
+	inline Rgb operator*(float f) const { return Rgb(*this) *= f; }
 	inline float get_unitBand(int i) const {
 		return get_band(i) > 1 ? 1 : (get_band(i) < 0 ? 0 : get_band(i));
 	}
@@ -68,8 +69,8 @@ public:
 	MeanRgb& operator=(int rgba);
 	MeanRgb& operator+=(const Rgb& rgb);
 	MeanRgb& operator+=(int rgba);
-	inline void    reset() { _n = 0; raw[0] = 0; raw[1] = 0; raw[2] = 0; }
-	inline float   get_band(int i) const { return _n > 0 ? deNaN(raw[i] * float(1. / _n)) : 0; }
+	inline void  reset() { _n = 0; raw[0] = 0; raw[1] = 0; raw[2] = 0; }
+	inline float get_band(int i) const { return _n > 0 ? deNaN(raw[i] * float(1. / _n)) : 0; }
 };
 
 

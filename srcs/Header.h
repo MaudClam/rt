@@ -7,6 +7,7 @@
 # define DEBUG_PATH			"/Users/uru/Library/Mobile Documents/com~apple~CloudDocs/42_Projects/rt/"
 # define CONTROLS_FILE		"scenes/controls"
 # define PARSING_LOGFILE	"parsing.log"
+# define TEXTURE_KEY		"txtr:"
 # define SUCCESS					0
 # define ERROR						-1
 # define DEBUG_MODE					true

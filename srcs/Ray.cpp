@@ -324,18 +324,14 @@ Ray& Ray::directLightings(HitRecord& rec, const Scenerys& scenerys, const Scener
 			float lighting = (*lightSrc)->lighting(*this);
 			if (lighting > 0) {
 				movePovByNormal(EPSILON);
-				if (!closestScenery(scenerys, dist, ANY_SHADOW)) {
-					if ((lighting *= diffusion) > 0) {
-						paint = (*lightSrc)->light.light;
-						rec.paint += paint.attenuate(rec.scnr->get_iColor(rec), lighting);
-					}
+				if (!closestScenery(scenerys, dist - 2 * EPSILON, ANY_SHADOW)) {
 					if (glossy) {
 						float shining = getShining_(rec.dir, rec.norm, dir, glossy);
-						if (shining > _1_255) {
-							paint = (*lightSrc)->light.light;
-							rec.paint += (paint *= shining);
-						}
+						if (shining > _1_255)
+							rec.paint += (paint * shining);
 					}
+					if ((lighting *= diffusion) > 0)
+						rec.paint += paint.attenuate(rec.scnr->get_iColor(rec), lighting);
 				}
 			}
 			restore(rec);
@@ -390,7 +386,7 @@ bool Ray::end(const Scenerys& scenerys, const Lighting& background, int depth, i
 		paint = background.light;
 		return true;
 	}
-	if (isGlowing()) {
+	if (this->scnr->isGlowing(*this)) {
 		return true;
 	}
 	markPath();
@@ -445,14 +441,6 @@ bool Ray::closestScenery(const Scenerys& scenerys, float maxDistance, Hit target
 		return true;
 	}
 	scnr = NULL;
-	return false;
-}
-
-bool Ray::isGlowing(void) {
-	if (scnr->get_isLight()) {
-		paint = scnr->light.get_glow();
-		return true;
-	}
 	return false;
 }
 

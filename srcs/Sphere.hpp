@@ -13,26 +13,25 @@ protected:
 public:
 	Sphere(void);
 	~Sphere(void);
-	Sphere(const Vec3f& center, float radius, const ARGBColor& color);
 	Sphere(const Sphere& other);
 	Sphere* clone(void) const;
-	inline int	get_iColor(const HitRecord& rec) const {
+	inline int	 get_iColor(const HitRecord& rec) const {
 		(void)rec;
 		return _color.val;
 	}
-	inline void	lookat(const Position& eye, const LookatAux& aux, const Vec3f& pos, float roll) {
+	inline void	 lookat(const Position& eye, const LookatAux& aux, const Vec3f& pos, float roll) {
 		_pos.lookat(eye, aux, roll);
 		_k.substract(pos,_pos.p);
 		_c = _k * _k - _sqrRadius;
 	}
-	inline void	roll(const Vec3f& pos, float shiftRoll) {
+	inline void	 roll(const Vec3f& pos, float shiftRoll) {
 		if (shiftRoll != 0) {
 			_pos.roll(shiftRoll);
 			_k.substract(pos,_pos.p);
 			_c = _k * _k - _sqrRadius;
 		}
 	}
-	inline bool	intersection(Ray& ray) const {
+	inline bool	 intersection(Ray& ray) {
 		bool result = false;
 		if (ray.hit == ANY_SHADOW || ray.hit == ALL_SHADOWS) {
 			ray.hit = FRONT;
@@ -50,19 +49,23 @@ public:
 		}
 		return result;
 	}
-	inline void getNormal(Ray& ray) const {
+	inline void  getNormal(Ray& ray) const {
 		if (ray.hit == INSIDE) {
 			normalToRaySphereIntersect(_pos.p, ray.pov, ray.norm);
 		} else {
 			normalToRaySphereIntersect(ray.pov, _pos.p, ray.norm);
 		}
 	}
-	inline void photonEmissions(int num, const PhotonMap& phMap, phRays_t& rays) const {
+	inline void  photonEmissions(int num, const PhotonMap& phMap, phRays_t& rays) const {
 		(void)num; (void)rays; (void)phMap;
 	}
-	inline float lighting(Ray& ray) const {
+	inline float lighting(Ray& ray) {
 		(void)ray;
 		return 0;
+	}
+	inline bool  isGlowing(Ray& ray) const {
+		(void)ray;
+		return false;
 	}
 	void output(std::ostringstream& os) const;
 	friend std::ostream& operator<<(std::ostream& o, const Sphere& sp);

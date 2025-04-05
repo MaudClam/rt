@@ -241,11 +241,11 @@ bool	MlxImage::isInWinowXY(const Vec2i& v) const {
 }
 
 void	MlxImage::rtToMlxXY(Vec2i& v) const {
-	v.toMonitor(width, height);
+	v.cartesian2scan(width, height);
 }
 
 void	MlxImage::mlxToRtXY(Vec2i& v) const {
-	v.toRt(width, height);
+	v.scan2cartesian(width, height);
 }
 
 
@@ -327,7 +327,7 @@ int		mouseMove(int button, void* param) {
 //		Vec2i v1 = var.img->get_XY(var.img->get_dataDraw(), pixelAddr);
 //		var.img->mlxToRtXY(v1);
 //		var.img->rtToMlxXY(v1);
-		v.toRt(var.img->get_width(), var.img->get_height());
+		v.scan2cartesian(var.img->get_width(), var.img->get_height());
 		std::cout << "(" << v << ")\n";
 	}
 	return SUCCESS;

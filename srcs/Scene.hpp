@@ -13,7 +13,7 @@ class	MlxImage;
 class	Camera;
 
 typedef std::vector<std::string>				stringSet_t;
-typedef std::vector<float>						floatSet_t;
+typedef std::map<std::string, Texture2*>		textures2_t;
 typedef	std::random_device						rand_device_t;
 typedef	std::mt19937							rand_gen_t;
 typedef	std::uniform_real_distribution<float>	rand_distr_t;
@@ -33,13 +33,13 @@ enum MsgType {
 struct Cameras : public std::vector<Camera> {
 	Cameras(void);
 	~Cameras(void);
-	Cameras& clear_(int n);
 };
 
 
 struct Scene {
 	const stringSet_t nicks {
-		"R","A","c","l","ls","ll","sp"
+		"R","A","c","l","ls","ld","lsc","ldc","lsr","ldr","sp"
+//		 0   1   2   3   4    5    6     7     8     9     10
 	};
 	MlxImage&	img;
 	Scenerys	scenerys;
@@ -47,6 +47,7 @@ struct Scene {
 	Scenerys	lightsIdx;
 	Cameras		cameras;
 	PhotonMap	phMap;
+	textures2_t	textures2;
 private:
 	Vec2i		_resolution;
 	std::string	_header;
@@ -59,6 +60,8 @@ public:
 	Scene(const Scene& other);
 	Scene& operator=(const Scene& other);
 	std::string header(void);
+	Texture2* findTexture(std::string str);
+	void systemTexture(void);
 	void systemDemo(void);
 	void mesage(MsgType type, int line = 0, const std::string& hint = "", int error = 0);
 	int  saveParsingLog(const char* filename);

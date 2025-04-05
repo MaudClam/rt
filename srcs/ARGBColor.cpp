@@ -186,27 +186,12 @@ Lighting& Lighting::operator=(const Lighting& other) {
 	return *this;
 }
 
-float Lighting::get_ratio(void) const { return _ratio; }
-
-int Lighting::get_glow(void) const { return _color.val; }
-
-void Lighting::set_ratio(float ratio) {
-	_ratio = f2limits(ratio, 0, 1.);
-	light = _color.val;
-	light *= _ratio;
-}
-
-void Lighting::set_color(const ARGBColor& color) {
-	light = color.val;
-	light *= _ratio;
-}
-
 
 // Non member functions
 
 std::ostream& operator<<(std::ostream& o, const Lighting& l) {
 	std::ostringstream os;
-	os << std::setw(4) << std::right << l._ratio;
+	os << " " << std::setw(4) << std::right << l._ratio;
 	os << " " << l._color.rrggbb();
 	o << os.str();
 	return o;
@@ -215,26 +200,6 @@ std::ostream& operator<<(std::ostream& o, const Lighting& l) {
 std::istringstream& operator>>(std::istringstream& is, Lighting& l) {
 	is >> l._ratio;
 	is >> l._color;
-	l._ratio = f2limits(l._ratio, 0, 1.);
-	l.light = l._color.val;
-	l.light *= l._ratio;
+	l.set_ratio(l._ratio);
 	return is;
-}
-
-int i2limits(int num, int min, int max) {
-	if (num < min) {
-		return min;
-	} else if (num > max) {
-		return max;
-	}
-	return num;
-}
-
-float f2limits(float num, float min, float max) {
-	if (num < min) {
-		return min;
-	} else if (num > max) {
-		return max;
-	}
-	return num;
 }

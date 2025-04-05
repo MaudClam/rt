@@ -21,9 +21,9 @@ protected:
 	bool			_isLight;
 	Position		_pos;
 	ARGBColor		_color;		// surface color
+	Lighting 		_light;		// light for light source
 public:
 	CombineType		combineType;// combination type with the following primitive
-	Lighting 		light;		// light for light source
 	float			glossy;		// in range [0,1] matteness, (1,1000] glossy
 	float			reflective;	// in range [0,1]
 	float			refractive; // in range [0,1]
@@ -31,26 +31,28 @@ public:
 	float			matIOR;		// refractive in/out index relative to air
 	float			matOIR;		// refractive out/in index relative to air
 	A_Scenery(void);
+	A_Scenery(std::string name, std::string nick, bool isLight = false);
 	virtual ~A_Scenery(void);
 	A_Scenery(const A_Scenery& other);
 	
-	inline int			get_id(void) const { return _id; }
-	inline std::string	get_name(void) const { return std::string(_name); }
-	inline std::string	get_nick(void) const { return std::string(_nick); }
-	inline bool			get_isLight(void) const { return _isLight; }
-	inline Position		get_pos(void) const { return Position(_pos); }
-	inline ARGBColor	get_color(void) const { return ARGBColor(_color); }
-	inline float		get_mattness(void) { return glossy > 0 && glossy <= 1 ? glossy : 0; }
-	inline float		get_glossy(void) const {
+	inline int          get_id(void) const { return _id; }
+	inline std::string  get_name(void) const { return std::string(_name); }
+	inline std::string  get_nick(void) const { return std::string(_nick); }
+	inline bool         get_isLight(void) const { return _isLight; }
+	inline Position     get_pos(void) const { return Position(_pos); }
+	inline Rgb          get_light(void) const { return _light.light; }
+	inline ARGBColor    get_color(void) const { return ARGBColor(_color); }
+	inline float        get_mattness(void) { return glossy > 0 && glossy <= 1 ? glossy : 0; }
+	inline float        get_glossy(void) const {
 		if (glossy > 1)
 			return glossy;
 		if (glossy <= MATTNESS_GLOSSY_LIMIT)
 			return MATTNESS_GLOSSY_RATIO / glossy;
 		return 0;
 	}
-	inline Probability	get_probability(void) const {
+	inline Probability  get_probability(void) const {
 		return Probability(reflective, refractive, diffusion); }
-	inline void			get_probability(Probability& p, float max = 1) const {
+	inline void         get_probability(Probability& p, float max = 1) const {
 		p.raw[0] = reflective * (diffusion ? 1 : max);
 		p.raw[1] = p.raw[0] + refractive * max;
 		p.raw[2] = p.raw[1] + diffusion * max;
@@ -80,15 +82,16 @@ public:
 		return os.str();
 	}
 	
-	virtual int get_iColor(const HitRecord& rec) const = 0;
 	virtual A_Scenery* clone(void) const = 0;
-	virtual void lookat(const Position& eye, const LookatAux& aux, const Vec3f& pos, float roll) = 0;
-	virtual void roll(const Vec3f& pos, float shiftRoll) = 0;
-	virtual bool intersection(Ray& ray) const = 0;
-	virtual void getNormal(Ray& ray) const = 0;
-	virtual float lighting(Ray& ray) const = 0;
-	virtual void photonEmissions(int num, const PhotonMap& phMap, phRays_t& rays) const = 0;
-	virtual void output(std::ostringstream& os) const = 0;
+	virtual int   get_iColor(const HitRecord& rec) const = 0;
+	virtual void  lookat(const Position& eye, const LookatAux& aux, const Vec3f& pos, float roll) = 0;
+	virtual void  roll(const Vec3f& pos, float shiftRoll) = 0;
+	virtual bool  intersection(Ray& ray) = 0;
+	virtual void  getNormal(Ray& ray) const = 0;
+	virtual float lighting(Ray& ray) = 0;
+	virtual bool  isGlowing(Ray& ray) const = 0;
+	virtual void  photonEmissions(int num, const PhotonMap& phMap, phRays_t& rays) const = 0;
+	virtual void  output(std::ostringstream& os) const = 0;
 	friend std::ostream& operator<<(std::ostream& o, const A_Scenery& s);
 };
 
