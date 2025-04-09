@@ -1,23 +1,9 @@
-R   800 600 Arches
-A                                                      0.2 255,255,255  #ambient liting
-l    -25,10,25     0.3 255,255,255                    #spotlight
-c      0,1,-25       0,0,1      90    #camera 0
-c      0,25,0        0,-1,0     90    #camera 1
-sp    -3,0.6,14      12      224,255,255  500    0    1  1.5  #sphere
-INTERSECTION
-sp     3,0.6,14      12      224,255,255  500    0    1  1.5  #sphere
-INTERSECTION
-sp     0,0.7,8       12      224,255,255  500    0    1  1.5  #sphere
-sp     0,0,0         20      255,255,255  500  0.9    0    1  #sphere
-SUBTRACTION
-sp     0,0,-6        12      255,255,255    0    0    0    1  #sphere
-SUBTRACTION
-sp     6,0,0         12      255,255,255    0    0    0    1  #sphere
-SUBTRACTION
-sp     0,0,6         12      255,255,255    0    0    0    1  #sphere
-SUBTRACTION
-sp    -6,0,0         12      255,255,255    0    0    0    1  #sphere
-SUBTRACTION
-sp     0,0,0       19.5      255,255,255  500    0    0    1  #sphere
-UNION
-sp     0,-5004,0  10000      255,255,255 1000  0.2    0    1  #sphere
+R   800 600 SystemDemo VOLUME 500000 60 0.1
+A                                                      0.2 255,255,238  #ambient liting
+lsc    0,7,4       0.8 255,255,187    0,5,4         0,-1,0       0.0     2  #spotlight circular
+c     12,1,3        -1,0,0      60    #camera 0
+c      0,9,4         0,-1,0     90    #camera 1
+sp     0,-1,3         2      255,026,026  100  0.1    0    1  #sphere
+sp     2,1,4          4      255,255,255  500    0    1  1.5  #sphere
+sp    -2,0,4          2      026,052,128   10    0    0    1  #sphere
+sp     0,-5001,0  10000      255,255,238 0.01  0.3    0    1  #sphere

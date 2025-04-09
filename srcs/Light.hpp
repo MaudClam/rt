@@ -51,13 +51,7 @@ public:
 			default: break;
 		}
 		if (_planar->intersection(ray.pov, ray.dir, ray.dist, ray.set_hit(FRONT).hit)) {
-			if (ray.dir * _planar->pos.n < 0) {
-				ray.intersections.a.d = ray.dist;
-				ray.intersections.b.d = 2;
-			} else {
-				ray.intersections.a.d = 2;
-				ray.intersections.b.d = ray.dist;
-			}
+			ray.intersections.a.d = ray.intersections.b.d = ray.dist;
 			return true;
 		}
 		return false;
