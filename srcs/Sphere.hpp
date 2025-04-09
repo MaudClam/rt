@@ -56,8 +56,8 @@ public:
 			normalToRaySphereIntersect(ray.pov, _pos.p, ray.norm);
 		}
 	}
-	inline void  photonEmissions(int num, const PhotonMap& phMap, phRays_t& rays) const {
-		(void)num; (void)rays; (void)phMap;
+	inline void  photonEmissions(int num, phRays_t& rays) const {
+		(void)num; (void)rays;
 	}
 	inline float lighting(Ray& ray) {
 		(void)ray;

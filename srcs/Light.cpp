@@ -45,26 +45,35 @@ Light* Light::clone(void) const {
 	return light;
 }
 
-void Light::photonEmissions(int num, const PhotonMap& phMap, phRays_t& rays) const {
+void Light::photonEmissions(int num, phRays_t& rays) const {
+	bool direct = false;
+	float _1_num = 1.0f / num;
 	switch (_type) {
 		case SPOTLIGHT: {
-			phMap.randomDirectionsSampling(num, _pos, Rgb(_light.light) *= float(1.0f / num), rays, false);
-			break;
+			rays.createPhotons(num, Rgb(get_light()) *= _1_num, _pos.p, _pos.n, Rays::SPHERE);
+			return;
 		}
 		case DIRECTLIGHT: {
-			Position pos(_pos);
-			pos.p = pos.n * (_INFINITY / 2);
-			phMap.randomDirectionsSampling(num * 0.5, pos, Rgb(_light.light) *= float(1.0f / num), rays, true);
-			break;
+			Vec3f pov = _pos.n * -(_INFINITY / 2);
+			rays.createPhotons(num * 0.5, Rgb(get_light()) *= _1_num, pov, _pos.n, Rays::SPHERE);
+			return;
 		}
-		case SPOTLIGHT_RECTANGULAR: {//FIXME
-			break;
+		case DIRECTLIGHT_CIRCULAR:		direct = true; break;
+		case DIRECTLIGHT_RECTANGULAR:	direct = true; break;
+		default: break;
+	}
+	int amt = std::sqrt(num);
+	for (int i = 0; i < amt; i++) {
+		Vec3f pov = _planar->getRandomPoint();
+		Rgb	  pow;
+		if (isTexture()) {
+			pow = _planar->getTextureRgba(pov - _planar->pos.p);
+			pow *= (_light.get_ratio() * _1_num);
+		} else {
+			pow = get_light() * _1_num;
 		}
-		case DIRECTLIGHT_RECTANGULAR: {//FIXME
-			break;
-		}
-		default:
-			break;
+		rays.createPhotons(amt, pow, pov, _planar->pos.n,
+						   direct ? Rays::DIRECT : Rays::HEMISPHERE);
 	}
 }
 
@@ -111,7 +120,7 @@ std::istringstream& operator>>(std::istringstream& is, Light& l) {
 	l._light.setLighting_if(is, l._planar->txtr);
 	l._planar->set_geometry(is);
 	if (spot && l._pos.p.isNull())
-		l._pos.p = l._planar->pos.p + l._planar->pos.n * l._planar->getMaxSize();
+		l._pos.p = l._planar->pos.p + l._planar->pos.n * -1 * l._planar->getMaxSize();
 	if (!spot && l._pos.n.isNull())
 		l._pos.n = l._planar->pos.n;
 	return is;

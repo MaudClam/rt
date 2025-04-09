@@ -51,7 +51,6 @@ public:
 		return rgba;
 	}
 	inline bool  isNull(void) const { return get_band(0) == 0 && get_band(1) == 0 && get_band(2) == 0;}
-	inline bool  isNaN(void) { return raw[0] != raw[0] || raw[1] != raw[1] || raw[2] != raw[2]; }
 	inline bool  isUnit(void) { return get_band(0) <= 1 && get_band(1) <= 1 && get_band(2) <= 1; }
 	friend std::ostream& operator<<(std::ostream& o, const Rgb& p);
 };

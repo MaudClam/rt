@@ -493,7 +493,7 @@ void Camera::calculateFlybyRadius(void) {
 	for (auto pixel = matrix.begin(), END = matrix.end(); pixel != END; ++pixel) {
 		pixel->restoreRays(1, _fov.get_tan(), _pos.p);
 		auto ray = pixel->rays.begin();
-		for (auto sc = objsIdx.begin(), end = objsIdx.end(); sc != end; ++sc) {
+		for (auto sc = scenerys.begin(), end = scenerys.end(); sc != end; ++sc) {
 			ray->hit = FRONT;
 			if ( (*sc)->intersection(*ray) ) {
 				if (front > ray->dist) {

@@ -218,7 +218,7 @@ void PhotonMap::make(Scenerys& scenerys, Scenerys& lightsIdx) {
 		totalPow *= float(TOTAL_PHOTONS_POWER);
 		for (auto lightSrc = Begin; lightSrc != End; ++lightSrc) {
 			int n = (*lightSrc)->get_light().get_maxBand() / totalPow.get_maxBand() * totalPhotons;
-			(*lightSrc)->photonEmissions(n, *this, rays);
+			(*lightSrc)->photonEmissions(n, rays);
 		}
 		photonPathsTracing_lll(scenerys, rays);
 		deleteTraces();
@@ -242,17 +242,6 @@ void PhotonMap::lookat(const Position& eye, const LookatAux& aux, float roll) {
 		}
 		swap_(tmp);
 		tmp.clear_();
-	}
-}
-
-void PhotonMap::randomDirectionsSampling(int n, const Position& pos, const Rgb& pow, phRays_t& rays, bool cosine) const {
-	if (cosine) {
-		LookatAux aux(pos.n);
-		for (int i = 0; i < n; i++)
-			rays.emplace_back(pos, pow, aux);
-	} else {
-		for (int i = 0; i < n; i++)
-			rays.emplace_back(pos, pow);
 	}
 }
 

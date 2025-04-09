@@ -3,6 +3,12 @@
 Var	var;
 
 int main(int ac, char** av) {
+	float x = 1.9; int y = 2;
+	std::cout << std::remainder(x, y) << std::endl;
+	std::cout << std::fmod(x, y) << std::endl;
+	int x1 = 33456, y1 = 20000;
+	std::cout << x1 % y1 << std::endl;
+
 	MlxImage	img;
 	Scene		scene(img);
 	var.img		= &img;

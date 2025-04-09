@@ -69,20 +69,11 @@ template <class t> struct Vec2 {
 	inline Vec2<t> operator+(const Vec2<t>& V) const { return Vec2<t>(u + V.u, v + V.v); }
 	inline Vec2<t> operator-(const Vec2<t>& V) const { return Vec2<t>(u - V.u, v - V.v); }
 	inline Vec2<t> operator*(float f)          const { return Vec2<t>(u * f, v * f); }
-	inline t deNaN(t n) { return !(n == n) ? 0 : n; }
-	Vec2<t>& deNaN(void) { x = deNaN(x); y = deNaN(y); return *this; }
-	Vec2<t>& string2scan(int width, size_t ln) { x = ln / width; y = ln % width; return *this;}
-	Vec2<t>& string2cartesian(int width, int height, size_t ln) {
-		string2scan(width, ln).scan2cartesian(width, height);
-		return *this;
-	}
-	Vec2<t>& scan2cartesian(int width, int height) { x -= width / 2; y = height / 2 - y; return *this; }
-	Vec2<t>& cartesian2scan(int width, int height) { x += width / 2; y = height / 2 - y; return *this; }
+	Vec2<t>& string2scan(int width, size_t ln) { x = int(ln) % width; y = int(ln) / width; return *this;}
+	Vec2<t>& scan2cartesian(t width, t height) { x -= width / 2; y = height / 2 - y; return *this; }
+	Vec2<t>& cartesian2scan(t width, t height) { x += width / 2; y = height / 2 - y; return *this; }
 	inline size_t scan2string(int width) const { return y * width + x; }
-	inline size_t cartesian2string(int width, int height) const {
-		return Vec2i(*this).cartesian2scan(width, height).scan2string(width);
-	}
-	inline bool isNull(void) { deNaN(); return x == 0 && y == 0; }
+	inline bool isNull(void) { return x == 0 && y == 0; }
 	template <class > friend std::ostream& operator<<(std::ostream& o, const Vec2<t>& v);
 	template <class > friend std::istringstream& operator>>(std::istringstream& is, Vec2<t>& v);
 	template <class > friend bool operator==(const Vec2<t>& left, const Vec2<t>& right);
@@ -156,12 +147,10 @@ template <class t> struct Vec3 {
 		}
 		return *this;
 	}
-	Vec3<t>& deNaN(void) { x = deNaN(x); y = deNaN(y); z = deNaN(z); return *this; }
-	inline t deNaN(t n) { return !(n == n) ? 0 : n; }
 	inline t product(const Vec3<t>& v) const { return x * v.x + y * v.y + z * v.z;}
 	inline float sqnorm(void) const { return x * x + y * y + z * z; }
 	inline float norm(void) const { return std::sqrt(sqnorm()); }
-	inline bool  isNull(void) { deNaN(); return x == 0 && y == 0 && z == 0; }
+	inline bool  isNull(void) { return x == 0 && y == 0 && z == 0; }
 	inline Vec3<t>	operator^(const Vec3<t>& v) const { return Vec3<t>().product(*this, v); }
 	inline Vec3<t>	operator+(const Vec3<t>& v) const { return Vec3<t>().addition(*this, v); }
 	inline Vec3<t>	operator-(const Vec3<t>& v) const { return Vec3<t>().substract(*this, v); }
@@ -224,7 +213,7 @@ template <class t> struct Vec3 {
 		addition(randomInUnitSphere(), normal).normalize();
 		return *this;
 	}
-	Vec3<t>& randomInUnitHemisphereCosineWeighted(const LookatAux& aux) {
+	Vec3<t>& randomInUnitHemisphereCosineDistribution(const LookatAux& aux) {
 		float phi = random_double() * M_2PI;
 		float theta = std::acos(std::sqrt(random_double()));
 		sphericalDirection2cartesian(phi, theta).lookatDir(aux);
@@ -378,10 +367,10 @@ public:
 	inline int get_width(void) const { return _width; }
 	inline int get_height(void) const { return _height; }
 	inline int get_rgba(const Vec2f& p) const {
-		return get_rgba(p.u, p.v);
-	}
-	inline int get_rgba(float u, float v) const {
-		return (*this)[Vec2i(u * _width, v * _height).cartesian2string(_width, _height)];
+		size_t i = Vec2i(p.u * _width, p.v * _height).scan2string(_width);
+		if (DEBUG && i >= size()) std::cout << i << " ";//FIXME
+		i = i < size() ? i : 0;
+		return (*this)[i];
 	}
 	inline void set_id(const std::string& id) { _id = id; }
 	inline void set_width(int width) { _width = std::abs(width); _height = int(size()) / _width; }
@@ -392,8 +381,8 @@ struct A_Planar {
 	Position	pos;	// plane position
 	Vec3f		u;		// plane X-axis
 	Vec3f		v;		// plane Y-axis
-//	Vec3f		loc;	// plane local point variable
 	float		angle;	// plane axes tilt
+	Vec2f		ratio;
 	Texture2*	txtr;
 	A_Planar(void);
 	A_Planar(Texture2* _txtr);
@@ -426,24 +415,36 @@ struct A_Planar {
 		is >> pos.p >> pos.n >> angle;
 		pos.n.normalize();
 		angle = degree2radian(f2limits(angle, 0, 360));
-		if ( pos.n.x == 0 && (pos.n.y == -1 || pos.n.y == 1) && pos.n.z == 0) {
-			v.y = 0; v.z = 1;
+		if (std::max(std::abs(pos.n.x), std::max(std::abs(pos.n.y), std::abs(pos.n.z))) == std::abs(pos.n.y)) {
+			u.set_xyz(1,0,0); v.set_xyz(0,0,-1);
 			u.turnAroundY(angle);
 			v.turnAroundY(angle);
+		} else if (std::max(std::abs(pos.n.x), std::max(std::abs(pos.n.y), std::abs(pos.n.z))) == std::abs(pos.n.x)) {
+			u.set_xyz(0,0,1); v.set_xyz(0,1,0);
+			u.turnAroundX(angle);
+			v.turnAroundX(angle);
 		} else {
+			u.set_xyz(1,0,0); v.set_xyz(0,1,0);
 			u.turnAroundZ(angle);
 			v.turnAroundZ(angle);
 		}
 	}
 	inline bool  planeIntersection(const Vec3f& rayPov, const Vec3f& rayDir, float& distance) const {
 		distance = (pos.n * pos.p - pos.n * rayPov) / (pos.n * rayDir);
-		return (distance >= 0);
+		return distance >= 0;
 	}
 	inline bool  intersection(const Vec3f& rayPov, const Vec3f& rayDir, float& distance, Hit& hit) const {
 		return planeIntersection(rayPov, rayDir, distance) && figureIntersection(localHitPoint(rayPov, rayDir, distance), hit);
 	};
 	inline Vec3f localHitPoint(const Vec3f& rayPov, const Vec3f& rayDir, float distance) const {
 		return rayPov + (rayDir * distance) -  pos.p;
+	}
+	inline int   getPlaneTextureRgba(const Vec3f& localHitPoint, float width, float height) const {
+		Vec2f p(localHitPoint * u, localHitPoint * v);
+		p.cartesian2scan(width, height);
+		p.u = std::fmod(p.u * ratio.u, width) / width;
+		p.v = std::fmod(p.v * ratio.v, height) / height;
+		return txtr->get_rgba(p);
 	}
 	inline std::string output_planeGeometry(void) const {
 		std::ostringstream os;
@@ -458,7 +459,7 @@ struct A_Planar {
 	virtual inline bool  figureIntersection(const Vec3f& localHitPoint, Hit& hit) const = 0;
 	virtual inline float getMaxSize(void) const = 0;
 	virtual inline Vec3f getRandomPoint(void) const = 0;
-	virtual inline int   getTextureRgba(const Vec3f& localHitPoint, float u_step = 1, float v_step = 1) const = 0;
+	virtual inline int   getTextureRgba(const Vec3f& localHitPoint) const = 0;
 	virtual inline std::string output_geometry(void) const = 0;
 };
 
@@ -480,8 +481,8 @@ struct Plane : public A_Planar {
 	inline Vec3f getRandomPoint(void) const {
 		return pos.p + (u * randomCoordinate(_INFINITY)) + (v * randomCoordinate(_INFINITY));
 	}
-	inline int   getTextureRgba(const Vec3f& localHitPoint, float u_step = 1, float v_step = 1) const {
-		return txtr->get_rgba(std::remainder(localHitPoint * u, u_step), std::remainder(localHitPoint * v, v_step));
+	inline int   getTextureRgba(const Vec3f& localHitPoint) const {
+		return getPlaneTextureRgba(localHitPoint, 1, 1);
 	}
 	inline std::string output_geometry(void) const { return output_planeGeometry(); }
 };
@@ -523,8 +524,8 @@ struct Сircle : public A_Planar {
 		point.product(r);
 		return pos.p + (u * point.x) + (v * point.y);
 	}
-	inline int   getTextureRgba(const Vec3f& localHitPoint, float u_step = 1, float v_step = 1) const {
-		return txtr->get_rgba(std::remainder(r / (localHitPoint * u), u_step), std::remainder(r / (localHitPoint * v), v_step));
+	inline int   getTextureRgba(const Vec3f& localHitPoint) const {
+		return getPlaneTextureRgba(localHitPoint, r * 2, r * 2);
 	}
 	inline std::string output_geometry(void) const {
 		std::ostringstream os;
@@ -565,8 +566,19 @@ struct Rectangle : public A_Planar {
 	inline Vec3f getRandomPoint(void) const {
 		return pos.p + (u * randomCoordinate(w_2)) + (v * randomCoordinate(h_2));
 	}
-	inline int   getTextureRgba(const Vec3f& localHitPoint, float u_step = 1, float v_step = 1) const {
-		return txtr->get_rgba(std::remainder(w_2 / (localHitPoint * u), u_step), std::remainder(h_2 / (localHitPoint * v), v_step));
+	inline int   getTextureRgba(const Vec3f& localHitPoint) const {
+		return getPlaneTextureRgba(localHitPoint, w_2 * 2, h_2 * 2);
+
+		
+		
+		
+//		float w = w_2 * 2;
+//		float h = h_2 * 2;
+//		Vec2f p(localHitPoint * u, localHitPoint * v);
+//		p.cartesian2scan(w, h);
+//		return txtr->get_rgba(std::fmod(p.u, u_step) / u_step, std::fmod(p.v,v_step) / v_step);
+//		return txtr->get_rgba(p.u / w, p.v / h);
+//		return txtr->get_rgba(p.u, p.v);
 	}
 	inline std::string output_geometry(void) const {
 		std::ostringstream os;

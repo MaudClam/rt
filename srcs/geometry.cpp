@@ -195,6 +195,7 @@ pos(),
 u(),
 v(),
 angle(0),
+ratio(1,1),
 txtr(NULL)
 { u.x = 1; v.y = 1; pos.n.z = 1; }
 
@@ -203,6 +204,7 @@ pos(),
 u(),
 v(),
 angle(0),
+ratio(1,1),
 txtr(_txtr)
 { u.x = 1; v.y = 1; pos.n.z = 1; }
 
@@ -216,6 +218,7 @@ A_Planar& A_Planar::operator=(const A_Planar& other) {
 		u = other.u;
 		v = other.v;
 		angle = other.angle;
+		ratio = other.ratio;
 		txtr = other.txtr;
 	}
 	return *this;
@@ -245,6 +248,7 @@ Plane::~Plane(void) {}
 		u = other.u;
 		v = other.v;
 		angle = other.angle;
+		ratio = other.ratio;
 		txtr = other.txtr;
 		r = other.r;
 		sqR = other.sqR;
@@ -269,6 +273,7 @@ Rectangle& Rectangle::operator=(const Rectangle& other) {
 		u = other.u;
 		v = other.v;
 		angle = other.angle;
+		ratio = other.ratio;
 		txtr = other.txtr;
 		w_2 = other.w_2;
 		h_2 = other.h_2;

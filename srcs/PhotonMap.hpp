@@ -14,16 +14,6 @@ struct	PhotonTrace;
 typedef	Rays phRays_t;
 
 
-//struct Traces : public std::forward_list<PhotonTrace*> {
-//	Traces(void) : std::forward_list<PhotonTrace*>() {}
-//	~Traces(void){}
-//	Traces& clear_(void) {
-//		if (!empty())
-//			clear();
-//		return *this;
-//	}
-//};
-
 typedef std::forward_list<PhotonTrace*> phTraces_t;
 
 struct ClasterKey {
@@ -121,7 +111,6 @@ public:
 	}
 	void make(Scenerys& scenerys, Scenerys& lightsIdx);
 	void lookat(const Position& eye, const LookatAux& aux, float roll);
-	void randomDirectionsSampling(int n, const Position& pos, const Rgb& pow, phRays_t& rays, bool cosine) const;
 	void outputPhotonMapParametrs(void);
 };
 

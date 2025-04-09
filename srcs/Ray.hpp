@@ -41,6 +41,7 @@ struct HitRecord {
 	Hit		hit;		// type of contact with an object
 	A_Scenery*	scnr;	// pointer to scenery
 	HitRecord(void);
+	HitRecord(const Rgb& _pow, const Vec3f& _pov);
 	~HitRecord(void);
 	HitRecord(const HitRecord& other);
 	HitRecord(Ray& ray, bool photon = false);
@@ -197,6 +198,7 @@ struct Ray : public HitRecord {
 	phTraces_t	traces;			//				| photon traces
 	
 	Ray(void);
+	Ray(const Rgb& pow, const Vec3f& pov, int r = 1);
 	Ray(const Position pos, const Rgb& _pow);
 	Ray(const Position pos, const Rgb& _pow, const LookatAux& aux);
 	~Ray(void);
@@ -318,14 +320,11 @@ bool operator<(const Ray::Segment& left, const Ray::Segment& right);
 
 
 struct Rays : public std::vector<Ray> {
-	Rays(void) : std::vector<Ray>() {}
-	~Rays(void) {}
-	Rays& clear_(int n = 0) {
-		Rays tmp;
-		if (n) tmp.reserve(n);
-		swap(tmp);
-		return *this;
-	}
+	enum Distribution { DIRECT, SPHERE, HEMISPHERE, HEMISPHERE_COSINE };
+	Rays(void);
+	~Rays(void);
+	Rays& createPhotons(int amt, const Rgb& pow, const Vec3f& pov, const Vec3f& normal, Distribution distr);
+	Rays& clear_(int n = 0);
 };
 
 

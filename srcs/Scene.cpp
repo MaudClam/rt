@@ -81,10 +81,10 @@ std::string Scene::header(void) {
 }
 
 Texture2* Scene::findTexture(std::string str) {
-	std::string key(TEXTURE_KEY);
-	size_t pos = str.find(key) + str.size();
+	std::string key = TEXTURE_KEY;
+	size_t pos = str.find(key) + key.size();
 	if (pos < str.size()) {
-		std::istringstream(str.erase(pos)) >> key;
+		std::istringstream(str.erase(0, pos)) >> key;
 		auto it = textures2.find(key);
 		if (it != textures2.end())
 			return it->second;
@@ -93,35 +93,53 @@ Texture2* Scene::findTexture(std::string str) {
 }
 
 void Scene::systemTexture(void) {
-	std::string id("system");
-	Texture2* txtr = new Texture2();
-	txtr->emplace_back(0xFFFFFF);
-	txtr->emplace_back(0xFF0000);
-	txtr->emplace_back(0x00FF00);
-	txtr->emplace_back(0x0000FF);
-	txtr->set_id(id);
-	txtr->set_width(2);
-	textures2.try_emplace(id, txtr);
+	std::string id = "system2";
+	Texture2* txtr2 = new Texture2();
+	txtr2->emplace_back(0xFF8888);
+	txtr2->emplace_back(0x88FF88);
+	txtr2->emplace_back(0x8888FF);
+	txtr2->emplace_back(0xFFFFFF);
+	txtr2->set_id(id);
+	txtr2->set_width(2);
+	textures2.try_emplace(id, txtr2);
+	
+	id = "system3";
+	Texture2* txtr3 = new Texture2();
+	txtr3->emplace_back(0xFF4444);
+	txtr3->emplace_back(0x44FF44);
+	txtr3->emplace_back(0x4444FF);
+	txtr3->emplace_back(0x44FFFF);
+	txtr3->emplace_back(0xFF44FF);
+	txtr3->emplace_back(0xFFFF44);
+	txtr3->emplace_back(0xFFFFFF);
+	txtr3->emplace_back(0x111111);
+	txtr3->emplace_back(0xAAAAAA);
+	txtr3->set_id(id);
+	txtr3->set_width(3);
+	textures2.try_emplace(id, txtr3);
 }
 
 void Scene::systemDemo(void) {
-//	set_any("R	800 600");
-	set_any("R	800 600  SystemDemo NO  500000  60  0.1");
+	set_any("R	800 600  SystemDemo VOLUME  500000  60  0.1");
 	img.init(header(), _resolution);
 	cameras.push_back(Camera(img));
-	set_any("A				0.5 0xAAAAAA");
-	set_any("ldr	0,-1,0	0.5 0xFFFFFF	0,2,3	0,-1,0	0	5.0	5.0");
-	set_any("ld		-2,-2,0	0.4 0xFFFFFF");
+	set_any("A				0.2 0xFFFFEE");
+//	set_any("lsc	0,0,0	0.4 0xFFFFAA	3,3,5		-1,-1,0	0	2.0");
+//	set_any("ldr	1,-0.7,0	0.4 txtr:system2	-5,1.49,4	1,0,0	0	5.0	5.0");
+//	set_any("ldr	-1,-0.7,0	0.25 txtr:system3	5,1.49,4	1,0,0	0	5.0	5.0");
+	set_any("lsc	0,0,0	0.8 0xFFFFBB	0,5,4	0,-1,0	0	2.0");
+//	set_any("lsr	0,0,0	0.5 0xFFFFFF	0,2,8		0,-0.1,-1	0	5.0	5.0");
+//	set_any("ld		-2,-2,0	0.4 0xFFFFFF");
 //	set_any("ls		1,2,4	0.4 0xFFFFFF");
-	set_any("c	0,0,-2.5	0,0,1		60");
-//	set_any("c	0,0,8.5		0,0,-1		60");
+//	set_any("c	0,1,-8	0,0,1		60");
+//	set_any("c	0,1,16		0,0,-1		60");
 //	set_any("c	-5.5,0,3	1,0,0		60");
-//	set_any("c	5.5,0,3		-1,0,0		60");
-	set_any("c	0,5,2		0,-1,0		60");
-	set_any("sp	0,-1,3		2		0xFF0000	0.1		0.1");
-	set_any("sp	2,0,4		2		0xFFFFFF	500		0.0		1.0		1.5");
-	set_any("sp	-2,1,4		2		0x00FF00	0.2		0.2");
-	set_any("sp	0,-5001,0	10000	0xFFFF00	500		0.3");
+	set_any("c 12,1,3		-1,0,0		60");
+	set_any("c	0,9,4		0,-1,0		90");
+	set_any("sp	0,-1,3		2		0xFF1A1A	100		0.1");
+	set_any("sp	2,1,4		4		0xFFFFFF	500		0.0		1.0		1.5");
+	set_any("sp	-2,0,4		2		0x1A3480	10");
+	set_any("sp	0,-5001,0	10000	0xFFFFEE	0.01		0.3");
 	if (cameras.size() > 1)
 		_currentCamera = 1;
 	saveParsingLog(PARSING_LOGFILE);
@@ -422,7 +440,7 @@ void Scene::rt(void) {
 }
 
 void Scene::selectCamera(int ctrl) {
-	if (cameras[_currentCamera].tracingType == RAY) {
+//	if (cameras[_currentCamera].tracingType == RAY) {
 		switch (ctrl) {
 			case NEXT:		if (!set_currentCamera(_currentCamera +  1)) return;
 				break;
@@ -433,7 +451,7 @@ void Scene::selectCamera(int ctrl) {
 		}
 		img.flyby = OFF;
 		rt();
-	}
+//	}
 }
 
 void Scene::changeCameraFOV(int ctrl) {

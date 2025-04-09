@@ -90,7 +90,7 @@ public:
 	virtual void  getNormal(Ray& ray) const = 0;
 	virtual float lighting(Ray& ray) = 0;
 	virtual bool  isGlowing(Ray& ray) const = 0;
-	virtual void  photonEmissions(int num, const PhotonMap& phMap, phRays_t& rays) const = 0;
+	virtual void  photonEmissions(int num, phRays_t& rays) const = 0;
 	virtual void  output(std::ostringstream& os) const = 0;
 	friend std::ostream& operator<<(std::ostream& o, const A_Scenery& s);
 };

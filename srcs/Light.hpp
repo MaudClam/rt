@@ -51,7 +51,13 @@ public:
 			default: break;
 		}
 		if (_planar->intersection(ray.pov, ray.dir, ray.dist, ray.set_hit(FRONT).hit)) {
-			ray.intersections.a.d = ray.intersections.b.d = ray.dist;
+			if (ray.dir * _planar->pos.n < 0) {
+				ray.intersections.a.d = ray.dist;
+				ray.intersections.b.d = 2;
+			} else {
+				ray.intersections.a.d = 2;
+				ray.intersections.b.d = ray.dist;
+			}
 			return true;
 		}
 		return false;
@@ -68,20 +74,27 @@ public:
 			if (ray.dist != 0)
 				ray.dir.product(1. / ray.dist);// optimal normalization
 		}
-		float k = deNaN(ray.dir * ray.norm);
-		k = k <= 0 ? 0 : k;
-		if (k > 0 && isPlanar() && _planar->planeIntersection(ray.pov, ray.dir, ray.dist)) {
-			Vec3f loc = _planar->localHitPoint(ray.pov, ray.dir, ray.dist);
-			if (_planar->figureIntersection(loc, ray.set_hit(FRONT).hit)) {
-				if (isTexture()) {
-					ray.paint = _planar->getTextureRgba(loc);
-					ray.paint *= _light.get_ratio();
-				} else {
-					ray.paint = _light.light;
+		float k = ray.dir * ray.norm;
+		if (k > 0) {
+			if (!isPlanar()) {
+				ray.paint = get_light();
+				return k;
+			}
+			float max = ray.dist - EPSILON;
+			if (_planar->planeIntersection(ray.pov, ray.dir, ray.dist) && ray.dist < max) {
+				Vec3f loc = _planar->localHitPoint(ray.pov, ray.dir, ray.dist);
+				if (_planar->figureIntersection(loc, ray.set_hit(FRONT).hit)) {
+					if (isTexture()) {
+						ray.paint = _planar->getTextureRgba(loc);
+						ray.paint *= _light.get_ratio();
+					} else {
+						ray.paint = get_light();
+					}
+					return k;
 				}
 			}
 		}
-		return k;
+		return 0;
 	}
 	inline bool  isGlowing(Ray& ray) const {
 		if (isTexture())
@@ -92,7 +105,7 @@ public:
 	}
 
 	inline A_Planar* get_planar(void) const { return _planar; }
-	void photonEmissions(int num, const PhotonMap& phMap, phRays_t& rays) const;
+	void photonEmissions(int num, phRays_t& rays) const;
 	void output(std::ostringstream& os) const;
 	friend std::ostream& operator<<(std::ostream& o, const Light& sp);
 	friend std::istringstream& operator>>(std::istringstream& is, Light& sp);

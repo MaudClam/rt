@@ -12,6 +12,14 @@ hit(FRONT),
 scnr(NULL)
 {}
 
+HitRecord::HitRecord(const Rgb& _pow, const Vec3f& _pov) :
+pow(_pow),
+pov(_pov),
+dir(),
+norm(),
+hit(FRONT),
+scnr(NULL)
+{}
 
 HitRecord::~HitRecord(void) {}
 
@@ -95,6 +103,17 @@ segments(),
 traces()
 {}
 
+Ray::Ray(const Rgb& pow, const Vec3f& pov, int r) :
+HitRecord(pow, pov),
+recursion(r),
+dist(0),
+path(),
+intersections(),
+combineType(END),
+segments(),
+traces()
+{}
+
 Ray::Ray(const Position pos, const Rgb& _pow) :
 HitRecord(),
 recursion(1),
@@ -122,7 +141,7 @@ traces()
 {
 	pow = _pow;
 	pov = pos.p;
-	dir.randomInUnitHemisphereCosineWeighted(aux);
+	dir.randomInUnitHemisphereCosineDistribution(aux);
 }
 
 Ray::~Ray(void) {}
@@ -526,6 +545,35 @@ int Ray::getAttenuation(HitRecord& rec, Choice choice, float& fading, float& shi
 		default: break;
 	}
 	return attenuation;
+}
+
+
+// struct Rays
+
+Rays::Rays(void) : std::vector<Ray>() {}
+
+Rays::~Rays(void) {}
+
+Rays& Rays::createPhotons(int amt, const Rgb& pow, const Vec3f& pov, const Vec3f& normal, Distribution distr) {
+	LookatAux aux(normal);
+	for (int i = 0; i < amt; i++) {
+		emplace_back(pow, pov);
+		switch (distr) {
+			case DIRECT:			back().dir = normal; break;
+			case SPHERE:			back().dir.randomInUnitSphere(); break;
+			case HEMISPHERE:		back().dir.randomInUnitHemisphere(normal); break;
+			case HEMISPHERE_COSINE:	back().dir.randomInUnitHemisphereCosineDistribution(aux); break;
+			default: break;
+		}
+	}
+	return *this;
+}
+
+Rays& Rays::clear_(int n) {
+	Rays tmp;
+	if (n) tmp.reserve(n);
+	swap(tmp);
+	return *this;
 }
 
 

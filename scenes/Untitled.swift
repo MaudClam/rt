@@ -279,3 +279,50 @@ int main() {
 
 	return 0;
 }
+
+
+Vec3f r;
+r.substract(rayPov, point);
+float k = rayDir * normal;
+return rayPlaneIntersection(k, r, normal, distance, min_t, max_t, rayHit);
+}
+
+bool	rayPlaneIntersection(float k,
+						 const Vec3f r,
+						 const Vec3f& normal,
+						 float& distance,
+						 float& min_t,
+						 float& max_t,
+						 Hit& rayHit) {
+if ( !almostEqual(k, 0, EPSILON) ) {
+	min_t  = max_t = r * normal / -k;
+	if (min_t > 0) {
+		distance = min_t;
+		rayHit = OUTSIDE;
+		return true;
+	}
+	
+	
+	distance = -((rayPov - pos.p) * pos.n) / (pos.n * rayDir);// ray-plane intersection
+
+
+	set_any("R	800 600  SystemDemo VOLUME  500000  60  0.1");
+	img.init(header(), _resolution);
+	cameras.push_back(Camera(img));
+	set_any("A				0.2 0xFFFFEE");
+//	set_any("lsc	0,0,0	0.4 0xFFFFAA	3,3,5		-1,-1,0	0	2.0");
+//	set_any("ldr	1,-0.7,0	0.4 txtr:system2	-5,1.49,4	1,0,0	0	5.0	5.0");
+//	set_any("ldr	-1,-0.7,0	0.25 txtr:system3	5,1.49,4	1,0,0	0	5.0	5.0");
+	set_any("lsc	0,0,0	0.8 0xFFFFBB	0,5,4	0,-1,0	0	2.0");
+//	set_any("lsr	0,0,0	0.5 0xFFFFFF	0,2,8		0,-0.1,-1	0	5.0	5.0");
+//	set_any("ld		-2,-2,0	0.4 0xFFFFFF");
+//	set_any("ls		1,2,4	0.4 0xFFFFFF");
+//	set_any("c	0,1,-8	0,0,1		60");
+//	set_any("c	0,1,16		0,0,-1		60");
+//	set_any("c	-5.5,0,3	1,0,0		60");
+	set_any("c 12,1,3		-1,0,0		60");
+	set_any("c	0,9,4		0,-1,0		90");
+	set_any("sp	0,-1,3		2		0xFF1A1A	100		0.1");
+	set_any("sp	2,1,4		4		0xFFFFFF	500		0.0		1.0		1.5");
+	set_any("sp	-2,0,4		2		0x1A3480	10");
+	set_any("sp	0,-5001,0	10000	0xFFFFEE	0.01		0.3");
