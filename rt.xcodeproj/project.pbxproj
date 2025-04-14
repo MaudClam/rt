@@ -143,7 +143,6 @@
 		6679518D2C5217A4009C1DDD /* srcs */ = {
 			isa = PBXGroup;
 			children = (
-				95DDE0672DAD681400155E7F /* Scene.cpp */,
 				66D166C92C3D9281002E6F7E /* A_Scenery.hpp */,
 				66D166C82C3D9281002E6F7E /* A_Scenery.cpp */,
 				667951902C5293BB009C1DDD /* ARGBColor.hpp */,
@@ -171,10 +170,11 @@
 				668B63572D873531006DBF53 /* Rgb.hpp */,
 				668B635A2D885609006DBF53 /* Rgb.cpp */,
 				667951712C41AD05009C1DDD /* Scene.hpp */,
-				66D166C52C3C172F002E6F7E /* Sphere.hpp */,
-				66D166C42C3C172F002E6F7E /* Sphere.cpp */,
+				95DDE0672DAD681400155E7F /* Scene.cpp */,
 				95DDE06A2DAD7E3E00155E7F /* Sp2.hpp */,
 				95DDE06B2DAD7E3E00155E7F /* Sp2.cpp */,
+				66D166C52C3C172F002E6F7E /* Sphere.hpp */,
+				66D166C42C3C172F002E6F7E /* Sphere.cpp */,
 			);
 			path = srcs;
 			sourceTree = "<group>";

@@ -19,7 +19,7 @@ typedef Vec3<int>				Vec3i;
 typedef LookatAuxiliary<float>	LookatAux;
 typedef std::vector<int>		texture2_t;
 
-const float M_2PI(2. * M_PI);
+const float M_2PI(2.0 * M_PI);
 const float M_PI_180(M_PI / 180.);
 const float M_180_PI(180. / M_PI);
 const float _2INFINITY(2. * _INFINITY);
@@ -181,10 +181,6 @@ template <class t> struct Vec3 {
 		r = std::sqrt(x * x + y * y + z * z);
 		phi = std::atan2(y, x);
 		theta = std::acos(z / r);
-	}
-	inline void cartesianDir2spherical(float& phi, float& theta) const {
-		phi = std::atan2(y, x);
-		theta = std::acos(z);
 	}
 	Vec3<t>& spherical2cartesian(float phi, float theta, float r = 1) {
 		float sinTheta = std::sin(theta);
@@ -382,8 +378,9 @@ public:
 	inline std::string get_id(void) const { return _id; }
 	inline int get_width(void) const { return _width; }
 	inline int get_height(void) const { return _height; }
-	inline int get_rgba(const Vec2f& p) const {
-		size_t i = Vec2i(p.u * _width, p.v * _height).scan2string(_width);
+	inline int get_rgba(const Vec2f& p) const { return get_rgba(p.u, p.v); }
+	inline int get_rgba(float u, float v) const {
+		size_t i = Vec2i(u * _width, v * _height).scan2string(_width);
 		if (DEBUG && i >= size()) std::cout << i << " ";//FIXME
 		i = i < size() ? i : 0;
 		return (*this)[i];
@@ -729,14 +726,12 @@ struct Sphere2 {
 	inline	Sphere2*	clone(void) const {
 		return new Sphere2(*this);
 	}
-	inline int   getTextureRgba(const Vec3f& localHitPoint) const {
-		Vec3f	loc(localHitPoint * u, localHitPoint * v, localHitPoint * pos.n);
-		Vec2f	p;
-		loc.cartesianDir2spherical(p.u, p.v);
-		p.cartesian2scan(M_2PI, M_PI);
-		p.u = std::fmod(p.u * ratio.u, M_2PI) / M_2PI;
-		p.v = std::fmod(p.v * ratio.v, M_PI) / M_PI;
-		return txtr->get_rgba(p);
+	inline int   getTextureRgba(const Vec3f& loc) const {
+		float phi(0), theta(0), _r(0);
+		Vec3f(loc * u, loc * v, loc * pos.n).cartesian2spherical(phi, theta, _r);
+		phi = std::fmod((phi + M_PI) * ratio.u, M_2PI) / (M_2PI + PRECISION);
+		theta = std::fmod(theta * ratio.v, M_PI) / (M_PI + PRECISION);
+		return txtr->get_rgba(phi, theta);
 	}
 	inline Vec3f getRandomPoint(void) const {
 		return Vec3f().randomInSphere(r) + pos.p;

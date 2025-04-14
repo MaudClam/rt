@@ -334,7 +334,7 @@ sqR(0),
 u(),
 v(),
 angle(0),
-ratio(1,1),
+ratio(8,4),
 txtr(_txtr)
 { u.x = 1; v.y = 1; pos.n.z = 1; }
 
@@ -386,7 +386,7 @@ bool	raySphereIntersection(const Vec3f& rayDir,
 		float t2 = -b - sqrt_d;
 		min_t = std::min(t1,t2);
 		max_t = std::max(t1,t2);
-		if (std::abs(0.0f - d) <= OUTLINE_WIDTH)
+		if (std::abs(d) <= OUTLINE_WIDTH)
 			rayHit = OUTLINE;
 		return rayHitDefinition(min_t, max_t, distance, rayHit);
 	}

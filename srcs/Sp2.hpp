@@ -24,7 +24,7 @@ public:
 		(void)ray;
 		return false;
 	}
-	inline void 	getNormal(Ray& ray) const {
+	inline void getNormal(Ray& ray) const {
 		_sphere->getNormal(ray.pov, ray.norm);
 		if (ray.hit == INSIDE) {
 			ray.norm.product(-1);

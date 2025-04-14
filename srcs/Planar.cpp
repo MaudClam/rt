@@ -1,12 +1,7 @@
 #include "Planar.hpp"
 
 
-Planar::Planar(void) : A_Scenery(), _type(PLANE), _planar(NULL)
-{
-	_name = "plane";
-	_nick = "pl";
-	_isLight = false;
-}
+Planar::Planar(void) : A_Scenery("plane", "pl", false), _type(PLANE), _planar(NULL) {}
 
 Planar::Planar(const std::string& name, const std::string& nick, Type type, A_Planar* planar) :
 A_Scenery(name, nick, false),

@@ -1,12 +1,7 @@
 #include "Light.hpp"
 
 
-Light::Light(void) : A_Scenery(), _type(SPOTLIGHT), _planar(NULL)
-{
-	_name = "light";
-	_nick = "l";
-	_isLight = true;
-}
+Light::Light(void) : A_Scenery("light", "l", true), _type(SPOTLIGHT), _planar(NULL) {}
 
 Light::Light(const std::string& name, const std::string& nick, Type type, A_Planar* planar) :
 A_Scenery(name, nick, true),

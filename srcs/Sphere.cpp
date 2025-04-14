@@ -1,11 +1,7 @@
 #include "Sphere.hpp"
 
 
-Sphere::Sphere(void) : A_Scenery(), _radius(0), _sqrRadius(0), _k(), _c(0) {
-	_name = "sphere";
-	_nick = "sp";
-	_isLight = false;
-}
+Sphere::Sphere(void) : A_Scenery("sphere", "sp", false), _radius(0), _sqrRadius(0), _k(), _c(0) {}
 
 Sphere::~Sphere(void) {}
 

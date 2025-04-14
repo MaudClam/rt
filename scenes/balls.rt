@@ -1,4 +1,4 @@
-R   800 600  NiceBalls  NO  500000  60  0.1
+R   800 600  NiceBalls  CAUSTIC  500000  60  0.1
 
 #   Lights
 #   spot/dir   ratio  color         center    direction  alpha  width  height
