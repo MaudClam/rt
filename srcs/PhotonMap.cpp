@@ -190,7 +190,7 @@ bool PhotonMap::tracePhotonPath(Scenerys& scenerys, Ray& ray, int r) {
 	if (!ray.photonEnd(scenerys, r)) {
 		HitRecord rec(ray.getNormal(), true);
 		Probability p;
-		ray.pow *= rec.scnr->get_iColor(rec);
+		ray.pow *= rec.scnr->getColor(rec);
 		float max = ray.pow.get_maxBand() / rec.pow.get_maxBand();
 		rec.scnr->get_probability(p, max *  PHOTON_SURVIVAL);
 		Choice choice = ray.chooseDirection(rec, p);

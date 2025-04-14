@@ -15,9 +15,20 @@ public:
 	~Sphere(void);
 	Sphere(const Sphere& other);
 	Sphere* clone(void) const;
-	inline int	 get_iColor(const HitRecord& rec) const {
+	inline int	 getColor(const HitRecord& rec) const {
 		(void)rec;
 		return _color.val;
+	}
+	inline bool  getLight(Ray& ray) const {
+		(void)ray;
+		return false;
+	}
+	inline void  getNormal(Ray& ray) const {
+		if (ray.hit == INSIDE) {
+			normalToRaySphereIntersect(_pos.p, ray.pov, ray.norm);
+		} else {
+			normalToRaySphereIntersect(ray.pov, _pos.p, ray.norm);
+		}
 	}
 	inline void	 lookat(const Position& eye, const LookatAux& aux, const Vec3f& pos, float roll) {
 		_pos.lookat(eye, aux, roll);
@@ -49,18 +60,11 @@ public:
 		}
 		return result;
 	}
-	inline void  getNormal(Ray& ray) const {
-		if (ray.hit == INSIDE) {
-			normalToRaySphereIntersect(_pos.p, ray.pov, ray.norm);
-		} else {
-			normalToRaySphereIntersect(ray.pov, _pos.p, ray.norm);
-		}
-	}
 	inline void  photonEmissions(int num, phRays_t& rays) const {
 		(void)num; (void)rays;
 	}
-	inline float lighting(Ray& ray) {
-		(void)ray;
+	inline float lighting(Ray& ray) const {
+		(void)ray;;
 		return 0;
 	}
 	inline bool  isGlowing(Ray& ray) const {

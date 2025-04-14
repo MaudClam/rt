@@ -46,6 +46,28 @@ float	radian2degree(float radian) {
 	return (radian * M_180_PI);
 }
 
+bool	rayHitDefinition(float& min_t, float& max_t, float& distance, Hit& rayHit) {
+	if (rayHit == BACK) {
+		if (max_t > 0) {
+			distance = max_t;
+			rayHit = INSIDE;
+			return true;
+		}
+	} else {
+		if (min_t >= 0) {
+			distance = min_t;
+			if (rayHit != OUTLINE)
+				rayHit = OUTSIDE;
+			return true;
+		} else if (max_t > 0) {
+			distance = max_t;
+			rayHit = INSIDE;
+			return true;
+		}
+	}
+	return false;
+}
+
 float	getShining(const Vec3f& dirFromPov, const Vec3f& normal, const Vec3f& dirToLight, float glossy) {
 	return getShining_(dirFromPov, normal, dirToLight, glossy);
 }
@@ -232,17 +254,17 @@ Plane::Plane(Texture2* _txtr) : A_Planar(_txtr) {}
 Plane::~Plane(void) {}
 
 
-// struct Сircle
+// struct Circle
 
-Сircle::Сircle(void) : A_Planar(), r(0), sqR(0) {}
+Circle::Circle(void) : A_Planar(), r(0), sqR(0) {}
 
-Сircle::Сircle(Texture2* _txtr) : A_Planar(_txtr), r(0), sqR(0) {}
+Circle::Circle(Texture2* _txtr) : A_Planar(_txtr), r(0), sqR(0) {}
 
-Сircle::Сircle(const Сircle& other) : A_Planar(), r(0), sqR(0) { *this = other; }
+Circle::Circle(const Circle& other) : A_Planar(), r(0), sqR(0) { *this = other; }
 
-Сircle::~Сircle(void) {}
+Circle::~Circle(void) {}
 
-Сircle& Сircle::operator=(const Сircle& other) {
+Circle& Circle::operator=(const Circle& other) {
 	if (this != &other) {
 		pos = other.pos;
 		u = other.u;
@@ -282,6 +304,17 @@ Rectangle& Rectangle::operator=(const Rectangle& other) {
 }
 
 
+// struct Square
+
+Square::Square(void) : Rectangle() {}
+
+Square::Square(Texture2* _txtr) : Rectangle(_txtr) {}
+
+Square::Square(const Square& other) : Rectangle(other) {}
+
+Square::~Square(void) {}
+
+
 // Intersections, normals, rays
 
 bool	raySphereIntersection(const Vec3f& rayDir,
@@ -313,33 +346,9 @@ bool	raySphereIntersection(const Vec3f& rayDir,
 		float t2 = -b - sqrt_d;
 		min_t = std::min(t1,t2);
 		max_t = std::max(t1,t2);
-		if (rayHit == FRONT) {
-			if (min_t >= 0) {
-				distance = min_t;
-				if ( almostEqual(d, 0, EPSILON) ) {
-					rayHit = OUTLINE;
-				} else {
-					rayHit = OUTSIDE;
-				}
-				return true;
-			} else if (max_t > 0) {
-				distance = max_t;
-				rayHit = INSIDE;
-				return true;
-			}
-		} else if (rayHit == BACK) {
-			if (max_t > 0) {
-				distance = max_t;
-				rayHit = INSIDE;
-				return true;
-			}
-		} else if (rayHit == OUTLINE && almostEqual(d, 0, EPSILON)) {
-			distance = min_t >= 0 ? min_t : max_t;
-			if (distance > 0) {
-				rayHit = OUTSIDE;
-				return true;
-			}
-		}
+		if (std::abs(0.0f - d) <= OUTLINE_WIDTH)
+			rayHit = OUTLINE;
+		return rayHitDefinition(min_t, max_t, distance, rayHit);
 	}
 	return false;
 }
@@ -363,20 +372,6 @@ bool	rayPlaneIntersection(const Vec3f& rayDir,
 		min_t = max_t = distance;
 		rayHit = OUTSIDE;
 		return true;
-	}
-	return false;
-}
-
-bool	rayRectangleIntersection(const Vec3f& rayDir,
-								 const Vec3f& rayPov,
-								 const Vec3f& center,
-								 const Vec3f& normal,
-								 float& distance,
-								 float& min_t,
-								 float& max_t,
-								 Hit& rayHit) {
-	if (rayPlaneIntersection(rayDir, rayPov, center, normal, distance, min_t, max_t, rayHit)) {
-		
 	}
 	return false;
 }

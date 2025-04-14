@@ -156,9 +156,7 @@ struct Ray : public HitRecord {
 	};
 	
 	class Path {
-		union {
-			struct { bool _r, _d, _v; };
-		};
+		bool _r, _d, _v;
 	public:
 		Path(void) : _r(false), _d(false), _v(false) {}
 		~Path(void) {}
@@ -214,7 +212,6 @@ struct Ray : public HitRecord {
 	Ray& subtraction(Segment& segment1, Segment& segment2);
 	Ray& intersection(Segment& segment1, Segment& segment2);
 	Ray& combine(auto& scenery, auto& end, float distance, Hit target);
-	Ray& markPath(void);
 	Ray& fakeAmbientLighting(HitRecord& rec, const Rgb& ambient);
 	Ray& directLightings(HitRecord& rec, const Scenerys& scenerys, const Scenerys& lightsIdx);
 	Ray& phMapLightings(HitRecord& rec, const PhotonMap& phMap, MapType type);
@@ -246,7 +243,18 @@ struct Ray : public HitRecord {
 		}
 		return nearest.s;
 	}
-	inline Vec3f getHitPoint(void) const { return Vec3f(pov + (dir * dist)); }
+//	inline Vec3f getHitPoint(void) const { return Vec3f(pov + (dir * dist)); }
+	inline void getDir2Light(const Position& pos) {
+		if (pos.n.isNull()) {
+			dist = dir.substract(pos.p, pov).norm();
+			if (dist != 0)
+				dir.product(1. / dist);// optimal normalization
+		} else {
+			dir = pos.n;
+			dir.product(-1);
+			dist = _INFINITY;
+		}
+	}
 	inline void emplace(const Segment& segment, bool _combine) {
 		emplace(segment.a, segment.b, _combine);
 	}

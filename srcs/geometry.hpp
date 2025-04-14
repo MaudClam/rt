@@ -22,6 +22,8 @@ typedef std::vector<int>		texture2_t;
 const float M_2PI(2. * M_PI);
 const float M_PI_180(M_PI / 180.);
 const float M_180_PI(180. / M_PI);
+const float _2INFINITY(2. * _INFINITY);
+const float SQ_OUTLINE_WIDTH(OUTLINE_WIDTH * OUTLINE_WIDTH);
 
 enum Hit { FRONT, BACK, OUTLINE, ANY_SHADOW, ALL_SHADOWS, INSIDE, OUTSIDE, IN_VOLUME };
 enum CombineType { END=0, UNION, SUBTRACTION, INTERSECTION };
@@ -38,6 +40,7 @@ float	randomCoordinate(float n);
 bool	almostEqual(float a, float b, float precision = PRECISION);
 float	degree2radian(float degree);
 float	radian2degree(float radian);
+bool	rayHitDefinition(float& min_t, float& max_t, float& distance, Hit& rayHit);
 float	getShining(const Vec3f& dirFromPov, const Vec3f& normal, const Vec3f& dirToLight, float glossy);
 float	getShining_(const Vec3f& dirFromPov, const Vec3f& normal, Vec3f dirToLight, float glossy);
 float	getSchlick(float cosine, float ref_idx);
@@ -150,7 +153,7 @@ template <class t> struct Vec3 {
 	inline t product(const Vec3<t>& v) const { return x * v.x + y * v.y + z * v.z;}
 	inline float sqnorm(void) const { return x * x + y * y + z * z; }
 	inline float norm(void) const { return std::sqrt(sqnorm()); }
-	inline bool  isNull(void) { return x == 0 && y == 0 && z == 0; }
+	inline bool  isNull(void) const { return x == 0 && y == 0 && z == 0; }
 	inline Vec3<t>	operator^(const Vec3<t>& v) const { return Vec3<t>().product(*this, v); }
 	inline Vec3<t>	operator+(const Vec3<t>& v) const { return Vec3<t>().addition(*this, v); }
 	inline Vec3<t>	operator-(const Vec3<t>& v) const { return Vec3<t>().substract(*this, v); }
@@ -173,15 +176,18 @@ template <class t> struct Vec3 {
 		}
 		return (k > 0);
 	}
-	inline void cartesian2sphericalDirection(float& phi, float& theta) const {
+	inline void cartesian2spherical(float& phi, float& theta, float& r) const {
+		r = std::sqrt(x * x + y * y + z * z);
 		phi = std::atan2(y, x);
-		theta = std::acos(z / std::sqrt(x * x + y * y + z * z));
+		theta = std::acos(z / r);
 	}
-	Vec3<t>& sphericalDirection2cartesian(float phi, float theta) {
+	Vec3<t>& spherical2cartesian(float phi, float theta, float r = 1) {
 		float sinTheta = std::sin(theta);
 		x = sinTheta * std::cos(phi);
 		y = sinTheta * std::sin(phi);
 		z = std::cos(theta);
+		if (r != 1)
+			product(r);
 		return *this;
 	}
 	Vec3<t>& reflect(const Vec3<t>& norm) {
@@ -207,6 +213,7 @@ template <class t> struct Vec3 {
 			y = randomUnitCoordinate();
 			z = randomUnitCoordinate();
 		} while (sqnorm() >= 1.0f);
+		normalize();
 		return *this;
 	}
 	Vec3<t>& randomInUnitHemisphere(const Vec3<t>& normal) {
@@ -216,8 +223,12 @@ template <class t> struct Vec3 {
 	Vec3<t>& randomInUnitHemisphereCosineDistribution(const LookatAux& aux) {
 		float phi = random_double() * M_2PI;
 		float theta = std::acos(std::sqrt(random_double()));
-		sphericalDirection2cartesian(phi, theta).lookatDir(aux);
+		spherical2cartesian(phi, theta).lookatDir(aux);
 		return *this;
+	}
+	Vec3<t>& randomInUnitHemisphereCosineDistribution(const Vec3f& normal) {
+		LookatAuxiliary<t> aux(normal);
+		return randomInUnitHemisphereCosineDistribution(aux);
 	}
 	Vec3<t>& randomInSphere(t r) {
 		randomInUnitSphere().product(r);
@@ -280,8 +291,8 @@ template <class t> std::ostream& operator<<(std::ostream& s, const Vec3<t>& v) {
 	std::ostringstream os, os1;
 	os  << v.x << ",";
 	os1 << v.y << "," << v.z;
-	s << std::setw(5) << std::right << std::setfill(' ') << os.str();
-	s << std::setw(8) << std::left << std::setfill(' ') << os1.str();
+	s << std::setw(6) << std::right << std::setfill(' ') << os.str();
+	s << std::setw(9) << std::left << std::setfill(' ') << os1.str();
 	return s;
 }
 template <class t> std::istringstream& operator>>(std::istringstream& is, Vec3<t>& v) {
@@ -429,18 +440,37 @@ struct A_Planar {
 			v.turnAroundZ(angle);
 		}
 	}
-	inline bool  planeIntersection(const Vec3f& rayPov, const Vec3f& rayDir, float& distance) const {
-		distance = (pos.n * pos.p - pos.n * rayPov) / (pos.n * rayDir);
+	inline bool  planeIntersection(const Vec3f& rayPov, float normСos, float& distance) const {
+		distance = (pos.n * pos.p - pos.n * rayPov) / normСos;
 		return distance >= 0;
 	}
-	inline bool  intersection(const Vec3f& rayPov, const Vec3f& rayDir, float& distance, Hit& hit) const {
-		return planeIntersection(rayPov, rayDir, distance) && figureIntersection(localHitPoint(rayPov, rayDir, distance), hit);
+	inline bool  intersection(const Vec3f& rayPov, const Vec3f& rayDir, float& distance, float& min_t, float& max_t, Hit& hit) const {
+		float normСos = rayDir * pos.n;
+		if (normСos != 0) {
+			planeIntersection(rayPov, normСos, distance);
+			if (normСos < 0) {
+				max_t = _2INFINITY;
+				min_t = distance;
+			} else {
+				if (distance < 0)
+					return false;
+				max_t = distance;
+				min_t = -_2INFINITY;
+			}
+			if (figureIntersection(localHitPoint(rayPov, rayDir, distance), hit)) {
+				return rayHitDefinition(min_t, max_t, distance, hit);
+			}
+		}
+		return false;
 	};
 	inline Vec3f localHitPoint(const Vec3f& rayPov, const Vec3f& rayDir, float distance) const {
 		return rayPov + (rayDir * distance) -  pos.p;
 	}
+	inline Vec3f localHitPoint(const Vec3f& recPov) const {
+		return recPov -  pos.p;
+	}
 	inline int   getPlaneTextureRgba(const Vec3f& localHitPoint, float width, float height) const {
-		Vec2f p(localHitPoint * u, localHitPoint * v);
+		Vec2f p(localHitPoint * u + _2INFINITY, localHitPoint * v - _2INFINITY);
 		p.cartesian2scan(width, height);
 		p.u = std::fmod(p.u * ratio.u, width) / width;
 		p.v = std::fmod(p.v * ratio.v, height) / height;
@@ -453,9 +483,15 @@ struct A_Planar {
 		os << " " << std::setw(5) << std::right << roundedString(radian2degree(angle), 1);
 		return os.str();
 	}
+	inline std::string getTextureName_if(void) {
+		if (txtr)
+			return txtr->get_id();
+		return "";
+	}
 
 	virtual inline A_Planar* clone(void) const = 0;
 	virtual inline void  set_geometry(std::istringstream& is) = 0;
+	virtual inline float area(void) const = 0;
 	virtual inline bool  figureIntersection(const Vec3f& localHitPoint, Hit& hit) const = 0;
 	virtual inline float getMaxSize(void) const = 0;
 	virtual inline Vec3f getRandomPoint(void) const = 0;
@@ -472,9 +508,9 @@ struct Plane : public A_Planar {
 		return plane;
 	}
 	inline void  set_geometry(std::istringstream& is) { set_planeGeometry(is); }
+	inline float area(void) const { return _INFINITY * _INFINITY; }
 	inline bool  figureIntersection(const Vec3f& localHitPoint, Hit& hit) const {
-		(void)localHitPoint;
-		hit = hit == OUTLINE ? hit : OUTSIDE;
+		(void)localHitPoint; (void)hit;
 		return true;
 	}
 	inline float getMaxSize(void) const { return _INFINITY; }
@@ -487,17 +523,17 @@ struct Plane : public A_Planar {
 	inline std::string output_geometry(void) const { return output_planeGeometry(); }
 };
 
-// struct Сircle
-struct Сircle : public A_Planar {
+// struct Circle
+struct Circle : public A_Planar {
 	float r;
 	float sqR;
-	Сircle(void);
-	Сircle(Texture2* _txtr);
-	Сircle(const Сircle& other);
-	~Сircle(void);
-	Сircle& operator=(const Сircle& other);
-	inline Сircle* clone(void) const {
-		Сircle* circle = new Сircle(*this);
+	Circle(void);
+	Circle(Texture2* _txtr);
+	Circle(const Circle& other);
+	~Circle(void);
+	Circle& operator=(const Circle& other);
+	inline Circle* clone(void) const {
+		Circle* circle = new Circle(*this);
 		return circle;
 	}
 	inline void  set_geometry(std::istringstream& is) {
@@ -506,12 +542,15 @@ struct Сircle : public A_Planar {
 		r = r < 0 ? 0 : r * 0.5;
 		sqR = r * r;
 	}
+	inline float area(void) const { return sqR * M_PI; }
 	inline bool  figureIntersection(const Vec3f& localHitPoint, Hit& hit) const {
 		float sqD_r = sqR - localHitPoint.sqnorm();
-		if ( hit == OUTLINE && !(std::abs(sqD_r) <= EPSILON * EPSILON) )
-			return false;
-		hit = OUTSIDE;
-		return sqD_r >= 0;
+		if (sqD_r >= 0) {
+			if ( (std::abs(sqD_r) <= SQ_OUTLINE_WIDTH) )
+				hit = OUTLINE;
+			return true;
+		}
+		return false;
 	}
 	inline float getMaxSize(void) const { return r * 2; }
 	inline Vec3f getRandomPoint(void) const {
@@ -548,18 +587,21 @@ struct Rectangle : public A_Planar {
 		Rectangle* rectangle = new Rectangle(*this);
 		return rectangle;
 	}
-	inline void  set_geometry(std::istringstream& is) {
+	virtual inline void  set_geometry(std::istringstream& is) {
 		set_planeGeometry(is);
 		is >> w_2 >> h_2;
 		w_2 = w_2 <= 0 ? 0 : w_2 * 0.5;
 		h_2 = h_2 <= 0 ? 0 : h_2 * 0.5;
 	}
+	inline float area(void) const { return 4 * w_2 * h_2; }
 	inline bool  figureIntersection(const Vec3f& localHitPoint, Hit& hit) const {
 		float d_u = w_2 - std::abs(localHitPoint * u);
 		float d_v = h_2 - std::abs(localHitPoint * v);
-		if ( hit == OUTLINE && !(std::abs(d_u) <= EPSILON && std::abs(d_v) <= EPSILON) )
-			return false;
-		hit = OUTSIDE;
+		if (d_u >= 0 && d_v >= 0) {
+			if ( std::abs(d_u) <= OUTLINE_WIDTH && std::abs(d_v) <= OUTLINE_WIDTH )
+				hit = OUTLINE;
+				return true;
+		}
 		return d_u >= 0 && d_v >= 0;
 	}
 	inline float getMaxSize(void) const { return 2.0f * std::sqrt(w_2 * w_2 + h_2 * h_2); }
@@ -568,19 +610,8 @@ struct Rectangle : public A_Planar {
 	}
 	inline int   getTextureRgba(const Vec3f& localHitPoint) const {
 		return getPlaneTextureRgba(localHitPoint, w_2 * 2, h_2 * 2);
-
-		
-		
-		
-//		float w = w_2 * 2;
-//		float h = h_2 * 2;
-//		Vec2f p(localHitPoint * u, localHitPoint * v);
-//		p.cartesian2scan(w, h);
-//		return txtr->get_rgba(std::fmod(p.u, u_step) / u_step, std::fmod(p.v,v_step) / v_step);
-//		return txtr->get_rgba(p.u / w, p.v / h);
-//		return txtr->get_rgba(p.u, p.v);
 	}
-	inline std::string output_geometry(void) const {
+	virtual inline std::string output_geometry(void) const {
 		std::ostringstream os;
 		os << std::setw(18) << std::left << output_planeGeometry();
 		os << " " << std::setw(5) << std::right << w_2 * 2;
@@ -589,10 +620,30 @@ struct Rectangle : public A_Planar {
 	}
 };
 
+// struct Square
+struct Square : public Rectangle {
+	Square(void);
+	Square(Texture2* _txtr);
+	Square(const Square& other);
+	~Square(void);
+	inline void  set_geometry(std::istringstream& is) {
+		set_planeGeometry(is);
+		is >> w_2;
+		w_2 = w_2 <= 0 ? 0 : w_2 * 0.5;
+		h_2 = w_2;
+	}
+	inline std::string output_geometry(void) const {
+		std::ostringstream os;
+		os << std::setw(18) << std::left << output_planeGeometry();
+		os << " " << std::setw(5) << std::right << w_2 * 2;
+		return os.str();
+	}
+};
+
+
 // Intersections, normals, rays
 bool raySphereIntersection(const Vec3f& rayDir, const Vec3f& rayPov, const Vec3f& center, float sqrRadius, float& distance, float& min_t, float& max_t, Hit& rayHit);
 bool raySphereIntersection(const Vec3f& rayDir, const Vec3f& k, float c, float& distance, float& min_t, float& max_t, Hit& rayHit);
 void normalToRaySphereIntersect(const Vec3f& intersectPt, const Vec3f& center, Vec3f& normal);
 bool rayPlaneIntersection(const Vec3f& rayDir, const Vec3f& rayPov, const Vec3f& center, const Vec3f& normal, float& distance, float& min_t, float& max_t, Hit& rayHit);
-bool rayRectangleIntersection(const Vec3f& rayDir, const Vec3f& rayPov, const Vec3f& center, const Vec3f& normal, float& distance, float& min_t, float& max_t, Hit& rayHit);
 #endif

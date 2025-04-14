@@ -21,21 +21,10 @@ Light::~Light(void) {
 	}
 }
 
-Light::Light(const Light& other) : _type(other._type), _planar(other._planar) {
-	_id = other._id;
-	_name = other._name;
-	_nick = other._nick;
-	_isLight = other._isLight;
-	_pos = other._pos;
-	_color = other._color;
-	_light = other._light;
-	combineType = other.combineType;
-	glossy = other.glossy;
-	reflective = other.reflective;
-	refractive = other.refractive;
-	diffusion = other.diffusion;
-	matIOR = other.matIOR;
-	matOIR = other.matOIR;
+Light::Light(const Light& other) :
+A_Scenery(other),
+_type(other._type),
+_planar(other._planar) {
 }
 
 Light* Light::clone(void) const {

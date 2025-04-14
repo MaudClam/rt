@@ -156,7 +156,7 @@ std::istringstream& operator>>(std::istringstream& is, ARGBColor& c) {
 // Struct Lighting
 
 Lighting::Lighting(void) : _ratio(1), _color(0x00FFFFFF), light() {
-	_ratio = f2limits(_ratio, 0, 1);
+	set_ratio(_ratio);
 	light = _color.val;
 	light *= _ratio;
 }
@@ -165,7 +165,7 @@ Lighting::Lighting(float ratio, const ARGBColor& color) :
 _ratio(ratio),
 _color(color),
 light(color.val) {
-	_ratio = f2limits(_ratio, 0, 1);
+	set_ratio(_ratio);
 	light *= _ratio;
 }
 

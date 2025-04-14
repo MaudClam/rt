@@ -316,19 +316,13 @@ Ray& Ray::combine(auto& scenery, auto& end, float distance, Hit target) {
 	return *this;
 }
 
-Ray& Ray::markPath(void) {
-	if (scnr->diffusion || scnr->get_mattness())
-		path.mark(DIFFUSION);
-	return *this;
-}
-
 Ray& Ray::fakeAmbientLighting(HitRecord& rec, const Rgb& ambient) {
 	float diffusion = rec.scnr->diffusion;
 	if (diffusion) {
 		float fading = -(rec.norm * rec.dir) * diffusion;
 		if (fading > +0) {
 			paint = ambient;
-			paint.attenuate(rec.scnr->get_iColor(rec), fading);
+			paint.attenuate(rec.scnr->getColor(rec), fading);
 			reset(rec);
 		}
 	}
@@ -350,7 +344,7 @@ Ray& Ray::directLightings(HitRecord& rec, const Scenerys& scenerys, const Scener
 							rec.paint += (paint * shining);
 					}
 					if ((lighting *= diffusion) > 0)
-						rec.paint += paint.attenuate(rec.scnr->get_iColor(rec), lighting);
+						rec.paint += paint.attenuate(rec.scnr->getColor(rec), lighting);
 				}
 			}
 			restore(rec);
@@ -386,7 +380,7 @@ Ray& Ray::phMapLightings(HitRecord& rec, const PhotonMap& phMap, MapType type) {
 			}
 			if (!pow.isNull() && n >= MIN_ESTIMATE_PHOTONS) {
 				pow *= float(1.0f / (M_PI * last->first) * n);
-				pow.attenuate(rec.scnr->get_iColor(rec), diffusion);
+				pow.attenuate(rec.scnr->getColor(rec), diffusion);
 				reset(rec);
 			} else {
 				restore(rec);
@@ -408,7 +402,8 @@ bool Ray::end(const Scenerys& scenerys, const Lighting& background, int depth, i
 	if (this->scnr->isGlowing(*this)) {
 		return true;
 	}
-	markPath();
+	if (scnr->diffusion || scnr->get_mattness())
+		path.mark(DIFFUSION);
 	return false;
 }
 
@@ -505,31 +500,31 @@ int Ray::getAttenuation(HitRecord& rec, Choice choice, float& fading, float& shi
 			break;
 		}
 		case REFLECTION: {
-			attenuation = rec.scnr->diffusion ? -1 : rec.scnr->get_iColor(rec);
+			attenuation = rec.scnr->diffusion ? -1 : rec.scnr->getColor(rec);
 			fading = 1;
 			shining = 0;
 			break;
 		}
 		case PARTIAL_REFLECTION: {
-			attenuation = rec.scnr->diffusion ? -1 : rec.scnr->get_iColor(rec);
+			attenuation = rec.scnr->diffusion ? -1 : rec.scnr->getColor(rec);
 			fading = 1;
 			shining = 0;
 			break;
 		}
 		case FULL_REFLECTION: {
-			attenuation = rec.scnr->diffusion ? -1 : rec.scnr->get_iColor(rec);
+			attenuation = rec.scnr->diffusion ? -1 : rec.scnr->getColor(rec);
 			fading = 1;
 			shining = 0;
 			break;
 		}
 		case REFRACTION: {
-			attenuation = rec.scnr->get_iColor(rec);
+			attenuation = rec.scnr->getColor(rec);
 			fading = 1;
 			shining = 0;
 			break;
 		}
 		case DIFFUSION: {
-			attenuation = rec.scnr->get_iColor(rec);
+			attenuation = rec.scnr->getColor(rec);
 			fading *= (dir * rec.norm);
 			float glossy = rec.scnr->get_glossy();
 			if (glossy)
@@ -537,7 +532,7 @@ int Ray::getAttenuation(HitRecord& rec, Choice choice, float& fading, float& shi
 			break;
 		}
 		case DIFFUSION_IN_VOLUME: {
-			attenuation = rec.scnr->get_iColor(rec);
+			attenuation = rec.scnr->getColor(rec);
 			fading *= -(dir * rec.dir);
 			fading = fading > +0 ? fading : 0;
 			break;

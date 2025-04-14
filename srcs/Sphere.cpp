@@ -10,26 +10,12 @@ Sphere::Sphere(void) : A_Scenery(), _radius(0), _sqrRadius(0), _k(), _c(0) {
 Sphere::~Sphere(void) {}
 
 Sphere::Sphere(const Sphere& other) :
+A_Scenery(other),
 _radius(other._radius),
 _sqrRadius(_radius * _radius),
 _k(other._k),
 _c(other._c)
-{
-	_id = other._id;
-	_name = other._name;
-	_nick = other._nick;
-	_isLight = other._isLight;
-	_pos = other._pos;
-	_color = other._color;
-	_light = other._light;
-	combineType = other.combineType;
-	glossy = other.glossy;
-	reflective = other.reflective;
-	refractive = other.refractive;
-	diffusion = other.diffusion;
-	matIOR = other.matIOR;
-	matOIR = other.matOIR;
-}
+{}
 
 Sphere* Sphere::clone(void) const {
 	Sphere* sphere = new Sphere(*this);

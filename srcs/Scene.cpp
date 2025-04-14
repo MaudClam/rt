@@ -93,7 +93,17 @@ Texture2* Scene::findTexture(std::string str) {
 }
 
 void Scene::systemTexture(void) {
-	std::string id = "system2";
+	std::string id = "system1";
+	Texture2* txtr1 = new Texture2();
+	txtr1->emplace_back(0x000000);
+	txtr1->emplace_back(0xFFFFFF);
+	txtr1->emplace_back(0xFFFFFF);
+	txtr1->emplace_back(0x000000);
+	txtr1->set_id(id);
+	txtr1->set_width(2);
+	textures2.try_emplace(id, txtr1);
+	
+	id = "system2";
 	Texture2* txtr2 = new Texture2();
 	txtr2->emplace_back(0xFF8888);
 	txtr2->emplace_back(0x88FF88);
@@ -113,33 +123,49 @@ void Scene::systemTexture(void) {
 	txtr3->emplace_back(0xFFFF44);
 	txtr3->emplace_back(0xFFFFFF);
 	txtr3->emplace_back(0x111111);
-	txtr3->emplace_back(0xAAAAAA);
+	txtr3->emplace_back(0x444444);
 	txtr3->set_id(id);
 	txtr3->set_width(3);
 	textures2.try_emplace(id, txtr3);
 }
 
 void Scene::systemDemo(void) {
-	set_any("R	800 600  SystemDemo VOLUME  500000  60  0.1");
+	set_any("R	800 800  CornellBox CAUSTIC  500000  60  0.1");
 	img.init(header(), _resolution);
 	cameras.push_back(Camera(img));
-	set_any("A				0.2 0xFFFFEE");
+	set_any("A				0.2 0xFFFFFF");
+
+	set_any("lsr	0,0,0	0.8 0xFFFFFF	0,2.499,0		0,-1,0	0	1.5 1.5");
+
+	set_any("c	0,0,-6	0,0,1	60");
+
+	set_any("sq	-2.5,0,0	1,0,0	0	5.001	0x1A3480");
+	set_any("sq	0,-2.5,0	0,1,0	0	5.001	0x808080");
+	set_any("sq	0,0,2.5		0,0,-1	0	5.001	0x808080");
+	set_any("sq	0,2.5,0		0,-1,0	0	5.001	0x808080");
+	set_any("sq	2.5,0,0		-1,0,0	0	5.001	0x80341A");
+	
+	set_any("sp	-1,-2,0	1		0xFFFFFF	500		1");
+	set_any("sp	1,-2,-1.5	1	0xFFFFFF	500		0.0		1.0		1.5");
+
+	
+	
+	
 //	set_any("lsc	0,0,0	0.4 0xFFFFAA	3,3,5		-1,-1,0	0	2.0");
 //	set_any("ldr	1,-0.7,0	0.4 txtr:system2	-5,1.49,4	1,0,0	0	5.0	5.0");
-//	set_any("ldr	-1,-0.7,0	0.25 txtr:system3	5,1.49,4	1,0,0	0	5.0	5.0");
-	set_any("lsc	0,0,0	0.8 0xFFFFBB	0,5,4	0,-1,0	0	2.0");
+//	set_any("ldr	-0.8,-0.6,0	0.25 txtr:system3	5,1.49,4	1,0,0	0	5.0	5.0");
+//	set_any("lsc	0,0,0	0.8 0xFFFFBB	0,5,4	0,-1,0	0	2.0");
 //	set_any("lsr	0,0,0	0.5 0xFFFFFF	0,2,8		0,-0.1,-1	0	5.0	5.0");
-//	set_any("ld		-2,-2,0	0.4 0xFFFFFF");
+//	set_any("ld		-0.7,-0.6,0	0.4 0xFFFFFF");
 //	set_any("ls		1,2,4	0.4 0xFFFFFF");
-//	set_any("c	0,1,-8	0,0,1		60");
-//	set_any("c	0,1,16		0,0,-1		60");
-//	set_any("c	-5.5,0,3	1,0,0		60");
-	set_any("c 12,1,3		-1,0,0		60");
-	set_any("c	0,9,4		0,-1,0		90");
-	set_any("sp	0,-1,3		2		0xFF1A1A	100		0.1");
-	set_any("sp	2,1,4		4		0xFFFFFF	500		0.0		1.0		1.5");
-	set_any("sp	-2,0,4		2		0x1A3480	10");
-	set_any("sp	0,-5001,0	10000	0xFFFFEE	0.01		0.3");
+////	set_any("c	0,1,16		0,0,-1		60");
+////	set_any("c	-5.5,0,3	1,0,0		60");
+////	set_any("c 12,1,3		-1,0,0		60");
+////	set_any("c	0,9,4		0,-1,0		90");
+//	set_any("sp	0,-1,3		2		0xFF1A1A	100		0.1");
+//	set_any("sp	2,0,4		2		0xFFFFFF	500		0.0		1.0		1.5");
+//	set_any("sp	-2,0,4		2		0x1A3480	10");
+//	set_any("sp	0,-5001,0	10000	0xFFFFEE	0.01		0.3");
 	if (cameras.size() > 1)
 		_currentCamera = 1;
 	saveParsingLog(PARSING_LOGFILE);
@@ -215,9 +241,9 @@ int Scene::saveParsingLog(const char* filename) {
 }
 
 int  Scene::parsing(int ac, char** av) {
+	systemTexture();
 	if (ac != 2) {
 		mesage(WRNG_FILE_MISSING);
-		systemTexture();
 		systemDemo();
 		return SUCCESS;
 	}
@@ -350,7 +376,7 @@ int Scene::set_any(std::istringstream is) {
 		case 6: {// lsс spotlight circular
 			Light* l = new Light("spotlight circular", nicks[id],
 								 Light::SPOTLIGHT_CIRCULAR,
-								 new Сircle(findTexture(is.str())));
+								 new Circle(findTexture(is.str())));
 			is >> *l;
 			set_scenery(l);
 			break;
@@ -358,7 +384,7 @@ int Scene::set_any(std::istringstream is) {
 		case 7: {// ldс directlight circular
 			Light* l = new Light("directlight circular", nicks[id],
 								 Light::DIRECTLIGHT_CIRCULAR,
-								 new Сircle(findTexture(is.str())));
+								 new Circle(findTexture(is.str())));
 			is >> *l;
 			set_scenery(l);
 			break;
@@ -383,6 +409,46 @@ int Scene::set_any(std::istringstream is) {
 			Sphere* sp = new Sphere;
 			is >> *sp;
 			set_scenery(sp);
+			break;
+		}
+		case 11: {// pl
+			Planar* pl = new Planar("plane", nicks[id],
+								   Planar::PLANE,
+								   new Plane(findTexture(is.str())));
+			is >> *pl;
+			set_scenery(pl);
+			break;
+		}
+		case 12: {// plc
+			Planar* plc = new Planar("circle", nicks[id],
+									 Planar::CIRCLE,
+									 new Circle(findTexture(is.str())));
+			is >> *plc;
+			set_scenery(plc);
+			break;
+		}
+		case 13: {// plr
+			Planar* plr = new Planar("rectangle", nicks[id],
+									 Planar::RECTANGLE,
+									 new Rectangle(findTexture(is.str())));
+			is >> *plr;
+			set_scenery(plr);
+			break;
+		}
+		case 14: {// pls
+			Planar* pls = new Planar("square", nicks[id],
+									 Planar::SQUARE,
+									 new Square(findTexture(is.str())));
+			is >> *pls;
+			set_scenery(pls);
+			break;
+		}
+		case 15: {// sq
+			Planar* sq = new Planar("square", nicks[id],
+									 Planar::SQUARE,
+									 new Square(findTexture(is.str())));
+			is >> *sq;
+			set_scenery(sq);
 			break;
 		}
 		default: {//

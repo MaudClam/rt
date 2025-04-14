@@ -424,14 +424,14 @@ void Camera::reflections(Ray& ray, HitRecord& rec, float fading, int r) {
 	if (fading) {
 		ray.reflect();
 		traceRay(ray, ++r);
-		ray.paint.attenuate(rec.scnr->diffusion ? -1 : rec.scnr->get_iColor(rec), fading);
+		ray.paint.attenuate(rec.scnr->diffusion ? -1 : rec.scnr->getColor(rec), fading);
 		ray.reset(rec);
 	}
 }
 
 void Camera::refractions(Ray& ray, HitRecord& rec, float fading, int r) {
 	if (fading) {
-		int attenuation = rec.scnr->get_iColor(rec);
+		int attenuation = rec.scnr->getColor(rec);
 		float schlick = 0;
 		if (ray.refract((rec.hit == INSIDE ? rec.scnr->matIOR : rec.scnr->matOIR), schlick)) {
 			traceRay(ray, r + 1);
@@ -489,7 +489,7 @@ void Camera::ambientLightPath(Ray& ray, HitRecord& rec, int r) {
 
 void Camera::calculateFlybyRadius(void) {
 	float	back = 0;
-	float	front = FLYBY_RADIUS_MAX;
+	float	front = _INFINITY;
 	for (auto pixel = matrix.begin(), END = matrix.end(); pixel != END; ++pixel) {
 		pixel->restoreRays(1, _fov.get_tan(), _pos.p);
 		auto ray = pixel->rays.begin();
@@ -502,7 +502,7 @@ void Camera::calculateFlybyRadius(void) {
 			}
 			ray->hit = BACK;
 			if ( (*sc)->intersection(*ray) ) {
-				if (back < ray->dist && ray->dist < FLYBY_RADIUS_MAX) {
+				if (back < ray->dist && ray->dist < _INFINITY) {
 					back = ray->dist;
 				}
 			}

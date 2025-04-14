@@ -53,12 +53,20 @@
       </BuildableProductRunnable>
       <CommandLineArguments>
          <CommandLineArgument
+            argument = "/Users/uru/Library/Mobile\ Documents/com~apple~CloudDocs/42_Projects/rt/scenes/SystemDemo.rt"
+            isEnabled = "NO">
+         </CommandLineArgument>
+         <CommandLineArgument
+            argument = "/Users/uru/Library/Mobile\ Documents/com~apple~CloudDocs/42_Projects/rt/scenes/CornellBox.rt"
+            isEnabled = "NO">
+         </CommandLineArgument>
+         <CommandLineArgument
             argument = "/Users/uru/Library/Mobile\ Documents/com~apple~CloudDocs/42_Projects/rt/parsing.log"
             isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "/Users/uru/Library/Mobile\ Documents/com~apple~CloudDocs/42_Projects/rt/scenes/balls.rt"
-            isEnabled = "NO">
+            isEnabled = "YES">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "/Users/uru/Library/Mobile\ Documents/com~apple~CloudDocs/42_Projects/rt/scenes/balls1.rt"

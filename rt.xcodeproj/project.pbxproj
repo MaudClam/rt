@@ -18,6 +18,7 @@
 		6679518B2C5216B7009C1DDD /* Light.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 667951892C5216B7009C1DDD /* Light.cpp */; settings = {COMPILER_FLAGS = "-Wall -Wextra -Werror -O2"; }; };
 		667951922C5293BB009C1DDD /* ARGBColor.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 667951912C5293BB009C1DDD /* ARGBColor.cpp */; settings = {COMPILER_FLAGS = "-Wall -Wextra -Werror -O2"; }; };
 		668B635B2D885609006DBF53 /* Rgb.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 668B635A2D885609006DBF53 /* Rgb.cpp */; settings = {COMPILER_FLAGS = "-Wall -Wextra -Werror -O2"; }; };
+		668B63672DA6FCA2006DBF53 /* Planar.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 668B63662DA6FCA2006DBF53 /* Planar.cpp */; settings = {COMPILER_FLAGS = "-Wall -Wextra -Werror -O2"; }; };
 		66B3B0A42C93E9C9005085BC /* Scene.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 667951702C41AD05009C1DDD /* Scene.cpp */; settings = {COMPILER_FLAGS = "-Wall -Wextra -Werror -O2"; }; };
 		66D1668D2C3B4243002E6F7E /* libmlx.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 66D1668C2C3B4243002E6F7E /* libmlx.a */; };
 		66D166C62C3C172F002E6F7E /* Sphere.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 66D166C42C3C172F002E6F7E /* Sphere.cpp */; settings = {COMPILER_FLAGS = "-Wall -Wextra -Werror -O2"; }; };
@@ -68,6 +69,10 @@
 		668B635A2D885609006DBF53 /* Rgb.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = Rgb.cpp; sourceTree = "<group>"; };
 		668B635C2D8DB467006DBF53 /* PhotonMap.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; path = PhotonMap.hpp; sourceTree = "<group>"; };
 		668B635D2D96B6FD006DBF53 /* Untitled.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Untitled.swift; sourceTree = "<group>"; };
+		668B63652DA6FCA2006DBF53 /* Planar.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; path = Planar.hpp; sourceTree = "<group>"; };
+		668B63662DA6FCA2006DBF53 /* Planar.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = Planar.cpp; sourceTree = "<group>"; };
+		668B63682DA80BCE006DBF53 /* CornellBox.rt */ = {isa = PBXFileReference; lastKnownFileType = text; path = CornellBox.rt; sourceTree = "<group>"; };
+		668B63692DAA6BA1006DBF53 /* SystemDemo.rt */ = {isa = PBXFileReference; lastKnownFileType = text; path = SystemDemo.rt; sourceTree = "<group>"; };
 		6696E8882CEF4E0200E3CFBB /* parsing.log */ = {isa = PBXFileReference; lastKnownFileType = text; path = parsing.log; sourceTree = SOURCE_ROOT; };
 		66B3B0A52C94B81E005085BC /* default.rt */ = {isa = PBXFileReference; lastKnownFileType = text; path = default.rt; sourceTree = "<group>"; };
 		66B3B0A62C950387005085BC /* balls.rt */ = {isa = PBXFileReference; lastKnownFileType = text; path = balls.rt; sourceTree = "<group>"; };
@@ -96,13 +101,15 @@
 		6628EB0C2C93334900BC90BD /* scenes */ = {
 			isa = PBXGroup;
 			children = (
-				668B635D2D96B6FD006DBF53 /* Untitled.swift */,
-				6696E8882CEF4E0200E3CFBB /* parsing.log */,
+				668B63692DAA6BA1006DBF53 /* SystemDemo.rt */,
 				6628EB0E2C933BC900BC90BD /* arches.rt */,
 				66B3B0A62C950387005085BC /* balls.rt */,
 				6628EB0F2C936E3F00BC90BD /* balls1.rt */,
 				6628EB0B2C92F66D00BC90BD /* controls */,
+				668B63682DA80BCE006DBF53 /* CornellBox.rt */,
 				66B3B0A52C94B81E005085BC /* default.rt */,
+				6696E8882CEF4E0200E3CFBB /* parsing.log */,
+				668B635D2D96B6FD006DBF53 /* Untitled.swift */,
 			);
 			path = scenes;
 			sourceTree = "<group>";
@@ -151,6 +158,8 @@
 				6659C4E12C399E8A00CC7FAB /* MlxImage.cpp */,
 				668B635C2D8DB467006DBF53 /* PhotonMap.hpp */,
 				660BE1772CBAD9890061AA16 /* PhotonMap.cpp */,
+				668B63652DA6FCA2006DBF53 /* Planar.hpp */,
+				668B63662DA6FCA2006DBF53 /* Planar.cpp */,
 				665241D12C5BA6E700BD3A64 /* Ray.hpp */,
 				665241D02C5BA6E700BD3A64 /* Ray.cpp */,
 				668B63572D873531006DBF53 /* Rgb.hpp */,
@@ -229,6 +238,7 @@
 				6659C4E32C399E8A00CC7FAB /* MlxImage.cpp in Sources */,
 				667951792C427BFD009C1DDD /* camera.cpp in Sources */,
 				66D166C62C3C172F002E6F7E /* Sphere.cpp in Sources */,
+				668B63672DA6FCA2006DBF53 /* Planar.cpp in Sources */,
 				668B635B2D885609006DBF53 /* Rgb.cpp in Sources */,
 				66B3B0A42C93E9C9005085BC /* Scene.cpp in Sources */,
 				667951922C5293BB009C1DDD /* ARGBColor.cpp in Sources */,

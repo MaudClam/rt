@@ -8,6 +8,7 @@
 # include "PhotonMap.hpp"
 # include "Sphere.hpp"
 # include "Light.hpp"
+# include "Planar.hpp"
 
 class	MlxImage;
 class	Camera;
@@ -38,8 +39,8 @@ struct Cameras : public std::vector<Camera> {
 
 struct Scene {
 	const stringSet_t nicks {
-		"R","A","c","l","ls","ld","lsc","ldc","lsr","ldr","sp"
-//		 0   1   2   3   4    5    6     7     8     9     10
+		"R","A","c","l","ls","ld","lsc","ldc","lsr","ldr","sp","pl","plc","plr","pls","sq"
+//		 0   1   2   3   4    5    6     7     8     9     10   11   12    13    14    15
 	};
 	MlxImage&	img;
 	Scenerys	scenerys;

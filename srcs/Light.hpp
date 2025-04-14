@@ -23,13 +23,39 @@ public:
 	~Light(void);
 	Light(const Light& other);
 	Light* clone(void) const;
-	inline int	 get_iColor(const HitRecord& rec) const {
+	inline int	 getColor(const HitRecord& rec) const {
 		(void)rec;
-		return _light.get_glow(); }
-	inline void  set_nick(const std::string& nick) { _nick = nick; }
-	inline void  set_name(const std::string& name) { _name = name; }
-	inline void  set_type(Type type) { _type = type; }
-	inline void  set_planar(A_Planar* planar) { _planar = planar; }
+		return _light.get_glow();
+	}
+	inline bool  getLight(Ray& ray) const {
+		if (isPlanar()) {
+			float max = ray.dist - EPSILON;
+			if (_planar->planeIntersection(ray.pov, ray.dir * _planar->pos.n, ray.dist) && ray.dist < max) {
+				Vec3f loc = _planar->localHitPoint(ray.pov, ray.dir, ray.dist);
+				if (_planar->figureIntersection(loc, ray.set_hit(FRONT).hit)) {
+					if (isTexture()) {
+						ray.paint = _planar->getTextureRgba(loc);
+						ray.paint *= _light.get_ratio();
+					} else {
+						ray.paint = get_light();
+					}
+					return true;
+				}
+			}
+		} else {
+			ray.paint = get_light();
+			return true;
+		}
+		return false;
+	}
+	inline void  getNormal(Ray& ray) const {
+		if (isPlanar())
+			ray.norm = _planar->pos.p - ray.pov;
+		else if (!_pos.n.isNull())
+			ray.norm = _pos.n;
+		else
+			ray.norm = _pos.p - ray.pov;
+	}
 	inline void  lookat(const Position& eye, const LookatAux& aux, const Vec3f& pos, float roll) {
 		(void)pos;
 		_pos.lookat(eye, aux, roll);
@@ -42,67 +68,45 @@ public:
 		if (_planar)
 			_planar->roll(roll);
 	}
-	inline bool  isPlanar(void) const { return _planar; }
-	inline bool  isTexture(void) const { return isPlanar() && _planar->isTexture(); }
 	inline bool  intersection(Ray& ray) {
 		switch (_type) {
 			case SPOTLIGHT:		return false;
 			case DIRECTLIGHT:	return false;
 			default: break;
 		}
-		if (_planar->intersection(ray.pov, ray.dir, ray.dist, ray.set_hit(FRONT).hit)) {
-			ray.intersections.a.d = ray.intersections.b.d = ray.dist;
-			return true;
-		}
-		return false;
+		return _planar->intersection(ray.pov, ray.dir, ray.dist, ray.intersections.a.d, ray.intersections.b.d, ray.set_hit(FRONT).hit);
 	}
-	inline void  getNormal(Ray& ray) const {
-		(void)ray;
-	}
-	inline float lighting(Ray& ray) {
-		if (!_pos.n.isNull()) {
-			ray.dir = _pos.n * -1;
-			ray.dist = _INFINITY;
-		} else {
-			ray.dist = ray.dir.substract(_pos.p, ray.pov).norm();
-			if (ray.dist != 0)
-				ray.dir.product(1. / ray.dist);// optimal normalization
-		}
+	inline float lighting(Ray& ray) const {
+		ray.getDir2Light(_pos);
 		float k = ray.dir * ray.norm;
 		if (k > 0) {
-			if (!isPlanar()) {
-				ray.paint = get_light();
+			if (getLight(ray))
 				return k;
-			}
-			float max = ray.dist - EPSILON;
-			if (_planar->planeIntersection(ray.pov, ray.dir, ray.dist) && ray.dist < max) {
-				Vec3f loc = _planar->localHitPoint(ray.pov, ray.dir, ray.dist);
-				if (_planar->figureIntersection(loc, ray.set_hit(FRONT).hit)) {
-					if (isTexture()) {
-						ray.paint = _planar->getTextureRgba(loc);
-						ray.paint *= _light.get_ratio();
-					} else {
-						ray.paint = get_light();
-					}
-					return k;
-				}
-			}
 		}
 		return 0;
 	}
 	inline bool  isGlowing(Ray& ray) const {
-		if (isTexture())
-			ray.paint = _planar->getTextureRgba(_planar->localHitPoint(ray.pov, ray.dir, ray.dist));
-		else
-			ray.paint = _light.get_glow();
+		if (isPlanar()) {
+			if (isTexture())
+				ray.paint = _planar->getTextureRgba(_planar->localHitPoint(ray.pov, ray.dir, ray.dist));
+			else
+				ray.paint = _light.get_glow();
+//			ray.paint *= _light.get_ratio() * LIGHTS_GLOWING_FACTOR;
+		}
 		return true;
 	}
-
-	inline A_Planar* get_planar(void) const { return _planar; }
 	void photonEmissions(int num, phRays_t& rays) const;
 	void output(std::ostringstream& os) const;
-	friend std::ostream& operator<<(std::ostream& o, const Light& sp);
-	friend std::istringstream& operator>>(std::istringstream& is, Light& sp);
+	friend std::ostream& operator<<(std::ostream& o, const Light& l);
+
+	inline void  set_type(Type type) { _type = type; }
+	inline void  set_planar(A_Planar* planar) { _planar = planar; }
+	inline bool  isPlanar(void) const { return _planar; }
+	inline bool  isTexture(void) const { return isPlanar() && _planar->isTexture(); }
+	inline bool  isMultispot(void) const { return _type == SPOTLIGHT_CIRCULAR || _type == SPOTLIGHT_RECTANGULAR; }
+
+	inline A_Planar* get_planar(void) const { return _planar; }
+	friend std::istringstream& operator>>(std::istringstream& is, Light& l);
 };
 
 #endif /* LIGHT_HPP */

@@ -41,6 +41,7 @@ public:
 	inline bool         get_isLight(void) const { return _isLight; }
 	inline Position     get_pos(void) const { return Position(_pos); }
 	inline Rgb          get_light(void) const { return _light.light; }
+	inline float        get_lightRatio(void) const { return _light.get_ratio(); }
 	inline ARGBColor    get_color(void) const { return ARGBColor(_color); }
 	inline float        get_mattness(void) { return glossy > 0 && glossy <= 1 ? glossy : 0; }
 	inline float        get_glossy(void) const {
@@ -63,8 +64,13 @@ public:
 	inline void	set_isLight(bool isLight) { _isLight = isLight; }
 	inline void	set_pos(const Position& pos) { _pos = pos; }
 	inline void	set_color(const ARGBColor& color) { _color = color; }
-	inline void set_material(std::istringstream& is) {
-		is >> _color >> glossy >> reflective >> refractive >> matIOR;
+	inline void set_material(std::istringstream& is, bool txtr = false) {
+		std::string trash;
+		if (txtr)
+			is >> trash;
+		else
+			is >> _color;
+		is >> glossy >> reflective >> refractive >> matIOR;
 		glossy = f2limits(glossy, 0, 1000);
 		reflective = f2limits(reflective, 0., 1.);
 		refractive = f2limits(refractive, 0., 1. - reflective);
@@ -72,9 +78,12 @@ public:
 		matIOR = f2limits(matIOR, 0.1, 10.);
 		matOIR = 1. / matIOR;
 	}
-	inline std::string output_material(void) const {
+	inline std::string output_material(std::string txtr = "") const {
 		std::ostringstream os;
-		os << "   " << _color.rrggbb();
+		if (!txtr.empty())
+			os << "   " << TEXTURE_KEY << txtr;
+		else
+			os << "   " << _color.rrggbb();
 		os << " " << std::setw(4) << std::right << glossy;
 		os << " " << std::setw(4) << std::right << reflective;
 		os << " " << std::setw(4) << std::right << refractive;
@@ -83,12 +92,13 @@ public:
 	}
 	
 	virtual A_Scenery* clone(void) const = 0;
-	virtual int   get_iColor(const HitRecord& rec) const = 0;
+	virtual int   getColor(const HitRecord& rec) const = 0;
+	virtual bool  getLight(Ray& ray) const = 0;
+	virtual void  getNormal(Ray& ray) const = 0;
 	virtual void  lookat(const Position& eye, const LookatAux& aux, const Vec3f& pos, float roll) = 0;
 	virtual void  roll(const Vec3f& pos, float shiftRoll) = 0;
 	virtual bool  intersection(Ray& ray) = 0;
-	virtual void  getNormal(Ray& ray) const = 0;
-	virtual float lighting(Ray& ray) = 0;
+	virtual float lighting(Ray& ray) const = 0;
 	virtual bool  isGlowing(Ray& ray) const = 0;
 	virtual void  photonEmissions(int num, phRays_t& rays) const = 0;
 	virtual void  output(std::ostringstream& os) const = 0;
