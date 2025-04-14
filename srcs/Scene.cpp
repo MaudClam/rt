@@ -451,6 +451,13 @@ int Scene::set_any(std::istringstream is) {
 			set_scenery(sq);
 			break;
 		}
+		case 16: {// sp2
+			Sp2* sp = new Sp2("sphere2", nicks[id],
+									 new Sphere2(findTexture(is.str())));
+			is >> *sp;
+			set_scenery(sp);
+			break;
+		}
 		default: {//
 			if (scenerys.size() > 0) {
 				if (iD == "UNION") {

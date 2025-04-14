@@ -315,6 +315,46 @@ Square::Square(const Square& other) : Rectangle(other) {}
 Square::~Square(void) {}
 
 
+// struct Sphere 2
+Sphere2::Sphere2(void) :
+pos(),
+r(0),
+sqR(0),
+u(),
+v(),
+angle(0),
+ratio(1,1),
+txtr(NULL)
+{ u.x = 1; v.y = 1; pos.n.z = 1; }
+
+Sphere2::Sphere2(Texture2* _txtr) :
+pos(),
+r(0),
+sqR(0),
+u(),
+v(),
+angle(0),
+ratio(1,1),
+txtr(_txtr)
+{ u.x = 1; v.y = 1; pos.n.z = 1; }
+
+Sphere2::Sphere2(const Sphere2 &other) : Sphere2() { *this = other; }
+
+Sphere2&	Sphere2::operator=(const Sphere2& other) {
+	if (this != &other) {
+		pos = other.pos;
+		r = other.r;
+		sqR = other.sqR;
+		u = other.u;
+		v = other.v;
+		angle = other.angle;
+		ratio = other.ratio;
+		txtr = other.txtr;
+	} return *this;
+}
+
+Sphere2::~Sphere2(void) {}
+
 // Intersections, normals, rays
 
 bool	raySphereIntersection(const Vec3f& rayDir,

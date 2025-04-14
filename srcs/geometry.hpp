@@ -24,6 +24,7 @@ const float M_PI_180(M_PI / 180.);
 const float M_180_PI(180. / M_PI);
 const float _2INFINITY(2. * _INFINITY);
 const float SQ_OUTLINE_WIDTH(OUTLINE_WIDTH * OUTLINE_WIDTH);
+const float M_1_2PI(1. / M_2PI);
 
 enum Hit { FRONT, BACK, OUTLINE, ANY_SHADOW, ALL_SHADOWS, INSIDE, OUTSIDE, IN_VOLUME };
 enum CombineType { END=0, UNION, SUBTRACTION, INTERSECTION };
@@ -180,6 +181,10 @@ template <class t> struct Vec3 {
 		r = std::sqrt(x * x + y * y + z * z);
 		phi = std::atan2(y, x);
 		theta = std::acos(z / r);
+	}
+	inline void cartesianDir2spherical(float& phi, float& theta) const {
+		phi = std::atan2(y, x);
+		theta = std::acos(z);
 	}
 	Vec3<t>& spherical2cartesian(float phi, float theta, float r = 1) {
 		float sinTheta = std::sin(theta);
@@ -637,6 +642,120 @@ struct Square : public Rectangle {
 		os << std::setw(18) << std::left << output_planeGeometry();
 		os << " " << std::setw(5) << std::right << w_2 * 2;
 		return os.str();
+	}
+};
+
+//	struct Sphere 2
+struct Sphere2 {
+	Position pos;
+	float	r;
+	float	sqR;
+	Vec3f	u;
+	Vec3f	v;
+	float	angle;
+	Vec2f	ratio;
+	Texture2*	txtr;
+
+	Sphere2(void);
+	Sphere2(Texture2* _txtr);
+	Sphere2(const Sphere2& other);
+	Sphere2&	operator=(const Sphere2& other);
+	~Sphere2(void);
+	inline void  lookat(const Position& eye, const LookatAux& aux, float roll) {
+		if (roll == 0) {
+			pos.n.lookatDir(aux);
+			pos.p.lookatPt(eye.p, aux);
+			u.lookatDir(aux);
+			v.lookatDir(aux);
+		} else {
+			this->roll(-roll);
+			pos.n.lookatDir(aux);
+			pos.p.lookatPt(eye.p, aux);
+			u.lookatDir(aux);
+			v.lookatDir(aux);
+			this->roll(roll);
+		}
+	}
+	inline void  roll(float roll) {
+		pos.p.turnAroundZ(roll);
+		pos.n.turnAroundZ(roll);
+		u.turnAroundZ(roll);
+		v.turnAroundZ(roll);
+	}
+	inline bool  isTexture(void) const { return txtr; }
+	inline void  set_geometry(std::istringstream& is) {
+		is >> pos.p >> pos.n >> angle >> r;
+		pos.n.normalize();
+		angle = degree2radian(f2limits(angle, 0, 360));
+		r = r < 0 ? -r * 0.5 : r * 0.5;
+		sqR = r * r;
+		if (std::max(std::abs(pos.n.x), std::max(std::abs(pos.n.y), std::abs(pos.n.z))) == std::abs(pos.n.y)) {
+			u.set_xyz(1,0,0); v.set_xyz(0,0,-1);
+			u.turnAroundY(angle);
+			v.turnAroundY(angle);
+		} else if (std::max(std::abs(pos.n.x), std::max(std::abs(pos.n.y), std::abs(pos.n.z))) == std::abs(pos.n.x)) {
+			u.set_xyz(0,0,1); v.set_xyz(0,1,0);
+			u.turnAroundX(angle);
+			v.turnAroundX(angle);
+		} else {
+			u.set_xyz(1,0,0); v.set_xyz(0,1,0);
+			u.turnAroundZ(angle);
+			v.turnAroundZ(angle);
+		}
+	}
+	inline bool	intersection(const Vec3f& rayPov, const Vec3f& rayDir, float& distance, float& min_t, float& max_t, Hit& rayHit) const {
+		Vec3f	k = rayPov - pos.p;
+		float	c = k * k - sqR;
+		float	b = rayDir * k;
+		float	d = b * b - c;
+		if (d >= 0) {
+			float sqrt_d = std::sqrt(d);
+			float t1 = -b + sqrt_d;
+			float t2 = -b - sqrt_d;
+			min_t = std::min(t1, t2);
+			max_t = std::max(t1, t2);
+			if (std::abs(d) <= OUTLINE_WIDTH)
+				rayHit = OUTLINE;
+			return (rayHitDefinition(min_t, max_t, distance, rayHit));
+		}
+		return false;
+	}
+	inline Vec3f localHitPoint(const Vec3f& rayPov, const Vec3f& rayDir, float distance) const {
+		return rayPov + (rayDir * distance) -  pos.p;
+	}
+	inline Vec3f localHitPoint(const Vec3f& recPov) const {
+		return recPov -  pos.p;
+	}
+	inline	Sphere2*	clone(void) const {
+		return new Sphere2(*this);
+	}
+	inline int   getTextureRgba(const Vec3f& localHitPoint) const {
+		Vec3f	loc(localHitPoint * u, localHitPoint * v, localHitPoint * pos.n);
+		Vec2f	p;
+		loc.cartesianDir2spherical(p.u, p.v);
+		p.cartesian2scan(M_2PI, M_PI);
+		p.u = std::fmod(p.u * ratio.u, M_2PI) / M_2PI;
+		p.v = std::fmod(p.v * ratio.v, M_PI) / M_PI;
+		return txtr->get_rgba(p);
+	}
+	inline Vec3f getRandomPoint(void) const {
+		return Vec3f().randomInSphere(r) + pos.p;
+	}
+	inline std::string output_geometry(void) const {
+		std::ostringstream os;
+		os << " " << std::setw(5) << std::right << pos.p;
+		os << " " << std::setw(5) << std::right << pos.n;
+		os << " " << std::setw(5) << std::right << angle;
+		os << " " << std::setw(5) << std::right << r * 2;
+		return os.str();
+	}
+	inline void	getNormal(const Vec3f& intersectPt, Vec3f& normal) {
+		normal.substract(intersectPt, pos.p).normalize();
+	}
+	inline std::string getTextureName_if(void) {
+		if (txtr)
+			return txtr->get_id();
+		return "";
 	}
 };
 

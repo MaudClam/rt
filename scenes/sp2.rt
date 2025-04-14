@@ -1,0 +1,16 @@
+R   800 600  Sp2
+
+#   Lights
+#   spot/dir   ratio  color         center    direction  alpha  width  height
+A              0.2    0xFFFFFF
+ls	1,4,4      0.5    0xFFFFFF
+ld	-1,-4,-4   0.3    0xFFFFFF
+
+#   Cameras
+#   center      direction   FOV
+c   0,0,-2      0,0,1       60
+
+#   Spheres
+#   center   normal  angle diametr  color          glossy  reflective  refractive  matIOR
+sp2  0,-1,3  0,1,0   0     2        txtr::system3       500     0.1
+#sp  0,-5001,0              10000    0xFFFF00       1000    0.3

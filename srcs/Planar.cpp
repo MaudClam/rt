@@ -28,10 +28,10 @@ _planar(other._planar) {
 }
 
 Planar* Planar::clone(void) const {
-	Planar* light = new Planar(*this);
+	Planar* planar = new Planar(*this);
 	if (_planar)
-		light->_planar = _planar->clone();
-	return light;
+		planar->_planar = _planar->clone();
+	return planar;
 }
 
 void Planar::photonEmissions(int num, phRays_t& rays) const {
