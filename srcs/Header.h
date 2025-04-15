@@ -4,8 +4,8 @@
 # include <iostream>
 
 # define CREATORS			"mclam, cvignar"
-//# define DEBUG_PATH			"/Users/uru/Library/Mobile Documents/com~apple~CloudDocs/42_Projects/rt/"
-# define DEBUG_PATH			"/Users/anna/42/rt/"
+# define DEBUG_PATH			"/Users/uru/Library/Mobile Documents/com~apple~CloudDocs/42_Projects/rt/"
+//# define DEBUG_PATH			"/Users/anna/42/rt/"
 # define CONTROLS_FILE		"scenes/controls"
 # define PARSING_LOGFILE	"parsing.log"
 # define TEXTURE_KEY		"txtr:"

@@ -334,7 +334,7 @@ sqR(0),
 u(),
 v(),
 angle(0),
-ratio(8,4),
+ratio(1,1),
 txtr(_txtr)
 { u.x = 1; v.y = 1; pos.n.z = 1; }
 

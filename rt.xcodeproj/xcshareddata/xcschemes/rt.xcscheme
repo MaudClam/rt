@@ -58,11 +58,11 @@
          </CommandLineArgument>
          <CommandLineArgument
             argument = "/Users/uru/Library/Mobile\ Documents/com~apple~CloudDocs/42_Projects/rt/scenes/sp2.rt"
-            isEnabled = "NO">
+            isEnabled = "YES">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "/Users/anna/42/rt/scenes/sp2.rt"
-            isEnabled = "YES">
+            isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "/Users/anna/42/rt/scenes/balls.rt"

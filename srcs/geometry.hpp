@@ -382,7 +382,7 @@ public:
 	inline int get_rgba(float u, float v) const {
 		size_t i = Vec2i(u * _width, v * _height).scan2string(_width);
 		if (DEBUG && i >= size()) std::cout << i << " ";//FIXME
-		i = i < size() ? i : 0;
+		i = i < size() ? i : size() - 1;
 		return (*this)[i];
 	}
 	inline void set_id(const std::string& id) { _id = id; }
@@ -729,8 +729,8 @@ struct Sphere2 {
 	inline int   getTextureRgba(const Vec3f& loc) const {
 		float phi(0), theta(0), _r(0);
 		Vec3f(loc * u, loc * v, loc * pos.n).cartesian2spherical(phi, theta, _r);
-		phi = std::fmod((phi + M_PI) * ratio.u, M_2PI) / (M_2PI + PRECISION);
-		theta = std::fmod(theta * ratio.v, M_PI) / (M_PI + PRECISION);
+		phi = std::fmod((phi + M_PI) * ratio.u, M_2PI) / float(M_2PI + EPSILON);
+		theta = std::fmod(theta * ratio.v, float(M_PI)) / float(M_PI + EPSILON);
 		return txtr->get_rgba(phi, theta);
 	}
 	inline Vec3f getRandomPoint(void) const {
