@@ -57,6 +57,7 @@ typedef std::map<ClasterKey,Claster>	clasters_t;
 
 class PhotonMap : public clasters_t {
 	int _sizeGlobal, _sizeCaustic, _sizeVolume, _looped;
+	float _time;
 public:
 	int		totalPhotons;
 	int		estimate;

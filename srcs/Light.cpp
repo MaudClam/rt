@@ -46,8 +46,8 @@ void Light::photonEmissions(int num, phRays_t& rays) const {
 		case DIRECTLIGHT_RECTANGULAR:	direct = true; break;
 		default: break;
 	}
-	int amt = std::sqrt(num);
-	for (int i = 0; i < amt; i++) {
+	int amt = std::cbrt(num), p_amt = amt * amt;
+	for (int i = 0; i < p_amt; i++) {
 		Vec3f pov = _planar->getRandomPoint();
 		Rgb	  pow;
 		if (isTexture()) {
@@ -57,7 +57,7 @@ void Light::photonEmissions(int num, phRays_t& rays) const {
 			pow = get_light() * _1_num;
 		}
 		rays.createPhotons(amt, pow, pov, _planar->pos.n,
-						   direct ? Rays::DIRECT : Rays::HEMISPHERE);
+						   direct ? Rays::DIRECT : Rays::HEMISPHERE_COSINE);
 	}
 }
 
@@ -104,7 +104,7 @@ std::istringstream& operator>>(std::istringstream& is, Light& l) {
 	l._light.setLighting_if(is, l._planar->txtr);
 	l._planar->set_geometry(is);
 	if (spot && l._pos.p.isNull())
-		l._pos.p = l._planar->pos.p + l._planar->pos.n * -1 * l._planar->getMaxSize();
+		l._pos.p = l._planar->pos.p + l._planar->pos.n * -1 * (2 * l._planar->getMaxSize());
 	if (!spot && l._pos.n.isNull())
 		l._pos.n = l._planar->pos.n;
 	return is;

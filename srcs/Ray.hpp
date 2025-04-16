@@ -243,7 +243,6 @@ struct Ray : public HitRecord {
 		}
 		return nearest.s;
 	}
-//	inline Vec3f getHitPoint(void) const { return Vec3f(pov + (dir * dist)); }
 	inline void getDir2Light(const Position& pos) {
 		if (pos.n.isNull()) {
 			dist = dir.substract(pos.p, pov).norm();

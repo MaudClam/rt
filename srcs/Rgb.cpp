@@ -63,7 +63,7 @@ Rgb& Rgb::operator*=(float f) {
 Rgb& Rgb::attenuate(int attenuation, float fading) {
 	if (attenuation != -1)
 		*this *= attenuation;
-	if (fading >= 0 && fading < 1)
+//	if (fading >= 0 && fading < 1)
 		*this *= fading;
 	return *this;
 }

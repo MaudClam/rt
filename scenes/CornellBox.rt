@@ -1,23 +1,23 @@
-R    400 400  CornellBox NO  500000  60  0.1
+R    600 600  CornellBox GLOBAL  500000  60  0.15
 
 #	 Lights
-#    spot   ratio color     center     direction  alpha  width  height
-A           1.0   0xFFFFFF
-lsr  0,0,0  1.0   0xFFFFFF  0,2.499,0  0,-1,0     0      2      1
+#    spot   ratio  color     center     direction  alpha  width  height
+A           0    0xFFFFFF
+lsr  0,2.502,0  0.5    0xFFFFFF  0,2.5,0  0,-1,0     0      3      3
 
 #    Cameras
 #    center    direction  FOV
-c    0,0,-6    0,0,1      60
+c    0,0,-6.5    0,0,1      60
 
 #    Squares
 #    center    normal   alpha  side  color       glossy  reflective  refractive  matIOR
-sq   -2.5,0,0  1,0,0    0      5.01  0x1A3480
-sq   0,-2.5,0  0,1,0    0      5.01  0xBABABA
-sq   0,0,2.5   0,0,-1   0      5.01  0xBABABA
-sq   0,2.5,0   0,-1,0   0      5.01  0xBABABA
-sq   2.5,0,0   -1,0,0   0      5.01  0xA60D0D
+sq   -2.5,0,0  1,0,0    0      5.01  0x1A3480    10
+sq   0,-2.5,0  0,1,0    0      5.01  0xBABABA    10
+sq   0,0,2.5   0,0,-1   0      5.01  0xBABABA    10
+sq   0,2.5,0   0,-1,0   0      5.01  0xBABABA    10
+sq   2.5,0,0   -1,0,0   0      5.01  0xA60D0D    10
 
 #    Spheres
-#    center     diametr  color     glossy  reflective  refractive  matIOR
-sp	 1,-2,-1.5  1        0xFFFFFF  500     0.0         1.0         1.5
-sp	 -1,-2,0    1        0xFFFFFF  500     1
+#    center         diametr  color     glossy  reflective  refractive  matIOR
+sp	 1.1,-1.7,0     1.6        0xFFFFFF  500     0.0         0.9       1.5
+sp	 -1.1,-1.7,0.5  1.6        0xFFFFFF  500     0.9

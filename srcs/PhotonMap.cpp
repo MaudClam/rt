@@ -94,6 +94,7 @@ _sizeGlobal(0),
 _sizeCaustic(0),
 _sizeVolume(0),
 _looped(0),
+_time(0),
 totalPhotons(0),
 estimate(0),
 gridStep(0),
@@ -107,6 +108,7 @@ _sizeGlobal(0),
 _sizeCaustic(0),
 _sizeVolume(0),
 _looped(0),
+_time(0),
 totalPhotons(other.totalPhotons),
 estimate(other.estimate),
 gridStep(other.gridStep),
@@ -122,6 +124,7 @@ PhotonMap& PhotonMap::operator=(const PhotonMap& other) {
 	if (this != &other) {
 		deleteTraces();
 		_looped = other._looped;
+		_time = other._time;
 		totalPhotons = other.totalPhotons;
 		estimate = other.estimate;
 		gridStep = other.gridStep;
@@ -211,6 +214,7 @@ bool PhotonMap::tracePhotonPath(Scenerys& scenerys, Ray& ray, int r) {
 
 void PhotonMap::make(Scenerys& scenerys, Scenerys& lightsIdx) {
 	if (type != NO) {
+		auto start = std::chrono::high_resolution_clock::now();
 		phRays_t rays;
 		auto Begin = lightsIdx.begin(), End = lightsIdx.end();
 		for (auto lightSrc = Begin; lightSrc != End; ++lightSrc)
@@ -227,6 +231,9 @@ void PhotonMap::make(Scenerys& scenerys, Scenerys& lightsIdx) {
 				set_trace(*trace);
 			}
 		}
+		auto end = std::chrono::high_resolution_clock::now();//FIXME
+		std::chrono::duration<double> duration = end - start;//FIXME
+		_time = duration.count();
 		outputPhotonMapParametrs();
 	}
 }
@@ -262,5 +269,6 @@ void PhotonMap::outputPhotonMapParametrs(void) {
 		std::cout << "  global traces......" << _sizeGlobal << std::endl;
 	if (_sizeVolume)
 		std::cout << "  volume traces......" << _sizeVolume << std::endl;
+	std::cout << "  elapsed time......." << roundedString(_time, 4) << "sec" << std::endl;
 }
 

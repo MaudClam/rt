@@ -479,7 +479,7 @@ int Scene::set_any(std::istringstream is) {
 
 void Scene::set_scenery(A_Scenery* scenery) {
 	scenerys.push_back(scenery);
-	scenerys.back()->set_id((int)scenerys.size());
+//	scenerys.back()->set_id((int)scenerys.size());
 	if ( scenerys.back()->get_isLight() ) {
 		lightsIdx.push_back(scenery);
 	} else {
@@ -631,6 +631,12 @@ void Scene::changeCamerasOptions(int key, int option) {
 				}
 				case PATHTRACING: { if (cameras[0].tracingType == PATH) return;
 					img.flyby = OFF;
+					break;
+				}
+				case AMBIENT_LIGHTING: { if (cameras[0].ambient.get_ratio() == 0) return;
+					break;
+				}
+				case BACKGROUND_LIGHT: { if (cameras[0].ambient.get_ratio() == 0) return;
 					break;
 				}
 				default:

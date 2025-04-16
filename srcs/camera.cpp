@@ -450,7 +450,7 @@ void Camera::refractions(Ray& ray, HitRecord& rec, float fading, int r) {
 void Camera::lightings(Ray& ray, HitRecord& rec) {
 	if (fakeAmbientLightOn && tracingType == RAY) ray.fakeAmbientLighting(rec, ambient.light);
 	if (directLightOn) ray.directLightings(rec, scenerys, lightsIdx);
-	if (directLightOn && photonMap != NO) ray.phMapLightings(rec, phMap, photonMap);
+	if (photonMap != NO) ray.phMapLightings(rec, phMap, photonMap);
 }
 
 void Camera::ambientLightPathsTarcing(Ray& ray, HitRecord& rec, int r) {
@@ -474,6 +474,7 @@ void Camera::tracePath(Ray& ray, int r) {
 
 void Camera::ambientLightPath(Ray& ray, HitRecord& rec, int r) {
 	float fading = fakeAmbientLightOn ? ambient.get_ratio() : 1, shining = 0;
+	fading = fading == 0 ? 1 : fading;
 	Probability p;
 	rec.scnr->get_probability(p);
 	Choice choice = ray.chooseDirection(rec, p);

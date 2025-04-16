@@ -25,6 +25,7 @@ const float M_180_PI(180. / M_PI);
 const float _2INFINITY(2. * _INFINITY);
 const float SQ_OUTLINE_WIDTH(OUTLINE_WIDTH * OUTLINE_WIDTH);
 const float M_1_2PI(1. / M_2PI);
+const float CONE_FILTER_NORMALIZATION(1. - 2. / (3. * CONE_FILTER_COEFFICIENT));
 
 enum Hit { FRONT, BACK, OUTLINE, ANY_SHADOW, ALL_SHADOWS, INSIDE, OUTSIDE, IN_VOLUME };
 enum CombineType { END=0, UNION, SUBTRACTION, INTERSECTION };
@@ -380,8 +381,7 @@ public:
 	inline int get_height(void) const { return _height; }
 	inline int get_rgba(const Vec2f& p) const { return get_rgba(p.u, p.v); }
 	inline int get_rgba(float u, float v) const {
-		size_t i = Vec2i(u * _width, v * _height).scan2string(_width);
-		if (DEBUG && i >= size()) std::cout << i << " ";//FIXME
+		size_t i = Vec2i(std::abs(u * _width), std::abs(v * _height)).scan2string(_width);
 		i = i < size() ? i : size() - 1;
 		return (*this)[i];
 	}
@@ -729,8 +729,8 @@ struct Sphere2 {
 	inline int   getTextureRgba(const Vec3f& loc) const {
 		float phi(0), theta(0), _r(0);
 		Vec3f(loc * u, loc * v, loc * pos.n).cartesian2spherical(phi, theta, _r);
-		phi = std::fmod((phi + M_PI) * ratio.u, M_2PI) / float(M_2PI + EPSILON);
-		theta = std::fmod(theta * ratio.v, float(M_PI)) / float(M_PI + EPSILON);
+		phi = std::fmod((phi + M_PI) * ratio.u, M_2PI) / M_2PI;
+		theta = std::fmod(theta * ratio.v, M_PI) / M_PI;
 		return txtr->get_rgba(phi, theta);
 	}
 	inline Vec3f getRandomPoint(void) const {

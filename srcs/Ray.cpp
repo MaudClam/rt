@@ -359,27 +359,31 @@ Ray& Ray::phMapLightings(HitRecord& rec, const PhotonMap& phMap, MapType type) {
 		phMap.get_traces27(pov, traces, type);
 		if (!traces.empty()) {
 			std::map<float, TraceAround> sortedTraces;
-			float sqRadius = phMap.get_sqr();
+			float radius = phMap.gridStep * 0.5;
 			int scnrId = rec.scnr->get_id(), estimate = phMap.estimate;
 			for (auto trace = traces.begin(), end = traces.end(); trace != end; ++trace) {
 				if ((*trace)->scnrId == scnrId) {
-					float sqDistance = std::abs((rec.pov - (*trace)->pos.p).sqnorm());
-					if (sqDistance <= sqRadius) {
-						float fading = deNaN(-((*trace)->pos.n * rec.norm));
-						if (fading > +0)
-							sortedTraces.emplace(sqDistance, TraceAround(fading, *trace));
+					float distance = (rec.pov - (*trace)->pos.p).norm();
+					if (distance <= radius) {
+						float fading = -((*trace)->pos.n * rec.norm);
+						if (fading > 0)
+							sortedTraces.emplace(distance, TraceAround(fading, *trace));
 					}
 				}
 			}
 			if (!traces.empty()) traces.clear();
 			int n = 0;
 			auto it = sortedTraces.begin(), last = sortedTraces.begin(), End = sortedTraces.end();
-			for (; it != End && n <= estimate; ++it, n++) {
-				pow += Rgb(it->second.trace->pow).attenuate(-1, it->second.fading);
+			for (; it != End && n <= estimate; ++it, n++)
 				last = it;
+			float maxR = last->first;
+			for (it = sortedTraces.begin(), n = 0; it != End && n <= estimate; ++it, n++) {
+				float w = 1. - it->first / (maxR * CONE_FILTER_COEFFICIENT);
+				pow += Rgb(it->second.trace->pow).attenuate(-1, it->second.fading * w);
 			}
 			if (!pow.isNull() && n >= MIN_ESTIMATE_PHOTONS) {
-				pow *= float(1.0f / (M_PI * last->first) * n);
+				float W = CONE_FILTER_NORMALIZATION * M_PI * maxR * maxR;
+				pow *= float(n * 1.0f / W);
 				pow.attenuate(rec.scnr->getColor(rec), diffusion);
 				reset(rec);
 			} else {

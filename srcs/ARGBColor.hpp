@@ -56,7 +56,7 @@ public:
 	inline float get_ratio(void) const { return _ratio; }
 	inline int   get_glow(void) const { return _color.val; }
 	inline void  set_ratio(float ratio) {
-		_ratio = f2limits(ratio, 0, 1.);
+		_ratio = f2limits(ratio, 0, 10);
 		light = _color.val;
 		light *= _ratio;
 	}

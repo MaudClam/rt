@@ -326,3 +326,85 @@ if ( !almostEqual(k, 0, EPSILON) ) {
 	set_any("sp	2,1,4		4		0xFFFFFF	500		0.0		1.0		1.5");
 	set_any("sp	-2,0,4		2		0x1A3480	10");
 	set_any("sp	0,-5001,0	10000	0xFFFFEE	0.01		0.3");
+
+	#include <cmath>
+
+	struct Vec3 {
+		float x, y, z;
+
+		Vec3 operator+(const Vec3& other) const {
+			return {x + other.x, y + other.y, z + other.z};
+		}
+
+		Vec3 operator-(const Vec3& other) const {
+			return {x - other.x, y - other.y, z - other.z};
+		}
+
+		Vec3 operator*(float scalar) const {
+			return {x * scalar, y * scalar, z * scalar};
+		}
+
+		float dot(const Vec3& other) const {
+			return x * other.x + y * other.y + z * other.z;
+		}
+
+		Vec3 normalize() const {
+			float length = std::sqrt(x * x + y * y + z * z);
+			return {x / length, y / length, z / length};
+		}
+	};
+
+	float BRDF(const Vec3& lightDir, const Vec3& viewDir, const Vec3& normal, float roughness) {
+		// Оценка отражательной способности (BRDF)
+		Vec3 halfDir = (lightDir + viewDir).normalize();
+		
+		float NdotL = std::max(0.0f, normal.dot(lightDir));
+		float NdotV = std::max(0.0f, normal.dot(viewDir));
+		float NdotH = std::max(0.0f, normal.dot(halfDir));
+		
+		// Простая модель (например, Cook-Torrance)
+		float specular = std::pow(NdotH, roughness);
+		
+		// Итоговая BRDF
+		return (NdotL * NdotV * specular) / (4.0f * NdotH);
+	}
+
+	#include <iostream>
+	#include <random>
+
+	double generateRandomNumber() {
+		// Создаем генератор случайных чисел
+		std::random_device rd; // Источник случайных чисел
+		std::mt19937 gen(rd()); // Инициализируем генератор
+		std::uniform_real_distribution<> dis(0.0, 1.0); // Определяем диапазон
+
+		return dis(gen); // Генерируем и возвращаем случайное число
+	}
+
+	int main() {
+		// Генерируем и выводим 10 случайных чисел
+		for (int i = 0; i < 10; ++i) {
+			std::cout << generateRandomNumber() << std::endl;
+		}
+		return 0;
+	}
+
+	#include <iostream>
+	#include <chrono>
+
+	void myFunction() {
+		// Пример кода, который мы будем измерять
+		for (volatile int i = 0; i < 1000000; ++i);
+	}
+
+	int main() {
+		auto start = std::chrono::high_resolution_clock::now(); // Начало отсчета
+
+		myFunction(); // Вызов функции
+
+		auto end = std::chrono::high_resolution_clock::now(); // Конец отсчета
+		std::chrono::duration<double> duration = end - start; // Вычисление времени выполнения
+
+		std::cout << "Время выполнения: " << duration.count() << " секунд" << std::endl;
+		return 0;
+	}

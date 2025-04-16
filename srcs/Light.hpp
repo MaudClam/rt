@@ -91,7 +91,7 @@ public:
 				ray.paint = _planar->getTextureRgba(_planar->localHitPoint(ray.pov, ray.dir, ray.dist));
 			else
 				ray.paint = _light.get_glow();
-//			ray.paint *= _light.get_ratio() * LIGHTS_GLOWING_FACTOR;
+			ray.paint *= (LIGHTS_GLOWING_FACTOR * _light.get_ratio());
 		}
 		return true;
 	}

@@ -22,10 +22,10 @@ float	f2limits(float num, float min, float max) {
 }
 
 double	random_double(void) {
-	static std::uniform_real_distribution<double> distribution(0.0, 1.0);
-	static std::mt19937				generator;
-	static std::function<double()>	rand_generator = std::bind(distribution, generator);
-	return rand_generator();
+	static std::random_device rd;
+	static std::mt19937 gen(rd());
+	static std::uniform_real_distribution<> dis(0.0, 1.0);
+	return dis(gen);
 }
 
 double	randomUnitCoordinate(void) {
@@ -75,7 +75,7 @@ float	getShining(const Vec3f& dirFromPov, const Vec3f& normal, const Vec3f& dirT
 float	getShining_(const Vec3f& dirFromPov, const Vec3f& normal, Vec3f dirToLight, float glossy) {
 	if (glossy) {
 		float k = dirFromPov * dirToLight.reflect(normal);
-		if (k > +0)
+		if (k > 0)
 			return std::pow(k, glossy);
 	}
 	return 0;
@@ -334,7 +334,7 @@ sqR(0),
 u(),
 v(),
 angle(0),
-ratio(1,1),
+ratio(8,4),
 txtr(_txtr)
 { u.x = 1; v.y = 1; pos.n.z = 1; }
 
