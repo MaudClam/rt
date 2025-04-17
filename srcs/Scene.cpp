@@ -504,10 +504,14 @@ void Scene::makeLookatsForCameras(void) {
 	}
 }
 
-void Scene::rt(void) {
-//	if (DEBUG_MODE) std::cout << "Tracing..." << std::endl;
-	Camera* cCam = &cameras[_currentCamera];
+void Scene::rt(bool timerOn) {
+	Camera*	cCam = &cameras[_currentCamera];
+	bool cond_path = TIMER_MODE && timerOn && cCam->tracingType == PATH;
+	bool cond_ray  = TIMER_MODE && timerOn && cCam->tracingType == RAY;
+	auto start = std::chrono::high_resolution_clock::now();
 	cCam->runThreadRoutine(RAYS_TRACING);
+	displayTimeMs(elapsedTimeMs(start, cond_path), "Path tarcing time");
+	displayTimeMs(elapsedTimeMs(start, cond_ray),  "Ray  tarcing time");
 	cCam->runThreadRoutine(TAKE_PICTURE, &this->img);
 	mlx_put_image_to_window(img.get_mlx(), img.get_win(), img.get_image(), 0, 0);
 }
@@ -656,7 +660,7 @@ void Scene::changeCamerasOptions(int key, int option) {
 			default: return;
 		}
 	}
-	rt();
+	rt(true);
 }
 
 

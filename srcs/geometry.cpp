@@ -87,6 +87,29 @@ float	getSchlick(float cosine, float eta) {
 	return r0 + (1 - r0) * pow((1 - cosine), 5);
 }
 
+long	elapsedTimeMs(const decltype(std::chrono::high_resolution_clock::now())& start, bool condition) {
+	if (condition) {
+		auto finish = std::chrono::high_resolution_clock::now();
+		return std::chrono::duration_cast<std::chrono::milliseconds>(finish - start).count();
+	}
+	return 0;
+}
+
+void displayTimeMs(long ms, std::string hint) {
+	if (ms > 0) {
+		long d = ms / 86400000; ms -= (d * 86400000);
+		long h = ms / 3600000; ms -= (h * 3600000);
+		long m = ms / 60000; ms -= (m * 60000);
+		long s = ms / 1000; ms -= (s * 1000);
+		if (!hint.empty())std::cout << hint << ": ";
+		if (d) std::cout << d << "d:";
+		if (d || h) std::cout << h << "h:";
+		if (d || h || m) std::cout << m << "m:";
+		if (d || h || m || s) std::cout << s << "s:";
+		if (d || h || m || s || ms) std::cout << ms << "ms" << std::endl;
+	}
+}
+
 std::string roundedString(float num, int factor) {
 	std::string sign("");
 	if (num < 0) {

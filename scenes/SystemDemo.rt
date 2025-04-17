@@ -14,7 +14,7 @@ c    0,1,-8    0,0,1      60
 #    center     diametr  color     glossy  reflective  refractive  matIOR
 #sp   2,0,4      2        0xFFFFFF  500     0.0         1.0         1.5
 sp   -2,0,2     2        0x1A3480  10
-sp   0,-5001,0  10000    0xFFFF88
+sp  0,-5001,0        10000    0xFFFF88
 
 #    Planars
 #    center       direction  angle  weidth  heighth  color         glossy  reflective  refractive  matIOR

@@ -231,8 +231,8 @@ void PhotonMap::make(Scenerys& scenerys, Scenerys& lightsIdx) {
 				set_trace(*trace);
 			}
 		}
-		auto end = std::chrono::high_resolution_clock::now();//FIXME
-		std::chrono::duration<double> duration = end - start;//FIXME
+		auto end = std::chrono::high_resolution_clock::now();
+		std::chrono::duration<double> duration = end - start;
 		_time = duration.count();
 		outputPhotonMapParametrs();
 	}
@@ -269,6 +269,6 @@ void PhotonMap::outputPhotonMapParametrs(void) {
 		std::cout << "  global traces......" << _sizeGlobal << std::endl;
 	if (_sizeVolume)
 		std::cout << "  volume traces......" << _sizeVolume << std::endl;
-	std::cout << "  elapsed time......." << roundedString(_time, 4) << "sec" << std::endl;
+	std::cout << "  elapsed time......." << roundedString(_time, 4) << "sec\n" << std::endl;
 }
 

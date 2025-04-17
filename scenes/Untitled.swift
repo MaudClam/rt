@@ -408,3 +408,25 @@ if ( !almostEqual(k, 0, EPSILON) ) {
 		std::cout << "Время выполнения: " << duration.count() << " секунд" << std::endl;
 		return 0;
 	}
+
+	#include <iostream>
+	#include <chrono>
+
+	int main() {
+		std::chrono::duration<double> duration(3661.123); // Пример длительности в секундах
+
+		auto hours = std::chrono::duration_cast<std::chrono::hours>(duration);
+		auto minutes = std::chrono::duration_cast<std::chrono::minutes>(duration) -
+					   std::chrono::duration_cast<std::chrono::hours>(duration);
+		auto seconds = std::chrono::duration_cast<std::chrono::seconds>(duration) -
+					   std::chrono::duration_cast<std::chrono::minutes>(duration);
+		auto milliseconds = std::chrono::duration_cast<std::chrono::milliseconds>(duration) -
+							std::chrono::duration_cast<std::chrono::seconds>(duration);
+
+		std::cout << "Часы: " << hours.count() << ", "
+				  << "Минуты: " << minutes.count() << ", "
+				  << "Секунды: " << seconds.count() << ", "
+				  << "Миллисекунды: " << milliseconds.count() << std::endl;
+
+		return 0;
+	}

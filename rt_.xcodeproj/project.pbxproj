@@ -17,6 +17,7 @@
 		667951792C427BFD009C1DDD /* camera.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 667951772C427BFD009C1DDD /* camera.cpp */; settings = {COMPILER_FLAGS = "-Wall -Wextra -Werror -O2"; }; };
 		6679518B2C5216B7009C1DDD /* Light.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 667951892C5216B7009C1DDD /* Light.cpp */; settings = {COMPILER_FLAGS = "-Wall -Wextra -Werror -O2"; }; };
 		667951922C5293BB009C1DDD /* ARGBColor.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 667951912C5293BB009C1DDD /* ARGBColor.cpp */; settings = {COMPILER_FLAGS = "-Wall -Wextra -Werror -O2"; }; };
+		668AAA712DB00B29006D2BDA /* Timer.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 668AAA702DB00B29006D2BDA /* Timer.cpp */; };
 		668B635B2D885609006DBF53 /* Rgb.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 668B635A2D885609006DBF53 /* Rgb.cpp */; settings = {COMPILER_FLAGS = "-Wall -Wextra -Werror -O2"; }; };
 		668B63672DA6FCA2006DBF53 /* Planar.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 668B63662DA6FCA2006DBF53 /* Planar.cpp */; settings = {COMPILER_FLAGS = "-Wall -Wextra -Werror -O2"; }; };
 		66D1668D2C3B4243002E6F7E /* libmlx.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 66D1668C2C3B4243002E6F7E /* libmlx.a */; };
@@ -65,6 +66,8 @@
 		6679518F2C5293BB009C1DDD /* geometry.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = geometry.hpp; sourceTree = "<group>"; };
 		667951902C5293BB009C1DDD /* ARGBColor.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = ARGBColor.hpp; sourceTree = "<group>"; };
 		667951912C5293BB009C1DDD /* ARGBColor.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = ARGBColor.cpp; sourceTree = "<group>"; };
+		668AAA6F2DB00B29006D2BDA /* Timer.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; path = Timer.hpp; sourceTree = "<group>"; };
+		668AAA702DB00B29006D2BDA /* Timer.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = Timer.cpp; sourceTree = "<group>"; };
 		668B63572D873531006DBF53 /* Rgb.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; path = Rgb.hpp; sourceTree = "<group>"; };
 		668B635A2D885609006DBF53 /* Rgb.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = Rgb.cpp; sourceTree = "<group>"; };
 		668B635C2D8DB467006DBF53 /* PhotonMap.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; path = PhotonMap.hpp; sourceTree = "<group>"; };
@@ -175,6 +178,8 @@
 				95DDE06B2DAD7E3E00155E7F /* Sp2.cpp */,
 				66D166C52C3C172F002E6F7E /* Sphere.hpp */,
 				66D166C42C3C172F002E6F7E /* Sphere.cpp */,
+				668AAA6F2DB00B29006D2BDA /* Timer.hpp */,
+				668AAA702DB00B29006D2BDA /* Timer.cpp */,
 			);
 			path = srcs;
 			sourceTree = "<group>";
@@ -213,7 +218,7 @@
 					};
 				};
 			};
-			buildConfigurationList = 6661C2122C38071100D58CDC /* Build configuration list for PBXProject "rt" */;
+			buildConfigurationList = 6661C2122C38071100D58CDC /* Build configuration list for PBXProject "rt_" */;
 			compatibilityVersion = "Xcode 14.0";
 			developmentRegion = en;
 			hasScannedForEncodings = 0;
@@ -239,6 +244,7 @@
 				6679518B2C5216B7009C1DDD /* Light.cpp in Sources */,
 				95DDE0682DAD681400155E7F /* Scene.cpp in Sources */,
 				660BE1792CBAD9890061AA16 /* PhotonMap.cpp in Sources */,
+				668AAA712DB00B29006D2BDA /* Timer.cpp in Sources */,
 				95DDE06C2DAD7E3E00155E7F /* Sp2.cpp in Sources */,
 				6661C21B2C38071100D58CDC /* main.cpp in Sources */,
 				665241D22C5BA6E700BD3A64 /* Ray.cpp in Sources */,
@@ -404,7 +410,7 @@
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
-		6661C2122C38071100D58CDC /* Build configuration list for PBXProject "rt" */ = {
+		6661C2122C38071100D58CDC /* Build configuration list for PBXProject "rt_" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				6661C21C2C38071100D58CDC /* Debug */,

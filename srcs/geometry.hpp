@@ -3,7 +3,7 @@
 
 # include <iomanip>
 # include <sstream>
-# include <functional>
+//# include <functional>
 # include <random>
 # include "Header.h"
 
@@ -46,6 +46,8 @@ bool	rayHitDefinition(float& min_t, float& max_t, float& distance, Hit& rayHit);
 float	getShining(const Vec3f& dirFromPov, const Vec3f& normal, const Vec3f& dirToLight, float glossy);
 float	getShining_(const Vec3f& dirFromPov, const Vec3f& normal, Vec3f dirToLight, float glossy);
 float	getSchlick(float cosine, float ref_idx);
+long	elapsedTimeMs(const decltype(std::chrono::high_resolution_clock::now())& start, bool condition);
+void	displayTimeMs(long ms, std::string hint = "");
 std::string roundedString(float num, int factor = 2);
 std::string combineType(CombineType type);
 std::string mapType(MapType);

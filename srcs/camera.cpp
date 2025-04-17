@@ -549,7 +549,6 @@ void Camera::runThreadRoutine(int routine, MlxImage* img) {
 	for (int i = 0; i < numThreads; i++) {
 		th[i].join();
 	}
-
 }
 
 

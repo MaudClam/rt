@@ -9,7 +9,7 @@ Rgb::Rgb(const Rgb& other) : b(0), g(0), r(0) { *this = other; }
 
 Rgb::Rgb(int rgba) : b(0), g(0), r(0) { *this = rgba; }
 
-Rgb::Rgb(float _r, float _g, float _b) : b(_b), g(_g), r(_r) {}
+Rgb::Rgb(double _r, double _g, double _b) : b(_b), g(_g), r(_r) {}
 
 Rgb::~Rgb(void) {}
 
@@ -60,10 +60,17 @@ Rgb& Rgb::operator*=(float f) {
 	return *this;
 }
 
+Rgb& Rgb::operator*=(double f) {
+	f = deNaN(f);
+	for (int i = 0; i < 3; i++)
+		raw[i] *= f;
+	return *this;
+}
+
 Rgb& Rgb::attenuate(int attenuation, float fading) {
 	if (attenuation != -1)
 		*this *= attenuation;
-//	if (fading >= 0 && fading < 1)
+	if (fading >= 0 && fading < 1)
 		*this *= fading;
 	return *this;
 }
@@ -80,7 +87,7 @@ MeanRgb::MeanRgb(void) : Rgb(), _n(0) {}
 
 MeanRgb::MeanRgb(const Rgb& other) : Rgb(), _n(0) { *this = other; }
 
-MeanRgb::MeanRgb(float _r, float _g, float _b) : Rgb(_r, _g, _b), _n(1) {}
+MeanRgb::MeanRgb(double _r, double _g, double _b) : Rgb(_r, _g, _b), _n(1) {}
 
 MeanRgb::~MeanRgb(void) {}
 

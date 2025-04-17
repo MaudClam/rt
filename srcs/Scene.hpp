@@ -16,9 +16,6 @@ class	Camera;
 
 typedef std::vector<std::string>				stringSet_t;
 typedef std::map<std::string, Texture2*>		textures2_t;
-typedef	std::random_device						rand_device_t;
-typedef	std::mt19937							rand_gen_t;
-typedef	std::uniform_real_distribution<float>	rand_distr_t;
 
 enum MsgType {
 	WELLCOM_MSG,
@@ -74,7 +71,7 @@ public:
 	int  set_any(std::istringstream is);
 	void set_scenery(A_Scenery* scenery);
 	void makeLookatsForCameras(void);
-	void rt(void);
+	void rt(bool timerOn = false);
 	void selectCamera(int ctrl);
 	void changeCameraFOV(int ctrl);
 	void moveCamera(int ctrl);

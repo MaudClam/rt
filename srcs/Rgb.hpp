@@ -11,8 +11,8 @@ const float _1_255(1. / 255);
 class Rgb {
 protected:
 	union {
-		struct { float b, g, r; };
-		float raw[3];
+		struct { double b, g, r; };
+		double raw[3];
 	};
 	inline int _setСhar(unsigned char c, int i) const {
 		return int(c) << (8 * i);
@@ -24,7 +24,7 @@ public:
 	Rgb(void);
 	Rgb(const Rgb& other);
 	Rgb(int rgba);
-	Rgb(float _r, float _g, float _b);
+	Rgb(double _r, double _g, double _b);
 	~Rgb(void);
 	virtual Rgb& operator=(const Rgb& other);
 	virtual Rgb& operator=(int rgba);
@@ -35,12 +35,14 @@ public:
 	Rgb& operator*=(const Rgb& other);
 	Rgb& operator*=(int rgba);
 	Rgb& operator*=(float f);
+	Rgb& operator*=(double f);
 	Rgb& attenuate(int attenuation, float fading);
 	inline Rgb operator*(float f) const { return Rgb(*this) *= f; }
+	inline Rgb operator*(double f) const { return Rgb(*this) *= f; }
 	inline float get_unitBand(int i) const {
 		return get_band(i) > 1 ? 1 : (get_band(i) < 0 ? 0 : get_band(i));
 	}
-	inline float get_maxBand(void) const {
+	inline double get_maxBand(void) const {
 		return std::max(std::max(get_band(0), get_band(1)), get_band(2));
 	}
 	inline int   get_rgba(float gamma = 1) const {
@@ -62,7 +64,7 @@ class MeanRgb : public Rgb {
 public:
 	MeanRgb(void);
 	MeanRgb(const Rgb& other);
-	MeanRgb(float _r, float _g, float _b);
+	MeanRgb(double _r, double _g, double _b);
 	~MeanRgb(void);
 	MeanRgb& operator=(const MeanRgb& other);
 	MeanRgb& operator=(int rgba);

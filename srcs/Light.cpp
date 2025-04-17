@@ -31,15 +31,15 @@ Light* Light::clone(void) const {
 
 void Light::photonEmissions(int num, phRays_t& rays) const {
 	bool direct = false;
-	float _1_num = 1.0f / num;
+	double _1_num = 1. / num;
 	switch (_type) {
 		case SPOTLIGHT: {
-			rays.createPhotons(num, Rgb(get_light()) *= _1_num, _pos.p, _pos.n, Rays::SPHERE);
+			rays.createPhotons(num, get_light() * _1_num, _pos.p, _pos.n, Rays::SPHERE);
 			return;
 		}
 		case DIRECTLIGHT: {
 			Vec3f pov = _pos.n * -(_INFINITY / 2);
-			rays.createPhotons(num * 0.5, Rgb(get_light()) *= _1_num, pov, _pos.n, Rays::SPHERE);
+			rays.createPhotons(num * 0.5, get_light() *= _1_num, pov, _pos.n, Rays::SPHERE);
 			return;
 		}
 		case DIRECTLIGHT_CIRCULAR:		direct = true; break;

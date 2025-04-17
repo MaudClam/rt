@@ -11,6 +11,7 @@
 # define TEXTURE_KEY		"txtr:"
 # define SUCCESS					0
 # define ERROR						-1
+# define TIMER_MODE					true
 # define DEBUG_MODE					true
 # define DEBUG_KEYS					false
 # define DEBUG_MOUSE				false
