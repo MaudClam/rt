@@ -154,7 +154,6 @@ template <class t> struct Vec3 {
 		}
 		return *this;
 	}
-	inline t product(const Vec3<t>& v) const { return x * v.x + y * v.y + z * v.z;}
 	inline float sqnorm(void) const { return x * x + y * y + z * z; }
 	inline float norm(void) const { return std::sqrt(sqnorm()); }
 	inline bool  isNull(void) const { return x == 0 && y == 0 && z == 0; }
@@ -468,7 +467,7 @@ struct A_Planar {
 		return false;
 	};
 	inline Vec3f localHitPoint(const Vec3f& rayPov, const Vec3f& rayDir, float distance) const {
-		return rayPov + (rayDir * distance) -  pos.p;
+		return rayPov + (rayDir * distance) -  pos.p;//????
 	}
 	inline Vec3f localHitPoint(const Vec3f& recPov) const {
 		return recPov -  pos.p;

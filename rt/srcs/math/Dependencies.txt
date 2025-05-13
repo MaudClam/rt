@@ -1,0 +1,5 @@
+math_constants.hpp			← [низший уровень]
+└── math_utils.hpp			← использует math_constants
+	└── vec.hpp				← использует math_utils
+		└── vec_utils.hpp	← использует vec + math_utils
+

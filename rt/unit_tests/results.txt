@@ -1,0 +1,24 @@
+TESTING PARAMETRS
+typename:           double
+number of attempts: 1e+09
+permissible error:  1e-08
+max coordinate:     1000
+▶️ test_spherical_conversion()      started....................✅ passed. Elapsed time: 4m:4s:993ms:613μs
+▶️ test_reflect_direction()         started....................✅ passed. Elapsed time: 2m:4s:278ms:211μs
+▶️ test_refract_schlick_direction() started....................✅ passed. Elapsed time: 2m:44s:617ms:207μs
+▶️ test_rotate_around_axis()        started....................✅ passed. Elapsed time: 3m:31s:884ms:2μs
+Elapsed time: 12m:25s:774ms:581μs
+
+TESTING PARAMETRS
+typename:           float
+number of attempts: 1e+09
+permissible error:  0.001
+max coordinate:     10
+▶️ test_spherical_conversion()      started....................✅ passed. Elapsed time: 2m:47s:444ms:412μs
+▶️ test_reflect_direction()         started....................✅ passed. Elapsed time: 2m:21s:485ms:696μs
+▶️ test_refract_schlick_direction() started....................✅ passed. Elapsed time: 2m:47s:543ms:918μs
+▶️ test_rotate_around_axis()        started....................✅ passed. Elapsed time: 3m:23s:67ms:228μs
+Elapsed time: 11m:19s:542ms:137μs
+
+static constexpr T polar_zone	= std::is_same_v<T, float> ? T(1e-5) : T(1e-10);
+

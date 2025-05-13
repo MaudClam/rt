@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <Scheme
-   LastUpgradeVersion = "1540"
+   LastUpgradeVersion = "1620"
    version = "1.7">
    <BuildAction
       parallelizeBuildables = "YES"
@@ -15,7 +15,7 @@
             buildForAnalyzing = "YES">
             <BuildableReference
                BuildableIdentifier = "primary"
-               BlueprintIdentifier = "6661C2162C38071100D58CDC"
+               BlueprintIdentifier = "668AAA982DB1034A006D2BDA"
                BuildableName = "rt"
                BlueprintName = "rt"
                ReferencedContainer = "container:rt.xcodeproj">
@@ -45,50 +45,12 @@
          runnableDebuggingMode = "0">
          <BuildableReference
             BuildableIdentifier = "primary"
-            BlueprintIdentifier = "6661C2162C38071100D58CDC"
+            BlueprintIdentifier = "668AAA982DB1034A006D2BDA"
             BuildableName = "rt"
             BlueprintName = "rt"
             ReferencedContainer = "container:rt.xcodeproj">
          </BuildableReference>
       </BuildableProductRunnable>
-      <CommandLineArguments>
-         <CommandLineArgument
-            argument = "/Users/uru/Library/Mobile\ Documents/com~apple~CloudDocs/42_Projects/rt/scenes/SystemDemo.rt"
-            isEnabled = "NO">
-         </CommandLineArgument>
-         <CommandLineArgument
-            argument = "/Users/uru/Library/Mobile\ Documents/com~apple~CloudDocs/42_Projects/rt/scenes/sp2.rt"
-            isEnabled = "NO">
-         </CommandLineArgument>
-         <CommandLineArgument
-            argument = "/Users/anna/42/rt/scenes/sp2.rt"
-            isEnabled = "NO">
-         </CommandLineArgument>
-         <CommandLineArgument
-            argument = "/Users/anna/42/rt/scenes/balls.rt"
-            isEnabled = "NO">
-         </CommandLineArgument>
-         <CommandLineArgument
-            argument = "/Users/uru/Library/Mobile\ Documents/com~apple~CloudDocs/42_Projects/rt/scenes/CornellBox.rt"
-            isEnabled = "YES">
-         </CommandLineArgument>
-         <CommandLineArgument
-            argument = "/Users/uru/Library/Mobile\ Documents/com~apple~CloudDocs/42_Projects/rt/parsing.log"
-            isEnabled = "NO">
-         </CommandLineArgument>
-         <CommandLineArgument
-            argument = "/Users/uru/Library/Mobile\ Documents/com~apple~CloudDocs/42_Projects/rt/scenes/balls.rt"
-            isEnabled = "NO">
-         </CommandLineArgument>
-         <CommandLineArgument
-            argument = "/Users/uru/Library/Mobile\ Documents/com~apple~CloudDocs/42_Projects/rt/scenes/balls1.rt"
-            isEnabled = "NO">
-         </CommandLineArgument>
-         <CommandLineArgument
-            argument = "/Users/uru/Library/Mobile\ Documents/com~apple~CloudDocs/42_Projects/rt/scenes/arches.rt"
-            isEnabled = "NO">
-         </CommandLineArgument>
-      </CommandLineArguments>
    </LaunchAction>
    <ProfileAction
       buildConfiguration = "Release"
@@ -100,7 +62,7 @@
          runnableDebuggingMode = "0">
          <BuildableReference
             BuildableIdentifier = "primary"
-            BlueprintIdentifier = "6661C2162C38071100D58CDC"
+            BlueprintIdentifier = "668AAA982DB1034A006D2BDA"
             BuildableName = "rt"
             BlueprintName = "rt"
             ReferencedContainer = "container:rt.xcodeproj">

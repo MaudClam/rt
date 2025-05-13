@@ -60,7 +60,6 @@
 		667951712C41AD05009C1DDD /* Scene.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; path = Scene.hpp; sourceTree = "<group>"; };
 		667951772C427BFD009C1DDD /* camera.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = camera.cpp; sourceTree = "<group>"; };
 		667951782C427BFD009C1DDD /* camera.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; path = camera.hpp; sourceTree = "<group>"; };
-		667951822C4D535C009C1DDD /* rt */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = rt; sourceTree = BUILT_PRODUCTS_DIR; };
 		667951892C5216B7009C1DDD /* Light.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = Light.cpp; sourceTree = "<group>"; };
 		6679518A2C5216B7009C1DDD /* Light.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; path = Light.hpp; sourceTree = "<group>"; };
 		6679518F2C5293BB009C1DDD /* geometry.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = geometry.hpp; sourceTree = "<group>"; };
@@ -68,6 +67,8 @@
 		667951912C5293BB009C1DDD /* ARGBColor.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = ARGBColor.cpp; sourceTree = "<group>"; };
 		668AAA6F2DB00B29006D2BDA /* Timer.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; path = Timer.hpp; sourceTree = "<group>"; };
 		668AAA702DB00B29006D2BDA /* Timer.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = Timer.cpp; sourceTree = "<group>"; };
+		668AAA8F2DB10281006D2BDA /* rt_ */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = rt_; sourceTree = BUILT_PRODUCTS_DIR; };
+		668AAAAE2DB952E5006D2BDA /* vector.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; path = vector.hpp; sourceTree = "<group>"; };
 		668B63572D873531006DBF53 /* Rgb.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; path = Rgb.hpp; sourceTree = "<group>"; };
 		668B635A2D885609006DBF53 /* Rgb.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = Rgb.cpp; sourceTree = "<group>"; };
 		668B635C2D8DB467006DBF53 /* PhotonMap.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; path = PhotonMap.hpp; sourceTree = "<group>"; };
@@ -135,11 +136,12 @@
 		6661C20E2C38071100D58CDC = {
 			isa = PBXGroup;
 			children = (
+				668AAAAE2DB952E5006D2BDA /* vector.hpp */,
 				6628EB0C2C93334900BC90BD /* scenes */,
 				6628EB082C91F2D800BC90BD /* Makefile */,
 				6659C4E42C39A8B200CC7FAB /* Frameworks */,
-				667951822C4D535C009C1DDD /* rt */,
 				6679518D2C5217A4009C1DDD /* srcs */,
+				668AAA8F2DB10281006D2BDA /* rt_ */,
 			);
 			sourceTree = "<group>";
 		};
@@ -187,9 +189,9 @@
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
-		6661C2162C38071100D58CDC /* rt */ = {
+		6661C2162C38071100D58CDC /* rt_ */ = {
 			isa = PBXNativeTarget;
-			buildConfigurationList = 6661C21E2C38071100D58CDC /* Build configuration list for PBXNativeTarget "rt" */;
+			buildConfigurationList = 6661C21E2C38071100D58CDC /* Build configuration list for PBXNativeTarget "rt_" */;
 			buildPhases = (
 				6661C2132C38071100D58CDC /* Sources */,
 				6661C2142C38071100D58CDC /* Frameworks */,
@@ -199,9 +201,9 @@
 			);
 			dependencies = (
 			);
-			name = rt;
+			name = rt_;
 			productName = rt;
-			productReference = 667951822C4D535C009C1DDD /* rt */;
+			productReference = 668AAA8F2DB10281006D2BDA /* rt_ */;
 			productType = "com.apple.product-type.tool";
 		};
 /* End PBXNativeTarget section */
@@ -211,7 +213,7 @@
 			isa = PBXProject;
 			attributes = {
 				BuildIndependentTargetsInParallel = 1;
-				LastUpgradeCheck = 1540;
+				LastUpgradeCheck = 1620;
 				TargetAttributes = {
 					6661C2162C38071100D58CDC = {
 						CreatedOnToolsVersion = 15.4;
@@ -231,7 +233,7 @@
 			projectDirPath = "";
 			projectRoot = "";
 			targets = (
-				6661C2162C38071100D58CDC /* rt */,
+				6661C2162C38071100D58CDC /* rt_ */,
 			);
 		};
 /* End PBXProject section */
@@ -296,6 +298,7 @@
 				CLANG_WARN_UNREACHABLE_CODE = YES;
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
 				COPY_PHASE_STRIP = NO;
+				DEAD_CODE_STRIPPING = YES;
 				DEBUG_INFORMATION_FORMAT = dwarf;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
 				ENABLE_TESTABILITY = YES;
@@ -357,6 +360,7 @@
 				CLANG_WARN_UNREACHABLE_CODE = YES;
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
 				COPY_PHASE_STRIP = NO;
+				DEAD_CODE_STRIPPING = YES;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
 				ENABLE_NS_ASSERTIONS = NO;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
@@ -382,12 +386,14 @@
 			buildSettings = {
 				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "-";
 				CODE_SIGN_STYLE = Automatic;
+				DEAD_CODE_STRIPPING = YES;
 				DEVELOPMENT_TEAM = 92PJT7J9M9;
 				ENABLE_HARDENED_RUNTIME = YES;
 				LIBRARY_SEARCH_PATHS = (
 					"$(inherited)",
 					"$(PROJECT_DIR)",
 				);
+				MACOSX_DEPLOYMENT_TARGET = 15.0;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
 			name = Debug;
@@ -397,12 +403,14 @@
 			buildSettings = {
 				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "-";
 				CODE_SIGN_STYLE = Automatic;
+				DEAD_CODE_STRIPPING = YES;
 				DEVELOPMENT_TEAM = 92PJT7J9M9;
 				ENABLE_HARDENED_RUNTIME = YES;
 				LIBRARY_SEARCH_PATHS = (
 					"$(inherited)",
 					"$(PROJECT_DIR)",
 				);
+				MACOSX_DEPLOYMENT_TARGET = 15.0;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
 			name = Release;
@@ -419,7 +427,7 @@
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
-		6661C21E2C38071100D58CDC /* Build configuration list for PBXNativeTarget "rt" */ = {
+		6661C21E2C38071100D58CDC /* Build configuration list for PBXNativeTarget "rt_" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				6661C21F2C38071100D58CDC /* Debug */,
