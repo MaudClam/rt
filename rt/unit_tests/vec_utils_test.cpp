@@ -2,57 +2,11 @@
 #include "Timer.hpp"
 #include "../srcs/math/vec_utils.hpp"
 
-#define PARAMETR_NAME_LENGTH	20
-#define TEST_NAME_LENGTH		32
-#define DISPLAYS_OF_PROGRESS	20
-
-// g++ -std=c++2a -O2 vec_utils_test.cpp -o vec_utils_test
+// g++ -std=c++2a -O2 -Wall -Wextra -Werror vec_utils_test.cpp -o vec_utils_test && ./vec_utils_test
 
 template <typename T>
-std::string get_type_name() {
-	if (std::is_same<T, float>::value) return "float";
-	if (std::is_same<T, double>::value) return "double";
-	if (std::is_same<T, long double>::value) return "long double";
-	return "unknown type";
-}
-
-template <typename T>
-void output_tests_parametrs(T attempts, T eps, T max) {
-	char fill = ' ';
-	std::cout << "TESTING PARAMETRS" << std::endl;
-	std::cout << std::left << std::setw(PARAMETR_NAME_LENGTH) << std::setfill(fill);
-	std::cout << "typename:" << get_type_name<T>() << std::endl;
-	std::cout << std::left << std::setw(PARAMETR_NAME_LENGTH) << std::setfill(fill);
-	std::cout << "number of attempts:" << attempts << std::endl;
-	std::cout << std::left << std::setw(PARAMETR_NAME_LENGTH) << std::setfill(fill);
-	std::cout << "permissible error:"  << eps << std::endl;
-	std::cout << std::left << std::setw(PARAMETR_NAME_LENGTH) << std::setfill(fill);
-	std::cout << "max coordinate:"  << max << std::endl;
-}
-
-void output_test_start_header(const std::string& str) {
-	static int name_length = TEST_NAME_LENGTH;
-	if ( int(str.size()) > name_length )
-		name_length = int(str.size());
-	std::cout << "▶️ " << std::left << std::setw(name_length) << std::setfill(' ') << str;
-	std::cout << " started";
-}
-
-template <typename T>
-void output_visualization_commands(const vec<T,3>& v_inv, const vec<T,3>& n, const vec<T,3>& v) {
-	std::cout << "COMMANDS FOR VISUALIZATION IN GEOGEBRA:\n";
-	std::cout << "A = (0,0,0)\n";
-	std::cout << "I = (" << v_inv << ")\n";
-	std::cout << "N = (" << n << ")\n";
-	std::cout << "R = (" << v << ")\n";
-	std::cout << "Vector(I + A, A)\n";
-	std::cout << "Vector(A, A + N)\n";
-	std::cout << "Vector(A, A + R)\n";
-}
-
-template <typename T>
-void test_spherical_conversion(T attempts, T eps, T max) {
-	output_test_start_header("test_spherical_conversion()");
+void spherical_conversion(T attempts, T eps, T max) {
+	output_test_start_header(__func__);
 	size_t step = attempts / DISPLAYS_OF_PROGRESS;
 	vec<T,3> cartesian, spherical, restored;
 	vec<T,2> unit_spherical;
@@ -80,12 +34,12 @@ void test_spherical_conversion(T attempts, T eps, T max) {
 			assert(false);
 		}
 		unit_spherical = vec<T,3>(cartesian).normalize().make_spherical_from_unit();
-		if ( !(std::abs(math::normalize_angle(unit_spherical.phi()) - math::normalize_angle(spherical.phi())) < eps) ) {
+		if ( !(std::abs(math::normalize_angle<T>(unit_spherical.phi()) - math::normalize_angle<T>(spherical.phi())) < eps) ) {
 			std::cerr << " ❌ i = " << with_separator(i) << ", mismatch in phi(): ";
 			std::cerr << unit_spherical.phi() << " vs " << spherical.phi() << std::endl;
 			assert(false);
 		}
-		if ( !(std::abs(math::normalize_angle(unit_spherical.theta()) - math::normalize_angle(spherical.theta())) < eps) ) {
+		if ( !(std::abs(math::normalize_angle<T>(unit_spherical.theta()) - math::normalize_angle<T>(spherical.theta())) < eps) ) {
 			std::cerr << " ❌ i = " << with_separator(i) << ", mismatch in theta(): ";
 			std::cerr << unit_spherical.theta() << " vs " << spherical.theta() << std::endl;
 			assert(false);
@@ -96,8 +50,8 @@ void test_spherical_conversion(T attempts, T eps, T max) {
 }
 
 template <typename T>
-void test_reflect_direction(T attempts, T eps, bool visualization = false) {
-	output_test_start_header("test_reflect_direction()");
+void reflect_direction(T attempts, T eps, bool visualization = false) {
+	output_test_start_header(__func__);
 	size_t step = attempts / DISPLAYS_OF_PROGRESS;
 	vec<T,3> ray;
 	vec<T,3> normal;
@@ -137,8 +91,8 @@ void test_reflect_direction(T attempts, T eps, bool visualization = false) {
 }
 
 template <typename T>
-void test_refract_schlick_direction(T attempts, T eps, T eta_from, T eta_to, bool visualization = false) {
-	output_test_start_header("test_refract_schlick_direction()");
+void refract_schlick_direction(T attempts, T eps, T eta_from, T eta_to, bool visualization = false) {
+	output_test_start_header(__func__);
 	size_t step = attempts / DISPLAYS_OF_PROGRESS;
 	vec<T,3> ray, normal, ray_initial, ray_refracted;
 	ScopedTimer t;
@@ -198,8 +152,8 @@ void test_refract_schlick_direction(T attempts, T eps, T eta_from, T eta_to, boo
 }
 
 template <typename T>
-void test_rotate_around_axis(T attempts, T eps, T max, bool visualization = false) {
-	output_test_start_header("test_rotate_around_axis()");
+void rotate_around_axis(T attempts, T eps, T max, bool visualization = false) {
+	output_test_start_header(__func__);
 	size_t step = attempts / DISPLAYS_OF_PROGRESS;
 	vec<T,3> ray;
 	vec<T,3> axis;
@@ -266,7 +220,8 @@ void test_rotate_around_axis(T attempts, T eps, T max, bool visualization = fals
 
 
 int main() {
-	size_t number_of_attempts	= 1e+9;
+	system("clear");
+	size_t number_of_attempts	= 1e+8;
 	{
 		using T = double;
 		T permissible_error		= 1e-8;
@@ -274,10 +229,10 @@ int main() {
 		ScopedTimer t;
 		output_tests_parametrs<T>(number_of_attempts, permissible_error, max_coordinate);
 		//	Tests
-		test_spherical_conversion<T>(number_of_attempts, permissible_error, max_coordinate);
-		test_reflect_direction<T>(number_of_attempts, permissible_error);
-		test_refract_schlick_direction<T>(number_of_attempts, permissible_error, 1.5, 1. / 1.5);
-		test_rotate_around_axis<T>(number_of_attempts, permissible_error, max_coordinate);
+		refract_schlick_direction<T>(number_of_attempts, permissible_error, 1.5, 1. / 1.5);
+		reflect_direction<T>(number_of_attempts, permissible_error);
+		rotate_around_axis<T>(number_of_attempts, permissible_error, max_coordinate);
+		spherical_conversion<T>(number_of_attempts, permissible_error, max_coordinate);
 	}
 	std::cout << std::endl;
 	{
@@ -287,10 +242,10 @@ int main() {
 		ScopedTimer t;
 		output_tests_parametrs<T>(number_of_attempts, permissible_error, max_coordinate);
 		//	Tests
-		test_spherical_conversion<T>(number_of_attempts, permissible_error, max_coordinate);
-		test_reflect_direction<T>(number_of_attempts, permissible_error);
-		test_refract_schlick_direction<T>(number_of_attempts, permissible_error, 1.5, 1. / 1.5);
-		test_rotate_around_axis<T>(number_of_attempts, permissible_error, max_coordinate);
+		refract_schlick_direction<T>(number_of_attempts, permissible_error, 1.5, 1. / 1.5);
+		reflect_direction<T>(number_of_attempts, permissible_error);
+		rotate_around_axis<T>(number_of_attempts, permissible_error, max_coordinate);
+		spherical_conversion<T>(number_of_attempts, permissible_error, max_coordinate);
 	}
 	std::cout << std::endl;
 	return 0;

@@ -1,17 +1,20 @@
 #ifndef MATH_CONSTANTS_HPP
 #define MATH_CONSTANTS_HPP
 
-#include <random>
-
 
 namespace math {
 
 template <typename T>
 struct constants {
-	static constexpr T pi			= T(3.14159265358979323846);
-	static constexpr T two_pi		= T(2) * pi;
-	static constexpr T deg2rad		= pi / T(180);
-	static constexpr T rad2deg		= T(180) / pi;
+	static constexpr long double pi_ld = 3.141592653589793238462643383279502884197L;
+	static constexpr T pi			= static_cast<T>(pi_ld);
+	static constexpr T two_pi		= static_cast<T>(2.0L * pi_ld);
+	static constexpr T inv_pi		= static_cast<T>(1.0L / pi_ld);
+	static constexpr T inv_two_pi	= static_cast<T>(0.5L / pi_ld);
+	static constexpr T pi_half		= static_cast<T>(0.5L * pi_ld);
+	static constexpr T deg2rad		= static_cast<T>(pi_ld / 180.0L);
+	static constexpr T rad2deg		= static_cast<T>(180.0L / pi_ld);
+
 	static constexpr T eps			= std::numeric_limits<T>::epsilon();
 	static constexpr T polar_zone	= std::is_same_v<T, float> ? T(1e-5) : T(1e-10);
 

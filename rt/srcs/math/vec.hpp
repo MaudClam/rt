@@ -1,17 +1,18 @@
 #ifndef VEC_HPP
 #define VEC_HPP
 
-#include <cstddef>            // size_t
-#include <cmath>              // std::sqrt
-#include <ostream>            // for operator<<
-#include <sstream>            // for operator>>
-#include <cassert>            // if used
+#include <cstddef>           // size_t
+#include <cmath>             // std::sqrt
+#include <ostream>           // for operator<<
+#include <sstream>           // for operator>>
+#include <cassert>           // assert
 #include "math_utils.hpp"
 #include "vec_utils.hpp"
 #include "onb.hpp"
 
 
 template <typename T, size_t N> struct vec;
+template <typename T> struct onb;
 
 using vec2d = vec<double,2>;
 using vec2f = vec<float,2>;
@@ -47,9 +48,11 @@ using vec4i = vec<int,4>;
 /// @see vec_utils.hpp for related free functions and utilities.
 template <typename T, size_t N>
 struct vec {
+	static_assert(std::is_arithmetic_v<T>, "vec<T, N>: T must be an arithmetic type");
+	static_assert(N > 0, "vec<T,N>: N must be greater than 0");
+
 	T e[N]{};
 
-	// ——— Constructors ———
 	constexpr vec() = default;
 	template <typename... Args> requires (sizeof...(Args) == N)
 	constexpr vec(Args... args) noexcept : e{ static_cast<T>(args)... } {}
@@ -122,17 +125,17 @@ struct vec {
 	constexpr vec&	set(T e0, T e1, T e2) noexcept requires(N == 3) { e[0] = e0; e[1] = e1; e[2] = e2; return *this; }
 	constexpr vec&	set(T e0, T e1, T e2, T e3) noexcept requires(N == 4) { e[0] = e0; e[1] = e1; e[2] = e2; e[3] = e3; return *this; }
 	constexpr vec&	fill(T f) noexcept { return map([f](T) { return f; }); }
-	constexpr vec&	de_nan() noexcept { return map([](T x) { return math::de_nan(x); }); }
+	constexpr vec&	de_nan() noexcept { return map([](T x) { return math::de_nan<T>(x); }); }
 	constexpr vec&	clamp(T lo, T hi) noexcept {
 		for (T& e_ : *this)
-			e_ = math::clamp(e_, lo, hi);
+			e_ = math::clamp<T>(e_, lo, hi);
 		return *this;
 	}
 	constexpr vec&	operator=(const vec& o) noexcept { return this->set(o); }
 	constexpr vec&	operator+=(const vec& o) noexcept { return zip_with(o, [](T x, T y) { return x + y; }); }
 	constexpr vec&	operator-=(const vec& o) noexcept { return zip_with(o, [](T x, T y) { return x - y; }); }
 	constexpr vec&	operator*=(T s) noexcept { return map([s](T x) { return x * s; }); }
-	constexpr vec&	operator/=(T s) { return map([s](T x) { return math::safe_division(x, s); }); }
+	constexpr vec&	operator/=(T s) { return map([s](T x) { return math::safe_division<T>(x, s); }); }
 	constexpr vec&	operator^=(const vec& o) noexcept requires(N == 3) { return set(vec().cross(*this,o)); }
 	constexpr vec&	cross(const vec& a, const vec& b) noexcept requires (N == 3) {
 		set(a[1]*b[2] - a[2]*b[1],
@@ -184,11 +187,15 @@ struct vec {
 		vec_from_local<T>(onb, *this);
 		return *this;
 	}
+	constexpr vec& transform_between(const onb<T>& from, const onb<T>& to) noexcept requires (N == 3) {
+		transform_between<T>(from, to, *this);
+		return *this;
+	}
 	[[nodiscard]]
 	constexpr vec<T,2> make_spherical_from_unit() const noexcept requires (N == 3) {
 		return {
-			math::spherical_phi(y(), x()),
-			math::spherical_theta(z())
+			math::spherical_phi<T>(y(), x()),
+			math::spherical_theta<T>(z())
 		};
 	}
 	constexpr vec& to_spherical() noexcept requires (N == 3) {

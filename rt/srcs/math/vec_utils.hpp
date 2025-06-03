@@ -1,12 +1,14 @@
 #ifndef VEC_UTILS_HPP
 #define VEC_UTILS_HPP
 
-#include <utility>            // std::forward
-#include <functional>         // std::plus, std::multiplies
-#include <random>
-#include "vec.hpp"            // vec<T,N>
-#include "onb.hpp"            // vec<T,N>
-#include "math_utils.hpp"     // clamp, safe_division...
+#include <utility>         // std::forward
+#include <functional>      // std::plus, std::multiplies
+#include "math_utils.hpp"  // clamp, safe_division...
+#include "vec.hpp"         // vec<T,N>
+#include "onb.hpp"         // onb<T>
+
+template <typename T, size_t N> struct vec;
+template <typename T> struct onb;
 
 
 template <typename T, size_t N, typename F>
@@ -63,7 +65,7 @@ constexpr T			operator*(const vec<T,N>& a, const vec<T,N>& b) noexcept {
 template <typename T, size_t N>
 [[nodiscard]]
 constexpr vec<T,N>	operator/(const vec<T,N>& v, T s) {
-	return map(v, [s](T x) { return math::safe_division(x, s); });
+	return map(v, [s](T x) { return math::safe_division<T>(x, s); });
 }
 
 template <typename T>
@@ -97,7 +99,7 @@ constexpr bool		operator!=(const vec<T,N>& a, const vec<T,N>& b) noexcept {
 }
 
 /// @brief Converts spherical coordinates phi, theta to Cartesian coordinates of a unit vector (x, y, z).
-/// @tparam T Floating point type (float or double)
+/// @tparam T Floating point type (float or double).
 /// @param phi spherical coordinate.
 /// @param theta spherical coordinate.
 /// @param[out] dst Reference to the destination vector.
@@ -119,13 +121,13 @@ void from_spherical_unit(T phi, T theta, vec<T,3>& dst) noexcept {
 template <typename T>
 void to_spherical(const vec<T,3>& src, vec<T,3>& dst) noexcept {
 	const T len = src.length();
-	dst.set(math::spherical_phi(src.y(), src.x()),
-			math::spherical_theta(src.z(), len),
+	dst.set(math::spherical_phi<T>(src.y(), src.x()),
+			math::spherical_theta<T>(src.z(), len),
 			len);
 }
 
 /// @brief Converts spherical coordinates (phi, theta, r) ​​to Cartesian coordinates (x, y, z).
-/// @tparam T Floating point type (float or double)
+/// @tparam T Floating point type (float or double).
 /// @param src Reference to the source vector.
 /// @param[out] dst Reference to the destination vector.
 /// @note  If r in the source vector is less than epsilon, all values ​​of the target vector are set to zero.
@@ -146,7 +148,7 @@ void from_spherical(const vec<T,3>& src, vec<T,3>& dst) noexcept {
 /// reconstructed from φ and z to ensure a unit vector. If the generated z is too close to ±1 (near the poles),
 /// the direction is clamped to (0, 0, ±1) to avoid precision issues near r = sqrt(1 - z²) → 0.
 /// All calculations involving φ are performed in double precision to maintain angular accuracy.
-/// @tparam T Floating point type (float or double)
+/// @tparam T Floating point type (float or double).
 /// @param[out] dst Output normalized direction vector
 template <typename T>
 void random_direction(vec<T,3>& dst) noexcept {
@@ -194,7 +196,7 @@ void rotate(T& x, T& y, T angle) noexcept {
 }
 
 /// @brief Rotate this vector around a normalized axis by the given angle (in radians).
-/// @tparam T Floating point type (float or double)
+/// @tparam T Floating point type (float or double).
 /// @param axis Reference to the normalized axis vector (must have unit length).
 /// @param angle The rotation angle in radians.
 /// @param[out] dst Reference to the destination vector.
@@ -213,7 +215,7 @@ void rotate_around_axis(const vec<T,3>& axis, T sin, T cos, vec<T,3>& dst) noexc
 }
 
 /// @brief Reflects a vector around the given surface normal.
-/// @tparam T Floating point type (float or double)
+/// @tparam T Floating point type (float or double).
 /// @param norm Reference to the normalized surface normal.
 /// @param[out] refl Reference to the input (destination) vector to reflect.
 /// @pre   Both the input vector and the normal are expected to be normalized.
@@ -224,7 +226,7 @@ void reflect_direction(const vec<T,3>& norm, vec<T,3>& refl) noexcept {
 }
 
 /// @brief Refracts the vector using eta and returns Schlick reflectance coefficient.
-/// @tparam T Floating point type (float or double)
+/// @tparam T Floating point type (float or double).
 /// @param normal Unit surface normal (oriented).
 /// @param eta Ratio of refractive indices. Already adjusted for ray direction.
 /// @param[out] refr Reference to the input (destination) vector to refracts.
@@ -255,7 +257,7 @@ constexpr T refract_schlick_direction(const vec<T,3>& normal, T eta, vec<T,3>& r
 /// @brief Convert Cartesian coordinates to screen coordinates.
 /// The center of the Cartesian system corresponds to the center of the screen.
 /// The Y axis is inverted (down on the screen - up in Cartesian).
-/// @tparam T Floating point type (float or double)
+/// @tparam T Floating point type (float or double).
 /// @param width Screen width.
 /// @param height Screen height.
 /// @param[out] dst Reference to the input (destination) vector to convert.
@@ -268,7 +270,7 @@ void to_screen(T width, T height, vec<T,N>& dst) noexcept requires (N >= 2) {
 /// @brief Convert screen coordinates to Cartesian.
 /// The center of the screen becomes the point (0,0).
 /// The Y axis is inverted (up in Cartesian - down on the screen).
-/// @tparam T Floating point type (float or double)
+/// @tparam T Floating point type (float or double).
 /// @param width Screen width.
 /// @param height Screen height.
 /// @param[out] dst Reference to the input (destination) vector to convert.
@@ -279,7 +281,7 @@ void from_screen(T width, T height, vec<T,N>& dst) noexcept requires (N >= 2) {
 }
 
 /// @brief Converts a linear index to screen coordinates.
-/// @tparam T Floating point type (float or double)
+/// @tparam T Floating point type (float or double).
 /// @param width The width of the image or buffer.
 /// @param index Linear index.
 /// @param[out] dst Reference to the input (destination) vector to convert.
@@ -290,7 +292,7 @@ void line_to_screen(size_t width, size_t index, vec<T,N>& dst) noexcept requires
 }
 
 /// @brief Converts screen coordinates to a linear index.
-/// @tparam T Floating point type (float or double)
+/// @tparam T Floating point type (float or double).
 /// @param width The width of the image or buffer.
 /// @param[out] dst Reference to the input (destination) vector to convert.
 /// @return Linear index.
@@ -300,6 +302,29 @@ constexpr size_t screen_to_line(size_t width, vec<T,N>& dst) noexcept requires (
 	return size_t(dst.v()) * width + size_t(dst.u());
 }
 
+/// @brief Transforms a vector between two local ONB coordinate systems.
+/// @details This function performs an in-place transformation of the given vector `dst`
+/// from the local coordinate system defined by `from` into the local coordinate system
+/// defined by `to`, without converting through the global coordinate system explicitly.
+/// The transformation is done in two steps:
+/// 1. Converts `dst` from the `from`-ONB local space into global space.
+/// 2. Converts the result from global space into the `to`-ONB local space.
+/// @note Both ONBs must be right-handed and orthonormal for the result to be valid.
+/// @tparam T Floating point type (float or double).
+/// @param from Source ONB defining the initial local coordinate system.
+/// @param to   Target ONB defining the destination local coordinate system.
+/// @param[out] dst  Reference to the input (destination) vector to transform.
+template <typename T>
+void transform_between(const onb<T>& from, const onb<T>& to, vec<T,3>& dst) noexcept {
+	vec_from_local(from, dst);
+	vec_to_local(to, dst);
+}
+
+/// @brief Transforms a vector into a local orthonormal basis ONB.
+/// @note ONB must be right and orthonormal for the result to be valid.
+/// @tparam T Floating point type (float or double).
+/// @param onb The original ONB.
+/// @param[out] dst  Reference to the input (destination) vector to transform.
 template <typename T>
 void vec_to_local(const onb<T>& onb, vec<T,3>& dst) noexcept {
 	T a[3]{};
@@ -308,6 +333,11 @@ void vec_to_local(const onb<T>& onb, vec<T,3>& dst) noexcept {
 	dst.set(a[0], a[1], a[2]);
 }
 
+/// @brief Transforms a vector into the global orthonormal basis ONB.
+/// @note ONB must be right and orthonormal for the result to be valid.
+/// @tparam T Floating point type (float or double).
+/// @param onb The original ONB.
+/// @param[out] dst  Reference to the input (destination) vector to transform.
 template <typename T>
 void vec_from_local(const onb<T>& onb, vec<T,3>& dst) noexcept {
 	vec<T,3> v[3]{};
@@ -323,32 +353,21 @@ std::ostream& operator<<(std::ostream& os, const vec<T,N>& v) {
 	os << "(";
 	for (size_t i = 0; i < N; i++) {
 		if (i > 0) os << ", ";
-		os << math::safe_format(v[i]);
+		os << math::safe_format<T>(v[i]);
 	}
 	os << ")";
 	return os;
 }
 
-bool remove_separator_if(std::istringstream& is, char sep) {
-	auto pos = is.tellg();
-	char trash;
-	is >> trash;
-	if (trash == sep)
-		return true;
-	else
-		is.seekg(pos);
-	return false;
-}
-
 template <typename T, size_t N>
-std::istringstream& operator>>(std::istringstream& is, vec<T,N>& v) {
-	remove_separator_if(is, '(');
+constexpr std::istringstream& operator>>(std::istringstream& is, vec<T,N>& v) {
+	math::remove_separator_if(is, "(");
 	for (size_t i = 0; i < N; i++) {
 		is >> v[i];
-		if (i + 1 != N && !remove_separator_if(is, ','))
+		if (i + 1 != N && !math::remove_separator_if(is, ","))
 			break;
 	}
-	remove_separator_if(is, ')');
+	math::remove_separator_if(is, ")");
 	return is;
 }
 

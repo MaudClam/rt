@@ -1,21 +1,43 @@
 #ifndef ONB_HPP
 #define ONB_HPP
 
-#include <cassert>
+#include "math_constants.hpp"
 #include "math_utils.hpp"
 #include "vec.hpp"
+#include "angle.hpp"
 #include "vec_utils.hpp"
+
+template <typename T, size_t N> struct vec;
+
+using namespace math;
 
 template <typename T>
 struct onb {
 	using vec = vec<T,3>;
+	using angle = angle<T>;
 	union {
 		vec axis[3];
 		struct { vec t, b, n; };
 	};
 
-	constexpr onb() = default;
-	constexpr onb(const onb&) noexcept = default;
+	constexpr onb() noexcept :
+	axis{
+		{T(1), T(0), T(0)},
+		{T(0), T(1), T(0)},
+		{T(0), T(0), T(1)}
+	} {}
+	
+	constexpr onb(const onb& o) noexcept : axis{} { *this = o; }
+
+	constexpr onb& operator=(const onb& o) noexcept {
+		if (this != &o)
+			for (size_t i = 0; i < 3; i++)
+				axis[i] = o.axis[i];
+		return *this;
+	}
+	
+	onb(onb&&) = delete;
+	onb& operator=(onb&&) = delete;
 	~onb() = default;
 	
 	// ——— Access ———
@@ -45,7 +67,7 @@ struct onb {
 	}
 	
 	/// @brief Transforms *this from local ONB space to world space.
-	constexpr vec from_local(const onb& onb) noexcept {
+	constexpr onb& from_local(const onb& onb) noexcept {
 		if (this != &onb)
 			for (vec a : *this)
 				vec_to_local(onb, a);
@@ -54,7 +76,7 @@ struct onb {
 
 	/// @brief Validates orthonormality of the basis (for debug).
 	[[nodiscard]]
-	bool is_orthonormal(T eps = math::constants<T>::eps) const noexcept {
+	bool is_orthonormal(T eps = constants<T>::eps) const noexcept {
 		return std::abs(dot(t, b)) < eps &&
 			   std::abs(dot(t, n)) < eps &&
 			   std::abs(dot(b, n)) < eps &&
@@ -64,28 +86,44 @@ struct onb {
 	}
 
 	/// @brief Rotate t and b around n.
-	constexpr onb& yaw(T angle) noexcept {
-		rotate(t, b, math::wrap_angle(angle), n);
+	constexpr onb& yaw(T tilt) noexcept {
+		rotate(t, b, wrap_angle<T>(tilt), n);
 		return *this;
 	}
-	
+	constexpr onb& yaw(const angle& tilt) noexcept {
+		rotate(t, b, tilt, n);
+		return *this;
+	}
+
 	/// @brief Rotate n and t around b.
-	constexpr onb& pitch(T angle) noexcept {
-		rotate(n, t, math::wrap_angle(angle), b);
+	constexpr onb& pitch(T tilt) noexcept {
+		rotate(n, t, wrap_angle<T>(tilt), b);
 		return *this;
 	}
-	
+	constexpr onb& pitch(const angle& tilt) noexcept {
+		rotate(n, t, tilt, b);
+		return *this;
+	}
+
 	/// @brief Rotate n and b around t.
-	constexpr onb& roll(T angle) noexcept {
-		rotate(n, b, math::wrap_angle(angle), t);
+	constexpr onb& roll(T tilt) noexcept {
+		rotate(n, b, wrap_angle<T>(tilt), t);
+		return *this;
+	}
+	constexpr onb& roll(const angle& tilt) noexcept {
+		rotate(n, b, tilt, t);
 		return *this;
 	}
 
 private:
-	constexpr void rotate(vec& a, vec& b, T angle, const vec& axis) noexcept {
-		const T sin = std::sin(angle), cos = std::cos(angle);
-		rotate_around_axis(axis, sin, cos, a);
-		rotate_around_axis(axis, sin, cos, b);
+	constexpr void rotate(vec& a, vec& b, T tilt, const vec& axis) noexcept {
+		const T sin = std::sin(tilt), cos = std::cos(tilt);
+		rotate_around_axis<T>(axis, sin, cos, a);
+		rotate_around_axis<T>(axis, sin, cos, b);
+	}
+	constexpr void rotate(vec& a, vec& b, const angle& tilt, const vec& axis) noexcept {
+		rotate_around_axis<T>(axis, tilt.sin, t.cos, a);
+		rotate_around_axis<T>(axis, tilt.sin, t.cos, b);
 	}
 };
 

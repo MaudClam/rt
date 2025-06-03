@@ -1,5 +1,16 @@
-math_constants.hpp			← [низший уровень]
-└── math_utils.hpp			← использует math_constants
-	└── vec.hpp				← использует math_utils
-		└── vec_utils.hpp	← использует vec + math_utils
+math_constants.hpp             ← [lowest level] - namespace math
+└── math_utils.hpp             ← uses math_constants - namespace math
+    ⎮└──tilt.hpp               ← uses math_utils
+    └── vec.hpp                ← uses math_utils + vec_utils + onb
+        └── vec_utils.hpp      ← uses math_utils + vec_utils + onb
+            └── vec_utils.hpp  ← uses math_utils + vec + onb
+                └── onb.hpp    ← uses math_constants + math_utils + vec + vec_utils
+
+
+logging_utils.hpp/cpp         ← [lowest level]     - namespace logging
+└── logging.hpp               ← uses logging_utils - namespace logging
+                                    struct Format
+                                    class Formatter
+                                    class Logger
+
 
