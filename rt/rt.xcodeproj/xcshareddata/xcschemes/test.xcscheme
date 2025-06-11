@@ -15,9 +15,9 @@
             buildForAnalyzing = "YES">
             <BuildableReference
                BuildableIdentifier = "primary"
-               BlueprintIdentifier = "6661C2162C38071100D58CDC"
-               BuildableName = "rt"
-               BlueprintName = "rt"
+               BlueprintIdentifier = "664CCE3D2DF0A86200B12741"
+               BuildableName = "test"
+               BlueprintName = "test"
                ReferencedContainer = "container:rt.xcodeproj">
             </BuildableReference>
          </BuildActionEntry>
@@ -45,50 +45,42 @@
          runnableDebuggingMode = "0">
          <BuildableReference
             BuildableIdentifier = "primary"
-            BlueprintIdentifier = "6661C2162C38071100D58CDC"
-            BuildableName = "rt"
-            BlueprintName = "rt"
+            BlueprintIdentifier = "664CCE3D2DF0A86200B12741"
+            BuildableName = "test"
+            BlueprintName = "test"
             ReferencedContainer = "container:rt.xcodeproj">
          </BuildableReference>
       </BuildableProductRunnable>
       <CommandLineArguments>
          <CommandLineArgument
-            argument = "/Users/uru/Library/Mobile\ Documents/com~apple~CloudDocs/42_Projects/rt/scenes/SystemDemo.rt"
+            argument = "--no-ansi"
             isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
-            argument = "/Users/uru/Library/Mobile\ Documents/com~apple~CloudDocs/42_Projects/rt/scenes/sp2.rt"
+            argument = "--no-tty"
             isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
-            argument = "/Users/anna/42/rt/scenes/sp2.rt"
+            argument = "--no-tty --no-ansi --no-utf8 --emoji"
             isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
-            argument = "/Users/anna/42/rt/scenes/balls.rt"
-            isEnabled = "NO">
-         </CommandLineArgument>
-         <CommandLineArgument
-            argument = "/Users/uru/Library/Mobile\ Documents/com~apple~CloudDocs/42_Projects/rt/scenes/CornellBox.rt"
-            isEnabled = "NO">
-         </CommandLineArgument>
-         <CommandLineArgument
-            argument = "/Users/uru/Library/Mobile\ Documents/com~apple~CloudDocs/42_Projects/rt/parsing.log"
-            isEnabled = "NO">
-         </CommandLineArgument>
-         <CommandLineArgument
-            argument = "/Users/uru/Library/Mobile\ Documents/com~apple~CloudDocs/42_Projects/rt/scenes/balls.rt"
-            isEnabled = "NO">
-         </CommandLineArgument>
-         <CommandLineArgument
-            argument = "/Users/uru/Library/Mobile\ Documents/com~apple~CloudDocs/42_Projects/rt/scenes/balls1.rt"
-            isEnabled = "NO">
-         </CommandLineArgument>
-         <CommandLineArgument
-            argument = "/Users/uru/Library/Mobile\ Documents/com~apple~CloudDocs/42_Projects/rt/scenes/arches.rt"
-            isEnabled = "NO">
+            argument = "--no-ansi --emoji"
+            isEnabled = "YES">
          </CommandLineArgument>
       </CommandLineArguments>
+      <EnvironmentVariables>
+         <EnvironmentVariable
+            key = "LANG = en_US.UTF-8"
+            value = ""
+            isEnabled = "NO">
+         </EnvironmentVariable>
+         <EnvironmentVariable
+            key = "LC_ALL = en_US.UTF-8"
+            value = ""
+            isEnabled = "NO">
+         </EnvironmentVariable>
+      </EnvironmentVariables>
    </LaunchAction>
    <ProfileAction
       buildConfiguration = "Release"
@@ -100,9 +92,9 @@
          runnableDebuggingMode = "0">
          <BuildableReference
             BuildableIdentifier = "primary"
-            BlueprintIdentifier = "6661C2162C38071100D58CDC"
-            BuildableName = "rt"
-            BlueprintName = "rt"
+            BlueprintIdentifier = "664CCE3D2DF0A86200B12741"
+            BuildableName = "test"
+            BlueprintName = "test"
             ReferencedContainer = "container:rt.xcodeproj">
          </BuildableReference>
       </BuildableProductRunnable>

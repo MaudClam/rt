@@ -15,9 +15,9 @@
             buildForAnalyzing = "YES">
             <BuildableReference
                BuildableIdentifier = "primary"
-               BlueprintIdentifier = "6623562B2DE1ED9D00CAAC4A"
-               BuildableName = "testing"
-               BlueprintName = "testing"
+               BlueprintIdentifier = "668C5A612DEF4CF000D36459"
+               BuildableName = "test_includes"
+               BlueprintName = "test_includes"
                ReferencedContainer = "container:rt.xcodeproj">
             </BuildableReference>
          </BuildActionEntry>
@@ -45,30 +45,18 @@
          runnableDebuggingMode = "0">
          <BuildableReference
             BuildableIdentifier = "primary"
-            BlueprintIdentifier = "6623562B2DE1ED9D00CAAC4A"
-            BuildableName = "testing"
-            BlueprintName = "testing"
+            BlueprintIdentifier = "668C5A612DEF4CF000D36459"
+            BuildableName = "test_includes"
+            BlueprintName = "test_includes"
             ReferencedContainer = "container:rt.xcodeproj">
          </BuildableReference>
       </BuildableProductRunnable>
       <CommandLineArguments>
          <CommandLineArgument
             argument = "--no-ansi"
-            isEnabled = "YES">
+            isEnabled = "NO">
          </CommandLineArgument>
       </CommandLineArguments>
-      <EnvironmentVariables>
-         <EnvironmentVariable
-            key = "LANG"
-            value = "ru_RU.UTF-8"
-            isEnabled = "YES">
-         </EnvironmentVariable>
-         <EnvironmentVariable
-            key = "LC_ALL&#9;"
-            value = "ru_RU.UTF-8"
-            isEnabled = "YES">
-         </EnvironmentVariable>
-      </EnvironmentVariables>
    </LaunchAction>
    <ProfileAction
       buildConfiguration = "Release"
@@ -80,9 +68,9 @@
          runnableDebuggingMode = "0">
          <BuildableReference
             BuildableIdentifier = "primary"
-            BlueprintIdentifier = "6623562B2DE1ED9D00CAAC4A"
-            BuildableName = "testing"
-            BlueprintName = "testing"
+            BlueprintIdentifier = "668C5A612DEF4CF000D36459"
+            BuildableName = "test_includes"
+            BlueprintName = "test_includes"
             ReferencedContainer = "container:rt.xcodeproj">
          </BuildableReference>
       </BuildableProductRunnable>

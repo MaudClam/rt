@@ -22,32 +22,32 @@
 		<key>rt.xcscheme_^#shared#^_</key>
 		<dict>
 			<key>orderHint</key>
-			<integer>1</integer>
+			<integer>0</integer>
 		</dict>
 		<key>sampling_test.xcscheme_^#shared#^_</key>
 		<dict>
 			<key>orderHint</key>
 			<integer>9</integer>
 		</dict>
+		<key>test.xcscheme_^#shared#^_</key>
+		<dict>
+			<key>orderHint</key>
+			<integer>2</integer>
+		</dict>
+		<key>test_includes.xcscheme_^#shared#^_</key>
+		<dict>
+			<key>orderHint</key>
+			<integer>3</integer>
+		</dict>
 		<key>test_logger.xcscheme_^#shared#^_</key>
 		<dict>
 			<key>orderHint</key>
 			<integer>4</integer>
 		</dict>
-		<key>test_timing.xcscheme_^#shared#^_</key>
-		<dict>
-			<key>orderHint</key>
-			<integer>3</integer>
-		</dict>
 		<key>tilt_test.xcscheme_^#shared#^_</key>
 		<dict>
 			<key>orderHint</key>
 			<integer>4</integer>
-		</dict>
-		<key>unit_tests_vector.xcscheme_^#shared#^_</key>
-		<dict>
-			<key>orderHint</key>
-			<integer>2</integer>
 		</dict>
 		<key>vec_test.xcscheme_^#shared#^_</key>
 		<dict>
@@ -72,12 +72,22 @@
 			<key>primary</key>
 			<true/>
 		</dict>
+		<key>664CCE3D2DF0A86200B12741</key>
+		<dict>
+			<key>primary</key>
+			<true/>
+		</dict>
 		<key>668AAA982DB1034A006D2BDA</key>
 		<dict>
 			<key>primary</key>
 			<true/>
 		</dict>
 		<key>668AAABF2DC28F4D006D2BDA</key>
+		<dict>
+			<key>primary</key>
+			<true/>
+		</dict>
+		<key>668C5A612DEF4CF000D36459</key>
 		<dict>
 			<key>primary</key>
 			<true/>

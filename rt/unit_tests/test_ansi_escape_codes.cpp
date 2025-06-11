@@ -3,12 +3,11 @@
 
 using namespace ansi;
 
-void test_write_formats(const str_t& text, const Format& fmt, std::ostream& out = std::cout) {
-    if (fmt.use_ansi)
-        ansi_code(out, fmt) << text << reset << " [" << text << "]\n";
-    else
-        out << text << '\n';
-}
+void test_write_formats(sv_t text, const Format& fmt, std::ostream& out = std::cout) {
+    ansi_style(out, fmt);
+    out << text;
+    reset_if(out, fmt);
+    out << " [" << text << "]\n";}
 
 // g++ -std=c++2a -O2 -Wall -Wextra -Werror test_ansi_escape_codes.cpp -o colors && ./colors
 int main() {

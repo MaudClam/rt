@@ -57,11 +57,5 @@ int main(int ac, char** av) {
 //		} else
 //			cout << "\n";
 //	}
-    
-    with_label(std::cout, Label::Error, "Clear the ansi_out buffer if used.\n");
-    with_label(std::cout, Label::Warning, "Clear the ansi_out buffer if used.\n");
-    with_label(std::cout, Label::Info, "Clear the ansi_out buffer if used.\n");
-    with_label(std::cout, Label::Debug, "Clear the ansi_out buffer if used.\n");
-    with_label(std::cout, Label::Success, "Clear the ansi_out buffer if used.\n");
 	return 0;
 }

@@ -1,70 +1,53 @@
 #pragma once
-#include <string>
-#include <string_view>
-#include <filesystem>
-#include <type_traits>
+#include <type_traits>     // std::is_convertible, std::decay_t
+#include <string>          // std::string
+#include <string_view>     // std::string_view и wide_view
+#include <ostream>         // std::ostream
+#include <utility>         // std::declval (in a more general form)
+#include <filesystem>      // std::filesystem::path
 
 namespace traits {
 
-// base template: false by default
+// Concept: T is streamable to std::ostream
 template<typename T>
-struct is_string_like : std::false_type {};
+concept Ostreamable = requires(std::ostream& os, T&& t) {
+    { os << std::forward<T>(t) } -> std::same_as<std::ostream&>;
+};
 
-// standard strings
-template<> struct is_string_like<std::string> : std::true_type {};
-template<> struct is_string_like<std::wstring> : std::true_type {};
-template<> struct is_string_like<std::u8string> : std::true_type {};
-template<> struct is_string_like<std::u16string> : std::true_type {};
-template<> struct is_string_like<std::u32string> : std::true_type {};
+// noexcept-aware ostream sequence
+template<Ostreamable... Args>
+inline std::ostream& sequence(std::ostream& os, const Args&... args)
+    noexcept((noexcept(os << args) && ...)) {
+    return (os << ... << args);
+}
 
-// string_view
-template<> struct is_string_like<std::string_view> : std::true_type {};
-template<> struct is_string_like<std::wstring_view> : std::true_type {};
-template<> struct is_string_like<std::u8string_view> : std::true_type {};
-template<> struct is_string_like<std::u16string_view> : std::true_type {};
-template<> struct is_string_like<std::u32string_view> : std::true_type {};
-
-// C-style strings
-template<> struct is_string_like<const char*> : std::true_type {};
-template<> struct is_string_like<const wchar_t*> : std::true_type {};
-template<> struct is_string_like<const char8_t*> : std::true_type {};
-template<> struct is_string_like<const char16_t*> : std::true_type {};
-template<> struct is_string_like<const char32_t*> : std::true_type {};
-
-template<size_t N> struct is_string_like<char[N]> : std::true_type {};
-template<size_t N> struct is_string_like<wchar_t[N]> : std::true_type {};
-template<size_t N> struct is_string_like<char8_t[N]> : std::true_type {};
-template<size_t N> struct is_string_like<char16_t[N]> : std::true_type {};
-template<size_t N> struct is_string_like<char32_t[N]> : std::true_type {};
-
-// std::filesystem::path
-template<> struct is_string_like<std::filesystem::path> : std::true_type {};
-
-// alias
+// Trait: whether streaming T is noexcept via sequence()
 template<typename T>
-inline constexpr bool is_string_like_v = is_string_like<std::decay_t<T>>::value;
+inline constexpr bool write_noexcept =
+    noexcept(sequence(std::declval<std::ostream&>(), std::declval<T>()));
 
-// Checking if a type can be inserted into an ostream
+// Narrow set: std::string_view, const char*, string literals
 template<typename T>
-using is_ostreamable = std::bool_constant<
-	requires(std::ostream& os, T&& val) { os << std::forward<T>(val); }
->;
+concept StringLike =
+    std::is_convertible_v<T, std::string_view>;
 
-//template<typename T>
-//constexpr void* stream_identity(T& stream) {
-//	return static_cast<void*>(std::addressof(stream));
-//}
-//
-//template<typename T>
-//constexpr bool same_streams(const T& first) {
-//	(void)first;
-//	return true;
-//}
-//
-//template<typename T, typename U, typename... Rest>
-//constexpr bool same_streams(const T& first, const U& second, const Rest&... rest) {
-//	return stream_identity(first) == stream_identity(second) && same_streams(second, rest...);
-//}
+// Wide range: support for wchar_t, UTF-16, UTF-32, + filesystem::path
+template<typename T>
+concept WStringLike =
+    std::is_convertible_v<T, std::wstring_view>   ||
+    std::is_convertible_v<T, std::u16string_view> ||
+    std::is_convertible_v<T, std::u32string_view> ||
+    std::is_same_v<std::decay_t<T>, std::filesystem::path>;
 
+template<typename T>
+concept AnyStringLike = StringLike<T> || WStringLike<T>;
 
-} // namespace logging_utils
+template<typename T>
+concept OutputStream = requires(T os) {
+    { os << std::declval<std::string_view>() } -> std::same_as<decltype(os)&>;
+};
+
+template<typename T>
+inline constexpr bool is_any_string_like_v = StringLike<T> || WStringLike<T>;
+
+} // namespace traits
