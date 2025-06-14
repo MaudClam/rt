@@ -19,35 +19,41 @@ enum class Align { Left, Right, Centred };
 
 struct CellFormat {
     struct Alignment {
-        Align type = Align::Left;
-        int   width = meta::unset;
-        char  pad   = ' ';
-        bool  truncate_content = false;
+        Align type     = Align::Left;
+        int   width    = unset;
+        char  pad      = ' ';
+        bool  truncate = false;
     };
 
     struct Precision {
-        int  digits = meta::unset;
+        int  digits = unset;
         bool fixed  = true;
+    };
+    
+    struct Control {
+        bool flush = false;
+        bool endl  = false;
     };
 
     Alignment    align;
     Precision    precision;
     ansi::Format ansi_style;
+    Control      control;
 };
 
 template<traits::Ostreamable T>
 struct Cell {
-    sv_t  prefix = "";
-    T     value;
-    sv_t  suffix = "";
+    sv_t        prefix = "";
+    T           value;
+    sv_t        suffix = "";
     CellFormat  fmt;
-    mutable int term_width = meta::unset;
+    mutable int term_width = unset;
     
     os_t& write(os_t& os) const noexcept {
         using namespace ansi;
         using namespace traits;
         
-        if (fmt.align.width == meta::hidden) {
+        if (fmt.align.width == hidden) {
             term_width = 0;
             return os;
         }
@@ -57,7 +63,7 @@ struct Cell {
         // String without alignment — the most frequent case.
         if constexpr (is_any_string_like_v<T>) {
             if (fmt.align.width < 0) {
-                term_width = meta::unset;
+                term_width = unset;
                 sequence(os, prefix, value, suffix);
                 return ansi_reset(os, fmt.ansi_style);
             }
@@ -65,27 +71,31 @@ struct Cell {
         
         // Number or user-defined type without alignment — frequent case.
         if (fmt.align.width < 0) {
-            term_width = meta::unset;
-            write_content_with_precision(os);
+            term_width = unset;
+            write_content_with_precision(os) << fmt.align.pad;
             return ansi_reset(os, fmt.ansi_style);
         }
         
         // Compute terminal width (UTF-8) of the full rendered content.
         try {
-            static thread_local oss_t oss;
-            oss.str(""); oss.clear();
-            write_content_with_precision(oss, false);
-            term_width = terminal_width(oss.view());
-            write_aligned(os, oss.view(), term_width);//FIXME: ⚠️ do string truncation
+            static thread_local oss_t buf1;
+            static thread_local oss_t buf2;
+            buf1.str(""); buf1.clear();
+            buf2.str(""); buf2.clear();
+            write_content_with_precision(buf1, false);
+            TruncateFormat tfmt = truncate(term_width);
+            write_truncate_if(buf2, buf1.view(), tfmt);
+//            write_truncate_if(buf2, buf1.view(), truncate(term_width, fmt.align.width));
+            write_aligned(os, buf2.view(), term_width);//FIXME: ⚠️ do string truncation
         } catch (...) {
-            term_width = meta::unset;
-            write_content_with_precision(os, false);
+            term_width = unset;
+            write_content_with_precision(os, true);
+            //FIXME: ⚠️ there will be a new log status here
         }
         return ansi_reset(os, fmt.ansi_style);
     }
 
 private:
-
     os_t& write_value_with_precision(os_t& os, bool save_flags = true) const
         noexcept(noexcept(traits::sequence(os, value)))
     {

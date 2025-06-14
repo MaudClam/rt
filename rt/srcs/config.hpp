@@ -83,35 +83,34 @@ sv_t safe_substr(sv_t sv, size_t pos, size_t count = sv_t::npos) noexcept {
     return sv.substr(std::min(pos, sv.size()), count);
 }
 
-struct ShortPath {
+class ShortPath {
+public:
+    constexpr sv_t view() const noexcept { return view_; }
+
+    [[nodiscard]] Return set(sv_t sv, sv_t name) noexcept {
+        if (sv.empty())
+            return { "Empty path", name };
+        if (sv.size() >= capacity)
+            return { "Path too long", name };
+        if (sv.find('\0') != sv_t::npos)
+            return { "Path contains null character", name };
+        std::memcpy(buffer_.data(), sv.data(), sv.size());
+        buffer_[sv.size()] = '\0';
+        view_ = { buffer_.data(), sv.size() };
+        return {};
+    }
+
+private:
     static constexpr size_t capacity = 512;
     using Buffer = std::array<char, capacity>;
 
-    Buffer buffer{};
-    sv_t   view = "rt.log";
-
-    [[nodiscard]]
-    Return set(sv_t sv, sv_t name) noexcept {
-        if (sv.empty())
-            return { "Empty path", name };
-
-        if (sv.size() >= capacity)
-            return { "Path too long", name };
-
-        if (sv.find('\0') != sv_t::npos)
-            return { "Path contains null character", name };
-
-        std::memcpy(buffer.data(), sv.data(), sv.size());
-        buffer[sv.size()] = '\0';
-        view = { buffer.data(), sv.size() };
-        return {};
-    }
+    Buffer buffer_{};
+    sv_t   view_ = "rt.log";
 };
 
 enum class LoggerStatusFlags : uint32_t {
     None                  = 0,
     Utf8NotInitialized    = 1 << 0,
-    Utf8UnsupportedSymbol = 1 << 1,
 };
 
 template<typename Enum>
@@ -121,18 +120,13 @@ struct EnumDescriptor {
 };
 
 inline void print_logger_warns(flags_t flags, os_t& os = std::cerr) noexcept {
-    using Flag = LoggerStatusFlags;
+    using Flags = LoggerStatusFlags;
     constexpr EnumDescriptor<LoggerStatusFlags> logger_flag_descriptions[] = {
         {
-            Flag::Utf8NotInitialized,
+            Flags::Utf8NotInitialized,
             "UTF-8 locale not initialized or unsupported.\n "
             "      Unicode alignment may be incorrect."
         },
-        {
-            Flag::Utf8UnsupportedSymbol,
-            "Unsupported symbol in UTF-8 string.\n "
-            "      Unicode alignment may be incorrect."
-       },
     };
     try {
         for (const auto& entry : logger_flag_descriptions)
@@ -142,45 +136,51 @@ inline void print_logger_warns(flags_t flags, os_t& os = std::cerr) noexcept {
 }
 
 struct Config {
-	// logging
-	bool tty_allowed      = false;
-	bool ansi_allowed     = false;
-	bool utf8_inited      = false;
-	bool emoji_allowed    = false;
+	// Logging
+	bool tty_allowed     = false;
+	bool ansi_allowed    = false;
+	bool utf8_inited     = false;
+    bool emoji_allowed   = false;
+    bool warns_allowed   = true;
     ShortPath log_file;
-	int indent_spaces     = 4;
-	int test_param        = 0;
     flags_t logger_flags = static_cast<flags_t>(LoggerStatusFlags::None);
 
-	// common parameters
+	// Common
+    int test_param = 0;
     // ...
 
     ~Config() {
-        if (logger_flags != 0)
+        if (warns_allowed && logger_flags != 0)
             print_logger_warns(logger_flags);
     }
     
     void debug_print(os_t& os = std::cerr) const noexcept {
         try {
-            os << "Config dump:\n" << std::boolalpha;
+            os << "CONFIG DUMP\n" << std::boolalpha;
+            os << "Logging:\n";
             os << "  tty_allowed:   " << tty_allowed << '\n';
             os << "  ansi_allowed:  " << ansi_allowed << '\n';
             os << "  utf8_inited:   " << utf8_inited << '\n';
             os << "  emoji_allowed: " << emoji_allowed << '\n';
-            os << "  log_file:      " << log_file.view << '\n';
-            os << "  indent_spaces: " << indent_spaces << '\n';
-            os << "  test_param:    " << test_param << '\n';
+            os << "  log_file:      " << log_file.view() << '\n';
             os << "  logger_flags:  "
             << static_cast<std::bitset<8>>(test_param) << '\n';
+            print_logger_warns(logger_flags);
+            os << "Common:\n";
+            os << "  test_param:    " << test_param << '\n';
         } catch (...) { fatal_exit(ExitCode::OutputFailure); }
-        print_logger_warns(logger_flags);
    }
 
-    Config& set_logger_flag(LoggerStatusFlags flag) noexcept {
-        logger_flags |= static_cast<flags_t>(flag);
-        return *this;
+    bool has_logger_flag(LoggerStatusFlags flag) const noexcept {
+        return (logger_flags & static_cast<flags_t>(flag)) != 0;
     }
 
+    Config& set_logger_flag_if(LoggerStatusFlags flag) noexcept {
+        if (!has_logger_flag(flag))
+            logger_flags |= static_cast<flags_t>(flag);
+        return *this;
+    }
+    
 	inline Return parse_cmdline(int ac, char** av) noexcept {
         detect_environment();
 		for (int i = 1; i < ac; ++i) {
@@ -216,6 +216,7 @@ private:
             case hash_31("--no-utf8"):  utf8_inited   = false; break;
             case hash_31("--no-emoji"): emoji_allowed = false; break;
             case hash_31("--emoji"):    emoji_allowed = true;  break;
+            case hash_31("--no-warns"): warns_allowed = false; break;
             default: return { "Unrecognized flag", arg };
         }
         return {};
@@ -229,7 +230,6 @@ private:
         sv_t val = safe_substr(arg, pos + 1);
         switch (hash_31(key)) {
             case hash_31("--log-file"):   return log_file.set(val, key);
-            case hash_31("--indent"):     indent_spaces = parse_int(val); break;
             case hash_31("--test-param"): test_param    = parse_int(val); break;
             default: return { "Unrecognized parameter", key };
         }
