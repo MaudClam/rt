@@ -175,7 +175,7 @@ struct DisplayUnit {
                     if (pending_flag) {
                         pending_flag = false;
                         type = Type::RegionalPair;
-                        ++width;
+                        width = 2;
                         length += codepoint.length;
                         return true;
                     } else {
