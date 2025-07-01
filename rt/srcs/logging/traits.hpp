@@ -16,7 +16,7 @@ concept Ostreamable = requires(std::ostream& os, T&& t) {
 
 // noexcept-aware ostream sequence
 template<Ostreamable... Args>
-inline std::ostream& sequence(std::ostream& os, const Args&... args)
+inline std::ostream& write_sequence(std::ostream& os, const Args&... args)
     noexcept((noexcept(os << args) && ...)) {
     return (os << ... << args);
 }

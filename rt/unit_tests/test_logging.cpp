@@ -2,7 +2,7 @@
 #include <sstream>
 #include <random>
 #include "../srcs/config.hpp"
-#include "../srcs/logging/logging.hpp"
+#include "../srcs/logging/cell.hpp"
 
 // g++ -std=c++2a -O2 -Wall -Wextra -Werror test_logging.cpp -o logging && ./logging
 
@@ -101,12 +101,12 @@ int main(int ac, char** av) {
 
     
     CellFormat fmt{};
-    fmt.precision.digits = 22;
-    fmt.align.width = 5;
+    fmt.manip.precision = 22;
+    fmt.width = 5;
     fmt.ansi_style.use_ansi = false;
 //    Cell<Vec3f> c = { .fmt = fmt, .suffix = "\n" };
-    Cell c1 = { .fmt = fmt, .value = log_config.test_param };
-    Cell<str_t> c2 = { .fmt = fmt };
+    Cell c1 = { .format = fmt, .value = log_config.test_param };
+    Cell<str_t> c2 = { .format = fmt };
 //    c2.value = "Папа у Васи..";
     c2.value = "\tL\n";
 

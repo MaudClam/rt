@@ -2,25 +2,12 @@
 #include <string_view>
 #include <cwchar>       // for mbrtowc, mbstate_t, wchar_t
 #include <cstdlib>      // for std::system
-#include <algorithm>    // for std::max
 #include <optional>
-#include <cstdint>
-#include "traits.hpp"
-#include "ansi_escape_codes.hpp"
-#include "../config.hpp"
-
 
 namespace logging {
 
 using sv_t  = std::string_view;
 using os_t  = std::ostream;
-
-using Flags             = rt::LoggerStatusFlags;
-using LogConfig         = rt::Config;
-inline auto& log_config = rt::config;
-
-constexpr int hidden = 0; // means "hidden value"
-constexpr int unset = -1; // means "not specified"
 
 [[nodiscard]] constexpr
 bool is_ascii(char c) noexcept {
@@ -29,7 +16,7 @@ bool is_ascii(char c) noexcept {
 
 [[nodiscard]] inline
 int ascii_prefix_length(sv_t sv) noexcept {
-    for (int i = 0, n = static_cast<int>(sv.size()); i < n; ++i)
+    for (int i = 0, sz = static_cast<int>(sv.size()); i < sz; ++i)
         if (!is_ascii(sv[i]))
             return i;
     return static_cast<int>(sv.size());
@@ -50,146 +37,222 @@ char normalize_char(char c) noexcept {
     return is_ascii_control(c) ? ' ' : c;
 }
 
-struct Codepoint {
-    wchar_t value = L'?';
-    int     width = 1;
-    size_t  len   = 1;
+template<traits::Ostreamable Os>
+os_t& write_repeats(os_t& os, int num, const Os& val) noexcept {
+    for(int i = 0; i < num; ++i)
+        os << val;
+    return os;
+}
 
-    [[nodiscard]] constexpr
-    bool is_ascii_control() const noexcept {
-        return len == 1 &&
-               ::logging::is_ascii_control(static_cast<char>(value));
-    }
+struct EmojiRange {
+    wchar_t from;
+    wchar_t to;
+    const char* name;
+};
+
+constexpr EmojiRange emoji_ranges[] = {
+    {0x1F600, 0x1F64F, "faces"},
+    {0x1F300, 0x1F5FF, "symbols"},
+    {0x1F680, 0x1F6FF, "transport"},
+    {0x1F900, 0x1F9FF, "extensions"},
+    {0x2600,  0x26FF,  "weather"},
+    {0x2700,  0x27BF,  "miscellaneous"},
+    {0x1F000, 0x1FFFF, "supplemental symbols"}
+};
+
+struct Codepoint {
+    wchar_t value  = static_cast<wchar_t>('?');
+    int     width  = 1;
+    size_t  length = 1;
     
-    [[nodiscard]] constexpr
-    bool is_invalid() const noexcept {
-        return len ==  0 ||
-               len == static_cast<size_t>(-1) ||
-               len == static_cast<size_t>(-2) ||
-               width < 0;
+    enum class Type : uint8_t {
+        Invalid,
+        Ascii,
+        VariationSelector,
+        ZeroWidthJoiner,
+        RegionalIndicator,
+        EmojiBase,
+        Other
+    } type = Type::Other;
+
+    [[nodiscard]] bool next(sv_t sv, size_t offset) noexcept {
+        if (offset >= sv.size()) return false;
+        *this = {};
+        mbstate_t state{};
+        length = mbrtowc(&value, sv.data() + offset, sv.size() - offset, &state);
+        if (!sanitize()) {
+            width = wcwidth(value);
+            if (!sanitize())
+                classify();
+        }
+        return true;
     }
-    
-    Codepoint& replace_invalid_if() noexcept {
-        if (is_invalid())
-        value = L'?'; width = 1; len = 1;
-        return *this;
+
+private:
+    void classify() noexcept {
+        if (value <= 0x7F) {
+            type = Type::Ascii;
+        } else if (value == 0xFE0F) {
+            type = Type::VariationSelector;
+        } else if (value == 0x200D) {
+            type = Type::ZeroWidthJoiner;
+        } else if (value >= 0x1F1E6 && value <= 0x1F1FF) {
+            type = Type::RegionalIndicator;
+        } else if (is_in_emoji_range()) {
+            type = Type::EmojiBase;
+        } else {
+            type = Type::Other;
+        }
+    }
+
+    [[nodiscard]] constexpr bool is_invalid() const noexcept {
+        return width < 0 ||
+               length ==  0 ||
+               length == static_cast<size_t>(-1) ||
+               length == static_cast<size_t>(-2);
+    }
+
+    [[nodiscard]] constexpr bool sanitize() noexcept {
+        if (!is_invalid()) return false;
+        *this = {.type = Type::Invalid};
+        return true;
+    }
+
+    [[nodiscard]] constexpr bool is_in_emoji_range() const noexcept {
+        for (const auto& r : emoji_ranges)
+            if (value >= r.from && value <= r.to)
+                return true;
+        return false;
     }
 };
 
-[[nodiscard]] inline std::optional<Codepoint>
-next_codepoint(sv_t sv, size_t offset, mbstate_t& state) noexcept {
-    Codepoint cp{};
-    if (offset >= sv.size())
-        return std::nullopt;
-    const char* ptr = sv.data() + offset;
-    size_t remaining = sv.size() - offset;
-    cp.len = mbrtowc(&cp.value, ptr, remaining, &state);
-    if (!cp.is_invalid())
-        cp.width = wcwidth(cp.value);
-    return cp.replace_invalid_if();
-}
+struct DisplayUnit {
+    Codepoint codepoint{};
+    size_t    offset = 0;
+    size_t    length = 0;
+    int       width  = 0;
+    
+    enum class Type : uint8_t {
+        Invalid,
+        Ascii,
+        EmojiCluster,
+        RegionalPair,
+        PlainText,
+        Unknown
+    } type = Type::Unknown;
+    
+    [[nodiscard]] bool parse(sv_t sv, size_t offset_) noexcept {
+        if (offset_ >= sv.size()) return false;
+        *this = {.offset = offset_};
+        bool in_emoji_cluster   = false;
+        bool pending_flag       = false;
+        bool pending_emoji_base = false;
+        while (offset + length < sv.size()) {
+            if (!codepoint.next(sv, offset + length)) break;
+            switch (codepoint.type) {
+                case Codepoint::Type::Invalid:
+                    type = Type::Invalid;
+                    width = 1;
+                    length += codepoint.length;
+                    return true;
+                case Codepoint::Type::Ascii:
+                    type = Type::Ascii;
+                    width = 1;
+                    length += codepoint.length;
+                    return true;
+                case Codepoint::Type::VariationSelector:
+                    if (pending_emoji_base) {
+                        pending_emoji_base = false;
+                        width = 1;
+                    }
+                    length += codepoint.length;
+                    continue;
+                case Codepoint::Type::ZeroWidthJoiner:
+                    in_emoji_cluster = true;
+                    length += codepoint.length;
+                    continue;
+                case Codepoint::Type::RegionalIndicator:
+                    if (pending_flag) {
+                        pending_flag = false;
+                        type = Type::RegionalPair;
+                        ++width;
+                        length += codepoint.length;
+                        return true;
+                    } else {
+                        pending_flag = true;
+                        width = 0;
+                        length += codepoint.length;
+                        continue;
+                    }
+                case Codepoint::Type::EmojiBase:
+                    pending_emoji_base = true;
+                    if (in_emoji_cluster) {
+                        in_emoji_cluster = false;
+                        type = Type::EmojiCluster;
+                        width = 0;
+                    } else {
+                        width += (codepoint.width > 0 ? codepoint.width : 1);
+                    }
+                    length += codepoint.length;
+                    return true;
+                case Codepoint::Type::Other:
+                    type = Type::PlainText;
+                    width += (codepoint.width > 0 ? codepoint.width : 1);
+                    length += codepoint.length;
+                    return true;
+            }
+        }
+        if (pending_flag) {
+            type = Type::RegionalPair;
+            ++width;
+        } else if (pending_emoji_base) {
+            type = Type::EmojiCluster;
+            width = 1;
+        } else if (width == 0) {
+            type = Type::Invalid;
+            width = 1;
+        }
+        return true;
+    }
+    
+    os_t& write(os_t& os, sv_t sv, bool normalize = false) const noexcept {
+        if (offset >= sv.size() || offset + length > sv.size())
+            return os;
+        if (type == Type::Invalid)
+            return os << static_cast<unsigned char>(codepoint.value);
+        if (normalize && type == Type::Ascii)
+            return os << normalize_char(static_cast<char>(codepoint.value));
+        return os.write(sv.data() + offset, length);
+    }
+};
 
-[[nodiscard]] inline
-int utf8_terminal_width(sv_t sv) noexcept {
-    mbstate_t state{};
+[[nodiscard]] inline int utf8_terminal_width(sv_t sv) noexcept {
     int width = 0;
-    size_t i = 0;
-    while (i < sv.size()) {
-        auto cp = next_codepoint(sv, i, state);
-        if (!cp) break;
-        width += cp->width;
-        i += cp->len;
+    size_t offset = 0;
+    DisplayUnit unit{};
+    while (unit.parse(sv, offset)) {
+        width += unit.width;
+        offset += unit.length;
     }
     return width;
 }
 
-[[nodiscard]] inline
-int terminal_width(sv_t sv, LogConfig& conf = log_config) {
-    if (conf.utf8_inited)
-        return utf8_terminal_width(sv);
-    conf.set_logger_flag_if(Flags::Utf8NotInitialized);
-    return static_cast<int>(sv.size());
-}
-
-struct TruncateFormat {
-    int&       term_width;
-    int        max_width;
-    int        dots;
-    LogConfig& config;
-
-    TruncateFormat(int& term_width,
-                   int max_width = unset,
-                   int dots = 3,
-                   LogConfig& config = log_config) noexcept
-    :
-        term_width(term_width),
-        max_width(max_width),
-        dots(dots),
-        config(config)
-    {}
-
-    [[nodiscard]] int limit(int content_width) noexcept {
-        if (max_width < 0 || max_width >= content_width) {
-            dots = 0;
-            return std::numeric_limits<int>::max();
+[[nodiscard]] inline int bresenham_y(int x, int dx, int dy) noexcept {
+    if (x < 0 || dx <= 0 || dy <= 0) return 0;
+    bool steep = dx < dy;
+    if (steep) std::swap(dx, dy);
+    int derror2 = dy * 2;
+    int error2 = 0;
+    for (int x0 = 0, y0 = 0; x0 < dx; ++x0) {
+        if (!steep && x0 == x) return y0;
+        if ( steep && y0 == x) return x0;
+        error2 += derror2;
+        if (error2 > dx) {
+            ++y0;
+            error2 -= dx * 2;
         }
-        dots = std::clamp(dots, 0, max_width);
-        return max_width - dots;
     }
-};
-
-[[nodiscard]] inline
-TruncateFormat truncate(int& width, int max_width = unset, int dots = 3,
-                        LogConfig& conf = log_config) noexcept {
-    return TruncateFormat{ width, max_width, dots, conf };
-}
-
-inline
-os_t& write_ascii_truncate_if(os_t& os, sv_t sv, TruncateFormat& fmt) noexcept {
-    fmt.term_width = 0;
-    if (fmt.max_width == hidden) return os;
-    const int sv_size = static_cast<int>(sv.size());
-    const int limit = fmt.limit(sv_size);
-    for (int i = 0; i < sv_size && fmt.term_width < limit; ++i, ++fmt.term_width)
-        os << normalize_char(sv[i]);
-    for (int i = 0; i < fmt.dots; ++i, ++fmt.term_width)
-        os << '.';
-    return os;
-}
-
-inline os_t& write_truncate_if(os_t& os, sv_t sv, TruncateFormat& fmt)
-noexcept {
-    fmt.term_width = 0;
-    if (fmt.max_width == hidden) return os;
-
-    if (!fmt.config.utf8_inited) {
-        if (fmt.max_width > fmt.dots &&
-            ascii_prefix_length(sv) < fmt.limit(static_cast<int>(sv.size())))
-        {
-            fmt.max_width = unset;
-            fmt.config.set_logger_flag_if(Flags::Utf8NotInitialized);
-        }
-        return write_ascii_truncate_if(os, sv, fmt);
-    }
-    const int limit = fmt.max_width < 0 ? fmt.limit(0)
-                                        : fmt.limit(utf8_terminal_width(sv));
-    mbstate_t state{};
-    size_t i = 0;
-    while (i < sv.size() && fmt.term_width < limit) {
-        auto cp = next_codepoint(sv, i, state);
-        if (!cp || cp->len < 1) break;
-        if (cp->is_ascii_control()) {
-            os << ' ';
-            fmt.term_width += 1;
-        } else {
-            os.write(sv.data() + i, cp->len);
-            fmt.term_width += cp->width;
-        }
-        i += cp->len;
-    }
-    for (int i = 0; i < fmt.dots; ++i, ++fmt.term_width)
-        os << '.';
-    return os;
+    return dy;
 }
 
 inline void terminal_clear_fallback() noexcept {

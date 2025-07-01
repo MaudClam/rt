@@ -46,10 +46,10 @@
 		664CCE4F2DF2E3B100B12741 /* Exceptions for "unit_tests" folder in "test" target */ = {
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			additionalCompilerFlagsByRelativePath = {
-				test_logging.cpp = "-std=c++2a -O2 -Wall -Wextra -Werror";
+				test_timing.cpp = "-std=c++20 -Wall -Wextra -Werror";
 			};
 			membershipExceptions = (
-				test_logging.cpp,
+				test_timing.cpp,
 			);
 			target = 664CCE3D2DF0A86200B12741 /* test */;
 		};

@@ -66,17 +66,17 @@
          </CommandLineArgument>
          <CommandLineArgument
             argument = "--no-ansi --emoji"
-            isEnabled = "YES">
+            isEnabled = "NO">
          </CommandLineArgument>
       </CommandLineArguments>
       <EnvironmentVariables>
          <EnvironmentVariable
-            key = "LANG = en_US.UTF-8"
+            key = "LANG=ru_RU.UTF-8"
             value = ""
             isEnabled = "NO">
          </EnvironmentVariable>
          <EnvironmentVariable
-            key = "LC_ALL = en_US.UTF-8"
+            key = "LC_ALL=ru_RU.UTF-8"
             value = ""
             isEnabled = "NO">
          </EnvironmentVariable>

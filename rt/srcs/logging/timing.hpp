@@ -9,7 +9,6 @@
 
 namespace logging {
 
-
 class Timer {
 public:
 	using  clock_t = std::chrono::steady_clock;
