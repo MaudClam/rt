@@ -43,13 +43,13 @@
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
-		664CCE4F2DF2E3B100B12741 /* Exceptions for "unit_tests" folder in "test" target */ = {
+		663EA53B2E154C1A00A54EB6 /* Exceptions for "unit_tests" folder in "test" target */ = {
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			additionalCompilerFlagsByRelativePath = {
-				test_ProgressBar.cpp = "-std=c++20 -Wall -Wextra -Werror";
+				test_DisplayUnit.cpp = "-std=c++2a -Wall -Wextra -Werror";
 			};
 			membershipExceptions = (
-				test_ProgressBar.cpp,
+				test_DisplayUnit.cpp,
 			);
 			target = 664CCE3D2DF0A86200B12741 /* test */;
 		};
@@ -81,6 +81,8 @@
 				onb_test.cpp,
 				sampling_reserch/sampling_test.cpp,
 				test_ansi_escape_codes.cpp,
+				test_Cell_and_ansi.cpp,
+				test_DisplayUnit.cpp,
 				test_logging_Random_Emoji.cpp,
 				test_logging.cpp,
 				test_ProgressBar.cpp,
@@ -105,7 +107,7 @@
 			exceptions = (
 				6697AE302DC8D09D00F8969E /* Exceptions for "unit_tests" folder in "rt" target */,
 				668C5A6A2DEF4D4F00D36459 /* Exceptions for "unit_tests" folder in "test_includes" target */,
-				664CCE4F2DF2E3B100B12741 /* Exceptions for "unit_tests" folder in "test" target */,
+				663EA53B2E154C1A00A54EB6 /* Exceptions for "unit_tests" folder in "test" target */,
 			);
 			path = unit_tests;
 			sourceTree = "<group>";

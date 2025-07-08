@@ -6,8 +6,8 @@
 
 namespace logging {
 
-using sv_t  = std::string_view;
-using os_t  = std::ostream;
+using sv_t = std::string_view;
+using os_t = std::ostream;
 
 [[nodiscard]] constexpr
 bool is_ascii(char c) noexcept {
@@ -34,7 +34,7 @@ bool is_ascii_control(char c) noexcept {
 
 [[nodiscard]] constexpr
 char normalize_char(char c) noexcept {
-    return is_ascii_control(c) ? ' ' : c;
+    return is_ascii_control(c) ? '?' : c;
 }
 
 template<traits::Ostreamable Os>
@@ -51,178 +51,239 @@ struct EmojiRange {
 };
 
 constexpr EmojiRange emoji_ranges[] = {
-    {0x1F600, 0x1F64F, "faces"},
-    {0x1F300, 0x1F5FF, "symbols"},
-    {0x1F680, 0x1F6FF, "transport"},
-    {0x1F900, 0x1F9FF, "extensions"},
-    {0x2600,  0x26FF,  "weather"},
-    {0x2700,  0x27BF,  "miscellaneous"},
-    {0x1F000, 0x1FFFF, "supplemental symbols"}
+    {0x231A,  0x231B,  "watch/timer"},
+    {0x23E9,  0x23F3,  "media clocks"},
+    {0x25A0,  0x25FF,  "geometric shapes"},
+    {0x2600,  0x26FF,  "weather and symbols"},
+    {0x2640,  0x2642,  "gender signs"},
+    {0x2700,  0x27BF,  "dingbats"},
+    {0x1F000, 0x1F02F, "mahjong tiles"},
+    {0x1F0A0, 0x1F0FF, "playing cards"},
+    {0x1F100, 0x1F1FF, "enclosed alphanumerics + regional"},
+    {0x1F200, 0x1F2FF, "CJK symbols"},
+    {0x1F300, 0x1F5FF, "misc symbols and pictographs"},
+    {0x1F600, 0x1F64F, "emoticons"},
+    {0x1F680, 0x1F6FF, "transport and map"},
+    {0x1F700, 0x1F77F, "alchemical"},
+    {0x1F780, 0x1F7FF, "geometric extended"},
+    {0x1F800, 0x1F8FF, "supplemental arrows"},
+    {0x1F900, 0x1F9FF, "supplemental symbols and pictographs"},
+    {0x1FA00, 0x1FA6F, "chess, axes, etc."},
+    {0x1FA70, 0x1FAFF, "extended symbols and pictographs"},
+    {0x1FB00, 0x1FBFF, "additional emoji"},
 };
 
 struct Codepoint {
-    wchar_t value  = static_cast<wchar_t>('?');
-    int     width  = 1;
-    size_t  length = 1;
-    
     enum class Type : uint8_t {
         Invalid,
-        Ascii,
         VariationSelector,
         ZeroWidthJoiner,
         RegionalIndicator,
+        EmojiModifier,
         EmojiBase,
         Other
-    } type = Type::Other;
+    };
 
+    int    width  = 1;
+    size_t length = 1;
+    Type   type = Type::Other;
+    
     [[nodiscard]] bool next(sv_t sv, size_t offset) noexcept {
         if (offset >= sv.size()) return false;
         *this = {};
         mbstate_t state{};
-        length = mbrtowc(&value, sv.data() + offset, sv.size() - offset, &state);
-        if (!sanitize()) {
-            width = wcwidth(value);
-            if (!sanitize())
+        length = mbrtowc(&wchar_, sv.data() + offset, sv.size() - offset, &state);
+        if (length != 0 &&
+            length != static_cast<size_t>(-1) &&
+            length != static_cast<size_t>(-2))
+        {
+            width = wcwidth(wchar_);
+            if (width < 0)
+                set(1, length, Type::Invalid);
+            else
                 classify();
+        } else {
+            set(1, 1, Type::Invalid);
         }
         return true;
     }
-
+    
+    os_t& write_debug(os_t& os) const noexcept {
+        os << "[cp]   U+"
+        << std::hex << std::uppercase << std::setw(4) << std::setfill('0')
+        << static_cast<uint32_t>(wchar_) << "   "
+        << std::dec
+        << " l=" << length
+        << " w="  << width
+        << " " << type_string() << "\n";
+        return os;
+    }
+    
 private:
+    const char* type_string() const noexcept {
+        switch (type) {
+            case Type::Invalid:           return "Invalid";
+            case Type::VariationSelector: return "VariationSelector";
+            case Type::ZeroWidthJoiner:   return "ZeroWidthJoiner";
+            case Type::RegionalIndicator: return "RegionalIndicator";
+            case Type::EmojiModifier:     return "EmojiModifier";
+            case Type::EmojiBase:         return "EmojiBase";
+            case Type::Other:             return "Other";
+        }
+        return "Unknown";
+    }
+
     void classify() noexcept {
-        if (value <= 0x7F) {
-            type = Type::Ascii;
-        } else if (value == 0xFE0F) {
-            type = Type::VariationSelector;
-        } else if (value == 0x200D) {
-            type = Type::ZeroWidthJoiner;
-        } else if (value >= 0x1F1E6 && value <= 0x1F1FF) {
+        if (wchar_ >= 0x1F1E6 && wchar_ <= 0x1F1FF) {
             type = Type::RegionalIndicator;
+        } else if (wchar_ >= 0x1F3FB && wchar_ <= 0x1F3FF) {
+            type = Type::EmojiModifier;
         } else if (is_in_emoji_range()) {
             type = Type::EmojiBase;
+        } else if (wchar_ == 0xFE0F) {
+            type = Type::VariationSelector;
+        } else if (wchar_ == 0x200D) {
+            type = Type::ZeroWidthJoiner;
         } else {
             type = Type::Other;
         }
     }
 
-    [[nodiscard]] constexpr bool is_invalid() const noexcept {
-        return width < 0 ||
-               length ==  0 ||
-               length == static_cast<size_t>(-1) ||
-               length == static_cast<size_t>(-2);
+    Codepoint& set(int w, size_t l, Codepoint::Type t) noexcept {
+        width = w;
+        length = l;
+        type = t;
+        return *this;
     }
-
-    [[nodiscard]] constexpr bool sanitize() noexcept {
-        if (!is_invalid()) return false;
-        *this = {.type = Type::Invalid};
-        return true;
-    }
-
+    
     [[nodiscard]] constexpr bool is_in_emoji_range() const noexcept {
         for (const auto& r : emoji_ranges)
-            if (value >= r.from && value <= r.to)
+            if (wchar_ >= r.from && wchar_ <= r.to)
                 return true;
         return false;
     }
+    
+    wchar_t wchar_{};
 };
 
 struct DisplayUnit {
-    Codepoint codepoint{};
-    size_t    offset = 0;
-    size_t    length = 0;
-    int       width  = 0;
+    size_t offset = 0;
+    size_t length = 0;
+    int    width  = 0;
+    bool   valid  = true;
+
+    // parse state
+    bool in_emoji_unit = false;
+    bool pending_emoji = false;
+    bool pending_flag  = false;
+    bool include_cp    = true;
+    bool unit_done     = false;
+
+    [[nodiscard]] bool
+    parse(sv_t sv, size_t offset_) noexcept { return parse<false>(sv, offset_);}
+
+    [[nodiscard]] bool
+    parse_debug(sv_t sv, size_t offset_) { return parse<true>(sv, offset_); }
     
-    enum class Type : uint8_t {
-        Invalid,
-        Ascii,
-        EmojiCluster,
-        RegionalPair,
-        PlainText,
-        Unknown
-    } type = Type::Unknown;
-    
-    [[nodiscard]] bool parse(sv_t sv, size_t offset_) noexcept {
-        if (offset_ >= sv.size()) return false;
-        *this = {.offset = offset_};
-        bool in_emoji_cluster   = false;
-        bool pending_flag       = false;
-        bool pending_emoji_base = false;
-        while (offset + length < sv.size()) {
-            if (!codepoint.next(sv, offset + length)) break;
-            switch (codepoint.type) {
-                case Codepoint::Type::Invalid:
-                    type = Type::Invalid;
-                    width = 1;
-                    length += codepoint.length;
-                    return true;
-                case Codepoint::Type::Ascii:
-                    type = Type::Ascii;
-                    width = 1;
-                    length += codepoint.length;
-                    return true;
-                case Codepoint::Type::VariationSelector:
-                    if (pending_emoji_base) {
-                        pending_emoji_base = false;
-                        width = 1;
-                    }
-                    length += codepoint.length;
-                    continue;
-                case Codepoint::Type::ZeroWidthJoiner:
-                    in_emoji_cluster = true;
-                    length += codepoint.length;
-                    continue;
-                case Codepoint::Type::RegionalIndicator:
-                    if (pending_flag) {
-                        pending_flag = false;
-                        type = Type::RegionalPair;
-                        width = 2;
-                        length += codepoint.length;
-                        return true;
-                    } else {
-                        pending_flag = true;
-                        width = 0;
-                        length += codepoint.length;
-                        continue;
-                    }
-                case Codepoint::Type::EmojiBase:
-                    pending_emoji_base = true;
-                    if (in_emoji_cluster) {
-                        in_emoji_cluster = false;
-                        type = Type::EmojiCluster;
-                        width = 0;
-                    } else {
-                        width += (codepoint.width > 0 ? codepoint.width : 1);
-                    }
-                    length += codepoint.length;
-                    return true;
-                case Codepoint::Type::Other:
-                    type = Type::PlainText;
-                    width += (codepoint.width > 0 ? codepoint.width : 1);
-                    length += codepoint.length;
-                    return true;
-            }
-        }
-        if (pending_flag) {
-            type = Type::RegionalPair;
-            ++width;
-        } else if (pending_emoji_base) {
-            type = Type::EmojiCluster;
-            width = 1;
-        } else if (width == 0) {
-            type = Type::Invalid;
-            width = 1;
-        }
-        return true;
-    }
-    
-    os_t& write(os_t& os, sv_t sv, bool normalize = false) const noexcept {
+    os_t& write(os_t& os, sv_t sv, char pad = '?') const noexcept {
         if (offset >= sv.size() || offset + length > sv.size())
             return os;
-        if (type == Type::Invalid)
-            return os << static_cast<unsigned char>(codepoint.value);
-        if (normalize && type == Type::Ascii)
-            return os << normalize_char(static_cast<char>(codepoint.value));
+        if (!valid)
+            return os << pad;
         return os.write(sv.data() + offset, length);
+    }
+
+private:
+    template <bool Debug = false>
+    [[nodiscard]] bool parse(sv_t sv, size_t offset_) {
+        if (offset_ >= sv.size()) return false;
+
+        *this = {.offset = offset_};
+        Codepoint cp{};
+        while (offset + length < sv.size()) {
+            if (!cp.next(sv, offset + length)) break;
+
+            const bool first_place = !length;
+            switch (cp.type) {
+                case Codepoint::Type::Invalid:
+                    include_cp = first_place;
+                    unit_done  = true;
+                    valid = !include_cp;
+                    width = (include_cp ? 1 : width);
+                    break;
+
+                case Codepoint::Type::Other:
+                    include_cp = first_place;
+                    unit_done  = true;
+                    width = (include_cp ? cp.width : width);
+                    break;
+
+                case Codepoint::Type::EmojiBase:
+                    include_cp = (first_place || pending_emoji);
+                    unit_done  = !include_cp;
+                    width = (include_cp && first_place ? cp.width : width);
+                    in_emoji_unit = include_cp;
+                    pending_emoji = (include_cp ? false : pending_emoji);
+                    break;
+ 
+                case Codepoint::Type::VariationSelector:
+                    include_cp = true;
+                    unit_done  = first_place;
+                    valid      = !first_place;
+                    width = (in_emoji_unit ? 2 : width);
+                    pending_emoji = false;
+                    break;
+                    
+                case Codepoint::Type::ZeroWidthJoiner:
+                    include_cp    = true;
+                    unit_done     = first_place;
+                    valid         = !first_place;
+                    pending_emoji = true;
+                    break;
+
+                case Codepoint::Type::EmojiModifier:
+                    include_cp = in_emoji_unit;
+                    unit_done  = !include_cp;
+                    break;
+
+                case Codepoint::Type::RegionalIndicator:
+                    include_cp   = !pending_flag;
+                    unit_done    = pending_flag;
+                    width        = (pending_flag? 2 : 1);
+                    pending_flag = !pending_flag;
+                    break;
+
+                default:
+                    break;
+            }
+            if constexpr (Debug) {
+                if (include_cp)
+                    cp.write_debug(std::cerr);
+            }
+            if (include_cp) length += cp.length;
+            if (unit_done || length == 0) break;
+        }
+        if (length == 0) {
+            valid  = false;
+            length = 1;
+            width  = 1;
+        } else if (pending_flag || pending_emoji) {
+            width = std::max(width, 1);
+        } else if (width == 0) {
+            valid = false;
+            width = 1;
+        }
+        if constexpr (Debug)
+            write_debug(std::cerr);
+        return true;
+    }
+
+    os_t& write_debug(os_t& os) const noexcept {
+        os << "[unit] offset="  << std::setw(2) << offset
+           << " l=" << length
+           << " w=" << width
+           << " valid=" << std::boolalpha << valid << "\n";
+        return os;
     }
 };
 

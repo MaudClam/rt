@@ -73,10 +73,10 @@ protected:
         return os;
     }
 
-    os_t& apply_ansi_clear(os_t& os) const noexcept {
+    os_t& apply_ansi_clear(os_t& os, int& term_with) const noexcept {
         if (!can_use_ansi())
             return os;
-        ansi::write_clear_left(os, std::max(0, terminal_width_));
+        ansi::write_clear_left(os, std::max(0, term_with));
         terminal_width_ = 0;
         return os;
     }
@@ -159,9 +159,10 @@ struct CellFormat {
 
         enum class EndPolicy : uint8_t {
             None, Flush, Newline, Pad, PadThenFlush
-        } end_policy = EndPolicy::Pad;
+        } end_policy = EndPolicy::PadThenFlush;
 
-        char padchar = ' ';
+        char padchar  = ' ';
+        char normchar = '?';
     };
 
     int          width = unset;
@@ -179,7 +180,7 @@ struct CellFormat {
     [[nodiscard]] bool is_truncatable() const noexcept {
         return truncate.enabled && is_alignable();
     }
-    
+
     [[nodiscard]] bool should_normalize(bool in_case_allowed) const noexcept {
         switch (control.normalize) {
             case Control::Normalize::Required:  return true;
@@ -188,7 +189,7 @@ struct CellFormat {
         }
         return false;
     }
-    
+
     [[nodiscard]] bool should_be_buffered() const noexcept {
         return is_alignable() ||
                is_truncatable() ||
@@ -208,7 +209,7 @@ struct Cell : CellBase {
     os_t& write(os_t& os, const CellFormat& fmt) const noexcept {
         terminal_width_ = 0;
         if (fmt.width == hidden)
-            return apply_end(os, fmt);
+            return apply_end(os, fmt, terminal_width_);
         apply_ansi_style(os, fmt.ansi_style);
         std::optional<sv_t> sv_out;
         if (fmt.should_be_buffered()) {
@@ -224,8 +225,36 @@ struct Cell : CellBase {
             terminal_width_ = unset;
             write_with_iomanip(os, fmt.manip, prefix, value, suffix);
         }
-        apply_ansi_reset(os, fmt.ansi_style);
-        return apply_end(os, fmt);
+        apply_end(os, fmt, terminal_width_);
+        return apply_ansi_reset(os, fmt.ansi_style);
+    }
+    
+    os_t& force_clear(os_t& os) const noexcept {
+        if (!format.should_be_buffered()) {
+            CellFormat fmt = format;
+            fmt.control.normalize = CellFormat::Control::Normalize::Required;
+            terminal_width_ = measure_width(fmt);
+        }
+        return (clear(os));
+    }
+    
+    os_t& clear(os_t& os) const noexcept { return clear(os, format); }
+    
+    os_t& clear(os_t& os, const CellFormat& fmt) const noexcept {
+        if (fmt.control.end_policy != CellFormat::Control::EndPolicy::Newline) {
+            apply_ansi_clear(os, terminal_width_);
+            terminal_width_ = unset;
+        }
+        return os << std::flush;
+    }
+    
+    [[nodiscard]] int measure_width() const noexcept { return measure_width(format); }
+    
+    [[nodiscard]] int measure_width(const CellFormat& fmt) const noexcept {
+        if (auto buff = buffering<A>(fmt))
+            return width();
+        cfg_.set_logger_flag(Flags::LoggingBufferFailed);
+        return unset;
     }
 
 private:
@@ -249,18 +278,24 @@ private:
        return { safe_width, tail };
     }
 
-    os_t& apply_end(os_t& os, const CellFormat& fmt) const noexcept {
+    os_t& apply_end(os_t& os, const CellFormat& fmt, int& term_width) const noexcept {
         using EP = CellFormat::Control::EndPolicy;
         switch (fmt.control.end_policy) {
             case EP::None:    break;
             case EP::Flush:   os << std::flush; break;
             case EP::Newline: os << std::endl;  break;
             case EP::Pad: {
-                if (terminal_width_ == unset) { os << fmt.control.padchar; }
+                if (!fmt.has_width()) {
+                    os << fmt.control.padchar;
+                    ++term_width;
+                }
                 break;
             }
             case EP::PadThenFlush: {
-                if (terminal_width_ == unset) { os << fmt.control.padchar; }
+                if (!fmt.has_width()) {
+                    os << fmt.control.padchar;
+                    ++term_width;
+                }
                 os << std::flush;
                 break;
             }
@@ -287,6 +322,18 @@ private:
         try {
             auto& oss = get_buffer<Tag>(false);
             write_truncated_and_normalized(oss, fmt, sv, cut_width);
+            return oss.view();
+        } catch (...) {
+            return std::nullopt;
+        }
+    }
+
+    template<typename Tag>
+    [[nodiscard]] std::optional<sv_t>
+    buffering(const CellFormat& fmt) const noexcept {
+        try {
+            auto& oss = get_buffer<Tag>(false);
+            write(oss, fmt);
             return oss.view();
         } catch (...) {
             return std::nullopt;
@@ -328,7 +375,7 @@ private:
                 //“So it does!” said Piglet. “And it comes out!”
                 //“Doesn’t it?” said Eeyore. “It goes in and out like anything.”
                 if (it_goes_in) {
-                    unit.write(os, sv, normalize);
+                    unit.write(os, sv, fmt.control.normchar);
                     term_width += unit.width;
                     offset += unit.length;
                 } else {
@@ -351,7 +398,7 @@ private:
     }
 
     os_t& write_aligned(os_t& os, const CellFormat& fmt,
-                        sv_t sv, int term_width) const noexcept
+                        sv_t sv, int& term_width) const noexcept
     {
         using Mode = CellFormat::Align::Mode;
         int left = 0, right = 0;
@@ -364,6 +411,7 @@ private:
         ansi::write_pad(os, left, fmt.align.padchar);
         os << sv;
         ansi::write_pad(os, right, fmt.align.padchar);
+        term_width += padd;
         return os;
     }
 };
@@ -421,7 +469,7 @@ struct ProgressBar : CellBase, ProgressBarState {
                 return os;
             const int unmarks = std::max(0, ctx.width - slider);
             prev_slider = slider;
-            ctx.apply_ansi_clear(os);
+            ctx.apply_ansi_clear(os, ctx.terminal_width_);
             ctx.apply_ansi_style(os, ctx.style);
             write_content(os, slider, unmarks);
             ctx.apply_ansi_reset(os, ctx.style);
@@ -430,7 +478,7 @@ struct ProgressBar : CellBase, ProgressBarState {
                                 + mark_width * unmarks;
             if (finish) {
                 if (ctx.hide)
-                    ctx.apply_ansi_clear(os);
+                    ctx.apply_ansi_clear(os, ctx.terminal_width_);
                 ctx.terminal_width_ = unset;
             }
             return os << std::flush;
@@ -478,7 +526,7 @@ struct ProgressBar : CellBase, ProgressBarState {
                 os << suffix;
                 ctx.terminal_width_ += suffix_width;
                 if (ctx.hide)
-                    ctx.apply_ansi_clear(os);
+                    ctx.apply_ansi_clear(os, ctx.terminal_width_);
                 ctx.terminal_width_ = unset;
             }
             ctx.apply_ansi_reset(os, ctx.style);
@@ -510,14 +558,14 @@ struct ProgressBar : CellBase, ProgressBarState {
             if (!start && !activiry && !finish)
                 return os;
             prev_percnt = percnt;
-            ctx.apply_ansi_clear(os);
+            ctx.apply_ansi_clear(os, ctx.terminal_width_);
             ctx.apply_ansi_style(os, ctx.style);
             write_content(os, percnt);
             ctx.apply_ansi_reset(os, ctx.style);
             ctx.terminal_width_ = affix_width + width;
             if (finish) {
                 if (ctx.hide)
-                    ctx.apply_ansi_clear(os);
+                    ctx.apply_ansi_clear(os, ctx.terminal_width_);
                 ctx.terminal_width_ = unset;
             }
             return os << std::flush;
