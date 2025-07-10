@@ -110,8 +110,8 @@ struct Codepoint {
     
     os_t& write_debug(os_t& os) const noexcept {
         os << "[cp]   U+"
-        << std::hex << std::uppercase << std::setw(4) << std::setfill('0')
-        << static_cast<uint32_t>(wchar_) << "   "
+        << std::hex << std::uppercase << std::setw(5) << std::setfill('0')
+        << static_cast<uint32_t>(wchar_) << "  "
         << std::dec
         << " l=" << length
         << " w="  << width
@@ -185,7 +185,8 @@ struct DisplayUnit {
     [[nodiscard]] bool
     parse_debug(sv_t sv, size_t offset_) { return parse<true>(sv, offset_); }
     
-    os_t& write(os_t& os, sv_t sv, char pad = '?') const noexcept {
+    os_t& write(os_t& os, sv_t sv, char pad = '?') const noexcept
+    {
         if (offset >= sv.size() || offset + length > sv.size())
             return os;
         if (!valid)
@@ -196,6 +197,7 @@ struct DisplayUnit {
 private:
     template <bool Debug = false>
     [[nodiscard]] bool parse(sv_t sv, size_t offset_) {
+
         if (offset_ >= sv.size()) return false;
 
         *this = {.offset = offset_};
@@ -206,66 +208,67 @@ private:
             const bool first_place = !length;
             switch (cp.type) {
                 case Codepoint::Type::Invalid:
-                    include_cp = first_place;
-                    unit_done  = true;
-                    valid = !include_cp;
-                    width = (include_cp ? 1 : width);
+                    include_cp =  first_place;
+                    unit_done  =  true;
+                    valid      = !include_cp;
+                    width      =  include_cp ? 1 : width;
                     break;
 
                 case Codepoint::Type::Other:
                     include_cp = first_place;
                     unit_done  = true;
-                    width = (include_cp ? cp.width : width);
+                    width      = include_cp ? cp.width : width;
                     break;
 
                 case Codepoint::Type::EmojiBase:
-                    include_cp = (first_place || pending_emoji);
-                    unit_done  = !include_cp;
-                    width = (include_cp && first_place ? cp.width : width);
-                    in_emoji_unit = include_cp;
-                    pending_emoji = (include_cp ? false : pending_emoji);
+                    include_cp    =  first_place || pending_emoji;
+                    unit_done     = !include_cp;
+                    width         =  include_cp && first_place ? cp.width : width;
+                    in_emoji_unit =  include_cp;
+                    pending_emoji =  include_cp ? false : pending_emoji;
                     break;
  
                 case Codepoint::Type::VariationSelector:
                     include_cp = true;
-                    unit_done  = first_place;
-                    valid      = !first_place;
-                    width = (in_emoji_unit ? 2 : width);
-                    pending_emoji = false;
-                    break;
-                    
-                case Codepoint::Type::ZeroWidthJoiner:
-                    include_cp    = true;
-                    unit_done     = first_place;
-                    valid         = !first_place;
-                    pending_emoji = true;
+                    unit_done  = true;
+                    valid      = in_emoji_unit;
+                    width      = valid ? 2 : width;
                     break;
 
-                case Codepoint::Type::EmojiModifier:
-                    include_cp = in_emoji_unit;
-                    unit_done  = !include_cp;
+                case Codepoint::Type::ZeroWidthJoiner:
+                    include_cp    =  true;
+                    valid         =  in_emoji_unit;
+                    unit_done     = !valid;
+                    pending_emoji =  valid;
                     break;
+
+                case Codepoint::Type::EmojiModifier: {
+                    include_cp =  true;
+                    unit_done  = !in_emoji_unit;
+                    width      =  in_emoji_unit ? width : cp.width;
+                    break;
+                }
 
                 case Codepoint::Type::RegionalIndicator:
-                    include_cp   = !pending_flag;
-                    unit_done    = pending_flag;
-                    width        = (pending_flag? 2 : 1);
-                    pending_flag = !pending_flag;
+                    include_cp   = (first_place && !pending_flag) || pending_flag;
+                    unit_done    = !include_cp || pending_flag;
+                    width        =  include_cp ? (pending_flag ? 2 : 1) : width;
+                    pending_flag =  include_cp ? !pending_flag : false;
                     break;
 
                 default:
                     break;
             }
-            if constexpr (Debug) {
+            if constexpr (Debug)
                 if (include_cp)
                     cp.write_debug(std::cerr);
-            }
             if (include_cp) length += cp.length;
             if (unit_done || length == 0) break;
         }
+
         if (length == 0) {
             valid  = false;
-            length = 1;
+            length = std::max(static_cast<size_t>(1), cp.length);
             width  = 1;
         } else if (pending_flag || pending_emoji) {
             width = std::max(width, 1);
@@ -277,7 +280,7 @@ private:
             write_debug(std::cerr);
         return true;
     }
-
+    
     os_t& write_debug(os_t& os) const noexcept {
         os << "[unit] offset="  << std::setw(2) << offset
            << " l=" << length
