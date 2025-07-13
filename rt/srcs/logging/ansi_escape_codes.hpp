@@ -3,7 +3,6 @@
 #include <ostream>
 #include <initializer_list>
 #include <cstdint>          // uint8_t
-#include "traits.hpp"
 
 namespace ansi {
 

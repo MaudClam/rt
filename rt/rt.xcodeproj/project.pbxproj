@@ -7,15 +7,6 @@
 	objects = {
 
 /* Begin PBXCopyFilesBuildPhase section */
-		664CCE3C2DF0A86200B12741 /* CopyFiles */ = {
-			isa = PBXCopyFilesBuildPhase;
-			buildActionMask = 2147483647;
-			dstPath = /usr/share/man/man1/;
-			dstSubfolderSpec = 0;
-			files = (
-			);
-			runOnlyForDeploymentPostprocessing = 1;
-		};
 		668AAA972DB1034A006D2BDA /* CopyFiles */ = {
 			isa = PBXCopyFilesBuildPhase;
 			buildActionMask = 2147483647;
@@ -46,10 +37,10 @@
 		663EA53B2E154C1A00A54EB6 /* Exceptions for "unit_tests" folder in "test" target */ = {
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			additionalCompilerFlagsByRelativePath = {
-				test_DisplayUnit.cpp = "-std=c++2a -Wall -Wextra -Werror";
+				_test_includes.cpp = "-std=c++2a -Wall -Wextra -Werror";
 			};
 			membershipExceptions = (
-				test_DisplayUnit.cpp,
+				_test_includes.cpp,
 			);
 			target = 664CCE3D2DF0A86200B12741 /* test */;
 		};
@@ -83,8 +74,6 @@
 				test_ansi_escape_codes.cpp,
 				test_Cell_and_ansi.cpp,
 				test_DisplayUnit.cpp,
-				test_logging_Random_Emoji.cpp,
-				test_logging.cpp,
 				test_ProgressBar.cpp,
 				vec_test.cpp,
 				vec_utils_test.cpp,
@@ -167,7 +156,6 @@
 			buildPhases = (
 				664CCE3A2DF0A86200B12741 /* Sources */,
 				664CCE3B2DF0A86200B12741 /* Frameworks */,
-				664CCE3C2DF0A86200B12741 /* CopyFiles */,
 			);
 			buildRules = (
 			);

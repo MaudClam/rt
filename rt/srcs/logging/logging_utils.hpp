@@ -1,8 +1,10 @@
 #pragma once
+#include <iostream>
 #include <string_view>
 #include <cwchar>       // for mbrtowc, mbstate_t, wchar_t
 #include <cstdlib>      // for std::system
-#include <optional>
+#include "traits.hpp"
+
 
 namespace logging {
 
@@ -86,8 +88,8 @@ struct Codepoint {
 
     int    width  = 1;
     size_t length = 1;
-    Type   type = Type::Other;
-    
+    Type   type   = Type::Other;
+
     [[nodiscard]] bool next(sv_t sv, size_t offset) noexcept {
         if (offset >= sv.size()) return false;
         *this = {};
@@ -107,8 +109,8 @@ struct Codepoint {
         }
         return true;
     }
-    
-    os_t& write_debug(os_t& os) const noexcept {
+
+    os_t& write_debug(os_t& os = std::cerr) const noexcept {
         os << "[cp]   U+"
         << std::hex << std::uppercase << std::setw(5) << std::setfill('0')
         << static_cast<uint32_t>(wchar_) << "  "
@@ -118,7 +120,7 @@ struct Codepoint {
         << " " << type_string() << "\n";
         return os;
     }
-    
+
 private:
     const char* type_string() const noexcept {
         switch (type) {
@@ -155,14 +157,14 @@ private:
         type = t;
         return *this;
     }
-    
+
     [[nodiscard]] constexpr bool is_in_emoji_range() const noexcept {
         for (const auto& r : emoji_ranges)
             if (wchar_ >= r.from && wchar_ <= r.to)
                 return true;
         return false;
     }
-    
+
     wchar_t wchar_{};
 };
 
@@ -172,21 +174,21 @@ struct DisplayUnit {
     int    width  = 0;
     bool   valid  = true;
 
-    // parse state
     bool in_emoji_unit = false;
     bool pending_emoji = false;
     bool pending_flag  = false;
-    bool include_cp    = true;
-    bool unit_done     = false;
 
-    [[nodiscard]] bool
-    parse(sv_t sv, size_t offset_) noexcept { return parse<false>(sv, offset_);}
+    [[nodiscard]]
+    bool parse(sv_t sv, size_t offset_) noexcept {
+        return parse<false>(sv, offset_);
+    }
 
-    [[nodiscard]] bool
-    parse_debug(sv_t sv, size_t offset_) { return parse<true>(sv, offset_); }
-    
-    os_t& write(os_t& os, sv_t sv, char pad = '?') const noexcept
-    {
+    [[nodiscard]]
+    bool parse_debug(sv_t sv, size_t offset_, os_t& os = std::cerr) {
+        return parse<true>(sv, offset_, os);
+    }
+
+    os_t& write(os_t& os, sv_t sv, char pad = '?') const noexcept {
         if (offset >= sv.size() || offset + length > sv.size())
             return os;
         if (!valid)
@@ -195,98 +197,70 @@ struct DisplayUnit {
     }
 
 private:
-    template <bool Debug = false>
-    [[nodiscard]] bool parse(sv_t sv, size_t offset_) {
-
-        if (offset_ >= sv.size()) return false;
-
-        *this = {.offset = offset_};
-        Codepoint cp{};
-        while (offset + length < sv.size()) {
-            if (!cp.next(sv, offset + length)) break;
-
-            const bool first_place = !length;
-            switch (cp.type) {
-                case Codepoint::Type::Invalid:
-                    include_cp =  first_place;
-                    unit_done  =  true;
-                    valid      = !include_cp;
-                    width      =  include_cp ? 1 : width;
-                    break;
-
-                case Codepoint::Type::Other:
-                    include_cp = first_place;
-                    unit_done  = true;
-                    width      = include_cp ? cp.width : width;
-                    break;
-
-                case Codepoint::Type::EmojiBase:
-                    include_cp    =  first_place || pending_emoji;
-                    unit_done     = !include_cp;
-                    width         =  include_cp && first_place ? cp.width : width;
-                    in_emoji_unit =  include_cp;
-                    pending_emoji =  include_cp ? false : pending_emoji;
-                    break;
- 
-                case Codepoint::Type::VariationSelector:
-                    include_cp = true;
-                    unit_done  = true;
-                    valid      = in_emoji_unit;
-                    width      = valid ? 2 : width;
-                    break;
-
-                case Codepoint::Type::ZeroWidthJoiner:
-                    include_cp    =  true;
-                    valid         =  in_emoji_unit;
-                    unit_done     = !valid;
-                    pending_emoji =  valid;
-                    break;
-
-                case Codepoint::Type::EmojiModifier: {
-                    include_cp =  true;
-                    unit_done  = !in_emoji_unit;
-                    width      =  in_emoji_unit ? width : cp.width;
-                    break;
-                }
-
-                case Codepoint::Type::RegionalIndicator:
-                    include_cp   = (first_place && !pending_flag) || pending_flag;
-                    unit_done    = !include_cp || pending_flag;
-                    width        =  include_cp ? (pending_flag ? 2 : 1) : width;
-                    pending_flag =  include_cp ? !pending_flag : false;
-                    break;
-
-                default:
-                    break;
-            }
-            if constexpr (Debug)
-                if (include_cp)
-                    cp.write_debug(std::cerr);
-            if (include_cp) length += cp.length;
-            if (unit_done || length == 0) break;
+    [[nodiscard]] bool accept_codepoint(const Codepoint& cp) noexcept {
+        const bool first_place    = !length;
+        bool       position_valid = false;
+        switch (cp.type) {
+            case Codepoint::Type::Invalid:
+                position_valid = first_place;
+                valid          = position_valid ? false : valid;
+                break;
+            case Codepoint::Type::Other:
+                position_valid = first_place;
+                width          = position_valid ? cp.width : width;
+                break;
+            case Codepoint::Type::EmojiBase:
+                position_valid = first_place || pending_emoji;
+                width          = first_place    ? cp.width : width;
+                in_emoji_unit  = position_valid ? true     : in_emoji_unit;
+                pending_emoji  = position_valid ? false    : pending_emoji;
+                break;
+            case Codepoint::Type::VariationSelector:
+                position_valid =  in_emoji_unit;
+                width          =  position_valid ? 2     : width;
+                valid          = !position_valid ? false : valid;
+                break;
+            case Codepoint::Type::ZeroWidthJoiner:
+                position_valid =  in_emoji_unit;
+                valid          = !position_valid ? false : valid;
+                pending_emoji  =  position_valid ? true  : pending_emoji;
+                break;
+            case Codepoint::Type::EmojiModifier:
+                position_valid = in_emoji_unit;
+                width = position_valid ? 2 : (first_place ? cp.width : width);
+                break;
+            case Codepoint::Type::RegionalIndicator:
+                position_valid = first_place || pending_flag;
+                width          = position_valid ? 2             : width;
+                pending_flag   = position_valid ? !pending_flag : false;
+                break;
         }
-
-        if (length == 0) {
-            valid  = false;
-            length = std::max(static_cast<size_t>(1), cp.length);
-            width  = 1;
-        } else if (pending_flag || pending_emoji) {
-            width = std::max(width, 1);
-        } else if (width == 0) {
-            valid = false;
-            width = 1;
-        }
-        if constexpr (Debug)
-            write_debug(std::cerr);
-        return true;
+        return position_valid || first_place;
     }
-    
-    os_t& write_debug(os_t& os) const noexcept {
+
+    os_t& write_debug(os_t& os = std::cerr) const noexcept {
         os << "[unit] offset="  << std::setw(2) << offset
            << " l=" << length
            << " w=" << width
            << " valid=" << std::boolalpha << valid << "\n";
         return os;
+    }
+
+    template <bool Debug = false>
+    [[nodiscard]] bool parse(sv_t sv, size_t offset_, os_t& os = std::cerr)
+                                                      noexcept(Debug == false) {
+        if (offset_ >= sv.size()) return false;
+        *this = {.offset = offset_};
+        Codepoint cp{};
+        while (offset + length < sv.size()) {
+            if (!cp.next(sv, offset + length)) break;
+            if (!accept_codepoint(cp)) break;
+            length += std::max<size_t>(1, cp.length);
+            if constexpr (Debug) cp.write_debug(os);
+            if (!valid) { width = 1; break; }
+        }
+        if constexpr (Debug) write_debug(os);
+        return true;
     }
 };
 

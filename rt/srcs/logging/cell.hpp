@@ -80,7 +80,7 @@ protected:
         terminal_width_ = 0;
         return os;
     }
-    
+
 };
 
 struct IOManip {
@@ -144,7 +144,7 @@ struct CellFormat {
             .foreground = ansi::Color::Red,
             .styles     = {ansi::Style::Underline}
         };
-        
+
         [[nodiscard]] std::pair<int,int> limits(int width) const noexcept {
             width = std::max(0, width);
             const int tail = std::clamp(cutlen, 0, width);
@@ -203,7 +203,7 @@ struct Cell : CellBase {
     T    value;
     sv_t suffix = "";
     CellFormat format;
-    
+
     os_t& write(os_t& os) const noexcept { return write(os, format); }
 
     os_t& write(os_t& os, const CellFormat& fmt) const noexcept {
@@ -228,7 +228,7 @@ struct Cell : CellBase {
         apply_end(os, fmt, terminal_width_);
         return apply_ansi_reset(os, fmt.ansi_style);
     }
-    
+
     os_t& force_clear(os_t& os) const noexcept {
         if (!format.should_be_buffered()) {
             CellFormat fmt = format;
@@ -237,9 +237,9 @@ struct Cell : CellBase {
         }
         return (clear(os));
     }
-    
+
     os_t& clear(os_t& os) const noexcept { return clear(os, format); }
-    
+
     os_t& clear(os_t& os, const CellFormat& fmt) const noexcept {
         if (fmt.control.end_policy != CellFormat::Control::EndPolicy::Newline) {
             apply_ansi_clear(os, terminal_width_);
@@ -247,9 +247,9 @@ struct Cell : CellBase {
         }
         return os << std::flush;
     }
-    
+
     [[nodiscard]] int measure_width() const noexcept { return measure_width(format); }
-    
+
     [[nodiscard]] int measure_width(const CellFormat& fmt) const noexcept {
         if (auto buff = buffering<A>(fmt))
             return width();
@@ -436,7 +436,6 @@ struct ProgressBarState {
         mutable int prefix_width = 0;
         mutable int mark_width   = 0;
         mutable int suffix_width = 0;
-
     };
 
     struct Percent {
@@ -620,7 +619,7 @@ private:
     [[nodiscard]] int slider_pos() const noexcept {
         return bresenham_y(count, cycles, width);
     }
-    
+
     [[nodiscard]] int percentage() const noexcept {
         return std::clamp(count * 100 / std::max(1, cycles), 0, 100);
     }

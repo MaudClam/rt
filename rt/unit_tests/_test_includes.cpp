@@ -1,17 +1,6 @@
-//#include "../srcs/logging/logging_utils.hpp"
-//
-//// g++ -std=c++2a -O2 -Wall -Wextra -Werror _test_includes.cpp -o _test_includes && ./_test_includes
-//int main() {
-//    return 0;
-//}
+#include "../srcs/logging/timing.hpp"
 
-#include <sstream>
-#include <string_view>
-#include <iostream>
-
+// g++ -std=c++2a -O2 -Wall -Wextra -Werror _test_includes.cpp -o _test_includes && ./_test_includes
 int main() {
-    std::ostringstream oss;
-    oss << "hello";
-    std::string_view sv = oss.view(); // ✔ работает только в C++20+
-    std::cout << sv << '\n';
+    return 0;
 }

@@ -1,34 +1,31 @@
 #include <iostream>
 #include <thread>
+#include <vector>
 #include "../srcs/logging/cell.hpp"
 #include "../srcs/logging/ansi_enums_naming.hpp"
+#include "../srcs/logging/timing.hpp"
 
 using namespace logging;
 using namespace ansi;
 
-void test_write_formats(sv_t text, const ansi::Format& fmt, std::ostream& out = std::cout) {
-    write_style(out, fmt);
-    out << text;
-    write_reset(out, fmt);
-    if (text == "Hidden text")
-        out << " [" << text << "]";}
+struct formats_t { sv_t sv; Format fmt{}; };
+
+void test_write_formats(os_t& os, formats_t f) {
+    using Controls = CellFormat::Control::EndPolicy;
+    Cell<sv_t> cell;
+    cell.value = f.sv;
+    cell.format.ansi_style = f.fmt;
+    if (f.sv != "Hidden text") {
+        cell.format.control.end_policy = Controls::Newline;
+        os << cell;
+    } else {
+        cell.format.control.end_policy = Controls::PadThenFlush;
+        os << cell << "[" << f.sv << "]\n";
+    }
+}
 
 void time_delay(int ms) {
     std::this_thread::sleep_for(std::chrono::milliseconds(ms));
-}
-
-template <typename T, size_t N>
-[[nodiscard]] inline int measure_max_width(const NamedEnum<T> (&en)[N], Cell<sv_t>& cell) {
-    int max_width = 0;
-    for (const auto& e : en) {
-        cell.value = e.name;
-        const int width = cell.measure_width();
-        if (width <= 0)
-            return unset;
-        if (width > max_width)
-            max_width = width;
-    }
-    return max_width;
 }
 
 template <typename T, size_t N>
@@ -39,7 +36,6 @@ os_t& test_ansi_style(os_t& os, sv_t prompt, const NamedEnum<T> (&en)[N],
     title.value = prompt;
     title.format.ansi_style.styles = {Style::Bold};
     title.format.control.normalize = CellFormat::Control::Normalize::Required;
-//    title.format.width = 25;
 
     Cell<sv_t> cell;
 
@@ -79,132 +75,67 @@ os_t& test_ansi_style(os_t& os, sv_t prompt, const NamedEnum<T> (&en)[N],
     return os;
 }
 
-void test_display_unit(os_t& os, sv_t input) {
-    os << "[test] input='" << input << "', length=" << input.size() << '\n';
-    using namespace logging;
-    oss_t buff;
-    size_t offset = 0;
-    int width = 0;
-    DisplayUnit du;
-    while (du.parse(input, offset)) {
-        du.write(buff, input);
-        width += du.width;
-        offset += du.length;
-    }
-    os << "[test] output='" << buff.view() << "', width=" << width << '\n';
-}
-
 
 namespace rt { Config config; }
 
 // g++ -std=c++2a -O2 -Wall -Wextra -Werror test_Cell_and_ansi.cpp -o cell_colors && ./cell_colors
 int main(int ac, char** av) {
     if (auto r = rt::config.parse_cmdline(ac, av); r) return r.write_error_if();
+    
+    ScopedTimer timer(std::cout);
 
-//    int delay_ms = 100;
+    int delay_ms = 200;
 
-//    if (rt::config.tty_allowed && rt::config.ansi_allowed)
-//        terminal_clear_fallback();
-//    std::cout << "ABCDEFG";
-//    test_ansi_style(std::cout, "123💇🏽‍♀️ Папа у Васи:", enumColors, delay_ms);
-//    test_ansi_style(std::cout, "123💇🏽‍♀️ Папа у Васи:", enumColors, 0);
-//    std::cout << std::endl;
-//
-//    std::cout << "ABCDEFG";
-//    test_ansi_style(std::cout, "123✅ Папа у Васи Colors:", enumBackgrounds, delay_ms);
-//    test_ansi_style(std::cout, "123✅ Папа у Васи Colors:", enumBackgrounds, 0);
-//    std::cout << std::endl;
-//
-//    std::cout << "ABCDEFG";
-//    test_ansi_style(std::cout, "123▶️ Styles:", enumStyles, delay_ms);
-//    test_ansi_style(std::cout, "123▶️ Styles:", enumStyles, 0);
-//    std::cout << std::endl;
+    if (rt::config.tty_allowed && rt::config.ansi_allowed)
+        terminal_clear_fallback();
 
-    test_display_unit(std::cout, "123 abc");
+    test_ansi_style(std::cout, "▶️ Foreground Colors:", enumColors, delay_ms);
+    test_ansi_style(std::cout, "✅ Foreground Colors:", enumColors, 0);
+    std::cout << std::endl;
 
-//    {
-//        Format fmt{ .styles = { Style::Bold }, .use_ansi = true };
-//        test_write_formats("✅ Style Combinations:", fmt);
-//        std::cout << "\n";
-//    }
-//
-//    {
-//        Format fmt{ .foreground = Color::Red, .styles = { Style::Bold }, .use_ansi = true };
-//        test_write_formats("Red + bold (error)", fmt);
-//        std::cout << "\n";
-//    }
-//
-//    {
-//        Format fmt{ .foreground = Color::BrightRed, .styles = { Style::Bold }, .use_ansi = true };
-//        test_write_formats("BrightRed + bold (error)", fmt);
-//        std::cout << "\n";
-//   }
-//
-//    {
-//        Format fmt{ .foreground = Color::Yellow, .styles = { Style::Underline }, .use_ansi = true };
-//        test_write_formats("Yellow + underline (warning)", fmt);
-//        std::cout << "\n";
-//    }
-//
-//    {
-//        Format fmt{ .foreground = Color::BrightYellow, .styles = { Style::Underline }, .use_ansi = true };
-//        test_write_formats("BrightYellow + underline (warning)", fmt);
-//        std::cout << "\n";
-//    }
-//
-//    {
-//        Format fmt{ .foreground = Color::Blue, .styles = { Style::Italic }, .use_ansi = true };
-//        test_write_formats("Blue + Italic (Information)", fmt);
-//        std::cout << "\n";
-//   }
-//
-//    {
-//        Format fmt{ .foreground = Color::BrightBlue, .styles = { Style::Italic }, .use_ansi = true };
-//        test_write_formats("BrightBlue + Italic (Information)", fmt);
-//        std::cout << "\n";
-//   }
-//
-//    {
-//        Format fmt{ .foreground = Color::Green, .styles = { Style::Bold }, .use_ansi = true };
-//        test_write_formats("Green + bold (success)", fmt);
-//        std::cout << "\n";
-//    }
-//
-//    {
-//        Format fmt{ .foreground = Color::BrightGreen, .styles = { Style::Bold }, .use_ansi = true };
-//        test_write_formats("BrightGreen + bold (success)", fmt);
-//        std::cout << "\n";
-//    }
-//
-//    {
-//        Format fmt{ .foreground = Color::White, .background = Background::BrightBlack, .use_ansi = true };
-//        test_write_formats("Bright black background + white text (contrast mark)", fmt);
-//        std::cout << "\n";
-//    }
-//
-//    {
-//        Format fmt{ .foreground = Color::Red, .background = Background::Yellow, .styles = { Style::Bold }, .use_ansi = true };
-//        test_write_formats("Yellow background + red text + bold", fmt);
-//        std::cout << "\n";
-//    }
-//
-//    {
-//        Format fmt{ .styles = { Style::Inverse, Style::Bold }, .use_ansi = true };
-//        test_write_formats("Invert + bold", fmt);
-//        std::cout << "\n";
-//    }
-//
-//    {
-//        Format fmt{ .styles = { Style::Bold, Style::Underline, Style::Italic, Style::Strikethrough }, .use_ansi = true };
-//        test_write_formats("All styles (as a test)", fmt);
-//        std::cout << "\n";
-//    }
-//
-//    {
-//        Format fmt{ .styles = { Style::Hidden }, .use_ansi = true };
-//        test_write_formats("Hidden text", fmt);
-//        std::cout << "\n";
-//    }
+    test_ansi_style(std::cout, "▶️ Background Colors:", enumBackgrounds, delay_ms);
+    test_ansi_style(std::cout, "✅ Background Colors:", enumBackgrounds, 0);
+    std::cout << std::endl;
+
+    test_ansi_style(std::cout, "▶️ Styles:           ", enumStyles, delay_ms);
+    test_ansi_style(std::cout, "✅ Styles:           ", enumStyles, 0);
+    std::cout << std::endl;
+    
+    std::vector<formats_t> fmts;
+
+    fmts.emplace_back("✅ Style Combinations:",
+                      Format{ .styles = { Style::Bold }, .use_ansi = true });
+    fmts.emplace_back("Red + bold (error)",
+                      Format{ .foreground = Color::Red, .styles = { Style::Bold }, .use_ansi = true });
+    fmts.emplace_back("BrightRed + bold (error)",
+                      Format{ .foreground = Color::BrightRed, .styles = { Style::Bold }, .use_ansi = true });
+    fmts.emplace_back("Yellow + underline (warning)",
+                      Format{ .foreground = Color::Yellow, .styles = { Style::Underline }, .use_ansi = true });
+    fmts.emplace_back("BrightYellow + underline (warning)",
+                      Format{ .foreground = Color::BrightYellow, .styles = { Style::Underline }, .use_ansi = true });
+    fmts.emplace_back("Blue + Italic (Information)",
+                      Format{ .foreground = Color::Blue, .styles = { Style::Italic }, .use_ansi = true });
+    fmts.emplace_back("BrightBlue + Italic (Information)",
+                      Format{ .foreground = Color::BrightBlue, .styles = { Style::Italic }, .use_ansi = true });
+    fmts.emplace_back("Green + bold (success)",
+                      Format{ .foreground = Color::Green, .styles = { Style::Bold }, .use_ansi = true });
+    fmts.emplace_back("BrightGreen + bold (success)",
+                      Format{ .foreground = Color::BrightGreen, .styles = { Style::Bold }, .use_ansi = true });
+    fmts.emplace_back("Bright black background + white text (contrast mark)",
+                      Format{ .foreground = Color::White, .background = Background::BrightBlack, .use_ansi = true });
+    fmts.emplace_back("Yellow background + red text + bold",
+                      Format{ .foreground = Color::Red, .background = Background::Yellow, .styles = { Style::Bold }, .use_ansi = true });
+    fmts.emplace_back("Invert + bold",
+                      Format{ .styles = { Style::Inverse, Style::Bold }, .use_ansi = true });
+    fmts.emplace_back("All styles (as a test)",
+                      Format{ .styles = { Style::Bold, Style::Underline, Style::Italic, Style::Strikethrough }, .use_ansi = true });
+    fmts.emplace_back("Hidden text",
+                      Format{ .styles = { Style::Hidden }, .use_ansi = true });
+
+    for (formats_t f : fmts) {
+        test_write_formats(std::cout, f);
+        time_delay(delay_ms);
+    }
 
     return 0;
 }

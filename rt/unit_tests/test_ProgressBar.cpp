@@ -7,12 +7,12 @@ void time_delay(int ms) {
     std::this_thread::sleep_for(std::chrono::milliseconds(ms));
 }
 
-// Command lins fo testing
+// Command lines fo testing
 // g++ -std=c++2a -O2 -Wall -Wextra -Werror test_ProgressBar.cpp -o test_pb && ./test_pb --test-param=1
 // ./test_pb --test-param=0
 // ./test_pb --test-param=0 --no-tty
 // ./test_pb --test-param=0 --no-ansi
-// ./test_pb --test-param=1 --test-string=' 🇱🇹Хеллоюшки🇺🇸Hello 🌍✨💥🇺🇸\xF0\x28\x8C\x28🇱🇹 World! 🚀🇺🇸👾🇱🇹 '
+// ./test_pb --test-string=' 🇱🇹Хеллоюшки🇺🇸Hello 🌍✨💥🇺🇸\xF0\x28💇🏻‍♀️\x8C\x28🇱🇹 World! 🚀🇺🇸👾🇱🇹 ' --test-param=1
 
 namespace rt { Config config; }
 
@@ -31,10 +31,9 @@ int main(int ac, char** av) {
     std::cout << "ProgressBar::Type::Bar " << std::flush;
     bar.type = ProgressBar::Type::Bar;
     bar.bar.suffix = rt::config.test_string.view().empty() ?
-                     "👈 " :
-                     rt::config.test_string.view();
+                     "👈 " : rt::config.test_string.view();
     bar.bar.prefix = "👉";
-    bar.bar.mark = "💥";
+    bar.bar.mark   = "💥";
     bar.bar.unmark = "🌍";
     for (int i = 0; i < cycles; ++i) {
         std::cout << bar;
