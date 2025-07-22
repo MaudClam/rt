@@ -22,9 +22,6 @@ inline auto& log_config = rt::config;
 constexpr int hidden    = 0;  // means "hidden value"
 constexpr int unset     = -1; // means "not specified"
 
-struct A {}; // Tag 'A'
-struct B {}; // Tag 'B'
-
 struct CellBase {
     [[nodiscard]] int width() const noexcept { return terminal_width_; }
 
@@ -33,7 +30,7 @@ protected:
     LogConfig&  cfg_ = log_config;
 
     [[nodiscard]] bool can_use_tty(bool user_defined = true) const noexcept {
-        return user_defined && cfg_.tty_allowed;
+        return user_defined && cfg_.tty_allowed && output_supports_tty(cfg_.output);
     }
 
     [[nodiscard]] bool can_use_utf8(bool user_defined = true) const noexcept {
@@ -338,20 +335,6 @@ private:
         } catch (...) {
             return std::nullopt;
         }
-    }
-
-    template<typename Tag> [[nodiscard]] static
-    oss_t& get_buffer(bool restore = true) {
-        static thread_local oss_t oss;
-        oss.str(""); // clears the string contents, preserves capacity
-        oss.clear(); // clears error flags (failbit, badbit, eofbit)
-        if (restore) {
-            // clears all formatting flags (fixed, boolalpha, etc.)
-            oss.flags(std::ios_base::fmtflags{});
-            // resets precision to default (like std::cout)
-            oss.precision(6);
-        }
-        return oss;
     }
 
     template<traits::Ostreamable... Args> static

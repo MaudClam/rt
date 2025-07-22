@@ -1,19 +1,24 @@
 #pragma once
 #include <iostream>
+#include <fstream>
 #include <string>
 #include <cassert>
+#include <filesystem>
+#include <chrono>
 #include <unistd.h>      // isatty
 #include <cstdlib>       // std::exit, std::getenv
 #include <charconv>      // std::from_chars
 #include <array>
+#include <chrono>
 
 namespace rt {
 
 using sv_t    = std::string_view;
 using os_t    = std::ostream;
 using flags_t = uint8_t;
+namespace fs  = std::filesystem;
 
-enum class ExitCode {
+enum class ExitCode : uint8_t {
     Success       = EXIT_SUCCESS,
     UnknownError  = EXIT_FAILURE,
     OutputFailure = 2,
@@ -31,25 +36,41 @@ struct Return {
     sv_t status = "";
     sv_t prompt = "";
 
-    [[nodiscard]] inline bool ok() const noexcept { return status.empty(); }
+    [[nodiscard]] bool ok() const noexcept { return status.empty(); }
 
-    inline os_t& write(os_t& os = std::cerr) const noexcept {
-        try { os << status << " '" << prompt << "'\n"; }
+    os_t& write(os_t& os = std::cerr, sv_t context = "") const noexcept {
+        try {
+            if (!context.empty()) os << "Error " << context << ": ";
+            os << status;
+            if (!prompt.empty())  os << " '" << prompt << "'";
+            os << std::endl;
+        }
         catch (...) { fatal_exit(ExitCode::OutputFailure); }
         return os;
     }
 
-    [[nodiscard]]
-    inline bool write_error_if(os_t& os = std::cerr) const noexcept {
+    bool write_error_if(os_t& os = std::cerr, sv_t context = "") const noexcept {
         if (ok()) return false;
-        write(os);
+        write(os, context);
         return true;
     }
 
-    inline explicit operator bool() const noexcept { return !ok(); }
+    explicit operator bool() const noexcept { return !ok(); }
 };
 
+[[nodiscard]] inline Return ok() noexcept { return {}; }
+
+[[nodiscard]] inline Return error(sv_t status, sv_t prompt = {}) noexcept {
+#ifdef DEBUG
+    if (status.empty()) status = "CODING ERROR (missing error status)";
+#else
+    if (status.empty()) status = "unknown error";
+#endif
+    return {status, prompt};
+}
+
 inline os_t& operator<<(os_t& os, const Return& ret) noexcept {
+    if (ok()) return os;
     return ret.write(os);
 }
 
@@ -88,6 +109,7 @@ enum class LoggerStatusFlags : flags_t {
     LocaleActivationFailed = 1 << 0,
     Utf8NotInitialized     = 1 << 1,
     LoggingBufferFailed    = 1 << 2,
+    LoggerWriteFailed      = 1 << 3,
 };
 
 template<typename Enum>
@@ -96,23 +118,28 @@ struct EnumDescriptor {
     const char* message;
 };
 
-inline void print_logger_warns(flags_t flags, os_t& os = std::cerr) noexcept {
+inline void write_logger_warns(os_t& os, flags_t flags) noexcept {
     using Flags = LoggerStatusFlags;
     constexpr EnumDescriptor<LoggerStatusFlags> logger_flag_descriptions[] = {
         {
             Flags::LocaleActivationFailed,
-            "Failed to activate UTF-8 locale from environment.\n "
-            "      Unicode alignment may be incorrect."
+            "Failed to activate UTF-8 locale from environment.\n"
+            "       Unicode alignment may be incorrect."
         },
         {
             Flags::Utf8NotInitialized,
-            "UTF-8 locale not initialized or unsupported.\n "
-            "      Unicode alignment may be incorrect."
+            "UTF-8 locale not initialized or unsupported.\n"
+            "       Unicode alignment may be incorrect."
         },
         {
             Flags::LoggingBufferFailed,
-            "Failed to create logger buffer.\n "
-            "      Data alignment may be incorrect."
+            "Failed to create logger buffer.\n"
+            "       Data alignment may be incorrect."
+        },
+        {
+            Flags::LoggerWriteFailed,
+            "LoggerSink write() failed:\n"
+            "       output stream is null or unreachable."
         },
     };
     try {
@@ -122,11 +149,61 @@ inline void print_logger_warns(flags_t flags, os_t& os = std::cerr) noexcept {
     } catch (...) { fatal_exit(ExitCode::OutputFailure); }
 }
 
+enum class Output : uint8_t {
+    Stdout     = 0b0000'0000,
+    Stderr     = 0b0010'0000,
+    File       = 0b0100'0000,
+    Buffer     = 0b0110'0000,
+
+    Append     = 0b0000'0001,
+    Indexing   = 0b0000'0010,
+    TimeIndex  = 0b0000'0100,
+    CreateDirs = 0b0000'1000
+};
+
+constexpr Output OutputChannelMask = static_cast<Output>(0b1110'0000);
+
+constexpr Output OutputPolicyMask  = static_cast<Output>(0b0001'1111);
+
+inline constexpr Output operator|(Output a, Output b) noexcept {
+    return static_cast<Output>(
+        static_cast<uint8_t>(a) | static_cast<uint8_t>(b));
+}
+
+inline constexpr Output operator&(Output a, Output b) noexcept {
+    return static_cast<Output>(
+        static_cast<uint8_t>(a) & static_cast<uint8_t>(b));
+}
+
+inline constexpr bool has_flag(Output value, Output flag) noexcept {
+    return static_cast<uint8_t>(value & flag) == static_cast<uint8_t>(flag);
+}
+
+inline constexpr bool output_supports_tty(Output output) noexcept {
+    return (output & OutputChannelMask) == Output::Stdout ||
+           (output & OutputChannelMask) == Output::Stderr;
+}
+
+inline os_t& operator<<(os_t& os, Output value) {
+    if (has_flag(value, Output::File)) {
+                                                  os << "File";
+        if (has_flag(value, Output::Append))      os << "|Append";
+        if (has_flag(value, Output::Indexing))    os << "|Indexing";
+        if (has_flag(value, Output::TimeIndex))   os << "|TimeIndex";
+        if (has_flag(value, Output::CreateDirs))  os << "|CreateDirs";
+    } else {
+        if (has_flag(value, Output::Stderr))      os << "Stderr";
+        else if (has_flag(value, Output::Buffer)) os << "Buffer";
+        else                                      os << "Stdout";
+    }
+    return os;
+}
+
 struct Config {
     struct StringBuffer {
         static constexpr size_t capacity = 512;
         using Buffer = std::array<char, capacity>;
-        
+
         StringBuffer() = default;
 
         template <size_t N>
@@ -140,15 +217,15 @@ struct Config {
 
         [[nodiscard]] Return set(sv_t sv, sv_t name) noexcept {
             if (sv.empty())
-                return { "Empty string", name };
+                return error("Empty string", name);
             if (sv.size() >= capacity)
-                return { "String too long", name };
+                return error("String too long", name);
             if (sv.find('\0') != sv_t::npos)
-                return { "String contains null character", name };
+                return error("String contains null character", name);
             std::memcpy(buffer_.data(), sv.data(), sv.size());
             buffer_[sv.size()] = '\0';
             view_ = { buffer_.data(), sv.size() };
-            return {};
+            return ok();
         }
 
     private:
@@ -164,18 +241,21 @@ struct Config {
     bool    emoji_allowed = true;
     bool    warns_allowed = true;
     flags_t logger_flags  = static_cast<flags_t>(LoggerStatusFlags::None);
+    Output  output        = Output::Stdout;
     sb_t    log_file      = "rt.log";
 	// Common
     sb_t    test_string;
-    int     test_param    = 9;
+    int     test_param    = 0;
     // ...
 
     ~Config() {
-        if (warns_allowed && logger_flags != 0)
-            print_logger_warns(logger_flags);
+        if (warns_allowed && logger_flags != 0) {
+            write_logger_warns(std::cerr, logger_flags);
+            logger_flags = static_cast<flags_t>(LoggerStatusFlags::None);
+        }
     }
-    
-    void debug_print(os_t& os = std::cerr) const noexcept {
+
+    void write_config_dump(os_t& os) const noexcept {
         try {
             os << "\nCONFIG DUMP ================\n" << std::boolalpha;
             os << "Logging:\n";
@@ -183,8 +263,10 @@ struct Config {
             os << "  ansi_allowed:  " << ansi_allowed << '\n';
             os << "  utf8_inited:   " << utf8_inited << '\n';
             os << "  emoji_allowed: " << emoji_allowed << '\n';
+            os << "  warns_allowed: " << warns_allowed << '\n';
             os << "  logger_flags:  "
             << static_cast<std::bitset<8>>(logger_flags) << '\n';
+            os << "  output:        " << output << '\n';
             os << "  log_file:      " << log_file.view() << '\n';
             os << "Common:\n";
             os << "  test_string:   " << test_string.view() << '\n';
@@ -202,15 +284,15 @@ struct Config {
             logger_flags |= static_cast<flags_t>(flag);
         return *this;
     }
-    
+
 	inline Return parse_cmdline(int ac, char** av) noexcept {
 		for (int i = 1; i < ac; ++i) {
             const char* arg = av[i];
             if (!arg)
-                return { "Null argument", "argv[i]" };
+                return error("Null argument", "argv[i]");
             sv_t sv_arg{arg};
             if (sv_arg == "--help" || sv_arg == "-h" || sv_arg == "/h") {
-                print_help();
+                write_help(std::cout);
                 graceful_exit();
             }
             if (sv_arg.find('=') != sv_t::npos) {
@@ -222,12 +304,12 @@ struct Config {
             }
 		}
         detect_environment();
-        if (ac > 1) debug_print();// FIXME: while testing
-        return {};
+        if (ac > 1) write_config_dump(std::cerr);// FIXME: while testing
+        return ok();
 	}
 
 private:
-    inline void print_help(os_t& os = std::cout) const noexcept {
+    inline void write_help(os_t& os) const noexcept {
         try {
             os << "Usage: program [flags] [parameters]\n\n";
             os << "Flags:\n";
@@ -255,7 +337,6 @@ private:
                 utf8_inited = false;
             }
         }
-//        emoji_allowed = emoji_allowed && utf8_inited;
         return *this;
     }
 
@@ -266,23 +347,23 @@ private:
             case hash_31("--no-utf8"):  utf8_inited   = false; break;
             case hash_31("--no-emoji"): emoji_allowed = false; break;
             case hash_31("--no-warns"): warns_allowed = false; break;
-            default: return { "Unrecognized flag", arg };
+            default: return error("Unrecognized flag", arg);
         }
-        return {};
+        return ok();
     }
 
     [[nodiscard]] Return apply_param(sv_t arg) noexcept {
         size_t pos = arg.find('=');
-        if (pos == sv_t::npos) return { "Expected '=' in parameter", arg };
+        if (pos == sv_t::npos) return error("Expected '=' in parameter", arg);
         sv_t key = arg.substr(0, pos);
         sv_t val = safe_substr(arg, pos + 1);
         switch (hash_31(key)) {
             case hash_31("--log-file"):    return log_file.set(val, key);
             case hash_31("--test-string"): return test_string.set(val, key);
             case hash_31("--test-param"):  test_param = parse_int(val); break;
-            default: return { "Unrecognized parameter", key };
+            default: return error("Unrecognized parameter", key);
         }
-        return {};
+        return ok();
     }
 
     [[nodiscard]] static bool detect_is_terminal() noexcept {
@@ -320,6 +401,154 @@ private:
 };
 
 extern Config config;
+
+
+// === Filepath and file output/input open utilities ===
+
+[[nodiscard]] inline
+sv_t format_timestamp_suffix() noexcept {
+    static thread_local char buffer[32];
+    auto now = std::chrono::system_clock::now();
+    std::time_t tt = std::chrono::system_clock::to_time_t(now);
+    std::tm tm{};
+#if defined(_MSC_VER)
+    localtime_s(&tm, &tt);
+#elif defined(__unix__) || defined(__APPLE__)
+    localtime_r(&tt, &tm);
+#else
+    std::tm* tmp = std::localtime(&tt);
+    if (tmp) tm = *tmp;
+#endif
+    std::strftime(buffer, sizeof(buffer), "_%Y%m%d_%H%M%S", &tm);
+    return {buffer, std::char_traits<char>::length(buffer)};
+}
+
+[[nodiscard]] inline
+fs::path indexed_candidate(const fs::path& base, const fs::path& ext, int index) {
+    static thread_local fs::path candidate;
+    candidate = base;
+    candidate += "_";
+    candidate += std::to_string(index);
+    candidate += ext;
+    return candidate;
+}
+
+[[nodiscard]] inline
+fs::path base_with_timestamp(const fs::path& base) {
+    static thread_local fs::path result;
+    result = base;
+    result += format_timestamp_suffix();
+    return result;
+}
+
+[[nodiscard]] inline std::optional<fs::path>
+resolve_collision(const fs::path& base_with_ts, const fs::path& ext)  {
+    std::error_code ec;
+    static thread_local fs::path candidate;
+    for (int i = 0; i < std::numeric_limits<int>::max(); ++i) {
+        if (i == 0) {
+            candidate = base_with_ts;
+            candidate += ext;
+        } else {
+            candidate = indexed_candidate(base_with_ts, ext, i);
+        }
+        if (candidate.empty()) return std::nullopt;
+        if (!fs::exists(candidate, ec)) return candidate;
+    }
+    return std::nullopt;
+}
+
+[[nodiscard]] inline std::optional<fs::path>
+prepare_file_path(const fs::path& path, Output mode = Output::File) noexcept {
+    if (!has_flag(mode, Output::File)) return std::nullopt;
+    try {
+        fs::path dir  = path.parent_path();
+        fs::path base = path.stem();
+        fs::path ext  = path.extension();
+        std::error_code ec;
+        if (!dir.empty() && !fs::exists(dir, ec)) {
+            if (has_flag(mode, Output::CreateDirs)) {
+                fs::create_directories(dir, ec);
+                if (ec || !fs::exists(dir, ec)) return std::nullopt;
+            } else {
+                return std::nullopt;
+            }
+        }
+        fs::path stamped = has_flag(mode, Output::TimeIndex)
+                         ? base_with_timestamp(dir / base)
+                         : dir / base;
+        if (stamped.empty()) return std::nullopt;
+        if (has_flag(mode, Output::Indexing))
+            return resolve_collision(stamped, ext);
+        static thread_local fs::path candidate;
+        candidate  = stamped;
+        candidate += ext;
+        if (!fs::exists(candidate, ec) || !has_flag(mode, Output::Append))
+            return candidate;
+        return std::nullopt;
+    } catch (...) { return std::nullopt; }
+}
+
+[[nodiscard]] inline std::optional<fs::path>
+prepare_file_path(sv_t raw_path, Output mode = Output::File) noexcept {
+    try {
+        fs::path full_path{raw_path.data(), raw_path.data() + raw_path.size()};
+        return prepare_file_path(full_path, mode);
+    } catch (...) {
+        return std::nullopt;
+    }
+}
+
+[[nodiscard]] inline
+Return open_output_file(std::ofstream& out,
+                             sv_t raw_path, Output mode = Output::File) noexcept
+{
+    if (!has_flag(mode, Output::File))
+        return error("output mode does not target a file");
+    std::optional<fs::path> full_path = prepare_file_path(raw_path, mode);
+    if (!full_path)
+        return error("invalid or inaccessible file path", raw_path);
+    std::ios_base::openmode flags = std::ios::out;
+    if (has_flag(mode, Output::Append))
+        flags |= std::ios::app;
+    else
+        flags |= std::ios::trunc;
+    out.open(*full_path, flags);
+    if (!out.is_open()) {
+        if (!fs::exists(full_path->parent_path()))
+            return error("parent directory does not exist",
+                         full_path->parent_path().c_str());
+        if (!fs::is_regular_file(*full_path) && fs::exists(*full_path))
+            return error("not a regular file", full_path->c_str());
+        return error("failed to open file (permission denied or I/O error)",
+                     full_path->c_str());
+    }
+    return ok();
+}
+
+[[nodiscard]] inline
+Return open_input_file(std::ifstream& in, sv_t raw_path) noexcept {
+    if (raw_path.empty()) return error("empty file path");
+    std::error_code ec;
+    fs::path path;
+    try {
+        path = fs::path{raw_path.data(), raw_path.data() + raw_path.size()};
+    } catch (...) {
+        return error("invalid path encoding or allocation failure", raw_path);
+    }
+    if (!fs::exists(path, ec))
+        return error("file does not exist", path.c_str());
+    if (!fs::is_regular_file(path, ec))
+        return error("not a regular file", path.c_str());
+    in.open(path);
+    if (!in.is_open())
+        return error("failed to open file (permission denied or I/O error)",
+                     path.c_str());
+    return ok();
+}
+
+// === End of filepath and file output/input open utilities ===
+
 
 } // namespace rt
 

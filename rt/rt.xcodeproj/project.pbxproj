@@ -37,10 +37,10 @@
 		663EA53B2E154C1A00A54EB6 /* Exceptions for "unit_tests" folder in "test" target */ = {
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			additionalCompilerFlagsByRelativePath = {
-				_test_includes.cpp = "-std=c++2a -Wall -Wextra -Werror";
+				test.cpp = "-std=c++2a -Wall -Wextra -Werror";
 			};
 			membershipExceptions = (
-				_test_includes.cpp,
+				test.cpp,
 			);
 			target = 664CCE3D2DF0A86200B12741 /* test */;
 		};
@@ -75,6 +75,7 @@
 				test_Cell_and_ansi.cpp,
 				test_DisplayUnit.cpp,
 				test_ProgressBar.cpp,
+				test.cpp,
 				vec_test.cpp,
 				vec_utils_test.cpp,
 			);

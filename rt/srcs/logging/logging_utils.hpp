@@ -1,5 +1,6 @@
 #pragma once
 #include <iostream>
+#include <sstream>
 #include <string_view>
 #include <cwchar>       // for mbrtowc, mbstate_t, wchar_t
 #include <cstdlib>      // for std::system
@@ -8,8 +9,26 @@
 
 namespace logging {
 
-using sv_t = std::string_view;
-using os_t = std::ostream;
+using sv_t  = std::string_view;
+using os_t  = std::ostream;
+using oss_t = std::ostringstream;
+
+struct A {}; // Tag 'A'
+struct B {}; // Tag 'B'
+
+template<typename Tag> [[nodiscard]]
+oss_t& get_buffer(bool restore = true) {
+    static thread_local oss_t oss;
+    oss.str(""); // clears the string contents, preserves capacity
+    oss.clear(); // clears error flags (failbit, badbit, eofbit)
+    if (restore) {
+        // clears all formatting flags (fixed, boolalpha, etc.)
+        oss.flags(std::ios_base::fmtflags{});
+        // resets precision to default (like std::cout)
+        oss.precision(6);
+    }
+    return oss;
+}
 
 [[nodiscard]] constexpr
 bool is_ascii(char c) noexcept {
