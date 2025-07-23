@@ -12,9 +12,8 @@
 
 namespace logging {
 
-using sv_t  = std::string_view;
-using os_t  = std::ostream;
-using oss_t = std::ostringstream;
+using sv_t = std::string_view;
+using os_t = std::ostream;
 
 using Flags             = rt::LoggerStatusFlags;
 using LogConfig         = rt::Config;

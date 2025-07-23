@@ -11,6 +11,9 @@
 #include <array>
 #include <chrono>
 
+#define LOG_LABEL_ERROR   "[ ERROR ]"
+#define LOG_LABEL_WARNING "[WARNING]"
+
 namespace rt {
 
 using sv_t    = std::string_view;
@@ -32,6 +35,24 @@ enum class ExitCode : uint8_t {
     std::exit(static_cast<int>(ExitCode::Success));
 }
 
+template<typename T>
+class ScopedOverride {
+public:
+    ScopedOverride(T& target, T value) noexcept
+        : ref_(target), saved_(target) {
+        ref_ = std::move(value);
+    }
+
+    ScopedOverride(const ScopedOverride&) = delete;
+    ScopedOverride& operator=(const ScopedOverride&) = delete;
+
+    ~ScopedOverride() noexcept { ref_ = std::move(saved_); }
+
+private:
+    T& ref_;
+    T  saved_;
+};
+
 struct Return {
     sv_t status = "";
     sv_t prompt = "";
@@ -40,9 +61,11 @@ struct Return {
 
     os_t& write(os_t& os = std::cerr, sv_t context = "") const noexcept {
         try {
-            if (!context.empty()) os << "Error " << context << ": ";
+            if (!context.empty())
+                os << LOG_LABEL_ERROR << ' ' << context << ": ";
             os << status;
-            if (!prompt.empty())  os << " '" << prompt << "'";
+            if (!prompt.empty())
+                os << " '" << prompt << '\'';
             os << std::endl;
         }
         catch (...) { fatal_exit(ExitCode::OutputFailure); }
@@ -64,14 +87,9 @@ struct Return {
 #ifdef DEBUG
     if (status.empty()) status = "CODING ERROR (missing error status)";
 #else
-    if (status.empty()) status = "unknown error";
+    if (status.empty()) status = "Unknown error";
 #endif
     return {status, prompt};
-}
-
-inline os_t& operator<<(os_t& os, const Return& ret) noexcept {
-    if (ok()) return os;
-    return ret.write(os);
 }
 
 inline constexpr
@@ -123,29 +141,29 @@ inline void write_logger_warns(os_t& os, flags_t flags) noexcept {
     constexpr EnumDescriptor<LoggerStatusFlags> logger_flag_descriptions[] = {
         {
             Flags::LocaleActivationFailed,
-            "Failed to activate UTF-8 locale from environment.\n"
-            "       Unicode alignment may be incorrect."
+            "Failed to activate UTF-8 locale from environment. "
+            "Unicode alignment may be incorrect."
         },
         {
             Flags::Utf8NotInitialized,
-            "UTF-8 locale not initialized or unsupported.\n"
-            "       Unicode alignment may be incorrect."
+            "UTF-8 locale not initialized or unsupported. "
+            "Unicode alignment may be incorrect."
         },
         {
             Flags::LoggingBufferFailed,
-            "Failed to create logger buffer.\n"
-            "       Data alignment may be incorrect."
+            "Failed to create logger buffer. "
+            "Data alignment may be incorrect."
         },
         {
             Flags::LoggerWriteFailed,
-            "LoggerSink write() failed:\n"
-            "       output stream is null or unreachable."
+            "LoggerSink write() failed. "
+            "Output stream is null or unreachable."
         },
     };
     try {
         for (const auto& entry : logger_flag_descriptions)
             if ((flags & static_cast<flags_t>(entry.value)) != 0)
-                os << "\n[WARN] " << entry.message << '\n';
+                os << LOG_LABEL_WARNING << ' ' << entry.message << '\n';
     } catch (...) { fatal_exit(ExitCode::OutputFailure); }
 }
 
@@ -504,10 +522,10 @@ Return open_output_file(std::ofstream& out,
                              sv_t raw_path, Output mode = Output::File) noexcept
 {
     if (!has_flag(mode, Output::File))
-        return error("output mode does not target a file");
+        return error("Output mode does not target a file");
     std::optional<fs::path> full_path = prepare_file_path(raw_path, mode);
     if (!full_path)
-        return error("invalid or inaccessible file path", raw_path);
+        return error("Invalid or inaccessible file path", raw_path);
     std::ios_base::openmode flags = std::ios::out;
     if (has_flag(mode, Output::Append))
         flags |= std::ios::app;
@@ -516,11 +534,11 @@ Return open_output_file(std::ofstream& out,
     out.open(*full_path, flags);
     if (!out.is_open()) {
         if (!fs::exists(full_path->parent_path()))
-            return error("parent directory does not exist",
+            return error("Parent directory does not exist",
                          full_path->parent_path().c_str());
         if (!fs::is_regular_file(*full_path) && fs::exists(*full_path))
-            return error("not a regular file", full_path->c_str());
-        return error("failed to open file (permission denied or I/O error)",
+            return error("Not a regular file", full_path->c_str());
+        return error("Failed to open file (permission denied or I/O error)",
                      full_path->c_str());
     }
     return ok();

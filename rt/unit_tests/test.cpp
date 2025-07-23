@@ -29,9 +29,8 @@ int main(int ac, char** av) {
     // std::cerr << "\n[Buffered output]:\n" << get_buffer<LoggerSink>().str();
 
     // Test 4: File output (обязательно проверь, что путь существует)
-    const char* path = "test.log";
-    LoggerSink sink_file(Output::File, path);
-    sink_file.write("LoggerSink: File output test\n");
+    LoggerSink sink_file(Output::File, config.log_file.view());
+    sink_file.write("LoggerSink: File output test3\n");
 
     return 0;
 }

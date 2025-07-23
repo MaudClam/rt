@@ -27,21 +27,20 @@ public:
       fatal_on_failure_(fatal_on_failure)
     {
         using namespace rt;
-        rt::Return status = init();
+        Return status = init();
         status.write_error_if(std::cerr, "LoggerSink");
         if (!status.ok() && fatal_on_failure_) {
             write_logger_warns(std::cerr, cfg_.logger_flags);
-            fatal_exit(rt::ExitCode::OutputFailure);
+            fatal_exit(ExitCode::OutputFailure);
         }
     }
 
     ~LoggerSink() noexcept {
         using namespace rt;
         flush();
-        restore_output();
         if (cfg_.warns_allowed && cfg_.logger_flags != 0) {
             write_logger_warns(out_ ? *out_ : std::cerr, cfg_.logger_flags);
-            cfg_.logger_flags = static_cast<flags_t>(LoggerStatusFlags::None);
+            cfg_.logger_flags = static_cast<flags_t>(Flags::None);
         }
     }
 
@@ -52,18 +51,18 @@ public:
 
     template<traits::Ostreamable... Args>
     os_t& write(const Args&... args) noexcept {
-        sync_output();
-        if (out_) {
-            try {
-                traits::write_sequence(*out_, args...);
-                restore_output();
-                flush();
-                return *out_;
-            } catch (...) {}
+        using namespace rt;
+        if (!out_) return std::cerr;
+        ScopedOverride<Output> scope(cfg_.output, mode_); // ← здесь, до try
+        try {
+            traits::write_sequence(*out_, args...);
+            flush();
+            return *out_;
+        } catch (...) {
+            out_ = nullptr;
+            cfg_.set_logger_flag(Flags::LoggerWriteFailed);
+            return std::cerr;
         }
-        cfg_.set_logger_flag(Flags::LoggerWriteFailed);
-        restore_output();
-        return std::cerr;
     }
 
     void flush() noexcept {
@@ -86,7 +85,6 @@ private:
     os_t*      out_  = nullptr;
     ofs_t      file_;
     bool       fatal_on_failure_ = false;
-    rt::Output cached_output_ = rt::Output::Stdout;
 
     rt::Return init() {
         using namespace rt;
@@ -102,23 +100,14 @@ private:
             try {
                 out_ = &get_buffer<LoggerSink>();
                 return ok();
-            } catch (...) { return error("failed to acquire logging buffer"); }
+            } catch (...) { return error("Failed to acquire logging buffer"); }
         }
         if ((mode_ & OutputChannelMask) == Output::File) {
             Return status = open_output_file(file_, raw_path_, mode_);
             if (status.ok()) out_ = &file_;
             return status;
         }
-        return error("unrecognized or unsupported output mode");
-    }
-
-    void sync_output() noexcept {
-        cached_output_ = cfg_.output;
-        cfg_.output = mode_;
-    }
-
-    void restore_output() noexcept {
-        cfg_.output = cached_output_;
+        return error("Unrecognized or unsupported output mode");
     }
 };
 
