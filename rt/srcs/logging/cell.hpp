@@ -1,4 +1,5 @@
 #pragma once
+#include "../config.hpp"
 #include <sstream>
 #include <string_view>
 #include <ostream>
@@ -7,7 +8,6 @@
 #include "traits.hpp"
 #include "ansi_escape_codes.hpp"
 #include "logging_utils.hpp"
-#include "../config.hpp"
 
 
 namespace logging {
@@ -611,5 +611,15 @@ inline os_t& operator<<(os_t& os, ProgressBar& pbar) {
     pbar.write(os);
     return os;
 }
+
+enum class Level : uint8_t {
+    Ok,
+    Error,
+    Debug,
+    Info,
+    Test,
+    Warning
+};
+
 
 } // namespace logging

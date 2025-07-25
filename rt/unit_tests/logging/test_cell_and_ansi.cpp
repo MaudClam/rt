@@ -1,9 +1,9 @@
 #include <iostream>
 #include <thread>
 #include <vector>
-#include "../srcs/logging/cell.hpp"
-#include "../srcs/logging/ansi_enums_naming.hpp"
-#include "../srcs/logging/timing.hpp"
+#include "../../srcs/logging/cell.hpp"
+#include "../../srcs/logging/ansi_enums_naming.hpp"
+#include "../../srcs/logging/timing.hpp"
 
 using namespace logging;
 using namespace ansi;
@@ -76,9 +76,9 @@ os_t& test_ansi_style(os_t& os, sv_t prompt, const NamedEnum<T> (&en)[N],
 }
 
 
-namespace rt { Config config; }
+namespace rt { thread_local Config config; }
 
-// g++ -std=c++2a -O2 -Wall -Wextra -Werror test_Cell_and_ansi.cpp -o cell_colors && ./cell_colors
+// g++ -std=c++2a -O2 -Wall -Wextra -Werror test_cell_and_ansi.cpp -o cell_colors && ./cell_colors
 int main(int ac, char** av) {
     if (auto r = rt::config.parse_cmdline(ac, av); r) return r.write_error_if();
     

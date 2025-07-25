@@ -1,5 +1,5 @@
 #include <iostream>
-#include "../srcs/logging/ansi_enums_naming.hpp"
+#include "../../srcs/logging/ansi_enums_naming.hpp"
 
 using namespace ansi;
 

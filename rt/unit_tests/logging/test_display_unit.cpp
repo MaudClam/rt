@@ -1,7 +1,7 @@
 #include <iostream>
 #include <vector>
-#include "../srcs/logging/cell.hpp"
-#include "../srcs/logging/timing.hpp"
+#include "../../srcs/logging/cell.hpp"
+#include "../../srcs/logging/timing.hpp"
 
 using namespace logging;
 
@@ -19,9 +19,9 @@ void test_display_unit(os_t& os, sv_t input) {
     os << "[test] output='" << buff.view() << "', width=" << width << '\n';
 }
 
-namespace rt { Config config; }
+namespace rt { thread_local Config config; }
 
-//g++ -std=c++2a -O2 -Wall -Wextra -Werror test_DisplayUnit.cpp -o unit && ./unit
+//g++ -std=c++2a -O2 -Wall -Wextra -Werror test_display_unit.cpp -o unit && ./unit
 int main(int ac, char** av) {
     if (auto r = rt::config.parse_cmdline(ac, av); r) return r.write_error_if();
 

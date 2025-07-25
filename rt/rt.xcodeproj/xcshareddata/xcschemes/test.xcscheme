@@ -54,11 +54,7 @@
       <CommandLineArguments>
          <CommandLineArgument
             argument = "--no-ansi"
-            isEnabled = "YES">
-         </CommandLineArgument>
-         <CommandLineArgument
-            argument = "--log-file=&apos;/Users/uru/Library/Mobile Documents/com~apple~CloudDocs/41_Projects/rt/rt/unit_tests/test.log&apos;"
-            isEnabled = "YES">
+            isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "--no-tty"

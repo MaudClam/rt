@@ -1,4 +1,9 @@
 #pragma once
+#if NDEBUG
+ constexpr bool debug_mode = false;
+#else
+ constexpr bool debug_mode = true;
+#endif
 #include <iostream>
 #include <fstream>
 #include <string>
@@ -128,6 +133,7 @@ enum class LoggerStatusFlags : flags_t {
     Utf8NotInitialized     = 1 << 1,
     LoggingBufferFailed    = 1 << 2,
     LoggerWriteFailed      = 1 << 3,
+    LoggerFileCloseFailed  = 1 << 4,
 };
 
 template<typename Enum>
@@ -158,6 +164,11 @@ inline void write_logger_warns(os_t& os, flags_t flags) noexcept {
             Flags::LoggerWriteFailed,
             "LoggerSink write() failed. "
             "Output stream is null or unreachable."
+        },
+        {
+            Flags::LoggerFileCloseFailed,
+            "LoggerSink failed to close output file stream. "
+            "Exception suppressed."
         },
     };
     try {
@@ -227,7 +238,7 @@ struct Config {
         template <size_t N>
         constexpr StringBuffer(const char (&str)[N]) noexcept {
             static_assert(N > 1, "String literal cannot be empty");
-            const Return r = set(sv_t{str, N - 1}, "StringBuffer literal");
+            [[maybe_unused]] const Return r = set(sv_t{str, N - 1}, "StringBuffer literal");
             assert(r.ok() && "Invalid default literal for StringBuffer");
         }
 
@@ -418,7 +429,7 @@ private:
     }
 };
 
-extern Config config;
+extern thread_local Config config;
 
 
 // === Filepath and file output/input open utilities ===

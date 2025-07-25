@@ -34,16 +34,6 @@
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
-		663EA53B2E154C1A00A54EB6 /* Exceptions for "unit_tests" folder in "test" target */ = {
-			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
-			additionalCompilerFlagsByRelativePath = {
-				test.cpp = "-std=c++2a -Wall -Wextra -Werror";
-			};
-			membershipExceptions = (
-				test.cpp,
-			);
-			target = 664CCE3D2DF0A86200B12741 /* test */;
-		};
 		668AAAAA2DB105A5006D2BDA /* Exceptions for "srcs" folder in "rt" target */ = {
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			additionalCompilerFlagsByRelativePath = {
@@ -68,18 +58,28 @@
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
 				angle_test.cpp,
+				logging/test_ansi_escape_codes.cpp,
+				logging/test_cell_and_ansi.cpp,
+				logging/test_display_unit.cpp,
+				logging/test_logger_sink.cpp,
+				logging/test_logger.cpp,
+				logging/test_progress_bar.cpp,
 				math_utils_test.cpp,
 				onb_test.cpp,
-				sampling_reserch/sampling_test.cpp,
-				test_ansi_escape_codes.cpp,
-				test_Cell_and_ansi.cpp,
-				test_DisplayUnit.cpp,
-				test_ProgressBar.cpp,
-				test.cpp,
 				vec_test.cpp,
 				vec_utils_test.cpp,
 			);
 			target = 668AAA982DB1034A006D2BDA /* rt */;
+		};
+		66EAD1662E33A1B8003A0BFC /* Exceptions for "unit_tests" folder in "test" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			additionalCompilerFlagsByRelativePath = {
+				logging/test_logger.cpp = "-std=c++2a -DNDEBUG -Wall -Wextra -Werror";
+			};
+			membershipExceptions = (
+				logging/test_logger.cpp,
+			);
+			target = 664CCE3D2DF0A86200B12741 /* test */;
 		};
 /* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
 
@@ -97,7 +97,7 @@
 			exceptions = (
 				6697AE302DC8D09D00F8969E /* Exceptions for "unit_tests" folder in "rt" target */,
 				668C5A6A2DEF4D4F00D36459 /* Exceptions for "unit_tests" folder in "test_includes" target */,
-				663EA53B2E154C1A00A54EB6 /* Exceptions for "unit_tests" folder in "test" target */,
+				66EAD1662E33A1B8003A0BFC /* Exceptions for "unit_tests" folder in "test" target */,
 			);
 			path = unit_tests;
 			sourceTree = "<group>";
@@ -283,6 +283,10 @@
 				CODE_SIGN_STYLE = Automatic;
 				DEVELOPMENT_TEAM = 92PJT7J9M9;
 				ENABLE_HARDENED_RUNTIME = YES;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"DEBUG=1",
+					"$(inherited)",
+				);
 				MACOSX_DEPLOYMENT_TARGET = 15.4;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
@@ -294,6 +298,7 @@
 				CODE_SIGN_STYLE = Automatic;
 				DEVELOPMENT_TEAM = 92PJT7J9M9;
 				ENABLE_HARDENED_RUNTIME = YES;
+				GCC_PREPROCESSOR_DEFINITIONS = "";
 				MACOSX_DEPLOYMENT_TARGET = 15.4;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
