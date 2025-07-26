@@ -13,10 +13,10 @@ using sv_t  = std::string_view;
 using os_t  = std::ostream;
 using oss_t = std::ostringstream;
 
-struct A {}; // Tag 'A'
-struct B {}; // Tag 'B'
+struct A {}; // BufferTag 'A'
+struct B {}; // BufferTag 'B'
 
-template<typename Tag> [[nodiscard]]
+template<typename BufferTag> [[nodiscard]]
 oss_t& get_buffer(bool restore = true) {
     static thread_local oss_t oss;
     oss.str(""); // clears the string contents, preserves capacity

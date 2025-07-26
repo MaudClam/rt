@@ -1,7 +1,7 @@
 #include "../../srcs/config.hpp"
 #include <iostream>
 #include <thread>
-#include "../../srcs/logging/cell.hpp"
+#include "../../srcs/logging/format.hpp"
 
 void time_delay(int ms) {
     std::this_thread::sleep_for(std::chrono::milliseconds(ms));

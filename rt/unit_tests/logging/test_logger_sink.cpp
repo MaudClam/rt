@@ -27,8 +27,10 @@ int main(int ac, char** av) {
     std::cout << buff.clear_buffer().print("LoggerSink: Buffer test3\n").view_buffer();
 
     // Test 4: File output
-    LoggerSink file(Output::File, "sink.log");
+    sv_t filename = "sink.log";
+    LoggerSink file(Output::File, filename);
     file.print("LoggerSink: File output test\n");
+    std::cout << "Search for file '" << filename << "'\n";
 
     return 0;
 }

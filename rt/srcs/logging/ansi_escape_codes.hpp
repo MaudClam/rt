@@ -80,7 +80,7 @@ struct Format {
 };
 
 // Outputs ANSI SGR sequence to stream
-inline os_t& write_style(os_t& os, const Format& fmt) noexcept {
+inline os_t& apply_style(os_t& os, const Format& fmt) noexcept {
     if (!fmt.use_ansi) return os;
     os << CSI_SEQ << static_cast<int>(fmt.foreground);
     os << PARAM_SEP << static_cast<int>(fmt.background);
@@ -90,48 +90,48 @@ inline os_t& write_style(os_t& os, const Format& fmt) noexcept {
 }
 
 // ansi::reset_if — returns RESET_SEQ or empty if ANSI disabled
-inline os_t& write_reset(os_t& os, const Format& fmt) noexcept {
+inline os_t& apply_reset(os_t& os, const Format& fmt) noexcept {
     return os << (fmt.use_ansi ? RESET_SEQ : "");
 }
 
 // Writes a short sequence of streamable values (for internal ANSI use only)
 template<typename... Args>
-inline os_t& write_sequence(os_t& os, const Args&... args)
+inline os_t& apply_sequence(os_t& os, const Args&... args)
     noexcept((noexcept(os << args) && ...)) {
     return (os << ... << args);
 }
 
-inline os_t& write_pad(os_t& os, int width, char pader = ' ') noexcept {
+inline os_t& apply_pad(os_t& os, int width, char pader = ' ') noexcept {
 	for (int i = 0; i < width; ++i)
 		os << pader;
 	return os;
 }
 
-inline os_t& write_move_left(os_t& os, int n) noexcept  {
+inline os_t& apply_move_left(os_t& os, int n) noexcept  {
     if (n < 1) return os;
-    return write_sequence(os, CSI_SEQ, n, 'D');
+    return apply_sequence(os, CSI_SEQ, n, 'D');
 }
 
-inline os_t& write_move_right(os_t& os, int n) noexcept {
+inline os_t& apply_move_right(os_t& os, int n) noexcept {
     if (n < 1) return os;
-    return write_sequence(os, CSI_SEQ, n, 'C');
+    return apply_sequence(os, CSI_SEQ, n, 'C');
 }
 
-inline os_t& write_move_up(os_t& os, int n) noexcept {
+inline os_t& apply_move_up(os_t& os, int n) noexcept {
     if (n < 1) return os;
-    return write_sequence(os, CSI_SEQ, n, 'A');
+    return apply_sequence(os, CSI_SEQ, n, 'A');
 }
 
-inline os_t& write_move_down(os_t& os, int n) noexcept {
+inline os_t& apply_move_down(os_t& os, int n) noexcept {
     if (n < 1) return os;
-    return write_sequence(os, CSI_SEQ, n, 'B');
+    return apply_sequence(os, CSI_SEQ, n, 'B');
 }
 
-inline os_t& write_clear_left(os_t& os, int n) noexcept {
+inline os_t& apply_clear_left(os_t& os, int n) noexcept {
     if (n < 1) return os;
-    write_move_left(os, n);
-    write_pad(os, n);
-    write_move_left(os, n);
+    apply_move_left(os, n);
+    apply_pad(os, n);
+    apply_move_left(os, n);
 	return os;
 }
 

@@ -21,7 +21,7 @@ inline auto& log_config = rt::config;
 constexpr int hidden    = 0;  // means "hidden value"
 constexpr int unset     = -1; // means "not specified"
 
-struct CellBase {
+struct FormatBase {
     [[nodiscard]] int width() const noexcept { return terminal_width_; }
 
 protected:
@@ -53,8 +53,8 @@ protected:
                ansi::Format previous_style = {.use_ansi = false}) const noexcept
     {
         if (can_use_ansi()) {
-            ansi::write_reset(os, previous_style);
-            ansi::write_style(os, style);
+            ansi::apply_reset(os, previous_style);
+            ansi::apply_style(os, style);
         }
         return os;
     }
@@ -63,8 +63,8 @@ protected:
                ansi::Format previous_style = {.use_ansi = false}) const noexcept
     {
         if (can_use_ansi()) {
-            ansi::write_reset(os, style);
-            ansi::write_style(os, previous_style);
+            ansi::apply_reset(os, style);
+            ansi::apply_style(os, previous_style);
         }
         return os;
     }
@@ -72,7 +72,7 @@ protected:
     os_t& apply_ansi_clear(os_t& os, int& term_with) const noexcept {
         if (!can_use_ansi())
             return os;
-        ansi::write_clear_left(os, std::max(0, term_with));
+        ansi::apply_clear_left(os, std::max(0, term_with));
         terminal_width_ = 0;
         return os;
     }
@@ -126,7 +126,7 @@ struct IOManip {
     }
 };
 
-struct CellFormat {
+struct Format : FormatBase {
     struct Align {
         enum class Mode : uint8_t { Left, Right, Centred } mode = Mode::Left;
         char padchar = ' ';
@@ -191,80 +191,59 @@ struct CellFormat {
                is_truncatable() ||
                should_normalize(false);
     }
-};
 
-template<traits::Ostreamable T>
-struct Cell : CellBase {
-    sv_t prefix = "";
-    T    value;
-    sv_t suffix = "";
-    CellFormat format;
-
-    os_t& write(os_t& os) const noexcept { return write(os, format); }
-
-    os_t& write(os_t& os, const CellFormat& fmt) const noexcept {
+    template<traits::Ostreamable... Args>
+    os_t& apply(os_t& os, const Args&... args) const noexcept {
         terminal_width_ = 0;
-        if (fmt.width == hidden)
-            return apply_end(os, fmt, terminal_width_);
-        apply_ansi_style(os, fmt.ansi_style);
+        if (width == hidden)
+            return apply_end(os, terminal_width_);
+        apply_ansi_style(os, ansi_style);
         std::optional<sv_t> sv_out;
-        if (fmt.should_be_buffered()) {
-            if (auto sv_raw = buff_raw<A>(fmt.manip, prefix, value, suffix)) {
-                if (auto sv_adj = buff_adj<B>(fmt, *sv_raw, terminal_width_))
+        if (should_be_buffered()) {
+            if (auto sv_raw = buff_raw<A>(manip, args...)) {
+                if (auto sv_adj = buff_adj<B>(*sv_raw, terminal_width_))
                     sv_out = *sv_adj;
                 else cfg_.set_logger_flag(Flags::LoggingBufferFailed);
             } else cfg_.set_logger_flag(Flags::LoggingBufferFailed);
         }
         if (sv_out) {
-            write_aligned(os, fmt, *sv_out, terminal_width_);
+            apply_align(os, *sv_out, terminal_width_);
         } else {
             terminal_width_ = unset;
-            write_with_iomanip(os, fmt.manip, prefix, value, suffix);
+            apply_iomanip(os, manip, args...);
         }
-        apply_end(os, fmt, terminal_width_);
-        return apply_ansi_reset(os, fmt.ansi_style);
+        apply_end(os, terminal_width_);
+        return apply_ansi_reset(os, ansi_style);
     }
 
-    os_t& force_clear(os_t& os) const noexcept {
-        if (!format.should_be_buffered()) {
-            CellFormat fmt = format;
-            fmt.control.normalize = CellFormat::Control::Normalize::Required;
-            terminal_width_ = measure_width(fmt);
-        }
-        return (clear(os));
-    }
-
-    os_t& clear(os_t& os) const noexcept { return clear(os, format); }
-
-    os_t& clear(os_t& os, const CellFormat& fmt) const noexcept {
-        if (fmt.control.end_policy != CellFormat::Control::EndPolicy::Newline) {
-            apply_ansi_clear(os, terminal_width_);
-            terminal_width_ = unset;
-        }
+    // Buffering is active when any of the following conditions is true:
+    // A fixed width is specified;
+    // Alignment is enabled;
+    // Truncation is enabled and applicable;
+    // Normalization is explicitly requested or allowed in this context.
+    os_t& apply_clear(os_t& os) const noexcept {
+        assert(
+            control.end_policy != Control::EndPolicy::Newline &&
+            should_be_buffered() &&
+            "Format::clear() is valid only with buffering and without newline policy"
+        );
+        apply_ansi_clear(os, terminal_width_);
+        terminal_width_ = unset;
         return os << std::flush;
-    }
-
-    [[nodiscard]] int measure_width() const noexcept { return measure_width(format); }
-
-    [[nodiscard]] int measure_width(const CellFormat& fmt) const noexcept {
-        if (auto buff = buffering<A>(fmt))
-            return width();
-        cfg_.set_logger_flag(Flags::LoggingBufferFailed);
-        return unset;
     }
 
 private:
     [[nodiscard]] std::pair<int,int>
-    safe_truncat_limits(sv_t sv, const CellFormat& fmt) const noexcept {
+    safe_truncat_limits(sv_t sv) const noexcept {
         const std::pair<int,int> untruncate{std::numeric_limits<int>::max(), 0};
-        if (!fmt.is_truncatable())
+        if (!is_truncatable())
            return untruncate;
-        const auto [safe_width, tail] = fmt.truncate.limits(fmt.width);
-        if (can_use_utf8(fmt.use_utf8)) {
-            if (utf8_terminal_width(sv) <= fmt.width)
+        const auto [safe_width, tail] = truncate.limits(width);
+        if (can_use_utf8(use_utf8)) {
+            if (utf8_terminal_width(sv) <= width)
                 return untruncate;
         } else {
-            if (is_ascii_only(sv) && static_cast<int>(sv.size()) <= fmt.width)
+            if (is_ascii_only(sv) && static_cast<int>(sv.size()) <= width)
                 return untruncate;
             if (ascii_prefix_length(sv) < safe_width) {
                 cfg_.set_logger_flag(Flags::Utf8NotInitialized);
@@ -274,22 +253,22 @@ private:
        return { safe_width, tail };
     }
 
-    os_t& apply_end(os_t& os, const CellFormat& fmt, int& term_width) const noexcept {
-        using EP = CellFormat::Control::EndPolicy;
-        switch (fmt.control.end_policy) {
+    os_t& apply_end(os_t& os, int& term_width) const noexcept {
+        using EP = Control::EndPolicy;
+        switch (control.end_policy) {
             case EP::None:    break;
             case EP::Flush:   os << std::flush; break;
             case EP::Newline: os << std::endl;  break;
             case EP::Pad: {
-                if (!fmt.has_width()) {
-                    os << fmt.control.padchar;
+                if (!has_width()) {
+                    os << control.padchar;
                     ++term_width;
                 }
                 break;
             }
             case EP::PadThenFlush: {
-                if (!fmt.has_width()) {
-                    os << fmt.control.padchar;
+                if (!has_width()) {
+                    os << control.padchar;
                     ++term_width;
                 }
                 os << std::flush;
@@ -300,36 +279,36 @@ private:
         return os;
     }
 
-    template<typename Tag, traits::Ostreamable... Args>
+    template<typename BufferTag, traits::Ostreamable... Args>
     [[nodiscard]] std::optional<sv_t>
     buff_raw(const IOManip& manip, const Args&... args) const noexcept {
         try {
-            auto& oss = get_buffer<Tag>(false);
-            write_with_iomanip(oss, manip, args...);
+            auto& oss = get_buffer<BufferTag>(false);
+            apply_iomanip(oss, manip, args...);
             return oss.view();
         } catch (...) {
             return std::nullopt;
         }
     }
 
-    template<typename Tag>
+    template<typename BufferTag>
     [[nodiscard]] std::optional<sv_t>
-    buff_adj(const CellFormat& fmt, sv_t sv, int& cut_width) const noexcept {
+    buff_adj(sv_t sv, int& cut_width) const noexcept {
         try {
-            auto& oss = get_buffer<Tag>(false);
-            write_truncated_and_normalized(oss, fmt, sv, cut_width);
+            auto& oss = get_buffer<BufferTag>(false);
+            write_truncated_and_normalized(oss, sv, cut_width);
             return oss.view();
         } catch (...) {
             return std::nullopt;
         }
     }
 
-    template<typename Tag>
-    [[nodiscard]] std::optional<sv_t>
-    buffering(const CellFormat& fmt) const noexcept {
+    template<typename BufferTag>
+    [[nodiscard]]
+    std::optional<sv_t> buffering() const noexcept {
         try {
-            auto& oss = get_buffer<Tag>(false);
-            write(oss, fmt);
+            auto& oss = get_buffer<BufferTag>(false);
+            write(oss);
             return oss.view();
         } catch (...) {
             return std::nullopt;
@@ -337,18 +316,18 @@ private:
     }
 
     template<traits::Ostreamable... Args> static
-    os_t& write_with_iomanip(os_t& os, const IOManip& manip,const Args&... args)
+    os_t& apply_iomanip(os_t& os, const IOManip& manip,const Args&... args)
                                     noexcept(noexcept(manip.apply(os, args...)))
     {
         return manip.apply(os, args...);
     }
 
-    os_t& write_truncated_and_normalized(os_t& os, const CellFormat& fmt,
-                                        sv_t sv, int& term_width) const noexcept
+    os_t& write_truncated_and_normalized(os_t& os, sv_t sv,
+                                                 int& term_width) const noexcept
     {
-        const auto normalize = fmt.should_normalize(true);
-        auto [safe_width, tail] = safe_truncat_limits(sv, fmt);
-        if (can_use_utf8(fmt.use_utf8)) {
+        const auto normalize = should_normalize(true);
+        auto [safe_width, tail] = safe_truncat_limits(sv);
+        if (can_use_utf8(use_utf8)) {
             DisplayUnit unit{};
             size_t offset = 0;
             while (unit.parse(sv, offset) && term_width < safe_width) {
@@ -357,7 +336,7 @@ private:
                 //“So it does!” said Piglet. “And it comes out!”
                 //“Doesn’t it?” said Eeyore. “It goes in and out like anything.”
                 if (it_goes_in) {
-                    unit.write(os, sv, fmt.control.normchar);
+                    unit.write(os, sv, control.normchar);
                     term_width += unit.width;
                     offset += unit.length;
                 } else {
@@ -371,37 +350,30 @@ private:
                 os << (normalize ? normalize_char(sv[i]) : sv[i]);
         }
         if (tail > 0) {
-            apply_ansi_style(os, fmt.truncate.style, fmt.ansi_style);
+            apply_ansi_style(os, truncate.style, ansi_style);
             for (int i = 0; i < tail; ++i, ++term_width)
-                os << fmt.truncate.cutchar;
-            apply_ansi_reset(os, fmt.truncate.style, fmt.ansi_style);
+                os << truncate.cutchar;
+            apply_ansi_reset(os, truncate.style, ansi_style);
         }
         return os;
     }
 
-    os_t& write_aligned(os_t& os, const CellFormat& fmt,
-                        sv_t sv, int& term_width) const noexcept
-    {
-        using Mode = CellFormat::Align::Mode;
+    os_t& apply_align(os_t& os, sv_t sv, int& term_width) const noexcept {
+        using Mode = Align::Mode;
         int left = 0, right = 0;
-        int padd = std::max(0, std::max(0,fmt.width) - std::max(0,term_width));
-        switch (fmt.align.mode) {
+        int padd = std::max(0, std::max(0, width) - std::max(0, term_width));
+        switch (align.mode) {
             case Mode::Left:    left = 0;        right = padd;        break;
             case Mode::Right:   left = padd;     right = 0;           break;
             case Mode::Centred: left = padd / 2; right = padd - left; break;
         }
-        ansi::write_pad(os, left, fmt.align.padchar);
+        ansi::apply_pad(os, left, align.padchar);
         os << sv;
-        ansi::write_pad(os, right, fmt.align.padchar);
+        ansi::apply_pad(os, right, align.padchar);
         term_width += padd;
         return os;
     }
 };
-
-template<typename T>
-inline os_t& operator<<(os_t& os, const Cell<T>& cell) noexcept {
-    return cell.write(os);
-}
 
 struct ProgressBarState {
     struct Bar {
@@ -430,7 +402,7 @@ protected:
     mutable int count = 0;
 };
 
-struct ProgressBar : CellBase, ProgressBarState {
+struct ProgressBar : Format, ProgressBarState {
     enum class Type : uint8_t { Bar, Alternate, Percent };
 
     struct Bar: ProgressBarState::Bar {
@@ -611,15 +583,5 @@ inline os_t& operator<<(os_t& os, ProgressBar& pbar) {
     pbar.write(os);
     return os;
 }
-
-enum class Level : uint8_t {
-    Ok,
-    Error,
-    Debug,
-    Info,
-    Test,
-    Warning
-};
-
 
 } // namespace logging

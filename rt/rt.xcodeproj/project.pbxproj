@@ -58,9 +58,9 @@
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
 				angle_test.cpp,
-				logging/test_ansi_escape_codes.cpp,
-				logging/test_cell_and_ansi.cpp,
+				logging/test_ansi_format.cpp,
 				logging/test_display_unit.cpp,
+				logging/test_formats.cpp,
 				logging/test_logger_sink.cpp,
 				logging/test_logger.cpp,
 				logging/test_progress_bar.cpp,
@@ -74,10 +74,10 @@
 		66EAD1662E33A1B8003A0BFC /* Exceptions for "unit_tests" folder in "test" target */ = {
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			additionalCompilerFlagsByRelativePath = {
-				logging/test_logger.cpp = "-std=c++2a -DNDEBUG -Wall -Wextra -Werror";
+				logging/test_progress_bar.cpp = "-std=c++2a -Wall -Wextra -Werror";
 			};
 			membershipExceptions = (
-				logging/test_logger.cpp,
+				logging/test_progress_bar.cpp,
 			);
 			target = 664CCE3D2DF0A86200B12741 /* test */;
 		};

@@ -4,12 +4,12 @@
 using namespace ansi;
 
 void test_write_formats(sv_t text, const Format& fmt, std::ostream& out = std::cout) {
-    write_style(out, fmt);
+    apply_style(out, fmt);
     out << text;
-    write_reset(out, fmt);
+    apply_reset(out, fmt);
     out << " [" << text << "]\n";}
 
-// g++ -std=c++2a -O2 -Wall -Wextra -Werror test_ansi_escape_codes.cpp -o colors && ./colors
+// g++ -std=c++2a -O2 -Wall -Wextra -Werror test_ansi_format.cpp -o colors && ./colors
 int main() {
 
     std::cout << "\n=== Foreground Colors ===\n";

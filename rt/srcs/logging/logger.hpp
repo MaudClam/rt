@@ -7,6 +7,15 @@ namespace logging {
 using Flags     = rt::LoggerStatusFlags;
 using LogConfig = rt::Config;
 
+enum class Level : uint8_t {
+    Ok,
+    Error,
+    Debug,
+    Info,
+    Test,
+    Warning
+};
+
 struct LoggerBase {
     LoggerBase& set_output(rt::Output mode, sv_t raw_path = {},
                                          bool fatal_on_failure = false) noexcept

@@ -1,6 +1,7 @@
+#include "../../srcs/config.hpp"
 #include <iostream>
 #include <vector>
-#include "../../srcs/logging/cell.hpp"
+#include "../../srcs/logging/logging_utils.hpp"
 #include "../../srcs/logging/timing.hpp"
 
 using namespace logging;
