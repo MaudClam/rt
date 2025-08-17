@@ -1,10 +1,11 @@
 #include "../../srcs/config.hpp"
 #include <iostream>
+#include <sstream>
 #include <vector>
-#include "../../srcs/logging/logging_utils.hpp"
-#include "../../srcs/logging/timing.hpp"
+#include "../../srcs/logging/terminal_width.hpp"
 
 using namespace logging;
+using oss_t = std::ostringstream;
 
 void test_display_unit(os_t& os, sv_t input) {
     os << "\n[test] input= '" << input << "', length=" << input.size() << '\n';
@@ -12,7 +13,7 @@ void test_display_unit(os_t& os, sv_t input) {
     size_t offset = 0;
     int width = 0;
     DisplayUnit du;
-    while (du.parse_debug(input, offset)) {
+    while (du.parse_debug(input, offset, os)) {
         du.write(buff, input);
         width += du.width;
         offset += du.length;
@@ -20,13 +21,9 @@ void test_display_unit(os_t& os, sv_t input) {
     os << "[test] output='" << buff.view() << "', width=" << width << '\n';
 }
 
-namespace rt { thread_local Config config; }
-
-//g++ -std=c++2a -O2 -Wall -Wextra -Werror test_display_unit.cpp -o unit && ./unit
+//g++ -std=c++2a -O2 -Wall -Wextra -Werror ../../srcs/globals.cpp test_display_unit.cpp -o unit && ./unit
 int main(int ac, char** av) {
-    if (auto r = rt::config.parse_cmdline(ac, av); r) return r.write_error_if();
-
-    ScopedTimer timer(std::cout);
+    rt::config.init(ac, av);
 
     std::vector<sv_t> sv;
     sv.push_back("123\tПапа");

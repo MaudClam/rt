@@ -8,16 +8,15 @@ void time_delay(int ms) {
 }
 
 // Command lines fo testing
-// g++ -std=c++2a -O2 -Wall -Wextra -Werror test_progress_bar.cpp -o pbar && ./pbar --test-param=1
+// g++ -std=c++2a -O2 -Wall -Wextra -Werror ../../srcs/globals.cpp test_progress_bar.cpp -o pbar
+// ./pbar --test-param=1
 // ./pbar --test-param=0
 // ./pbar --test-param=0 --no-tty
 // ./pbar --test-param=0 --no-ansi
 // ./pbar --test-string=' 🇱🇹Хеллоюшки🇺🇸Hello 🌍✨💥🇺🇸\xF0\x28💇🏻‍♀️\x8C\x28🇱🇹 World! 🚀🇺🇸👾🇱🇹 ' --test-param=1
 
-namespace rt { thread_local Config config; }
-
 int main(int ac, char** av) {
-    if (auto r = rt::config.parse_cmdline(ac, av); r) return r.write_error_if();
+    rt::config.init(ac, av);
     using namespace logging;
     
     const int  cycles   = 33;

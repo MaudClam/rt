@@ -28,9 +28,11 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
-		660DAB822DCA1155001CE9C0 /* rt */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = rt; sourceTree = BUILT_PRODUCTS_DIR; };
-		664CCE3E2DF0A86200B12741 /* test */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = test; sourceTree = BUILT_PRODUCTS_DIR; };
-		668C5A622DEF4CF000D36459 /* test_includes */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = test_includes; sourceTree = BUILT_PRODUCTS_DIR; };
+		660DAB822DCA1155001CE9C0 /* rt */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; name = rt; path = "/Users/uru/Library/Mobile Documents/com~apple~CloudDocs/42_Projects/rt/rt/build/Debug/rt"; sourceTree = "<absolute>"; };
+		668C5A622DEF4CF000D36459 /* test_includes */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; name = test_includes; path = "/Users/uru/Library/Mobile Documents/com~apple~CloudDocs/42_Projects/rt/rt/build/Debug/test_includes"; sourceTree = "<absolute>"; };
+		669C940D2E439533007E397E /* config1.ini */ = {isa = PBXFileReference; lastKnownFileType = text; path = config1.ini; sourceTree = "<group>"; };
+		669C94A42E4A4DF2007E397E /* test */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = test; sourceTree = BUILT_PRODUCTS_DIR; };
+		66A1FBC42E3E70DB00C1B398 /* config.ini */ = {isa = PBXFileReference; lastKnownFileType = text; path = config.ini; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
@@ -58,12 +60,11 @@
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
 				angle_test.cpp,
-				logging/test_ansi_format.cpp,
-				logging/test_display_unit.cpp,
-				logging/test_formats.cpp,
-				logging/test_logger_sink.cpp,
-				logging/test_logger.cpp,
-				logging/test_progress_bar.cpp,
+				logging_tests/test_display_unit.cpp,
+				logging_tests/test_formats.cpp,
+				logging_tests/test_logger_sink.cpp,
+				logging_tests/test_logger.cpp,
+				logging_tests/test_progress_bar.cpp,
 				math_utils_test.cpp,
 				onb_test.cpp,
 				vec_test.cpp,
@@ -71,13 +72,23 @@
 			);
 			target = 668AAA982DB1034A006D2BDA /* rt */;
 		};
-		66EAD1662E33A1B8003A0BFC /* Exceptions for "unit_tests" folder in "test" target */ = {
+		669C94152E463B99007E397E /* Exceptions for "unit_tests" folder in "test" target */ = {
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			additionalCompilerFlagsByRelativePath = {
-				logging/test_progress_bar.cpp = "-std=c++2a -Wall -Wextra -Werror";
+				logging_tests/test_formats.cpp = "-std=c++2a -Wall -Wextra -Werror";
 			};
 			membershipExceptions = (
-				logging/test_progress_bar.cpp,
+				logging_tests/test_formats.cpp,
+			);
+			target = 664CCE3D2DF0A86200B12741 /* test */;
+		};
+		66A1FBB72E3A3DEB00C1B398 /* Exceptions for "srcs" folder in "test" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			additionalCompilerFlagsByRelativePath = {
+				globals.cpp = "-std=c++2a -Wall -Wextra -Werror";
+			};
+			membershipExceptions = (
+				globals.cpp,
 			);
 			target = 664CCE3D2DF0A86200B12741 /* test */;
 		};
@@ -88,6 +99,7 @@
 			isa = PBXFileSystemSynchronizedRootGroup;
 			exceptions = (
 				668AAAAA2DB105A5006D2BDA /* Exceptions for "srcs" folder in "rt" target */,
+				66A1FBB72E3A3DEB00C1B398 /* Exceptions for "srcs" folder in "test" target */,
 			);
 			path = srcs;
 			sourceTree = "<group>";
@@ -97,7 +109,7 @@
 			exceptions = (
 				6697AE302DC8D09D00F8969E /* Exceptions for "unit_tests" folder in "rt" target */,
 				668C5A6A2DEF4D4F00D36459 /* Exceptions for "unit_tests" folder in "test_includes" target */,
-				66EAD1662E33A1B8003A0BFC /* Exceptions for "unit_tests" folder in "test" target */,
+				669C94152E463B99007E397E /* Exceptions for "unit_tests" folder in "test" target */,
 			);
 			path = unit_tests;
 			sourceTree = "<group>";
@@ -132,6 +144,9 @@
 		668AAA902DB1034A006D2BDA = {
 			isa = PBXGroup;
 			children = (
+				669C94A02E48D92E007E397E /* logs */,
+				66A1FBC42E3E70DB00C1B398 /* config.ini */,
+				669C940D2E439533007E397E /* config1.ini */,
 				668AAA9A2DB1034A006D2BDA /* Products */,
 				668AAAA32DB10379006D2BDA /* srcs */,
 				6697AE2E2DC8D09D00F8969E /* unit_tests */,
@@ -141,11 +156,16 @@
 		668AAA9A2DB1034A006D2BDA /* Products */ = {
 			isa = PBXGroup;
 			children = (
-				660DAB822DCA1155001CE9C0 /* rt */,
-				668C5A622DEF4CF000D36459 /* test_includes */,
-				664CCE3E2DF0A86200B12741 /* test */,
+				669C94A42E4A4DF2007E397E /* test */,
 			);
 			name = Products;
+			sourceTree = "<group>";
+		};
+		669C94A02E48D92E007E397E /* logs */ = {
+			isa = PBXGroup;
+			children = (
+			);
+			path = logs;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -166,7 +186,7 @@
 			packageProductDependencies = (
 			);
 			productName = test;
-			productReference = 664CCE3E2DF0A86200B12741 /* test */;
+			productReference = 669C94A42E4A4DF2007E397E /* test */;
 			productType = "com.apple.product-type.tool";
 		};
 		668AAA982DB1034A006D2BDA /* rt */ = {

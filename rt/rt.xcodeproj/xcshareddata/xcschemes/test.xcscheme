@@ -35,7 +35,8 @@
       selectedDebuggerIdentifier = "Xcode.DebuggerFoundation.Debugger.LLDB"
       selectedLauncherIdentifier = "Xcode.DebuggerFoundation.Launcher.LLDB"
       launchStyle = "0"
-      useCustomWorkingDirectory = "NO"
+      useCustomWorkingDirectory = "YES"
+      customWorkingDirectory = "$(PROJECT_DIR)"
       ignoresPersistentStateOnLaunch = "NO"
       debugDocumentVersioning = "YES"
       debugServiceExtension = "internal"
@@ -53,12 +54,20 @@
       </BuildableProductRunnable>
       <CommandLineArguments>
          <CommandLineArgument
-            argument = "--no-ansi"
+            argument = "--config=&apos;/Users/uru/Library/Mobile Documents/com~apple~CloudDocs/42_Projects/rt/rt/config1.ini&apos;"
             isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
-            argument = "--no-tty"
+            argument = "--config=config1.ini"
+            isEnabled = "NO">
+         </CommandLineArgument>
+         <CommandLineArgument
+            argument = "--no-ansi"
             isEnabled = "YES">
+         </CommandLineArgument>
+         <CommandLineArgument
+            argument = "--no-tty"
+            isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "--no-tty --no-ansi --no-utf8 --emoji"

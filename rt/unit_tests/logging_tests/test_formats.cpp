@@ -1,214 +1,384 @@
 #include <iostream>
 #include <thread>
-#include <vector>
 #include "../../srcs/logging/format.hpp"
 #include "../../srcs/logging/ansi_enums_naming.hpp"
-#include "../../srcs/logging/timing.hpp"
 
 using namespace logging;
-
-struct formats_t { sv_t sv; ansi::Format ansi_fmt{}; };
-
-void test_apply_formats(os_t& os, formats_t f) {
-    using EndPolicy = Format::Control::EndPolicy;
-    Format fmt;
-    fmt.ansi_style = f.ansi_fmt;
-    if (f.sv != "Hidden text") {
-        fmt.control.end_policy = EndPolicy::Newline;
-        fmt.apply(os, f.sv);
-    } else {
-        fmt.control.end_policy = EndPolicy::PadThenFlush;
-        fmt.apply(os, f.sv) << "[" << f.sv << "]\n";
-    }
-}
 
 void time_delay(int ms) {
     std::this_thread::sleep_for(std::chrono::milliseconds(ms));
 }
 
-template <typename T, size_t N>
-os_t& test_ansi_style(os_t& os, sv_t prompt, const ansi::NamedEnum<T> (&en)[N],
-                      int delay_ms = 1000) noexcept
+template <typename T>
+os_t& test_ansi_format(os_t& os, sv_t name, T value, int delay_ms,
+                                                     int width = unset) noexcept
 {
-    Format title_fmt;
-    title_fmt.ansi_style.styles = { ansi::Style::Bold };
-    title_fmt.control.normalize = Format::Control::Normalize::Required;
-
-    Format cell_fmt;
-    cell_fmt.control.normalize = Format::Control::Normalize::Required;
-
-    title_fmt.apply(os, prompt);
-    if(delay_ms)
-        time_delay(delay_ms);
-
-    for (const auto& e : en) {
-        if constexpr (std::is_same_v<std::decay_t<T>, ansi::Color>) {
-            cell_fmt.ansi_style.foreground = e.value;
-            if (cell_fmt.ansi_style.foreground == ansi::Color::Black)
-                cell_fmt.ansi_style.background = ansi::Background::White;
-            else
-                cell_fmt.ansi_style.background = ansi::Background::Default;
-        }
-        if constexpr (std::is_same_v<std::decay_t<T>, ansi::Background>) {
-            cell_fmt.ansi_style.background = e.value;
-            if (cell_fmt.ansi_style.background == ansi::Background::White)
-                cell_fmt.ansi_style.foreground = ansi::Color::Black;
-            else if (cell_fmt.ansi_style.background == ansi::Background::Black)
-                cell_fmt.ansi_style.foreground = ansi::Color::Default;
-            else
-                cell_fmt.ansi_style.foreground = ansi::Color::Black;
-        }
-        if constexpr (std::is_same_v<std::decay_t<T>, ansi::Style>) {
-            cell_fmt.ansi_style.styles = {e.value};
-        }
-
-        cell_fmt.apply(os, e.name);
-        if(delay_ms) {
-            time_delay(delay_ms);
-            cell_fmt.apply_clear(os);
-        }
+    logging::Format cell{
+        .control.normalize = logging::Format::Control::Normalize::Required,
+        .width = width
+    };
+    if constexpr (std::is_same_v<std::decay_t<T>, ansi::Color>) {
+        cell.ansi_format.foreground = value;
+        cell.preserve_background   = false;
     }
-    if(delay_ms)
-        title_fmt.apply_clear(os);
+    if constexpr (std::is_same_v<std::decay_t<T>, ansi::Background>) {
+        cell.ansi_format.background = value;
+        cell.ansi_format.foreground = same(value);
+    }
+    if constexpr (std::is_same_v<std::decay_t<T>, ansi::Style>) {
+        cell.ansi_format.styles = {value};
+    }
+    if constexpr (std::is_same_v<std::decay_t<T>, ansi::styles_t>) {
+        cell.ansi_format.styles = value;
+    }
+    cell.apply(os, name);
+    if(delay_ms) {
+        time_delay(delay_ms);
+        cell.apply_clear(os);
+    }
     return os;
 }
 
+template <typename T, size_t N>
+os_t& test_ansi_formats(os_t& os, sv_t prompt, const ansi::NamedEnum<T> (&en)[N],
+                                      int delay_ms, int width = unset ) noexcept
+{
+    Format title{};
+    title.ansi_format.styles = { ansi::Style::Bold };
+    title.control.normalize = Format::Control::Normalize::Required;
 
-namespace rt { thread_local Config config; }
+    title.apply(os, prompt);
+    if(delay_ms) time_delay(delay_ms);
+    for (const auto& e : en)
+        test_ansi_format(os, e.name, e.value, delay_ms, width);
+    if(delay_ms) title.apply_clear(os);
+    return os;
+}
 
-// g++ -std=c++2a -O2 -Wall -Wextra -Werror test_formats.cpp -o formats && ./formats
+os_t& test_combinations(os_t& os, sv_t prompt_, int delay_ms, int width = unset) {
+    Format cell{};
+    cell.ansi_format = {.styles = { ansi::Style::Bold }};
+    cell.apply(os, prompt_, " width=", width) << '\n';
+
+    time_delay(delay_ms);
+    cell.width = width;
+
+    cell.ansi_format = {
+        .foreground = ansi::Color::Red,
+        .background = ansi::Background::Default,
+        .styles = { ansi::Style::Bold },};
+    cell.apply(os, "[error]") << ' ' << cell.ansi_format << '\n';
+    time_delay(delay_ms);
+
+    cell.ansi_format = {
+        .foreground = ansi::Color::BrightRed,
+        .background = ansi::Background::Default,};
+    cell.apply(os, "[error]") << ' ' << cell.ansi_format << '\n';
+    time_delay(delay_ms);
+
+    cell.ansi_format = {
+        .foreground = ansi::Color::Yellow,
+        .background = ansi::Background::Default,
+        .styles = { ansi::Style::Underline },};
+    cell.apply(os, "[warning]") << ' ' << cell.ansi_format << '\n';
+    time_delay(delay_ms);
+
+    cell.ansi_format = {
+        .foreground = ansi::Color::Blue,
+        .background = ansi::Background::Default,
+        .styles = { ansi::Style::Italic },};
+    cell.apply(os, "[information]") << ' ' << cell.ansi_format << '\n';
+    time_delay(delay_ms);
+
+    cell.ansi_format = {
+        .foreground = ansi::Color::BrightBlue,
+        .background = ansi::Background::Default,
+        .styles = { ansi::Style::Italic },};
+    cell.apply(os, "[information]") << ' ' << cell.ansi_format << '\n';
+    time_delay(delay_ms);
+
+    cell.ansi_format = {
+        .foreground = ansi::Color::Green,
+        .background = ansi::Background::Default,
+        .styles = { ansi::Style::Bold },};
+    cell.apply(os, "[success]") << ' ' << cell.ansi_format << '\n';
+    time_delay(delay_ms);
+
+    cell.ansi_format = {
+        .foreground = ansi::Color::BrightGreen,
+        .background = ansi::Background::Default,};
+    cell.apply(os, "[success]") << ' ' << cell.ansi_format << '\n';
+    time_delay(delay_ms);
+
+    cell.ansi_format = {
+        .foreground = ansi::Color::White,
+        .background = ansi::Background::BrightBlack,};
+    cell.apply(os, "[contrast mark]") << ' ' << cell.ansi_format << '\n';
+    time_delay(delay_ms);
+
+    cell.ansi_format = {
+        .foreground = ansi::Color::Red,
+        .background = ansi::Background::Yellow,
+        .styles = {ansi::Style::Bold},};
+    cell.apply(os, "[contrast mark]") << ' ' << cell.ansi_format << '\n';
+    time_delay(delay_ms);
+
+    cell.ansi_format = {
+        .foreground = ansi::Color::Default,
+        .background = ansi::Background::Default,
+        .styles = {
+            ansi::Style::Inverse,
+            ansi::Style::Bold},};
+    cell.apply(os, "[invert + bold]") << ' ' << cell.ansi_format << '\n';
+    time_delay(delay_ms);
+
+    cell.ansi_format = {
+        .foreground = ansi::Color::Default,
+        .background = ansi::Background::Default,
+        .styles = {
+            ansi::Style::Bold,
+            ansi::Style::Italic,
+            ansi::Style::Underline,
+            ansi::Style::Strikethrough,},};
+    cell.apply(os, "[abrakaddabbra]") << ' ' << cell.ansi_format << '\n';
+    time_delay(delay_ms);
+
+    cell.ansi_format = {
+        .use_ansi = false,
+        .foreground = ansi::Color::Default,
+        .background = ansi::Background::Default,
+        .styles = {
+            ansi::Style::Bold,
+            ansi::Style::Italic,
+            ansi::Style::Underline,
+            ansi::Style::Strikethrough,},};
+    cell.apply(os, "[abrakaddabbra]") << ' ' << cell.ansi_format << '\n';
+    time_delay(delay_ms);
+    
+    cell.ansi_format = {.use_ansi = true};
+
+    cell.ansi_format = {
+        .use_ansi = true,
+        .foreground = ansi::Color::Default,
+        .background = ansi::Background::Default,
+        .styles = {ansi::Style::Hidden},};
+    cell.apply(os, "[hidden]") << ' ' << cell.ansi_format << '\n';
+    time_delay(delay_ms);
+
+    cell.ansi_format = {
+        .use_ansi = false,
+        .foreground = ansi::Color::Default,
+        .background = ansi::Background::Default,
+        .styles = {ansi::Style::Hidden},};
+    cell.apply(os, "[hidden]") << ' ' << cell.ansi_format << '\n';
+    time_delay(delay_ms);
+
+    cell.ansi_format = {.use_ansi = true};
+
+    cell.ansi_format = {
+        .foreground = ansi::Color::White,
+        .background = ansi::Background::White,};
+    cell.preserve_background = true;
+    cell.apply(os, "[safe contrast]") << ' ' << cell.ansi_format << '\n';
+    time_delay(delay_ms);
+
+    cell.ansi_format = {
+        .foreground = ansi::Color::White,
+        .background = ansi::Background::White,};
+    cell.preserve_background = false;
+    cell.apply(os, "[safe contrast]") << ' ' << cell.ansi_format
+    << ", preserve_background=" << std::boolalpha << cell.preserve_background << '\n';
+    time_delay(delay_ms);
+
+    cell.ansi_format = {
+        .foreground = ansi::Color::Cyan,
+        .background = ansi::Background::Cyan,};
+    cell.preserve_background = true;
+    cell.apply(os, "[safe contrast]") << ' ' << cell.ansi_format << '\n';
+    time_delay(delay_ms);
+
+    cell.ansi_format = {
+        .foreground = ansi::Color::Cyan,
+        .background = ansi::Background::Cyan,};
+    cell.preserve_background = false;
+    cell.apply(os, "[safe contrast]") << ' ' << cell.ansi_format
+    << ", preserve_background=" << std::boolalpha << cell.preserve_background << '\n';
+    time_delay(delay_ms);
+
+    cell.ansi_format = {
+        .foreground = ansi::Color::Green,
+        .background = ansi::Background::Green,};
+    cell.preserve_background = true;
+    cell.apply(os, "[safe contrast]") << ' ' << cell.ansi_format << '\n';
+    time_delay(delay_ms);
+
+    cell.ansi_format = {
+        .foreground = ansi::Color::Green,
+        .background = ansi::Background::Green,};
+    cell.preserve_background = false;
+    cell.apply(os, "[safe contrast]") << ' ' << cell.ansi_format
+    << ", preserve_background=" << std::boolalpha << cell.preserve_background << '\n';
+    time_delay(delay_ms);
+
+    cell.ansi_format = {
+        .foreground = ansi::Color::White,
+        .background = ansi::Background::White,
+        .styles = {ansi::Style::Strikethrough},};
+    cell.preserve_background = true;
+    cell.align.mode = logging::Format::Align::Mode::Left;
+    cell.apply(os, "[align]") << ' ' << cell.ansi_format << '\n';
+    time_delay(delay_ms);
+
+    cell.ansi_format = {
+        .foreground = ansi::Color::White,
+        .background = ansi::Background::White,
+        .styles = {ansi::Style::Strikethrough},};
+    cell.preserve_background = false;
+    cell.align.mode = logging::Format::Align::Mode::Centred;
+    cell.apply(os, "[align]") << ' ' << cell.ansi_format << ", align.mode=Centred"
+    << ", preserve_background=" << std::boolalpha << cell.preserve_background << '\n';
+    time_delay(delay_ms);
+
+    cell.ansi_format = {
+        .foreground = ansi::Color::White,
+        .background = ansi::Background::White,
+        .styles = {ansi::Style::Strikethrough},};
+    cell.preserve_background = true;
+    cell.align.mode = logging::Format::Align::Mode::Right;
+    cell.apply(os, "[align]") << ' ' << cell.ansi_format << ", align.mode=Right" << '\n';
+    time_delay(delay_ms);
+
+    cell.ansi_format = {
+        .foreground = ansi::Color::White,
+        .background = ansi::Background::White,
+        .styles = {ansi::Style::Strikethrough},};
+    cell.preserve_background = false;
+    cell.width = unset;
+    sv_t prompt = "[width]";
+    int indent = width - static_cast<int>(prompt.size()) - 1;
+    cell.apply(os, prompt);
+    ansi::apply_pad(os, indent) << ' ' << cell.ansi_format << ", width=unset(-1)"
+    << ", preserve_background=" << std::boolalpha << cell.preserve_background << '\n';
+    time_delay(delay_ms);
+
+    cell.ansi_format = {
+        .foreground = ansi::Color::White,
+        .background = ansi::Background::White,
+        .styles = {ansi::Style::Strikethrough},};
+    cell.preserve_background = true;
+    cell.width = hidden;
+    prompt = "[width]";
+    cell.apply(os, prompt);
+    ansi::apply_pad(os, width) << ' ' << cell.ansi_format << ", width=hidden(0)" << '\n';
+    time_delay(delay_ms);
+
+    cell.ansi_format = {
+        .foreground = ansi::Color::BrightRed,
+        .background = ansi::Background::BrightRed,};
+    cell.preserve_background = true;
+    cell.align.mode = logging::Format::Align::Mode::Left;
+    cell.width = width;
+    cell.apply(os, "[trancatetrancatetrancatetrancate]") << ' ' << cell.ansi_format << '\n';
+    time_delay(delay_ms);
+
+    cell.ansi_format = {
+        .foreground = ansi::Color::Black,
+        .background = ansi::Background::Black,};
+    cell.preserve_background = true;
+    cell.width = width;
+    cell.apply(os, "[trancatetrancatetrancatetrancate]") << ' ' << cell.ansi_format << '\n';
+    time_delay(delay_ms);
+
+    cell.ansi_format = {
+        .foreground = ansi::Color::Black,
+        .background = ansi::Background::Black,};
+    cell.preserve_background = false;
+    cell.width = width;
+    cell.apply(os, "[trancatetrancatetrancatetrancate]") << ' ' << cell.ansi_format
+    << ", preserve_background=" << std::boolalpha << cell.preserve_background << '\n';
+    time_delay(delay_ms);
+
+    cell.ansi_format = {
+        .use_ansi = false,
+        .foreground = ansi::Color::Black,
+        .background = ansi::Background::Black,};
+    cell.preserve_background = true;
+    cell.width = width;
+    cell.apply(os, "[trancatetrancatetrancatetrancate]") << ' ' << cell.ansi_format << '\n';
+    time_delay(delay_ms);
+
+    cell.ansi_format = {
+        .use_ansi = true,
+        .foreground = ansi::Color::Black,
+        .background = ansi::Background::Black,};
+    cell.preserve_background = true;
+    cell.truncate.ansi_format.use_ansi = false;
+    cell.width = width;
+    cell.apply(os, "[trancatetrancatetrancatetrancate]") << ' ' << cell.ansi_format
+    << ", truncate.ansi_format.use_ansi=" << std::boolalpha << cell.truncate.ansi_format.use_ansi << '\n';
+    time_delay(delay_ms);
+
+    cell.ansi_format = {
+        .use_ansi = true,
+        .foreground = ansi::Color::Black,
+        .background = ansi::Background::Black,};
+    cell.preserve_background = true;
+    cell.truncate.ansi_format.use_ansi = true;
+    cell.width = width;
+    cell.truncate.cutlen = 1;
+    cell.apply(os, "[trancatetrancatetrancatetrancate]") << ' ' << cell.ansi_format
+    << ", truncate.cutlen=" << cell.truncate.cutlen << '\n';
+    time_delay(delay_ms);
+
+    cell.ansi_format = {
+        .use_ansi = true,
+        .foreground = ansi::Color::BrightWhite,
+        .background = ansi::Background::BrightWhite,};
+    cell.preserve_background = true;
+    cell.truncate.ansi_format.use_ansi = true;
+    cell.width = 2;
+    cell.truncate.cutlen = 3;
+    cell.apply(os, "[trancatetrancatetrancatetrancate]");
+    ansi::apply_pad(os, width - cell.width) << ' ' << cell.ansi_format
+    << ", width=" << cell.width << '\n';
+    time_delay(delay_ms);
+
+    cell.ansi_format = {
+        .use_ansi = true,
+        .foreground = ansi::Color::White,
+        .background = ansi::Background::White,};
+    cell.preserve_background = true;
+    cell.truncate.ansi_format.use_ansi = true;
+    cell.width = width;
+    cell.truncate.cutlen = 3;
+    cell.truncate.enabled = false;
+    cell.apply(os, "[trancatetrancatetrancatetrancate]") << ' ' << cell.ansi_format
+    << ", width=" << cell.width << ", truncate.enabled=" << cell.truncate.enabled << '\n';
+    time_delay(delay_ms);
+
+    return os;
+}
+
+// g++ -std=c++2a -O2 -Wall -Wextra -Werror ../../srcs/globals.cpp test_formats.cpp -o formats && ./formats
+// ./formats --no-ansi --no-utf8
 int main(int ac, char** av) {
-    if (auto r = rt::config.parse_cmdline(ac, av); r) return r.write_error_if();
+    rt::config.init(ac, av);
+    os_t& os = std::cout;
+
+    int delay_ms = 30;
+    int width    = unset;
+
+    test_ansi_formats(os, "▶️ Foregrounds:", ansi::enumColors, delay_ms, width);
+    test_ansi_formats(os, "✅ Foregrounds:", ansi::enumColors, 0, width);
+    os << std::endl;
+    test_ansi_formats(os, "▶️ Backgrounds:", ansi::enumBackgrounds, delay_ms, width);
+    test_ansi_formats(os, "✅ Backgrounds:", ansi::enumBackgrounds, 0, width);
+    os << std::endl;
+    test_ansi_formats(os, "▶️ Styles:     ", ansi::enumStyles, delay_ms, width);
+    test_ansi_formats(os, "✅ Styles:     ", ansi::enumStyles, 0, width);
+    os << std::endl;
+    width = 15;
+    test_combinations(os, "✅ Style Combinations:", delay_ms, width);
     
-    ScopedTimer timer(std::cout);
-
-    int delay_ms = 200;
-
-    if (rt::config.tty_allowed && rt::config.ansi_allowed)
-        terminal_clear_fallback();
-
-    test_ansi_style(std::cout, "▶️ Foreground Colors:", ansi::enumColors, delay_ms);
-    test_ansi_style(std::cout, "✅ Foreground Colors:", ansi::enumColors, 0);
-    std::cout << std::endl;
-
-    test_ansi_style(std::cout, "▶️ Background Colors:", ansi::enumBackgrounds, delay_ms);
-    test_ansi_style(std::cout, "✅ Background Colors:", ansi::enumBackgrounds, 0);
-    std::cout << std::endl;
-
-    test_ansi_style(std::cout, "▶️ Styles:           ", ansi::enumStyles, delay_ms);
-    test_ansi_style(std::cout, "✅ Styles:           ", ansi::enumStyles, 0);
-    std::cout << std::endl;
-    
-    std::vector<formats_t> fmts;
-
-    fmts.emplace_back(
-                      "✅ Style Combinations:",
-                      ansi::Format{
-                          .styles = { ansi::Style::Bold },
-                          .use_ansi = true
-                      });
-    fmts.emplace_back(
-                      "Red + bold (error)",
-                      ansi::Format{
-                          .foreground = ansi::Color::Red,
-                          .styles = { ansi::Style::Bold },
-                          .use_ansi = true
-                      });
-    fmts.emplace_back(
-                      "BrightRed + bold (error)",
-                      ansi::Format{
-                          .foreground = ansi::Color::BrightRed,
-                          .styles = { ansi::Style::Bold },
-                          .use_ansi = true
-                      });
-    fmts.emplace_back(
-                      "Yellow + underline (warning)",
-                      ansi::Format{
-                          .foreground = ansi::Color::Yellow,
-                          .styles = { ansi::Style::Underline },
-                          .use_ansi = true
-                      });
-    fmts.emplace_back(
-                      "BrightYellow + underline (warning)",
-                      ansi::Format{
-                          .foreground = ansi::Color::BrightYellow,
-                          .styles = { ansi::Style::Underline },
-                          .use_ansi = true
-                      });
-    fmts.emplace_back(
-                      "Blue + Italic (Information)",
-                      ansi::Format{
-                          .foreground = ansi::Color::Blue,
-                          .styles = { ansi::Style::Italic },
-                          .use_ansi = true
-                      });
-    fmts.emplace_back(
-                      "BrightBlue + Italic (Information)",
-                      ansi::Format{
-                          .foreground = ansi::Color::BrightBlue,
-                          .styles = { ansi::Style::Italic },
-                          .use_ansi = true
-                      });
-    fmts.emplace_back(
-                      "Green + bold (success)",
-                      ansi::Format{
-                          .foreground = ansi::Color::Green,
-                          .styles = { ansi::Style::Bold },
-                          .use_ansi = true
-                      });
-    fmts.emplace_back(
-                      "BrightGreen + bold (success)",
-                      ansi::Format{
-                          .foreground = ansi::Color::BrightGreen,
-                          .styles = { ansi::Style::Bold },
-                          .use_ansi = true
-                      });
-    fmts.emplace_back(
-                      "Bright black background + white text (contrast mark)",
-                      ansi::Format{
-                          .foreground = ansi::Color::White,
-                          .background = ansi::Background::BrightBlack,
-                          .use_ansi = true
-                      });
-    fmts.emplace_back(
-                      "Yellow background + red text + bold",
-                      ansi::Format{
-                          .foreground = ansi::Color::Red,
-                          .background = ansi::Background::Yellow,
-                          .styles = { ansi::Style::Bold },
-                          .use_ansi = true
-                      });
-    fmts.emplace_back(
-                      "Invert + bold",
-                      ansi::Format{
-                          .styles = {
-                              ansi::Style::Inverse,
-                              ansi::Style::Bold
-                          },
-                              .use_ansi = true
-                      });
-    fmts.emplace_back(
-                      "All styles (as a test)",
-                      ansi::Format{
-                          .styles = {
-                              ansi::Style::Bold,
-                              ansi::Style::Underline,
-                              ansi::Style::Italic,
-                              ansi::Style::Strikethrough
-                          },
-                              .use_ansi = true
-                      });
-    fmts.emplace_back(
-                      "Hidden text",
-                      ansi::Format{
-                          .styles = { ansi::Style::Hidden },
-                          .use_ansi = true
-                      });
-
-    for (formats_t f : fmts) {
-        test_apply_formats(std::cout, f);
-        time_delay(delay_ms);
-    }
-
     return 0;
 }

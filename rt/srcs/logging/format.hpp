@@ -1,91 +1,110 @@
 #pragma once
 #include "../config.hpp"
-#include <sstream>
 #include <string_view>
 #include <ostream>
-#include <iomanip>
-#include <algorithm>
 #include "traits.hpp"
 #include "ansi_escape_codes.hpp"
 #include "logging_utils.hpp"
-
+#include "terminal_width.hpp"
 
 namespace logging {
 
 using sv_t = std::string_view;
 using os_t = std::ostream;
 
-using Flags             = rt::LoggerStatusFlags;
-using LogConfig         = rt::Config;
-inline auto& log_config = rt::config;
-constexpr int hidden    = 0;  // means "hidden value"
-constexpr int unset     = -1; // means "not specified"
+inline constexpr int hidden = 0;  // means "hidden value"
+inline constexpr int unset  = -1; // means "not specified"
+inline constexpr ansi::Format kNoAnsi{ .use_ansi = false };
 
 struct FormatBase {
     [[nodiscard]] int width() const noexcept { return terminal_width_; }
 
+    [[nodiscard]] ansi::Color tty_fg() const noexcept {
+        return cfg().tty_foreground;
+    }
+
+    [[nodiscard]] ansi::Background tty_bg() const noexcept {
+        return cfg().tty_background;
+    }
+
 protected:
     mutable int terminal_width_ = unset;
-    LogConfig&  cfg_ = log_config;
+    rt::Config* cfg_            = &rt::config;
+    
+    [[nodiscard]] const rt::Config& cfg() const noexcept {
+        assert(cfg_ && "Internal error: cfg_ should never be null");
+        return *cfg_;
+    }
+
+    [[nodiscard]] rt::Config& cfg() noexcept {
+        assert(cfg_ && "Internal error: cfg_ should never be null");
+        return *cfg_;
+    }
 
     [[nodiscard]] bool can_use_tty(bool user_defined = true) const noexcept {
-        return user_defined && cfg_.tty_allowed && output_supports_tty(cfg_.output);
+        return user_defined &&
+               cfg().tty_allowed &&
+               output_supports_tty(cfg().log_out);
     }
 
     [[nodiscard]] bool can_use_utf8(bool user_defined = true) const noexcept {
-        return user_defined && cfg_.utf8_inited;
+        return user_defined && cfg().utf8_inited;
+    }
+
+    [[nodiscard]] bool can_use_emoji(bool user_defined = true) const noexcept {
+        return user_defined && cfg().emoji_allowed;
     }
 
     [[nodiscard]] bool can_use_ansi(bool user_defined = true) const noexcept {
-        return can_use_tty(user_defined) && cfg_.ansi_allowed;
+        return can_use_tty(user_defined) && cfg().ansi_allowed;
     }
 
     [[nodiscard]] int term_width(const sv_t& sv) const noexcept {
         if (!can_use_utf8()) {
             if (!is_ascii_only(sv))
-                cfg_.set_logger_flag(Flags::Utf8NotInitialized);
+                set_log_warn(cfg().log_warns, LogWarns::Utf8NotInitialized);
             return static_cast<int>(sv.size());
         }
         return utf8_terminal_width(sv);
     }
 
-    os_t& apply_ansi_style(os_t& os, const ansi::Format& style,
-               ansi::Format previous_style = {.use_ansi = false}) const noexcept
+    os_t& apply_ansi_format(os_t& os, const ansi::Format& style,
+                        const ansi::Format& prev_style = kNoAnsi) const noexcept
     {
-        if (can_use_ansi()) {
-            ansi::apply_reset(os, previous_style);
-            ansi::apply_style(os, style);
-        }
+        if (!can_use_ansi()) return os;
+        ansi::apply_reset(os, prev_style);
+        ansi::apply_format(os, style);
         return os;
     }
 
     os_t& apply_ansi_reset(os_t& os, const ansi::Format& style,
-               ansi::Format previous_style = {.use_ansi = false}) const noexcept
+                        const ansi::Format& prev_style = kNoAnsi) const noexcept
     {
-        if (can_use_ansi()) {
-            ansi::apply_reset(os, style);
-            ansi::apply_style(os, previous_style);
-        }
+        if (!can_use_ansi()) return os;
+        ansi::apply_reset(os, style);
+        ansi::apply_format(os, prev_style);
         return os;
     }
 
     os_t& apply_ansi_clear(os_t& os, int& term_with) const noexcept {
-        if (!can_use_ansi())
-            return os;
+        if (!can_use_ansi()) return os;
         ansi::apply_clear_left(os, std::max(0, term_with));
         terminal_width_ = 0;
         return os;
     }
-
 };
 
 struct IOManip {
     struct [[nodiscard]] StreamGuard {
-        os_t& os;
+        std::ostream&           os;
         std::ios_base::fmtflags flags;
-        std::streamsize prec;
-        StreamGuard(os_t& os_)
-            : os(os_), flags(os_.flags()), prec(os_.precision()) {}
+        std::streamsize         prec;
+
+        StreamGuard(os_t& os_) :
+            os(os_),
+            flags(os_.flags()),
+            prec(os_.precision()) {}
+
         ~StreamGuard() {
             os.flags(flags);
             os.precision(prec);
@@ -96,7 +115,8 @@ struct IOManip {
     bool fixed      = false;
     bool scientific = false;
     bool boolalpha  = false;
-    enum class Base : uint8_t { Dec, Hex, Oct } base = Base::Dec;
+    enum class Base : uint8_t { Dec, Hex, Oct }
+         base       = Base::Dec;
     bool uppercase  = false;
     bool restore_stream_state = true;
 
@@ -115,10 +135,11 @@ struct IOManip {
         if (boolalpha)  os << std::boolalpha;
         if (fixed)      os << std::fixed;
         if (scientific) os << std::scientific;
+        using enum Base;
         switch (base) {
-            case Base::Hex: os << std::hex; break;
-            case Base::Oct: os << std::oct; break;
-            case Base::Dec: os << std::dec; break;
+            case Hex: os << std::hex; break;
+            case Oct: os << std::oct; break;
+            case Dec: os << std::dec; break;
         }
         if (uppercase)      os << std::uppercase;
         if (precision >= 0) os << std::setprecision(precision);
@@ -128,18 +149,45 @@ struct IOManip {
 
 struct Format : FormatBase {
     struct Align {
-        enum class Mode : uint8_t { Left, Right, Centred } mode = Mode::Left;
+        enum class Mode : uint8_t {
+            Left,
+            Right,
+            Centred
+        };
+        
+        Mode mode    = Mode::Left;
         char padchar = ' ';
+
+        [[nodiscard]] constexpr
+        std::pair<int,int> padding(int width, int text_width) const noexcept {
+            return padding(std::max(0, width) - std::max(0, text_width));
+        }
+
+        [[nodiscard]] constexpr
+        std::pair<int,int> padding(int pad) const noexcept {
+            if (pad <= 0) return {0,0};
+            int left = 0, right = 0;
+            using enum Mode;
+            switch (mode) {
+                case Left:    left = 0;       right = pad;        break;
+                case Right:   left = pad;     right = 0;          break;
+                case Centred: left = pad / 2; right = pad - left; break;
+            }
+            return { left, right };
+        }
     };
 
     struct Truncate {
-        bool enabled = true;
-        int  cutlen  = 3;
-        char cutchar = '.';
-        ansi::Format style {
-            .foreground = ansi::Color::Red,
-            .styles     = {ansi::Style::Underline}
-        };
+        bool         enabled = true;
+        int          cutlen  = 3;
+        char         cutchar = '.';
+        ansi::Format ansi_format{
+                         .foreground = ansi::Color::BrightRed,
+                         .styles{
+                             ansi::Style::Underline,
+                             ansi::Style::Blink,
+                     }
+    };
 
         [[nodiscard]] std::pair<int,int> limits(int width) const noexcept {
             width = std::max(0, width);
@@ -150,70 +198,102 @@ struct Format : FormatBase {
 
     struct Control {
         enum class Normalize : uint8_t {
-            Forbidden, Allowed, Required
-        } normalize  = Normalize::Allowed;
+            Forbidden,
+            Allowed,
+            Required
+        };
+        enum class EndPolicy : uint8_t {None,
+            Flush,
+            Newline,
+            Pad,
+            PadThenFlush
+        };
 
-        enum class EndPolicy : uint8_t {
-            None, Flush, Newline, Pad, PadThenFlush
-        } end_policy = EndPolicy::PadThenFlush;
-
-        char padchar  = ' ';
-        char normchar = '?';
+        EndPolicy end_policy = EndPolicy::PadThenFlush;
+        Normalize normalize  = Normalize::Allowed;
+        char      padchar    = ' ';
+        char      normchar   = '?';
     };
 
     int          width = unset;
     Align        align;
     Truncate     truncate;
     IOManip      manip;
-    ansi::Format ansi_style;
+    ansi::Format ansi_format;
     Control      control;
-    bool         use_utf8 = true;
+    bool         use_utf8  = true;
+    bool         use_emoji = true;
+    bool         preserve_background = true;
 
-    [[nodiscard]] bool has_width() const noexcept { return width > 0; }
+    [[nodiscard]]
+    bool should_emoji() const noexcept { return can_use_emoji(use_emoji); }
 
-    [[nodiscard]] bool is_alignable() const noexcept { return has_width(); }
+    [[nodiscard]]
+    bool is_unlimited_width() const noexcept { return width == unset; }
 
-    [[nodiscard]] bool is_truncatable() const noexcept {
+    [[nodiscard]]
+    bool is_hidden_width() const noexcept { return width == hidden; }
+
+    [[nodiscard]]
+    bool has_width() const noexcept { return width > 0; }
+
+    [[nodiscard]]
+    bool is_alignable() const noexcept { return has_width(); }
+
+    [[nodiscard]]
+    bool is_truncatable() const noexcept {
         return truncate.enabled && is_alignable();
     }
 
-    [[nodiscard]] bool should_normalize(bool in_case_allowed) const noexcept {
+    [[nodiscard]]
+    bool should_normalize(bool in_case_allowed) const noexcept {
+        using enum Control::Normalize;
         switch (control.normalize) {
-            case Control::Normalize::Required:  return true;
-            case Control::Normalize::Allowed:   return in_case_allowed;
-            case Control::Normalize::Forbidden: return false;
+            case Required:  return true;
+            case Allowed:   return in_case_allowed;
+            case Forbidden: return false;
         }
         return false;
     }
 
-    [[nodiscard]] bool should_be_buffered() const noexcept {
+    [[nodiscard]]
+    bool should_be_buffered() const noexcept {
         return is_alignable() ||
                is_truncatable() ||
                should_normalize(false);
     }
 
+    [[nodiscard]]
+    bool should_sanitize_pad_style() const noexcept {
+        return can_use_ansi(ansi_format.use_ansi) &&
+               ansi_format.has_pad_unsafe_styles();
+    }
+
+    [[nodiscard]] constexpr
+    bool should_use_trunc_ansi_format(bool user_defined = true) const noexcept {
+        return user_defined && can_use_ansi(truncate.ansi_format.use_ansi);
+    }
+
     template<traits::Ostreamable... Args>
-    os_t& apply(os_t& os, const Args&... args) const noexcept {
+    os_t& apply(os_t& os, const Args&... args) noexcept {
         terminal_width_ = 0;
-        if (width == hidden)
-            return apply_end(os, terminal_width_);
-        apply_ansi_style(os, ansi_style);
+        if (is_hidden_width())
+            return apply_end(os);
         std::optional<sv_t> sv_out;
         if (should_be_buffered()) {
             if (auto sv_raw = buff_raw<A>(manip, args...)) {
-                if (auto sv_adj = buff_adj<B>(*sv_raw, terminal_width_))
+                if (auto sv_adj = buff_adj<B>(*sv_raw))
                     sv_out = *sv_adj;
-                else cfg_.set_logger_flag(Flags::LoggingBufferFailed);
-            } else cfg_.set_logger_flag(Flags::LoggingBufferFailed);
+                else set_log_warn(cfg().log_warns, LogWarns::LoggingBufferFailed);
+            } else set_log_warn(cfg().log_warns, LogWarns::LoggingBufferFailed);
         }
         if (sv_out) {
-            apply_align(os, *sv_out, terminal_width_);
+            apply_align(os, *sv_out);
         } else {
             terminal_width_ = unset;
             apply_iomanip(os, manip, args...);
         }
-        apply_end(os, terminal_width_);
-        return apply_ansi_reset(os, ansi_style);
+        return apply_end(os);
     }
 
     // Buffering is active when any of the following conditions is true:
@@ -233,58 +313,91 @@ struct Format : FormatBase {
     }
 
 private:
-    [[nodiscard]] std::pair<int,int>
-    safe_truncat_limits(sv_t sv) const noexcept {
-        const std::pair<int,int> untruncate{std::numeric_limits<int>::max(), 0};
-        if (!is_truncatable())
-           return untruncate;
-        const auto [safe_width, tail] = truncate.limits(width);
-        if (can_use_utf8(use_utf8)) {
-            if (utf8_terminal_width(sv) <= width)
-                return untruncate;
-        } else {
-            if (is_ascii_only(sv) && static_cast<int>(sv.size()) <= width)
-                return untruncate;
-            if (ascii_prefix_length(sv) < safe_width) {
-                cfg_.set_logger_flag(Flags::Utf8NotInitialized);
-                return untruncate;
-            }
-      }
-       return { safe_width, tail };
+    [[nodiscard]] constexpr
+    ansi::Format safe_contrast_ansi_format() const noexcept {
+        return ansi::Format{ansi_format}.apply_safe_contrast(tty_fg(), tty_bg(),
+                                                           preserve_background);
+    }
+    
+    [[nodiscard]] constexpr
+    ansi::Format safe_pad_ansi_format(ansi::Format safe) const noexcept {
+        safe.styles.erase_if(ansi::is_pad_unsafe_style);
+        return safe;
+    }
+    
+    [[nodiscard]] constexpr
+    ansi::Format safe_pad_ansi_format() const noexcept {
+        auto safe = safe_contrast_ansi_format();
+        safe.styles.erase_if(ansi::is_pad_unsafe_style);
+        return safe;
+    }
+    
+    [[nodiscard]] constexpr
+    ansi::Format safe_truncate_ansi_format() const noexcept {
+        auto safe = truncate.ansi_format;
+        if (ansi_format.use_ansi) {
+            if (preserve_background) safe.background = ansi_format.background;
+            else safe.background = safe_contrast_ansi_format().background;
+        }
+        safe.styles.erase_if(ansi::is_trunc_unsafe_style);
+        safe.apply_safe_contrast(tty_fg(), tty_bg(), preserve_background);
+        return safe;
     }
 
-    os_t& apply_end(os_t& os, int& term_width) const noexcept {
-        using EP = Control::EndPolicy;
-        switch (control.end_policy) {
-            case EP::None:    break;
-            case EP::Flush:   os << std::flush; break;
-            case EP::Newline: os << std::endl;  break;
-            case EP::Pad: {
-                if (!has_width()) {
-                    os << control.padchar;
-                    ++term_width;
-                }
-                break;
-            }
-            case EP::PadThenFlush: {
-                if (!has_width()) {
-                    os << control.padchar;
-                    ++term_width;
-                }
-                os << std::flush;
-                break;
-            }
-            default: break;
+    [[nodiscard]]
+    std::pair<int,int> safe_truncate_limits(sv_t sv) const noexcept {
+    const std::pair<int,int> untruncate{std::numeric_limits<int>::max(), 0};
+    if (!is_truncatable())
+        return untruncate;
+    const auto [safe_width, tail] = truncate.limits(width);
+    if (can_use_utf8(use_utf8)) {
+        if (utf8_terminal_width(sv) <= width)
+            return untruncate;
+    } else {
+        if (is_ascii_only(sv) && static_cast<int>(sv.size()) <= width)
+            return untruncate;
+        if (ascii_prefix_length(sv) < safe_width) {
+            set_log_warn(cfg().log_warns, LogWarns::Utf8NotInitialized);
+            return untruncate;
         }
+    }
+    return { safe_width, tail };
+}
+    
+    os_t& apply_padding(os_t& os, int pad, char padder = ' ') const noexcept {
+        terminal_width_ += pad;
+        return ansi::apply_pad(os, pad, padder);
+    }
+
+    os_t& apply_end(os_t& os) const noexcept {
+        bool pad = false;
+        bool flush = false;
+        bool newline = false;
+        using enum Control::EndPolicy;
+        switch (control.end_policy) {
+            case None:         break;
+            case Flush:        flush = true; break;
+            case Newline:      newline = true; break;
+            case Pad:          pad = is_unlimited_width(); break;
+            case PadThenFlush: pad = is_unlimited_width(); flush = true; break;
+        }
+        if (pad) {
+            bool use_ansi = can_use_ansi(ansi_format.use_ansi);
+            if (use_ansi) ansi::apply_format(os, safe_pad_ansi_format());
+            apply_padding(os, 1, align.padchar);
+            if (use_ansi) ansi::apply_reset(os, ansi_format);
+        }
+        if (newline) return os << std::endl;
+        if (flush) os << std::flush;
         return os;
     }
-
+    
     template<typename BufferTag, traits::Ostreamable... Args>
     [[nodiscard]] std::optional<sv_t>
     buff_raw(const IOManip& manip, const Args&... args) const noexcept {
         try {
             auto& oss = get_buffer<BufferTag>(false);
-            apply_iomanip(oss, manip, args...);
+            manip.apply(oss, args...);
             return oss.view();
         } catch (...) {
             return std::nullopt;
@@ -293,84 +406,92 @@ private:
 
     template<typename BufferTag>
     [[nodiscard]] std::optional<sv_t>
-    buff_adj(sv_t sv, int& cut_width) const noexcept {
+    buff_adj(sv_t sv) const noexcept {
         try {
             auto& oss = get_buffer<BufferTag>(false);
-            write_truncated_and_normalized(oss, sv, cut_width);
+            write_truncated_and_normalized(oss, sv);
             return oss.view();
         } catch (...) {
             return std::nullopt;
         }
     }
 
-    template<typename BufferTag>
-    [[nodiscard]]
-    std::optional<sv_t> buffering() const noexcept {
-        try {
-            auto& oss = get_buffer<BufferTag>(false);
-            write(oss);
-            return oss.view();
-        } catch (...) {
-            return std::nullopt;
-        }
+    template<traits::Ostreamable... Args>
+    os_t& apply_iomanip(os_t& os, const IOManip& manip, const Args&... args)
+                              const noexcept(noexcept(manip.apply(os, args...)))
+    {
+        const bool use_ansi = can_use_ansi(ansi_format.use_ansi);
+        if (use_ansi) ansi::apply_format(os, safe_contrast_ansi_format());
+        manip.apply(os, args...);
+        if (use_ansi) ansi::apply_reset(os, ansi_format);
+        return os;
     }
 
-    template<traits::Ostreamable... Args> static
-    os_t& apply_iomanip(os_t& os, const IOManip& manip,const Args&... args)
-                                    noexcept(noexcept(manip.apply(os, args...)))
-    {
-        return manip.apply(os, args...);
-    }
-
-    os_t& write_truncated_and_normalized(os_t& os, sv_t sv,
-                                                 int& term_width) const noexcept
-    {
-        const auto normalize = should_normalize(true);
-        auto [safe_width, tail] = safe_truncat_limits(sv);
+    os_t& write_truncated_and_normalized(os_t& os, sv_t sv) const noexcept {
+        auto [safe_width, tail] = safe_truncate_limits(sv);
         if (can_use_utf8(use_utf8)) {
             DisplayUnit unit{};
             size_t offset = 0;
-            while (unit.parse(sv, offset) && term_width < safe_width) {
-                const bool it_goes_in = (term_width + unit.width <= safe_width);
+            while (unit.parse(sv, offset) && terminal_width_ < safe_width) {
+                const bool it_goes_in =
+                    (terminal_width_ + unit.width <= safe_width);
                 //“So it does!” said Pooh.   “It goes in!”
                 //“So it does!” said Piglet. “And it comes out!”
                 //“Doesn’t it?” said Eeyore. “It goes in and out like anything.”
                 if (it_goes_in) {
                     unit.write(os, sv, control.normchar);
-                    term_width += unit.width;
+                    terminal_width_ += unit.width;
                     offset += unit.length;
                 } else {
-                    tail += safe_width - term_width;
+                    tail += safe_width - terminal_width_;
                     break;
                 }
             }
         } else {
+            const auto normalize = should_normalize(true);
             int i = 0, sv_size = static_cast<int>(sv.size());
-            for (; i < sv_size && term_width < safe_width; ++i, ++term_width)
+            for (; i < sv_size && terminal_width_ < safe_width; ++i) {
                 os << (normalize ? normalize_char(sv[i]) : sv[i]);
+                ++terminal_width_;
+            }
         }
-        if (tail > 0) {
-            apply_ansi_style(os, truncate.style, ansi_style);
-            for (int i = 0; i < tail; ++i, ++term_width)
-                os << truncate.cutchar;
-            apply_ansi_reset(os, truncate.style, ansi_style);
-        }
+        const bool use_ansi = should_use_trunc_ansi_format(tail > 0);
+        if (use_ansi) ansi::apply_format(os, safe_truncate_ansi_format());
+        apply_padding(os, tail, truncate.cutchar);
+        if (use_ansi && !ansi_format.use_ansi)
+            ansi::apply_reset(os, truncate.ansi_format);
         return os;
     }
 
-    os_t& apply_align(os_t& os, sv_t sv, int& term_width) const noexcept {
-        using Mode = Align::Mode;
-        int left = 0, right = 0;
-        int padd = std::max(0, std::max(0, width) - std::max(0, term_width));
-        switch (align.mode) {
-            case Mode::Left:    left = 0;        right = padd;        break;
-            case Mode::Right:   left = padd;     right = 0;           break;
-            case Mode::Centred: left = padd / 2; right = padd - left; break;
+    os_t& apply_align(os_t& os, sv_t sv) const noexcept {
+        const auto [left, right] = align.padding(width, terminal_width_);
+        if (!can_use_ansi(ansi_format.use_ansi)) {
+            apply_padding(os, left, align.padchar);
+            os << sv;
+            return apply_padding(os, right, align.padchar);
         }
-        ansi::apply_pad(os, left, align.padchar);
+        if ((!left && !right) || !ansi_format.has_pad_unsafe_styles()) {
+            ansi::apply_format(os, safe_contrast_ansi_format());
+            apply_padding(os, left, align.padchar);
+            os << sv;
+            apply_padding(os, right, align.padchar);
+            return ansi::apply_reset(os, ansi_format);
+        }
+        const auto safe_content = safe_contrast_ansi_format();
+        const auto safe_pad     = safe_pad_ansi_format(safe_content);
+        if (left) {
+            ansi::apply_format(os, safe_pad);
+            apply_padding(os, left, align.padchar);
+            ansi::apply_reset(os, safe_pad);
+        }
+        ansi::apply_format(os, safe_content);
         os << sv;
-        ansi::apply_pad(os, right, align.padchar);
-        term_width += padd;
+        ansi::apply_reset(os, safe_content);
+        if (right) {
+            ansi::apply_format(os, safe_pad);
+            apply_padding(os, right, align.padchar);
+            ansi::apply_reset(os, safe_pad);
+        }
         return os;
     }
 };
@@ -417,13 +538,13 @@ struct ProgressBar : Format, ProgressBarState {
                 init(ctx);
             const bool finish   = ctx.count == ctx.cycles;
             const int  slider   = !finish ? ctx.slider_pos() : ctx.width;
-            const bool activiry = std::max(0, slider - prev_slider);
-            if (!start && !activiry && !finish)
+            const bool activity = std::max(0, slider - prev_slider);
+            if (!start && !activity && !finish)
                 return os;
             const int unmarks = std::max(0, ctx.width - slider);
             prev_slider = slider;
             ctx.apply_ansi_clear(os, ctx.terminal_width_);
-            ctx.apply_ansi_style(os, ctx.style);
+            ctx.apply_ansi_format(os, ctx.style);
             write_content(os, slider, unmarks);
             ctx.apply_ansi_reset(os, ctx.style);
             ctx.terminal_width_ = affix_width
@@ -442,7 +563,7 @@ struct ProgressBar : Format, ProgressBarState {
             prev_slider  = 0;
             affix_width  = ctx.term_width(prefix) + ctx.term_width(suffix);
             mark_width   = ctx.term_width(mark);
-            unmark_width = ctx.term_width(mark);
+            unmark_width = ctx.term_width(unmark);
             return *this;
         }
 
@@ -468,7 +589,7 @@ struct ProgressBar : Format, ProgressBarState {
             if (!start && !step && !finish)
                 return os;
             prev_slider = slider;
-            ctx.apply_ansi_style(os, ctx.style);
+            ctx.apply_ansi_format(os, ctx.style);
             if (start) {
                 os << prefix;
                 ctx.terminal_width_ = prefix_width;
@@ -506,13 +627,13 @@ struct ProgressBar : Format, ProgressBarState {
             if (start)
                 init(ctx);
             const int  percnt   = ctx.percentage();
-            const bool activiry = std::max(0, percnt - prev_percnt);
+            const bool activity = std::max(0, percnt - prev_percnt);
             const bool finish   = ctx.count == ctx.cycles;
-            if (!start && !activiry && !finish)
+            if (!start && !activity && !finish)
                 return os;
             prev_percnt = percnt;
             ctx.apply_ansi_clear(os, ctx.terminal_width_);
-            ctx.apply_ansi_style(os, ctx.style);
+            ctx.apply_ansi_format(os, ctx.style);
             write_content(os, percnt);
             ctx.apply_ansi_reset(os, ctx.style);
             ctx.terminal_width_ = affix_width + width;
@@ -561,10 +682,11 @@ struct ProgressBar : Format, ProgressBarState {
                 alt.write(os, *this);
             return os;
         }
+        using enum Type;
         switch (type) {
-            case Type::Bar:       bar.write(os, *this);     break;
-            case Type::Alternate: alt.write(os, *this);     break;
-            case Type::Percent:   percent.write(os, *this); break;
+            case Bar:       bar.write(os, *this);     break;
+            case Alternate: alt.write(os, *this);     break;
+            case Percent:   percent.write(os, *this); break;
         }
         return os;
     }

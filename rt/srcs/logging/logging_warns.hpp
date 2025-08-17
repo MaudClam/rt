@@ -1,12 +1,16 @@
 #pragma once
+#include <string_view>
 #include <cstdint>
+#include <ostream>
 
 
 namespace logging {
 
+using sv_t    = std::string_view;
+using os_t    = std::ostream;
 using flags_t = uint8_t;
 
-enum class LogWarn : flags_t {
+enum class LogWarns : flags_t {
     None                   = 0,
     LocaleActivationFailed = 1 << 0,
     Utf8NotInitialized     = 1 << 1,
@@ -15,48 +19,74 @@ enum class LogWarn : flags_t {
     LoggerFileCloseFailed  = 1 << 4,
 };
 
+[[nodiscard]]
+inline constexpr LogWarns operator|(LogWarns a, LogWarns b) noexcept {
+    return static_cast<LogWarns>(
+        static_cast<flags_t>(a) | static_cast<flags_t>(b));
+}
+
+inline constexpr LogWarns& operator|=(LogWarns& a, LogWarns b) noexcept {
+    return a = a | b;
+}
+
+[[nodiscard]]
+inline constexpr LogWarns operator&(LogWarns a, LogWarns b) noexcept {
+    return static_cast<LogWarns>(
+        static_cast<flags_t>(a) & static_cast<flags_t>(b));
+}
+
+[[nodiscard]]
+inline constexpr bool has_log_warn(LogWarns value, LogWarns warn) noexcept {
+    return (value & warn) != LogWarns::None;
+}
+
+inline void set_log_warn(LogWarns& value, LogWarns warn) noexcept {
+    if (!has_log_warn(value, warn))
+        value |= warn;
+}
+
 struct LogWarnDescriptor {
-    const LogWarn value;
-    const char*   message;
+    const LogWarns value;
+    const sv_t     message;
 };
 
 constexpr LogWarnDescriptor log_warn_descriptions[] = {
     {
-        LogWarn::LocaleActivationFailed,
+        LogWarns::LocaleActivationFailed,
         "Failed to activate UTF-8 locale from environment. "
         "Unicode alignment may be incorrect."
     },
     {
-        LogWarn::Utf8NotInitialized,
+        LogWarns::Utf8NotInitialized,
         "UTF-8 locale not initialized or unsupported. "
         "Unicode alignment may be incorrect."
     },
     {
-        LogWarn::LoggingBufferFailed,
+        LogWarns::LoggingBufferFailed,
         "Failed to create logger buffer. "
         "Data alignment may be incorrect."
     },
     {
-        LogWarn::LoggerWriteFailed,
+        LogWarns::LoggerWriteFailed,
         "LoggerSink write() failed. "
         "Output stream is null or unreachable."
     },
     {
-        LogWarn::LoggerFileCloseFailed,
+        LogWarns::LoggerFileCloseFailed,
         "LoggerSink failed to close output file stream. "
         "Exception suppressed."
     },
 };
 
-[[nodiscard]] inline
-bool has_log_warn(flags_t value, LogWarn warn) noexcept {
-    return (value & static_cast<logging::flags_t>(warn)) != 0;
+inline os_t& write_log_warns(os_t& os, LogWarns log_warns) noexcept {
+    for (const auto& entry : log_warn_descriptions)
+        if ((log_warns & entry.value) != LogWarns::None)
+            os << "[LOG_WARN] " << entry.message << '\n';
+    return os;
 }
 
-inline void set_log_warn(flags_t& value, LogWarn warn) noexcept
-{
-    if (!has_log_warn(value, warn))
-        value |= static_cast<logging::flags_t>(warn);
+inline os_t& operator<<(os_t& os, LogWarns log_warns) {
+    return write_log_warns(os, log_warns);
 }
 
 } // namespace logging

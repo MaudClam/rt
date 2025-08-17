@@ -23,12 +23,15 @@ extern thread_local      Config config;
 extern std::thread::id   main_thread_id;
 extern logging::LogWarns log_warns_collected;
 extern std::mutex        log_warns_mutex;
+extern std::mutex        log_global_mutex;
 
 using sv_t   = std::string_view;
 using os_t   = std::ostream;
 using oss_t  = std::ostringstream;
 namespace fs = std::filesystem;
 
+inline constexpr sv_t default_config_name = "config.ini";
+inline constexpr sv_t default_log_name    = "rt.log";
 
 fs::path get_exec_path();
 
@@ -41,12 +44,15 @@ Flags:
   --no-utf8     Disable UTF-8 output, fallback to ASCII
   --no-emoji    Disable emoji in output
   --no-warns    Disable deferred logger warnings
+  --config-dump Write config dump
 
 Parameters:
+  --config=path         Path to the another user defined config file
   --log-out=target      Logging output (stdout, stderr, file)
   --log-file=path       Path to log file
   --test-string=value   Test string value
   --test-param=N        Test numeric parameter
+
 )help";
 
 struct Config {
@@ -62,11 +68,13 @@ struct Config {
 	bool utf8_inited    = true;
     bool emoji_allowed  = true;
     bool warns_allowed  = true;
-    Output    log_out   = Output::Stdout;
-    StrBuffer log_file  = "rt.log";
+    Output    log_out   = Output::Stderr;
+    StrBuffer log_file  = default_log_name;
+    mutable
     LogWarns  log_warns = LogWarns::None;
 
 	// Common
+    bool      config_dump = false;
     StrBuffer test_string;
     int       test_param = 0;
     // ...
@@ -87,23 +95,22 @@ struct Config {
     os_t& write_config_dump(os_t& os) const noexcept {
         os << "\nCONFIG DUMP ================\n" << std::boolalpha;
         os << "Logging:\n";
-        os << "  tty_foreground: " << tty_foreground  << '\n';
-        os << "  tty_background: " << tty_background  << '\n';
-        os << "  tty_allowed:    " << tty_allowed     << '\n';
-        os << "  ansi_allowed:   " << ansi_allowed    << '\n';
-        os << "  utf8_inited:    " << utf8_inited     << '\n';
-        os << "  emoji_allowed:  " << emoji_allowed   << '\n';
-        os << "  warns_allowed:  " << warns_allowed   << '\n';
-        os << "  log_out:        " << log_out         << '\n';
-        os << "  log_file:       " << log_file.view() << '\n';
-
+        os << "  tty_foreground: " << tty_foreground << '\n';
+        os << "  tty_background: " << tty_background << '\n';
+        os << "  tty_allowed:    " << tty_allowed    << '\n';
+        os << "  ansi_allowed:   " << ansi_allowed   << '\n';
+        os << "  utf8_inited:    " << utf8_inited    << '\n';
+        os << "  emoji_allowed:  " << emoji_allowed  << '\n';
+        os << "  warns_allowed:  " << warns_allowed  << '\n';
+        os << "  log_out:        " << log_out        << '\n';
+        os << "  log_file:       '" << log_file.view() << "'\n";
         os << "  log_warns:      "
-        << log_warns
         << static_cast<std::bitset<8>>(static_cast<logging::flags_t>(log_warns))
         << '\n';
 
         os << "Common:\n";
-        os << "  test_string:    " << test_string.view()    << '\n';
+        os << "  config_dump:    " << config_dump        << '\n';
+        os << "  test_string:    '" << test_string.view() << "'\n";
         os << "  test_param:     " << test_param << '\n';
         os << "CONFIG DUMP END ============\n\n";
         return os;
@@ -111,11 +118,7 @@ struct Config {
     
     Config& init(int ac, char** av) noexcept {
         try {
-            fs::path relative = relative_config_path(ac, av);
-            fs::path path = fs::exists(fs::current_path() / relative)
-                          ? fs::current_path() / relative
-                          : get_exec_path().parent_path() / relative;
-            load_config_file(path);
+            load_config_file(config_path(ac, av));
         } catch (const std::exception& e) {
             std::cerr << "Failed to load config file: " << e.what() << "\n";
         } catch (...) {
@@ -124,8 +127,8 @@ struct Config {
         parse_cmdline(ac, av);
         detect_environment();
         main_thread_id = std::this_thread::get_id();
-        if constexpr (!debug_mode)
-            if (ac > 1)
+        if constexpr (debug_mode)
+            if (config_dump)
                 write_config_dump(std::cerr);
         return *this;
     }
@@ -148,7 +151,7 @@ private:
             if (line.empty() || line.starts_with('#')) continue;
             r = apply_arg(line);
             if (!r.ok()) {
-                errors << path.c_str() << ":" << num << ":\n";
+                errors << tl_copy(path.c_str()) << ":" << num << ": ";
                 errors << "[ERROR]: " << r << '\n';
                 fatal |= r.fatal_err;
             }
@@ -170,9 +173,14 @@ private:
                 std::cout << cmdline_help;
                 graceful_exit();
             }
-            if (sv_arg.starts_with("--")) r = apply_arg(safe_substr(sv_arg, 2));
-            else r = { "Unrecognized argument", sv_arg };
-            if (!r.ok()) fatal_exit(r.write_error({}, ExitCode::CmdlineFailure));
+            if (sv_arg.starts_with("--")) {
+                r = apply_arg(safe_substr(sv_arg, 2));
+                if (!r.ok()) r.prompt = sv_arg;
+            } else {
+                r = { "Unrecognized argument", sv_arg };
+            }
+            if (!r.ok())
+                fatal_exit(r.write_error({}, ExitCode::CmdlineFailure));
 		}
         return *this;
 	}
@@ -184,22 +192,45 @@ private:
             if (environment_declares_utf8()) {
                 utf8_inited = try_activate_utf8_locale();
                 if (!utf8_inited)
-                    logging::set_log_warn(log_warns,
-                                          LogWarns::LocaleActivationFailed);
+                    set_log_warn(log_warns, LogWarns::LocaleActivationFailed);
             } else {
                 utf8_inited = false;
+                set_log_warn(log_warns, LogWarns::Utf8NotInitialized);
             }
         }
         return *this;
     }
 
-    [[nodiscard]] sv_t relative_config_path(int ac, char** av) {
+    [[nodiscard]] fs::path config_path(int ac, char** av) {
+        sv_t raw_cmdline_path = default_config_name;
         for (int i = 1; i < ac; ++i) {
             sv_t sv_arg{av[i]};
             if (sv_arg.starts_with("--config="))
-                return safe_substr(sv_arg, 9);
+                raw_cmdline_path = safe_substr(sv_arg, 9);
+            if (sv_arg.starts_with("--cfg-dump"))
+                config_dump = true;
         }
-        return {"config.ini"};
+        fs::path cmdline_path{raw_cmdline_path};
+        std::error_code ec;
+        if (cmdline_path.is_absolute() && fs::exists(cmdline_path, ec) && !ec)
+            return cmdline_path;
+        fs::path possible_paths[] = {
+            cmdline_path,
+            get_exec_path().parent_path() / cmdline_path,
+            fs::current_path() / cmdline_path,
+            default_config_name,
+            fs::path{".."} / default_config_name,
+            fs::path{"../.."} / default_config_name,
+        };
+        for (const auto& raw : possible_paths) {
+            fs::path p = fs::weakly_canonical(raw, ec);
+            if constexpr (debug_mode)
+                if (config_dump)
+                    std::cerr << p << "\n";//FIXME: 1
+            if (fs::exists(p, ec))
+                return p;
+        }
+        return cmdline_path;
     }
 
     [[nodiscard]] Return apply_arg(sv_t sv_arg) noexcept {
@@ -210,12 +241,13 @@ private:
 
     [[nodiscard]] Return apply_flag(sv_t sv_arg) noexcept {
         switch (hash_31(sv_arg)) {
-            case hash_31("no-tty"):   tty_allowed   = false; break;
-            case hash_31("no-ansi"):  ansi_allowed  = false; break;
-            case hash_31("no-utf8"):  utf8_inited   = false; break;
-            case hash_31("no-emoji"): emoji_allowed = false; break;
-            case hash_31("no-warns"): warns_allowed = false; break;
-            default: return error("Unrecognized flag", sv_arg);
+            case hash_31("no-tty"):      tty_allowed   = false; break;
+            case hash_31("no-ansi"):     ansi_allowed  = false; break;
+            case hash_31("no-utf8"):     utf8_inited   = false; break;
+            case hash_31("no-emoji"):    emoji_allowed = false; break;
+            case hash_31("no-warns"):    warns_allowed = false; break;
+            case hash_31("config-dump"): config_dump   = true;  break;
+            default: return error("Unrecognized flag", sv_arg, true);
         }
         return ok();
     }
@@ -230,8 +262,6 @@ private:
                 ansi::Color c = find_named_enum(ansi::enumColors, val);
                 if (c == static_cast<ansi::Color>(-1))
                     return error("Unknown tty foreground color", val);
-                if (c == ansi::Color::Default)
-                    return error("tty-foreground cannot be 'Default'", val);
                 tty_foreground = c;
                 break;
             }
@@ -239,8 +269,6 @@ private:
                 ansi::Background b = find_named_enum(ansi::enumBackgrounds, val);
                 if (b == static_cast<ansi::Background>(-1))
                     return error("Unknown tty background color", val);
-                if (b == ansi::Background::Default)
-                    return error("tty-background cannot be 'Default'", val);
                 tty_background = b;
                 break;
             }
@@ -248,8 +276,9 @@ private:
                 if      (val == "stdout") log_out = Output::Stdout;
                 else if (val == "stderr") log_out = Output::Stderr;
                 else if (val == "file")   log_out = Output::File |
-                                                    Output::TimeIndex |
-                                                    Output::CreateDirs;
+                                                    Output::CreateDirs |
+                                                    Output::Indexing |
+                                                    Output::TimeIndex;
                 else return error("Invalid value for log-out", val);
                 break;
             }
@@ -257,11 +286,11 @@ private:
             case hash_31("test-string"): return test_string.set(val, key);
             case hash_31("test-param"):  test_param = parse_int(val); break;
             case hash_31("config"):      break;
-            default: return error("Unrecognized parameter", key);
+            default: return error("Unrecognized parameter", key, true);
         }
         return ok();
     }
-    
+
     [[nodiscard]] static bool detect_is_terminal() noexcept {
         #if defined(_WIN32)
                 return false;
@@ -270,29 +299,42 @@ private:
         #endif
     }
 
-    [[nodiscard]] static bool environment_declares_utf8() noexcept {
-        auto is_utf8_locale = [](const char* val) noexcept -> bool {
-            if (!val) return false;
-            sv_t v{val};
-            return v.find("UTF-8") != sv_t::npos ||
-                   v.find("utf8")  != sv_t::npos;
+    [[nodiscard]] static bool contains_utf8_ci(sv_t v) noexcept {
+        const auto tolow = [](unsigned char c) noexcept -> char {
+            if (c >= 'A' && c <= 'Z') return char(c - 'A' + 'a');
+            return char(c);
         };
-        return is_utf8_locale(std::getenv("LANG")) ||
-               is_utf8_locale(std::getenv("LC_ALL"));
+        const size_t n = v.size();
+        for (size_t i = 0; i < n; ++i) {
+            if (tolow(v[i]) == 'u' && i + 3 < n &&
+                tolow(v[i + 1]) == 't' && tolow(v[i + 2]) == 'f')
+            {
+                size_t j = i + 3;
+                if (j < n && (v[j] == '-' || v[j] == '_')) ++j;
+                if (j < n && v[j] == '8') return true;
+            }
+        }
+        return false;
+    }
+
+    [[nodiscard]] static bool environment_declares_utf8() noexcept {
+        if (const char* lc_all = std::getenv("LC_ALL")) {
+            return contains_utf8_ci(sv_t{lc_all});
+        }
+        if (const char* lc_ctype = std::getenv("LC_CTYPE")) {
+            return contains_utf8_ci(sv_t{lc_ctype});
+        }
+        if (const char* lang = std::getenv("LANG")) {
+            return contains_utf8_ci(sv_t{lang});
+        }
+        return false;
     }
 
     [[nodiscard]] static bool try_activate_utf8_locale() noexcept {
-        const char* r = std::setlocale(LC_CTYPE, "");
-        if (!r) return false;
-        sv_t v{r};
-        return v.find("UTF-8") != sv_t::npos || v.find("utf8") != sv_t::npos;
-    }
-
-    [[nodiscard]] static bool detect_utf8_locale() noexcept {
-        const char* current = std::setlocale(LC_CTYPE, nullptr);
-        if (!current) return false;
-        sv_t v{current};
-        return v.find("UTF-8") != sv_t::npos || v.find("utf8")  != sv_t::npos;
+        if (const char* r = std::setlocale(LC_CTYPE, "")) {
+            return contains_utf8_ci(sv_t{r});
+        }
+        return false;
     }
 };
 
