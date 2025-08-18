@@ -12,7 +12,6 @@
 # include <limits.h>
 #endif
 
-// NOTE: main_thread_id is set during Config::parse_cmdline()
 namespace rt {
 
 std::filesystem::path get_exec_path() {
@@ -36,9 +35,6 @@ std::filesystem::path get_exec_path() {
     return {};
 }
 
-    thread_local      Config config;
-    std::thread::id   main_thread_id;
-    logging::LogWarns log_warns_collected;
-    std::mutex        log_warns_mutex;
-    std::mutex        log_global_mutex;
+    Config     config;
+    std::mutex log_global_mutex;
 }

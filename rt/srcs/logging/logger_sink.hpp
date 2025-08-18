@@ -23,10 +23,7 @@ public:
     ~LoggerSink() noexcept {
         using namespace rt;
         flush();
-        if (cfg().warns_allowed && cfg().log_warns != LogWarns::None) {
-            write_log_warns(out_ ? *out_ : std::cerr, cfg().log_warns);
-            cfg().log_warns = LogWarns::None;
-        }
+        cfg().flush_log_warns(std::cerr);
         close_file();
     }
 
@@ -45,7 +42,7 @@ public:
         if (auto status = setup_output_stream(); !status.ok()) {
             status.write_error("LoggerSink error:") ;
             if (fatal_on_failure_) {
-                write_log_warns(out_ ? *out_ : std::cerr, cfg().log_warns);
+                cfg().flush_log_warns(out());
                 fatal_exit(ExitCode::OutputFailure);
             }
         }
@@ -74,7 +71,7 @@ public:
             try {
                 file_.close();
             } catch (...) {
-                set_log_warn(cfg().log_warns, LogWarns::LoggerFileCloseFailed);
+                cfg().log_warns.set(Warn::LoggerFileCloseFailed);
             }
             if (out_ == &file_)
                 out_ = nullptr;
@@ -179,7 +176,7 @@ private:
             flush();
         } catch (...) {
             out_ = nullptr;
-            set_log_warn(cfg().log_warns, LogWarns::LoggerWriteFailed);
+            cfg().log_warns.set(Warn::LoggerWriteFailed);
         }
         return *this;
     }

@@ -133,7 +133,7 @@ struct GlobalLogger : LoggerBase {
     GlobalLogger() {
         sink_.init(cfg_->log_out, cfg_->log_file.view(), true);
     }
-    
+
     template<traits::Ostreamable... Args>
     void msg(Level level, const Args&... args) noexcept {
         msg(level, sticker_format(level), args...);

@@ -62,7 +62,7 @@ protected:
     [[nodiscard]] int term_width(const sv_t& sv) const noexcept {
         if (!can_use_utf8()) {
             if (!is_ascii_only(sv))
-                set_log_warn(cfg().log_warns, LogWarns::Utf8NotInitialized);
+                cfg().log_warns.set(Warn::Utf8NotInitialized);
             return static_cast<int>(sv.size());
         }
         return utf8_terminal_width(sv);
@@ -284,8 +284,8 @@ struct Format : FormatBase {
             if (auto sv_raw = buff_raw<A>(manip, args...)) {
                 if (auto sv_adj = buff_adj<B>(*sv_raw))
                     sv_out = *sv_adj;
-                else set_log_warn(cfg().log_warns, LogWarns::LoggingBufferFailed);
-            } else set_log_warn(cfg().log_warns, LogWarns::LoggingBufferFailed);
+                else cfg().log_warns.set(Warn::LoggingBufferFailed);
+            } else cfg().log_warns.set(Warn::LoggingBufferFailed);
         }
         if (sv_out) {
             apply_align(os, *sv_out);
@@ -357,7 +357,7 @@ private:
         if (is_ascii_only(sv) && static_cast<int>(sv.size()) <= width)
             return untruncate;
         if (ascii_prefix_length(sv) < safe_width) {
-            set_log_warn(cfg().log_warns, LogWarns::Utf8NotInitialized);
+            cfg().log_warns.set(Warn::Utf8NotInitialized);
             return untruncate;
         }
     }

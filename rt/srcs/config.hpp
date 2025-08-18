@@ -19,11 +19,8 @@
 namespace rt {
 
 struct Config;
-extern thread_local      Config config;
-extern std::thread::id   main_thread_id;
-extern logging::LogWarns log_warns_collected;
-extern std::mutex        log_warns_mutex;
-extern std::mutex        log_global_mutex;
+extern Config     config;
+extern std::mutex log_global_mutex;
 
 using sv_t   = std::string_view;
 using os_t   = std::ostream;
@@ -58,6 +55,7 @@ Parameters:
 struct Config {
     using Output   = logging::io::Output;
     using LogWarns = logging::LogWarns;
+    using Warn     = logging::Warn;
     using flags_t  = logging::flags_t;
 
 	// Logging
@@ -70,8 +68,7 @@ struct Config {
     bool warns_allowed  = true;
     Output    log_out   = Output::Stderr;
     StrBuffer log_file  = default_log_name;
-    mutable
-    LogWarns  log_warns = LogWarns::None;
+    mutable LogWarns log_warns;
 
 	// Common
     bool      config_dump = false;
@@ -79,17 +76,17 @@ struct Config {
     int       test_param = 0;
     // ...
 
-    ~Config() noexcept {
-        if (log_warns != LogWarns::None) {
-            std::lock_guard lock(log_warns_mutex);
-            log_warns_collected |= log_warns;
-        }
-        if (std::this_thread::get_id() == main_thread_id &&
-            log_warns_collected != LogWarns::None)
-        {
-            try { std::cerr << log_warns_collected; }
+    ~Config() noexcept { flush_log_warns(std::cerr); }
+    
+    os_t& flush_log_warns(os_t& os) noexcept {
+        if (warns_allowed && !log_warns.test(Warn::None)) {
+            try {
+                os << log_warns;
+                log_warns.reset();
+            }
             catch (...) { fatal_exit(ExitCode::OutputFailure); }
         }
+        return os;
     }
 
     os_t& write_config_dump(os_t& os) const noexcept {
@@ -104,9 +101,7 @@ struct Config {
         os << "  warns_allowed:  " << warns_allowed  << '\n';
         os << "  log_out:        " << log_out        << '\n';
         os << "  log_file:       '" << log_file.view() << "'\n";
-        os << "  log_warns:      "
-        << static_cast<std::bitset<8>>(static_cast<logging::flags_t>(log_warns))
-        << '\n';
+        os << "  log_warns:      " << std::bitset<8>(log_warns.bits()) << '\n';
 
         os << "Common:\n";
         os << "  config_dump:    " << config_dump        << '\n';
@@ -126,7 +121,6 @@ struct Config {
         }
         parse_cmdline(ac, av);
         detect_environment();
-        main_thread_id = std::this_thread::get_id();
         if constexpr (debug_mode)
             if (config_dump)
                 write_config_dump(std::cerr);
@@ -192,10 +186,10 @@ private:
             if (environment_declares_utf8()) {
                 utf8_inited = try_activate_utf8_locale();
                 if (!utf8_inited)
-                    set_log_warn(log_warns, LogWarns::LocaleActivationFailed);
+                    log_warns.set(Warn::LocaleActivationFailed);
             } else {
                 utf8_inited = false;
-                set_log_warn(log_warns, LogWarns::Utf8NotInitialized);
+                log_warns.set(Warn::Utf8NotInitialized);
             }
         }
         return *this;
