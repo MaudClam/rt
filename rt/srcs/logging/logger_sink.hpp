@@ -80,7 +80,7 @@ public:
     }
 
     template<traits::Ostreamable... Args>
-    LoggerSink& print(const Args&... args) noexcept {
+    LoggerSink& print(const Args&... args) const noexcept {
         return try_write([&] {
             traits::write_sequence(*out_, args...);
         });
