@@ -87,7 +87,7 @@ public:
     }
 
     template<traits::Ostreamable... Args>
-    LoggerSink& print(Format& fmt, const Args&... args) noexcept {
+    LoggerSink& print(const Format& fmt, const Args&... args) const noexcept {
         return try_write([&] {
             fmt.apply(*out_, args...);
         });
@@ -170,7 +170,6 @@ private:
     LoggerSink& try_write(Writer&& f) noexcept {
         using namespace rt;
         if (!out_) return *this;
-        ScopedOverride<io::Output> scope(cfg().log_out, mode_);
         try {
             std::forward<Writer>(f)();
             flush();
