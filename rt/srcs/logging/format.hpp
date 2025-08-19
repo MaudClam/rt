@@ -19,6 +19,10 @@ inline constexpr ansi::Format kNoAnsi{ .use_ansi = false };
 struct FormatBase {
     [[nodiscard]] int width() const noexcept { return terminal_width_; }
 
+    [[nodiscard]] bool& tty_forced_off() const noexcept {
+        return tty_forced_off_;
+    }
+
     [[nodiscard]] ansi::Color tty_fg() const noexcept {
         return cfg().tty_foreground;
     }
@@ -26,10 +30,11 @@ struct FormatBase {
     [[nodiscard]] ansi::Background tty_bg() const noexcept {
         return cfg().tty_background;
     }
-
+    
 protected:
-    mutable int terminal_width_ = unset;
-    rt::Config* cfg_            = &rt::config;
+    mutable int  terminal_width_ = unset;
+    mutable bool tty_forced_off_ = false;
+    rt::Config*  cfg_            = &rt::config;
     
     [[nodiscard]] const rt::Config& cfg() const noexcept {
         assert(cfg_ && "Internal error: cfg_ should never be null");
@@ -42,9 +47,9 @@ protected:
     }
 
     [[nodiscard]] bool can_use_tty(bool user_defined = true) const noexcept {
-        return user_defined &&
-               cfg().tty_allowed &&
-               output_supports_tty(cfg().log_out);
+        return !tty_forced_off_ &&
+               user_defined &&
+               cfg().tty_allowed;
     }
 
     [[nodiscard]] bool can_use_utf8(bool user_defined = true) const noexcept {
@@ -275,7 +280,7 @@ struct Format : FormatBase {
     }
 
     template<traits::Ostreamable... Args>
-    os_t& apply(os_t& os, const Args&... args) noexcept {
+    os_t& apply(os_t& os, const Args&... args) const noexcept {
         terminal_width_ = 0;
         if (is_hidden_width())
             return apply_end(os);
@@ -532,7 +537,7 @@ struct ProgressBar : Format, ProgressBarState {
         sv_t unmark = " ";
         sv_t suffix = "] ";
 
-        os_t& write(os_t& os, ProgressBar& ctx) noexcept {
+        os_t& write(os_t& os, const ProgressBar& ctx) const noexcept {
             const bool start = ctx.count == 0;
             if (start)
                 init(ctx);
@@ -559,12 +564,11 @@ struct ProgressBar : Format, ProgressBarState {
         }
 
     protected:
-        Bar& init(const ProgressBar& ctx) noexcept {
+        void init(const ProgressBar& ctx) const noexcept {
             prev_slider  = 0;
             affix_width  = ctx.term_width(prefix) + ctx.term_width(suffix);
             mark_width   = ctx.term_width(mark);
             unmark_width = ctx.term_width(unmark);
-            return *this;
         }
 
         os_t& write_content(os_t& os, int marks, int unmarks) const noexcept {
@@ -579,7 +583,7 @@ struct ProgressBar : Format, ProgressBarState {
         sv_t mark   = ".";
         sv_t suffix = " ";
 
-        os_t& write(os_t& os, ProgressBar& ctx)  noexcept {
+        os_t& write(os_t& os, const ProgressBar& ctx) const noexcept {
             const bool start = ctx.count == 0;
             if (start)
                 init(ctx);
@@ -608,12 +612,11 @@ struct ProgressBar : Format, ProgressBarState {
         }
 
     protected:
-        Alternate& init(const ProgressBar& ctx) noexcept {
+        void init(const ProgressBar& ctx) const noexcept {
             prev_slider  = 0;
             prefix_width = ctx.term_width(prefix);
             mark_width   = ctx.term_width(mark);
             suffix_width = ctx.term_width(suffix);
-            return *this;
         }
     };
 
@@ -622,7 +625,7 @@ struct ProgressBar : Format, ProgressBarState {
         int  width  = 3;
         sv_t suffix = "% ";
 
-        os_t& write(os_t& os, ProgressBar& ctx) noexcept {
+        os_t& write(os_t& os, const ProgressBar& ctx) const noexcept {
             const bool start = ctx.count == 0;
             if (start)
                 init(ctx);
@@ -646,10 +649,9 @@ struct ProgressBar : Format, ProgressBarState {
         }
 
     protected:
-        Percent& init(const ProgressBar& ctx) noexcept {
+        void init(const ProgressBar& ctx) const noexcept {
             prev_percnt = 0;
             affix_width = ctx.term_width(prefix) + ctx.term_width(suffix);
-            return *this;
         }
 
         os_t& write_content(os_t& os, int val) const noexcept {
@@ -669,7 +671,7 @@ struct ProgressBar : Format, ProgressBarState {
     Alternate    alt;
     Percent      percent;
 
-    os_t& write(os_t& os) noexcept {
+    os_t& write(os_t& os) const noexcept {
         if (cycles <= 0 || width <= 0) return os;
         if (terminal_width_ == unset) {
             terminal_width_ = 0;

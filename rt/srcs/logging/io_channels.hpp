@@ -49,7 +49,7 @@ inline constexpr bool has_flag(Output value, Output flag) noexcept {
 }
 
 [[nodiscard]]
-inline constexpr bool output_supports_tty(Output output) noexcept {
+inline constexpr bool out_supports_tty(Output output) noexcept {
     return (output & OutputChannelMask) == Output::Stdout ||
            (output & OutputChannelMask) == Output::Stderr;
 }

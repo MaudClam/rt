@@ -16,7 +16,7 @@ namespace rt {
 
 std::filesystem::path get_exec_path() {
     char buffer[1024] = {};
-
+    
 #if defined(_WIN32)
     DWORD len = GetModuleFileNameA(nullptr, buffer, sizeof(buffer));
     return std::filesystem::path(std::string(buffer, len));
@@ -31,10 +31,10 @@ std::filesystem::path get_exec_path() {
         return std::filesystem::canonical(buffer);
     }
 #endif
-
+    
     return {};
 }
 
-    Config     config;
-    std::mutex log_global_mutex;
+Config     config;
+
 }

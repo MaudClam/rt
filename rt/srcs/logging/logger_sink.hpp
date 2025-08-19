@@ -13,6 +13,7 @@ using sv_t  = std::string_view;
 using os_t  = std::ostream;
 using oss_t = std::ostringstream;
 using ofs_t = std::ofstream;
+using mtx_t = std::shared_ptr<std::mutex>;
 
 class LoggerSink {
 public:
@@ -80,17 +81,24 @@ public:
     }
 
     template<traits::Ostreamable... Args>
-    LoggerSink& print(const Args&... args) const noexcept {
-        return try_write([&] {
-            traits::write_sequence(*out_, args...);
-        });
+    LoggerSink& print(const Args&... args) noexcept {
+        return try_write([&]{traits::write_sequence(*out_, args...);});
     }
 
     template<traits::Ostreamable... Args>
-    LoggerSink& print(const Format& fmt, const Args&... args) const noexcept {
-        return try_write([&] {
-            fmt.apply(*out_, args...);
-        });
+    LoggerSink& print(const Format& fmt, const Args&... args) noexcept {
+        rt::ScopedOverride scoped(fmt.tty_forced_off(), !out_supports_tty(mode_));
+        return try_write([&]{fmt.apply(*out_, args...);});
+    }
+
+    LoggerSink& print(const ProgressBar& pbar) noexcept {
+        rt::ScopedOverride scoped(pbar.tty_forced_off(), !out_supports_tty(mode_));
+        return try_write([&]{pbar.write(*out_);});
+    }
+
+    [[nodiscard]] const std::mutex& mtx() const noexcept {
+        assert(mtx_ && "Internal error: mtx_ should never be null");
+        return *mtx_;
     }
 
     [[nodiscard]] os_t& out() const noexcept {
@@ -99,14 +107,14 @@ public:
                 return *os;
         return std::cerr;
     }
-    
+
     [[nodiscard]] sv_t view_buffer() const noexcept {
         if (is_buffered())
             if (auto* oss = static_cast<oss_t*>(out_)) [[likely]]
                 return oss->view();
         return {};
     }
-    
+
     [[nodiscard]] bool is_valid() const noexcept { return out_ != nullptr; }
 
     [[nodiscard]] bool is_buffered() const noexcept {
@@ -128,6 +136,7 @@ private:
     io::Output  mode_ = io::Output::Stdout;
     sv_t        raw_path_{};
     rt::Config* cfg_ = &rt::config;
+    mtx_t       mtx_ = nullptr;
     os_t*       out_ = nullptr;
     ofs_t       file_;
     bool        fatal_on_failure_ = false;
@@ -145,22 +154,28 @@ private:
     rt::Return setup_output_stream() {
         using namespace rt;
         if ((mode_ & io::OutputChannelMask) == io::Output::Stdout) {
+            mtx_ = rt::stdout_mutex;
             out_ = &std::cout;
             return ok();
         }
         if ((mode_ & io::OutputChannelMask) == io::Output::Stderr) {
+            mtx_ = rt::stderr_mutex;
             out_ = &std::cerr;
             return ok();
         }
         if ((mode_ & io::OutputChannelMask) == io::Output::Buffer) {
             try {
+                mtx_ = std::make_shared<std::mutex>();
                 out_ = &get_buffer<LoggerSink>(true);
                 return ok();
             } catch (...) { return error("Failed to acquire logging buffer"); }
         }
         if ((mode_ & io::OutputChannelMask) == io::Output::File) {
             Return status = open_output_file(file_, raw_path_, mode_);
-            if (status.ok()) out_ = &file_;
+            if (status.ok()) {
+                mtx_ = std::make_shared<std::mutex>();
+                out_ = &file_;
+            }
             return status;
         }
         return error("Unrecognized or unsupported output mode");

@@ -11,6 +11,7 @@
 #include <unistd.h>
 #include <mutex>
 #include <thread>
+#include <memory>
 #include "common.hpp"
 #include "logging/ansi_enums_naming.hpp"
 #include "logging/logging_warns.hpp"
@@ -18,17 +19,17 @@
 
 namespace rt {
 
-struct Config;
-extern Config     config;
-extern std::mutex log_global_mutex;
-
 using sv_t   = std::string_view;
 using os_t   = std::ostream;
 using oss_t  = std::ostringstream;
 namespace fs = std::filesystem;
 
+struct Config;
+extern Config config;
 inline constexpr sv_t default_config_name = "config.ini";
 inline constexpr sv_t default_log_name    = "rt.log";
+inline auto stdout_mutex = std::make_shared<std::mutex>();
+inline auto stderr_mutex = std::make_shared<std::mutex>();
 
 fs::path get_exec_path();
 

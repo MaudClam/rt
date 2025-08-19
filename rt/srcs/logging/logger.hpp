@@ -142,7 +142,7 @@ struct GlobalLogger : LoggerBase {
     template<traits::Ostreamable... Args>
     void msg(Level level, const Format& args_fmt, const Args&... args) noexcept {
         auto& sticker_fmt = sticker_format(level);
-        std::lock_guard lock(rt::log_global_mutex);
+        std::lock_guard lock(sink_.mtx());
         print(sticker_fmt, sticker(level, sticker_fmt.should_emoji()));
         print(args_fmt, args...);
     }
@@ -160,7 +160,7 @@ struct GlobalLogger : LoggerBase {
     void debug(Format& args_fmt, const Args&... args) noexcept {
         if constexpr (debug_mode) {
             auto& sticker_fmt = sticker_format(Level::Debug);
-            std::lock_guard lock(rt::log_global_mutex);
+            std::lock_guard lock(sink_.mtx());
             print(sticker_fmt, sticker(Level::Debug, sticker_fmt.should_emoji()));
             print(args_fmt, args...);
         } else {

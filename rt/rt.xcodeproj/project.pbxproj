@@ -28,11 +28,11 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
-		660DAB822DCA1155001CE9C0 /* rt */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; name = rt; path = "/Users/uru/Library/Mobile Documents/com~apple~CloudDocs/42_Projects/rt/rt/build/Debug/rt"; sourceTree = "<absolute>"; };
-		668C5A622DEF4CF000D36459 /* test_includes */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; name = test_includes; path = "/Users/uru/Library/Mobile Documents/com~apple~CloudDocs/42_Projects/rt/rt/build/Debug/test_includes"; sourceTree = "<absolute>"; };
 		669C940D2E439533007E397E /* config1.ini */ = {isa = PBXFileReference; lastKnownFileType = text; path = config1.ini; sourceTree = "<group>"; };
 		669C94A42E4A4DF2007E397E /* test */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = test; sourceTree = BUILT_PRODUCTS_DIR; };
 		66A1FBC42E3E70DB00C1B398 /* config.ini */ = {isa = PBXFileReference; lastKnownFileType = text; path = config.ini; sourceTree = "<group>"; };
+		66FCE7C32E5217EE005F07E6 /* rt */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = rt; sourceTree = BUILT_PRODUCTS_DIR; };
+		66FCE7C42E5217EE005F07E6 /* test_includes */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = test_includes; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
@@ -157,6 +157,8 @@
 			isa = PBXGroup;
 			children = (
 				669C94A42E4A4DF2007E397E /* test */,
+				66FCE7C32E5217EE005F07E6 /* rt */,
+				66FCE7C42E5217EE005F07E6 /* test_includes */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -209,7 +211,7 @@
 			packageProductDependencies = (
 			);
 			productName = rt;
-			productReference = 660DAB822DCA1155001CE9C0 /* rt */;
+			productReference = 66FCE7C32E5217EE005F07E6 /* rt */;
 			productType = "com.apple.product-type.tool";
 		};
 		668C5A612DEF4CF000D36459 /* test_includes */ = {
@@ -228,7 +230,7 @@
 			packageProductDependencies = (
 			);
 			productName = test_includes;
-			productReference = 668C5A622DEF4CF000D36459 /* test_includes */;
+			productReference = 66FCE7C42E5217EE005F07E6 /* test_includes */;
 			productType = "com.apple.product-type.tool";
 		};
 /* End PBXNativeTarget section */
