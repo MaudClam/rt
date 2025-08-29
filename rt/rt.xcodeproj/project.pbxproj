@@ -36,6 +36,16 @@
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
+		6611F7672E5C827A00B3EEC1 /* Exceptions for "unit_tests" folder in "test" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			additionalCompilerFlagsByRelativePath = {
+				_test_includes.cpp = "-std=c++2a -Wall -Wextra -Werror";
+			};
+			membershipExceptions = (
+				_test_includes.cpp,
+			);
+			target = 664CCE3D2DF0A86200B12741 /* test */;
+		};
 		668AAAAA2DB105A5006D2BDA /* Exceptions for "srcs" folder in "rt" target */ = {
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			additionalCompilerFlagsByRelativePath = {
@@ -72,17 +82,7 @@
 			);
 			target = 668AAA982DB1034A006D2BDA /* rt */;
 		};
-		669C94152E463B99007E397E /* Exceptions for "unit_tests" folder in "test" target */ = {
-			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
-			additionalCompilerFlagsByRelativePath = {
-				logging_tests/test_formats.cpp = "-std=c++2a -Wall -Wextra -Werror";
-			};
-			membershipExceptions = (
-				logging_tests/test_formats.cpp,
-			);
-			target = 664CCE3D2DF0A86200B12741 /* test */;
-		};
-		66A1FBB72E3A3DEB00C1B398 /* Exceptions for "srcs" folder in "test" target */ = {
+		66FCE80F2E570810005F07E6 /* Exceptions for "srcs" folder in "test" target */ = {
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			additionalCompilerFlagsByRelativePath = {
 				globals.cpp = "-std=c++2a -Wall -Wextra -Werror";
@@ -99,7 +99,7 @@
 			isa = PBXFileSystemSynchronizedRootGroup;
 			exceptions = (
 				668AAAAA2DB105A5006D2BDA /* Exceptions for "srcs" folder in "rt" target */,
-				66A1FBB72E3A3DEB00C1B398 /* Exceptions for "srcs" folder in "test" target */,
+				66FCE80F2E570810005F07E6 /* Exceptions for "srcs" folder in "test" target */,
 			);
 			path = srcs;
 			sourceTree = "<group>";
@@ -109,7 +109,7 @@
 			exceptions = (
 				6697AE302DC8D09D00F8969E /* Exceptions for "unit_tests" folder in "rt" target */,
 				668C5A6A2DEF4D4F00D36459 /* Exceptions for "unit_tests" folder in "test_includes" target */,
-				669C94152E463B99007E397E /* Exceptions for "unit_tests" folder in "test" target */,
+				6611F7672E5C827A00B3EEC1 /* Exceptions for "unit_tests" folder in "test" target */,
 			);
 			path = unit_tests;
 			sourceTree = "<group>";

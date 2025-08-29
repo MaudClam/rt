@@ -1,7 +1,6 @@
 #include "config.hpp"
 #include <filesystem>
 #include <string>
-#include "logging/logger.hpp"
 
 #if defined(_WIN32)
 # include <windows.h>
@@ -35,6 +34,6 @@ std::filesystem::path get_exec_path() {
     return {};
 }
 
-Config     config;
+Config config;
 
 }

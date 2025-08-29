@@ -4,122 +4,81 @@
 #include <ostream>
 #include <sstream>
 #include <fstream>
-#include "traits.hpp"
-#include "format.hpp"
+#include <functional>
 
 namespace logging {
 
-using sv_t  = std::string_view;
-using os_t  = std::ostream;
-using oss_t = std::ostringstream;
-using ofs_t = std::ofstream;
-using mtx_t = std::shared_ptr<std::mutex>;
+using sv_t   = std::string_view;
+using os_t   = std::ostream;
+using oss_t  = std::ostringstream;
+using ofs_t  = std::ofstream;
+using lock_t = std::lock_guard<std::mutex>;
 
-class LoggerSink {
-public:
+struct LoggerSink {
+    friend struct LoggerBase;
+
     explicit LoggerSink(io::Output mode, sv_t raw_path = {},
-                                         bool fatal_on_failure = false) noexcept
-    { init(mode, raw_path, fatal_on_failure); }
+                                       bool fatal_on_failure = false) noexcept {
+        init(mode, raw_path, fatal_on_failure);
+    }
 
     ~LoggerSink() noexcept {
         using namespace rt;
-        flush();
-        cfg().flush_log_warns(std::cerr);
+        cfg().flush_log_warns();
         close_file();
     }
 
     LoggerSink(const LoggerSink&) = delete;
     LoggerSink& operator=(const LoggerSink&) = delete;
     
+    LoggerSink& init_default() noexcept {
+        return init(cfg().log_out, cfg().log_file.view(), true);
+    }
+
     LoggerSink& init(io::Output mode, sv_t raw_path = {},
-                                         bool fatal_on_failure = false) noexcept
-    {
-        using namespace rt;
-        flush();
+                                       bool fatal_on_failure = false) noexcept {
+        using namespace common;
         close_file();
         mode_ = mode;
         raw_path_ = raw_path;
         fatal_on_failure_ = fatal_on_failure;
-        if (auto status = setup_output_stream(); !status.ok()) {
-            status.write_error("LoggerSink error:") ;
+        if (const auto ret = setup_output_stream(); !ret.ok()) {
+            print_error(ret, "LoggerSink init error:");
             if (fatal_on_failure_) {
-                cfg().flush_log_warns(out());
-                fatal_exit(ExitCode::OutputFailure);
+                cfg().flush_log_warns();
+                fatal_exit(ExitCode::LoggingFailure);
             }
         }
         return *this;
     }
     
-    LoggerSink& flush() noexcept {
-        if (is_valid()) {
-            try { out_->flush(); } catch (...) {}
-        }
-        return *this;
-    }
-
     LoggerSink& clear_buffer() noexcept {
         if (is_buffered()) {
-            if (auto* oss = static_cast<oss_t*>(out_)) [[likely]] {
-                oss->str({});
-                oss->clear();
-            }
+            buff_.str({});
+            buff_.clear();
+            buff_.flags(std::ios_base::fmtflags{});
+            buff_.precision(6);
         }
         return *this;
     }
 
     LoggerSink& close_file() noexcept {
         if (file_is_open()) {
-            try {
-                file_.close();
-            } catch (...) {
-                cfg().log_warns.set(Warn::LoggerFileCloseFailed);
-            }
-            if (out_ == &file_)
-                out_ = nullptr;
+            try { file_.close(); }
+            catch (...) { cfg().log_warns.set(Warn::LoggerFileCloseFailed); }
+            if (out_ == &file_) out_ = nullptr;
         }
         return *this;
     }
 
-    template<traits::Ostreamable... Args>
-    LoggerSink& print(const Args&... args) noexcept {
-        return try_write([&]{traits::write_sequence(*out_, args...);});
-    }
-
-    template<traits::Ostreamable... Args>
-    LoggerSink& print(const Format& fmt, const Args&... args) noexcept {
-        rt::ScopedOverride scoped(fmt.tty_forced_off(), !out_supports_tty(mode_));
-        return try_write([&]{fmt.apply(*out_, args...);});
-    }
-
-    LoggerSink& print(const ProgressBar& pbar) noexcept {
-        rt::ScopedOverride scoped(pbar.tty_forced_off(), !out_supports_tty(mode_));
-        return try_write([&]{pbar.write(*out_);});
-    }
-
-    [[nodiscard]] const std::mutex& mtx() const noexcept {
-        assert(mtx_ && "Internal error: mtx_ should never be null");
-        return *mtx_;
-    }
-
-    [[nodiscard]] os_t& out() const noexcept {
-        if (is_valid())
-            if (auto* os = static_cast<os_t*>(out_)) [[likely]]
-                return *os;
-        return std::cerr;
-    }
-
     [[nodiscard]] sv_t view_buffer() const noexcept {
         if (is_buffered())
-            if (auto* oss = static_cast<oss_t*>(out_)) [[likely]]
-                return oss->view();
+            return buff_.view();
         return {};
     }
 
-    [[nodiscard]] bool is_valid() const noexcept { return out_ != nullptr; }
-
     [[nodiscard]] bool is_buffered() const noexcept {
-        using namespace rt;
-        return (mode_ & io::OutputChannelMask) == io::Output::Buffer;
+        return (mode_ & io::ChannelMask) == io::Output::Buffer;
     }
 
     [[nodiscard]] bool buffer_is_empty() const noexcept {
@@ -127,18 +86,25 @@ public:
     }
 
     [[nodiscard]] bool file_is_open() const noexcept {
-        using namespace rt;
-        return (mode_ & io::OutputChannelMask) == io::Output::File &&
+        return (mode_ & io::ChannelMask) == io::Output::File &&
                 file_.is_open();
     }
+
+    [[nodiscard]] bool good() const noexcept {
+        return out_ && out().good();
+    }
+
+    [[nodiscard]] io::Output get_mode() const noexcept { return mode_; }
 
 private:
     io::Output  mode_ = io::Output::Stdout;
     sv_t        raw_path_{};
     rt::Config* cfg_ = &rt::config;
-    mtx_t       mtx_ = nullptr;
+    std::mutex  owned_mtx_;
+    std::mutex* mtx_{&owned_mtx_};
     os_t*       out_ = nullptr;
     ofs_t       file_;
+    oss_t       buff_;
     bool        fatal_on_failure_ = false;
     
     [[nodiscard]] const rt::Config& cfg() const noexcept {
@@ -150,49 +116,53 @@ private:
         assert(cfg_ && "Internal error: cfg_ should never be null");
         return *cfg_;
     }
-
-    rt::Return setup_output_stream() {
-        using namespace rt;
-        if ((mode_ & io::OutputChannelMask) == io::Output::Stdout) {
-            mtx_ = rt::stdout_mutex;
+    
+    [[nodiscard]] std::mutex& mtx() const noexcept {
+        assert(mtx_ && "Internal error: mtx_ should never be null");
+        return *mtx_;
+    }
+    
+    [[nodiscard]] os_t& out() const noexcept {
+        assert(out_ && "Internal error: out_ should never be null");
+        return *out_;
+    }
+    
+    common::Return setup_output_stream() noexcept {
+        using namespace common;
+        if ((mode_ & io::ChannelMask) == io::Output::Stdout) {
+            mtx_ = &stdout_mutex;
             out_ = &std::cout;
             return ok();
         }
-        if ((mode_ & io::OutputChannelMask) == io::Output::Stderr) {
-            mtx_ = rt::stderr_mutex;
+        if ((mode_ & io::ChannelMask) == io::Output::Stderr) {
+            mtx_ = &stderr_mutex;
             out_ = &std::cerr;
             return ok();
         }
-        if ((mode_ & io::OutputChannelMask) == io::Output::Buffer) {
-            try {
-                mtx_ = std::make_shared<std::mutex>();
-                out_ = &get_buffer<LoggerSink>(true);
-                return ok();
-            } catch (...) { return error("Failed to acquire logging buffer"); }
+        if ((mode_ & io::ChannelMask) == io::Output::Buffer) {
+            out_ = &buff_;
+            out().exceptions(std::ios::badbit | std::ios::failbit);
+            return ok();
         }
-        if ((mode_ & io::OutputChannelMask) == io::Output::File) {
-            Return status = open_output_file(file_, raw_path_, mode_);
-            if (status.ok()) {
-                mtx_ = std::make_shared<std::mutex>();
+        if ((mode_ & io::ChannelMask) == io::Output::File) {
+            const Return st = open_output_file(file_, raw_path_, mode_);
+            if (st.ok()) {
                 out_ = &file_;
+                file_.exceptions(std::ios::badbit | std::ios::failbit);
             }
-            return status;
+            return st;
         }
         return error("Unrecognized or unsupported output mode");
     }
-    
-    template<typename Writer>
-    LoggerSink& try_write(Writer&& f) noexcept {
-        using namespace rt;
-        if (!out_) return *this;
-        try {
-            std::forward<Writer>(f)();
-            flush();
-        } catch (...) {
-            out_ = nullptr;
-            cfg().log_warns.set(Warn::LoggerWriteFailed);
+
+    void on_write_failure(bool failed) noexcept {
+        if (!failed) return;
+        cfg().log_warns.set(Warn::LoggerWriteFailed);
+        out_ = nullptr;
+        if (fatal_on_failure_) {
+            cfg().flush_log_warns();
+            fatal_exit(common::ExitCode::LoggingFailure);
         }
-        return *this;
     }
 };
 

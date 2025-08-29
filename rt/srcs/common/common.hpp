@@ -1,18 +1,33 @@
 #pragma once
-#include <cstdint>
+#if NDEBUG
+ constexpr bool debug_mode = false;
+#else
+ constexpr bool debug_mode = true;
+#endif
 #include <string_view>
-#include <iostream>
 #include <ostream>
+#include <iostream>
+#include <sstream>
+#include <cstdint>
 #include <charconv>
 #include <array>
 #include <cassert>
+#include <mutex>
+#include <thread>
+#include <memory>
+#include "traits.hpp"
 
 
-namespace rt {
+namespace common {
 
-using sv_t = std::string_view;
-using os_t = std::ostream;
-using is_t = std::istream;
+using sv_t   = std::string_view;
+using os_t   = std::ostream;
+using is_t   = std::istream;
+using oss_t  = std::ostringstream;
+using lock_t = std::lock_guard<std::mutex>;
+
+inline auto stdout_mutex = std::mutex();
+inline auto stderr_mutex = std::mutex();
 
 enum class ExitCode : uint8_t {
     Success        = EXIT_SUCCESS,
@@ -20,6 +35,7 @@ enum class ExitCode : uint8_t {
     OutputFailure  = 2,
     CfgFileFailure = 3,
     CmdlineFailure = 4,
+    LoggingFailure = 5,
 };
 
 [[noreturn]] inline void fatal_exit(ExitCode code) noexcept {
@@ -28,6 +44,45 @@ enum class ExitCode : uint8_t {
 
 [[noreturn]] inline void graceful_exit() noexcept {
     std::exit(static_cast<int>(ExitCode::Success));
+}
+
+template<typename... X>
+constexpr auto stream_inserter() {
+    return [](os_t& os, const X&... xs) noexcept {
+        if constexpr (sizeof...(X) > 0)
+            (os << ... << xs);
+    };
+}
+
+enum class IoStatus : uint8_t { Ok, Failed };
+
+template<typename F, class... Args>
+inline IoStatus stream_locker(os_t& os, std::mutex& mtx, F&& writer,
+              Args&&... args) noexcept requires (traits::OsWriter<F, Args...>) {
+    bool ok = os.good();
+    try {
+        lock_t lk(mtx);
+        std::invoke(std::forward<F>(writer), os, std::forward<Args>(args)...);
+        os << std::flush;
+        ok = os.good();
+    } catch (...) {
+        ok = false;
+    }
+    return ok ? IoStatus::Ok : IoStatus::Failed;
+}
+
+template<typename... Args>
+inline IoStatus with_stdout(const Args&... args) noexcept {
+    return stream_locker(std::cout,
+                         stdout_mutex, stream_inserter<Args...>(), args...);
+}
+
+template<typename... Args>
+inline void with_stderr(const Args&... args) noexcept {
+    const auto st = stream_locker(std::cerr, stderr_mutex,
+                                           stream_inserter<Args...>(), args...);
+    if (st == IoStatus::Failed)
+        fatal_exit(ExitCode::OutputFailure);
 }
 
 struct Return {
@@ -44,21 +99,8 @@ struct Return {
     os_t& write(os_t& os) const {
         os << status;
         if (!prompt.empty())
-            os << " '" << prompt << '\'' << std::flush;
+            os << " '" << prompt << '\'';
         return os;
-    }
-    
-    ExitCode write_error(sv_t context = {},
-                         ExitCode exit_code = ExitCode::UnknownError,
-                         sv_t help = {}) const noexcept
-    {
-        if (ok()) return ExitCode::Success;
-        try {
-            if (!context.empty()) std::cerr << context << ' ' << std::flush;
-            write(std::cerr) << '\n';
-            if (!help.empty()) std::cerr << help << std::flush;
-            return exit_code;
-        } catch (...) { fatal_exit(ExitCode::OutputFailure); }
     }
 };
 
@@ -69,8 +111,7 @@ inline os_t& operator<<(os_t& os, const Return& ret) noexcept {
 [[nodiscard]] inline Return ok() noexcept { return {}; }
 
 [[nodiscard]] inline Return error(sv_t status, sv_t prompt = {},
-                                                bool fatal_err = false) noexcept
-{
+                                              bool fatal_err = false) noexcept {
     if (status.empty()) {
         if (debug_mode) status = "CODING ERROR (missing error status)";
         else status = "Unknown error";
@@ -78,19 +119,13 @@ inline os_t& operator<<(os_t& os, const Return& ret) noexcept {
     return {status, prompt, fatal_err};
 }
 
-[[nodiscard]] inline sv_t tl_copy(sv_t sv) noexcept {
-    static thread_local std::array<char, 32> buffer;
-    constexpr size_t cap = buffer.size();
-    constexpr const char* ellipsis = "...";
-    constexpr size_t elen = 3;
-    if (sv.size() < cap) {
-        std::memcpy(buffer.data(), sv.data(), sv.size());
-        return sv_t{buffer.data(), sv.size()};
-    }
-    size_t copy_len = cap - elen;
-    std::memcpy(buffer.data(), ellipsis, elen);
-    std::memcpy(buffer.data() + elen, sv.data() + sv.size() - copy_len, copy_len);
-    return sv_t{buffer.data(), cap};
+inline ExitCode print_error(sv_t context, const Return& st,
+         ExitCode exit_code = ExitCode::UnknownError, sv_t help = {}) noexcept {
+    if (ok()) return ExitCode::Success;
+    if (context.empty()) with_stderr(st, '\n');
+    else with_stderr(context, ' ', st, '\n');
+    if (!help.empty()) with_stdout(help);
+    return exit_code;
 }
 
 template<typename T>
@@ -126,12 +161,6 @@ int parse_int(sv_t sv, int fallback = 0) noexcept {
     return (ec == std::errc{}) ? value : fallback;
 }
 
-[[nodiscard]] inline sv_t to_sv(int n) noexcept {
-    static thread_local char buf[16];
-    auto [ptr, ec] = std::to_chars(std::begin(buf), std::end(buf), n);
-    return (ec == std::errc{}) ? sv_t{buf, static_cast<size_t>(ptr - buf)} : sv_t{};
-}
-
 [[nodiscard]] inline constexpr
 sv_t safe_substr(sv_t sv, size_t pos, size_t count = sv_t::npos) noexcept {
     return sv.substr(std::min(pos, sv.size()), count);
@@ -150,8 +179,15 @@ sv_t safe_substr(sv_t sv, size_t pos, size_t count = sv_t::npos) noexcept {
     return sv.substr(start, end - start);
 }
 
+[[nodiscard]] inline sv_t to_sv(int n) noexcept {
+    static thread_local char buf[16];
+    auto [ptr, ec] = std::to_chars(std::begin(buf), std::end(buf), n);
+    return (ec == std::errc{}) ? sv_t{buf, static_cast<size_t>(ptr - buf)} : sv_t{};
+}
+
+template <size_t Сapacity = 512>
 struct StrBuffer {
-    static constexpr size_t capacity = 512;
+    static constexpr size_t capacity = Сapacity;
     using Buffer = std::array<char, capacity>;
 
     StrBuffer() = default;
@@ -168,9 +204,11 @@ struct StrBuffer {
         [[maybe_unused]] const Return r = set(sv, "StrBuffer string_view");
         assert(r.ok() && "Invalid default literal for StrBuffer");
     }
+    
+    int get_capasity() { return static_cast<int>(capacity); }
 
     [[nodiscard]] sv_t view() const noexcept { return view_; }
-
+    
     [[nodiscard]] constexpr Return set(sv_t sv, sv_t prompt) noexcept {
         if (sv.empty())
             return error("Empty string", prompt);
@@ -219,14 +257,22 @@ struct StrBuffer {
         view_ = sv_t{buffer_.data(), current_size + added};
         return ok();
     }
-
+    
 private:
     Buffer buffer_{};
     sv_t   view_{};
 };
 
-inline os_t& operator<<(os_t& os, const StrBuffer& buf) noexcept {
-    return os << buf.view();
+template<typename BufferTag> [[nodiscard]]
+oss_t& tl_buffer(bool restore = true) {
+    static thread_local oss_t oss;
+    oss.str("");
+    oss.clear();
+    if (restore) {
+        oss.flags(std::ios_base::fmtflags{});
+        oss.precision(6);
+    }
+    return oss;
 }
 
-} // namespace rt
+} // namespace common

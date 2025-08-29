@@ -1,5 +1,6 @@
 #pragma once
 #include "../config.hpp"
+#include "format.hpp"
 #include "logger_sink.hpp"
 
 #define debug_msg(...) \
@@ -47,91 +48,93 @@ inline constexpr sv_t sticker(Level level, bool emoji = false) noexcept {
 }
 
 [[nodiscard]] inline Format& sticker_format(Level level) noexcept {
+    static thread_local Format default_fmt{
+        .control.end_policy = Format::Control::EndPolicy::Pad,
+    };
     using enum Level;
     switch (level) {
         case Error:
-            static thread_local Format error_fmt{
-                .ansi_format = {
-                    .foreground = ansi::Color::BrightRed,
-                    .styles     = { ansi::Style::Bold }
-                }};
+            static thread_local Format error_fmt{ default_fmt };
+            error_fmt.ansi_format = {
+                .foreground = ansi::Color::BrightRed,
+                .styles     = { ansi::Style::Bold }
+            };
             return error_fmt;
         case Debug:
-            static thread_local Format debug_fmt{
-                .ansi_format = {
-                    .foreground = ansi::Color::Cyan,
-                    .styles     = { ansi::Style::Bold }
-                }};
+            static thread_local Format debug_fmt{ default_fmt };
+            debug_fmt.ansi_format = {
+                .foreground = ansi::Color::Cyan,
+                .styles     = { ansi::Style::Bold }
+            };
             return debug_fmt;
         case Info:
-            static thread_local Format info_fmt{
-                .ansi_format = {
-                    .foreground = ansi::Color::BrightBlue,
-                    .styles     = { ansi::Style::Bold }
-                }};
+            static thread_local Format info_fmt{ default_fmt };
+            info_fmt.ansi_format = {
+                .foreground = ansi::Color::BrightBlue,
+                .styles     = { ansi::Style::Bold }
+            };
             return info_fmt;
         case Test:
-            static thread_local Format test_fmt{
-                .ansi_format = {
-                    .styles     = { ansi::Style::Bold }
-                }};
+            static thread_local Format test_fmt{ default_fmt };
+            test_fmt.ansi_format = {
+                .styles     = { ansi::Style::Bold }
+            };
             return test_fmt;
         case Warn:
-            static thread_local Format warn_fmt{
-                .ansi_format = {
-                    .foreground = ansi::Color::Yellow,
-                    .styles     = { ansi::Style::Bold }
-                }};
+            static thread_local Format warn_fmt{ default_fmt };
+            warn_fmt.ansi_format = {
+                .foreground = ansi::Color::Yellow,
+                .styles     = { ansi::Style::Bold }
+            };
             return warn_fmt;
         case Time:
-            static thread_local Format time_fmt{
-                .ansi_format = {
-                    .foreground = ansi::Color::Green,
-                    .styles     = { ansi::Style::Bold }
-                }};
+            static thread_local Format time_fmt{ default_fmt };
+            time_fmt.ansi_format = {
+                .foreground = ansi::Color::Green,
+                .styles     = { ansi::Style::Bold }
+            };
             return time_fmt;
         case Ok:
-            static thread_local Format ok_fmt{
-                .ansi_format = {
-                    .foreground = ansi::Color::Green,
-                    .styles     = { ansi::Style::Bold }
-                }};
+            static thread_local Format ok_fmt{ default_fmt };
+            ok_fmt.ansi_format = {
+                .foreground = ansi::Color::Green,
+                .styles     = { ansi::Style::Bold }
+            };
             return ok_fmt;
         default:
             break;
     }
-    static thread_local Format default_fmt{};
     return default_fmt;
 }
 
 struct LoggerBase {
     LoggerBase& set_output(io::Output mode, sv_t raw_path = {},
-                                         bool fatal_on_failure = false) noexcept
-    {
+                                       bool fatal_on_failure = false) noexcept {
         sink_.init(mode, raw_path, fatal_on_failure);
         return *this;
     }
 
-    template<traits::Ostreamable... Args>
-    LoggerBase& print(const Args&... args) noexcept {
-        sink_.print(args...);
-        return *this;
-    }
-
-    template<traits::Ostreamable... Args>
-    LoggerBase& print(Format& fmt, const Args&... args) noexcept {
-        sink_.print(fmt, args...);
-        return *this;
-    }
-
 protected:
-    LoggerSink  sink_{io::Output::Stdout};
-    rt::Config* cfg_ = &rt::config;
+    LoggerSink sink_{io::Output::Stdout};
+
+    os_t& out() const noexcept { return sink_.out(); }
+
+    std::mutex& mtx() const noexcept { return sink_.mtx(); }
+
+    io::Output mode() const noexcept { return sink_.get_mode(); }
+
+    void on_write_failure(bool failed) {
+        sink_.on_write_failure(failed);
+    }
 };
 
 struct GlobalLogger : LoggerBase {
-    GlobalLogger() {
-        sink_.init(cfg_->log_out, cfg_->log_file.view(), true);
+    GlobalLogger() noexcept { sink_.init_default(); }
+
+    template<traits::Ostreamable... Args>
+    void debug(const Args&... args) noexcept {
+        if constexpr (debug_mode) msg(Level::Debug, args...);
+        else (void)sizeof...(args);
     }
 
     template<traits::Ostreamable... Args>
@@ -140,33 +143,23 @@ struct GlobalLogger : LoggerBase {
     }
 
     template<traits::Ostreamable... Args>
-    void msg(Level level, const Format& args_fmt, const Args&... args) noexcept {
-        auto& sticker_fmt = sticker_format(level);
-        std::lock_guard lock(sink_.mtx());
-        print(sticker_fmt, sticker(level, sticker_fmt.should_emoji()));
-        print(args_fmt, args...);
-    }
-
-    template<traits::Ostreamable... Args>
-    void debug(const Args&... args) noexcept {
-        if constexpr (debug_mode) {
-            debug(sticker_format(Level::Debug), args...);
-        } else {
-            (void)sizeof...(args); // suppress unused warning in release builds
+    void msg(Level lvl, const Format& args_fmt, const Args&... args) noexcept {
+        bool ok = out().good();
+        if (ok) {
+            try {
+                auto& sticker_fmt     = sticker_format(lvl);
+                const auto sticker_sv = sticker(lvl, sticker_fmt.should_emoji());
+                lock_t lk(mtx());
+                sticker_fmt.apply(mode(), out(), sticker_sv);
+                if constexpr (sizeof...(Args) > 0)
+                    args_fmt.apply(mode(), out(), args...);
+                out() << std::flush;
+                ok = out().good();
+            } catch (...) {
+                ok = false;
+            }
         }
-    }
-
-    template<traits::Ostreamable... Args>
-    void debug(Format& args_fmt, const Args&... args) noexcept {
-        if constexpr (debug_mode) {
-            auto& sticker_fmt = sticker_format(Level::Debug);
-            std::lock_guard lock(sink_.mtx());
-            print(sticker_fmt, sticker(Level::Debug, sticker_fmt.should_emoji()));
-            print(args_fmt, args...);
-        } else {
-            (void)args_fmt;
-            (void)sizeof...(args); // suppress unused warning in release builds
-        }
+        on_write_failure(!ok);
     }
 };
 

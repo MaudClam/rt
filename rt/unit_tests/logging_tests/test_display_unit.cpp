@@ -1,4 +1,3 @@
-#include "../../srcs/config.hpp"
 #include <iostream>
 #include <sstream>
 #include <vector>
@@ -13,7 +12,7 @@ void test_display_unit(os_t& os, sv_t input) {
     size_t offset = 0;
     int width = 0;
     DisplayUnit du;
-    while (du.parse_debug(input, offset, os)) {
+    while (du.parse_debug(input, offset)) {
         du.write(buff, input);
         width += du.width;
         offset += du.length;

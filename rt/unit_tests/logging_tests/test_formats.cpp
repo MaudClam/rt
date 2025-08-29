@@ -11,7 +11,7 @@ void time_delay(int ms) {
 
 template <typename T>
 os_t& test_ansi_format(os_t& os, sv_t name, T value, int delay_ms,
-                                                     int width = unset) noexcept
+                                                     int width = kUnset) noexcept
 {
     logging::Format cell{
         .control.normalize = logging::Format::Control::Normalize::Required,
@@ -41,7 +41,7 @@ os_t& test_ansi_format(os_t& os, sv_t name, T value, int delay_ms,
 
 template <typename T, size_t N>
 os_t& test_ansi_formats(os_t& os, sv_t prompt, const ansi::NamedEnum<T> (&en)[N],
-                                      int delay_ms, int width = unset ) noexcept
+                                      int delay_ms, int width = kUnset ) noexcept
 {
     Format title{};
     title.ansi_format.styles = { ansi::Style::Bold };
@@ -55,7 +55,7 @@ os_t& test_ansi_formats(os_t& os, sv_t prompt, const ansi::NamedEnum<T> (&en)[N]
     return os;
 }
 
-os_t& test_combinations(os_t& os, sv_t prompt_, int delay_ms, int width = unset) {
+os_t& test_combinations(os_t& os, sv_t prompt_, int delay_ms, int width = kUnset) {
     Format cell{};
     cell.ansi_format = {.styles = { ansi::Style::Bold }};
     cell.apply(os, prompt_, " width=", width) << '\n';
@@ -253,11 +253,11 @@ os_t& test_combinations(os_t& os, sv_t prompt_, int delay_ms, int width = unset)
         .background = ansi::Background::White,
         .styles = {ansi::Style::Strikethrough},};
     cell.preserve_background = false;
-    cell.width = unset;
+    cell.width = kUnset;
     sv_t prompt = "[width]";
     int indent = width - static_cast<int>(prompt.size()) - 1;
     cell.apply(os, prompt);
-    ansi::apply_pad(os, indent) << ' ' << cell.ansi_format << ", width=unset(-1)"
+    ansi::apply_pad(os, indent) << ' ' << cell.ansi_format << ", width=kUnset(-1)"
     << ", preserve_background=" << std::boolalpha << cell.preserve_background << '\n';
     time_delay(delay_ms);
 
@@ -266,10 +266,10 @@ os_t& test_combinations(os_t& os, sv_t prompt_, int delay_ms, int width = unset)
         .background = ansi::Background::White,
         .styles = {ansi::Style::Strikethrough},};
     cell.preserve_background = true;
-    cell.width = hidden;
+    cell.width = kHidden;
     prompt = "[width]";
     cell.apply(os, prompt);
-    ansi::apply_pad(os, width) << ' ' << cell.ansi_format << ", width=hidden(0)" << '\n';
+    ansi::apply_pad(os, width) << ' ' << cell.ansi_format << ", width=kHidden(0)" << '\n';
     time_delay(delay_ms);
 
     cell.ansi_format = {
@@ -365,8 +365,8 @@ int main(int ac, char** av) {
     rt::config.init(ac, av);
     os_t& os = std::cout;
 
-    int delay_ms = 30;
-    int width    = unset;
+    int delay_ms = 300;
+    int width    = kUnset;
 
     test_ansi_formats(os, "▶️ Foregrounds:", ansi::enumColors, delay_ms, width);
     test_ansi_formats(os, "✅ Foregrounds:", ansi::enumColors, 0, width);

@@ -1,18 +1,9 @@
 #pragma once
-#if NDEBUG
- constexpr bool debug_mode = false;
-#else
- constexpr bool debug_mode = true;
-#endif
-
 #include <string_view>
 #include <ostream>
 #include <string>
 #include <unistd.h>
-#include <mutex>
-#include <thread>
-#include <memory>
-#include "common.hpp"
+#include "common/common.hpp"
 #include "logging/ansi_enums_naming.hpp"
 #include "logging/logging_warns.hpp"
 #include "logging/io_channels.hpp"
@@ -20,16 +11,13 @@
 namespace rt {
 
 using sv_t   = std::string_view;
-using os_t   = std::ostream;
 using oss_t  = std::ostringstream;
 namespace fs = std::filesystem;
 
 struct Config;
 extern Config config;
-inline constexpr sv_t default_config_name = "config.ini";
-inline constexpr sv_t default_log_name    = "rt.log";
-inline auto stdout_mutex = std::make_shared<std::mutex>();
-inline auto stderr_mutex = std::make_shared<std::mutex>();
+inline constexpr sv_t default_config_file = "руссзавайся";
+inline constexpr sv_t default_log_file    = "rt.log";
 
 fs::path get_exec_path();
 
@@ -54,10 +42,12 @@ Parameters:
 )help";
 
 struct Config {
-    using Output   = logging::io::Output;
-    using LogWarns = logging::LogWarns;
-    using Warn     = logging::Warn;
-    using flags_t  = logging::flags_t;
+    using Buffer512 = common::StrBuffer<512>;
+    using Buffer32  = common::StrBuffer<32>;
+    using Output    = logging::io::Output;
+    using LogWarns  = logging::LogWarns;
+    using Warn      = logging::Warn;
+    using flags_t   = logging::flags_t;
 
 	// Logging
     ansi::Color      tty_foreground = ansi::Color::White;
@@ -68,91 +58,95 @@ struct Config {
     bool emoji_allowed  = true;
     bool warns_allowed  = true;
     Output    log_out   = Output::Stderr;
-    StrBuffer log_file  = default_log_name;
+    Buffer512 log_file  = default_log_file;
     mutable LogWarns log_warns;
 
 	// Common
+    Buffer32  config_file = default_config_file;
     bool      config_dump = false;
-    StrBuffer test_string;
+    Buffer512 test_string;
     int       test_param = 0;
     // ...
 
-    ~Config() noexcept { flush_log_warns(std::cerr); }
+    ~Config() noexcept {
+        if constexpr (debug_mode)
+            if (config_dump)
+                flush_config_dump();
+        flush_log_warns();
+    }
     
-    os_t& flush_log_warns(os_t& os) noexcept {
-        if (warns_allowed && !log_warns.test(Warn::None)) {
-            try {
-                os << log_warns;
-                log_warns.reset();
-            }
-            catch (...) { fatal_exit(ExitCode::OutputFailure); }
-        }
-        return os;
+    void flush_log_warns() noexcept {
+        if (warns_allowed && !log_warns.test(Warn::None))
+            common::with_stderr(log_warns);
     }
 
-    os_t& write_config_dump(os_t& os) const noexcept {
-        os << "\nCONFIG DUMP ================\n" << std::boolalpha;
-        os << "Logging:\n";
-        os << "  tty_foreground: " << tty_foreground << '\n';
-        os << "  tty_background: " << tty_background << '\n';
-        os << "  tty_allowed:    " << tty_allowed    << '\n';
-        os << "  ansi_allowed:   " << ansi_allowed   << '\n';
-        os << "  utf8_inited:    " << utf8_inited    << '\n';
-        os << "  emoji_allowed:  " << emoji_allowed  << '\n';
-        os << "  warns_allowed:  " << warns_allowed  << '\n';
-        os << "  log_out:        " << log_out        << '\n';
-        os << "  log_file:       '" << log_file.view() << "'\n";
-        os << "  log_warns:      " << std::bitset<8>(log_warns.bits()) << '\n';
+    void flush_config_dump() const noexcept {
+        using namespace common;
+        with_stderr(
+                    "\nCONFIG DUMP ================\n", std::boolalpha,
+                    "Logging:\n",
+                    "  tty_foreground: ", tty_foreground,  '\n',
+                    "  tty_background: ", tty_background,  '\n',
+                    "  tty_allowed:    ", tty_allowed,     '\n',
+                    "  ansi_allowed:   ", ansi_allowed,    '\n',
+                    "  utf8_inited:    ", utf8_inited,     '\n',
+                    "  emoji_allowed:  ", emoji_allowed,   '\n',
+                    "  warns_allowed:  ", warns_allowed,   '\n',
+                    "  log_out:        ", log_out,         '\n',
+                    "  log_file:       '",log_file.view(),"'\n",
+                    "  log_warns:      ", std::bitset<8>(log_warns.bits()), '\n',
+                    "Common:\n",
+                    "  config_file:    ", config_file.view(),  '\n',
+                    "  config_dump:    ", config_dump,         '\n',
+                    "  test_string:    '",test_string.view(), "'\n",
+                    "  test_param:     ", test_param,          '\n',
+                    "CONFIG DUMP END ============\n\n"
+                    );
+    }
 
-        os << "Common:\n";
-        os << "  config_dump:    " << config_dump        << '\n';
-        os << "  test_string:    '" << test_string.view() << "'\n";
-        os << "  test_param:     " << test_param << '\n';
-        os << "CONFIG DUMP END ============\n\n";
-        return os;
-   }
-    
     Config& init(int ac, char** av) noexcept {
+        using namespace common;
+        detect_environment();
         try {
             load_config_file(config_path(ac, av));
         } catch (const std::exception& e) {
-            std::cerr << "Failed to load config file: " << e.what() << "\n";
+            with_stderr("Failed to load config file: ", e.what(), '\n');
         } catch (...) {
-            std::cerr << "Unknown error while loading config file.\n";
+            with_stderr("Unknown error while loading config file.\n");
         }
         parse_cmdline(ac, av);
-        detect_environment();
         if constexpr (debug_mode)
             if (config_dump)
-                write_config_dump(std::cerr);
+                flush_config_dump();
         return *this;
     }
-    
+
 private:
-    Config& load_config_file(fs::path path) {
+    Config& load_config_file(const fs::path& path) {
+        using namespace common;
         using namespace logging::io;
         ifs_t  file;
-        Return r = open_input_file(file, path);
-        if (!r.ok()) {
-            r.write_error("Error open config file:");
+        Return st = open_input_file(file, path);
+        if (!st.ok()) {
+            print_error("Error open config file:", st);
             return *this;
         }
-        bool fatal = false;
-        int  num = 0;
+        bool  fatal = false;
+        int   num = 0;
         oss_t errors;
         std::string line;
         while (std::getline(file, line)) {
             ++num;
             if (line.empty() || line.starts_with('#')) continue;
-            r = apply_arg(line);
-            if (!r.ok()) {
-                errors << tl_copy(path.c_str()) << ":" << num << ": ";
-                errors << "[ERROR]: " << r << '\n';
-                fatal |= r.fatal_err;
+            st = apply_arg(line);
+            if (!st.ok()) {
+                errors << logging::tl_copy(path) << ":" << num << ": ";
+                errors << "[ERROR]: " << st << '\n';
+                fatal |= st.fatal_err;
             }
         }
         if (!errors.view().empty()) {
-            std::cerr << errors.view();
+            with_stderr(errors.view());
             if (fatal) fatal_exit(ExitCode::CfgFileFailure);
         }
         file.close();
@@ -160,22 +154,24 @@ private:
     }
 
     Config& parse_cmdline(int ac, char** av) noexcept {
-        Return r{ "Null argument", "argv[i]" };
+        using namespace common;
+        Return st{ "Null argument", "argv[i]" };
 		for (int i = 1; i < ac; ++i) {
-            if (!av[i]) fatal_exit(r.write_error({}, ExitCode::CmdlineFailure));
+            if (!av[i])
+                fatal_exit(print_error({}, st, ExitCode::CmdlineFailure));
             sv_t sv_arg{av[i]};
             if (sv_arg == "--help" || sv_arg == "-h" || sv_arg == "/h") {
-                std::cout << cmdline_help;
+                with_stdout(cmdline_help);
                 graceful_exit();
             }
             if (sv_arg.starts_with("--")) {
-                r = apply_arg(safe_substr(sv_arg, 2));
-                if (!r.ok()) r.prompt = sv_arg;
+                st = apply_arg(safe_substr(sv_arg, 2));
+                if (!st.ok()) st.prompt = sv_arg;
             } else {
-                r = { "Unrecognized argument", sv_arg };
+                st = { "Unrecognized argument", sv_arg };
             }
-            if (!r.ok())
-                fatal_exit(r.write_error({}, ExitCode::CmdlineFailure));
+            if (!st.ok())
+                fatal_exit(print_error({}, st, ExitCode::CmdlineFailure));
 		}
         return *this;
 	}
@@ -190,51 +186,56 @@ private:
                     log_warns.set(Warn::LocaleActivationFailed);
             } else {
                 utf8_inited = false;
-                log_warns.set(Warn::Utf8NotInitialized);
             }
         }
         return *this;
     }
 
     [[nodiscard]] fs::path config_path(int ac, char** av) {
-        sv_t raw_cmdline_path = default_config_name;
+        using namespace common;
+        using namespace logging;
+        fs::path cfg_path{config_file.view()};
+        sv_t     cfg_path_sv{};
+        sv_t     key = "--config=";
         for (int i = 1; i < ac; ++i) {
             sv_t sv_arg{av[i]};
-            if (sv_arg.starts_with("--config="))
-                raw_cmdline_path = safe_substr(sv_arg, 9);
-            if (sv_arg.starts_with("--cfg-dump"))
-                config_dump = true;
+            if (sv_arg.starts_with(key))
+                cfg_path_sv = trim(safe_substr(sv_arg, key.size()));
         }
-        fs::path cmdline_path{raw_cmdline_path};
+        if (!cfg_path_sv.empty()) cfg_path = cfg_path_sv;
         std::error_code ec;
-        if (cmdline_path.is_absolute() && fs::exists(cmdline_path, ec) && !ec)
-            return cmdline_path;
-        fs::path possible_paths[] = {
-            cmdline_path,
-            get_exec_path().parent_path() / cmdline_path,
-            fs::current_path() / cmdline_path,
-            default_config_name,
-            fs::path{".."} / default_config_name,
-            fs::path{"../.."} / default_config_name,
-        };
-        for (const auto& raw : possible_paths) {
-            fs::path p = fs::weakly_canonical(raw, ec);
-            if constexpr (debug_mode)
-                if (config_dump)
-                    std::cerr << p << "\n";//FIXME: 1
-            if (fs::exists(p, ec))
-                return p;
+        if (!(cfg_path.is_absolute() && fs::exists(cfg_path, ec) && !ec)) {
+            fs::path possible_paths[] = {
+                cfg_path,
+                get_exec_path().parent_path() / cfg_path,
+                fs::current_path() / cfg_path,
+                fs::path{".."} / cfg_path,
+                fs::path{"../.."} / cfg_path,
+            };
+            for (const auto& raw : possible_paths) {
+                fs::path p = fs::weakly_canonical(raw, ec);
+                if constexpr (debug_mode)
+                    with_stderr("Finding config file: ", tl_copy(p), '\n');
+                if (fs::exists(p, ec)) {
+                    cfg_path = p;
+                    break;
+                }
+            }
         }
-        return cmdline_path;
+        cfg_path_sv = tl_copy(cfg_path);
+//        cfg_path_sv = tl_copy(cfg_path, config_file.get_capasity());
+        [[maybe_unused]] Return r = config_file.set(cfg_path_sv, key);
+        return cfg_path;
     }
 
-    [[nodiscard]] Return apply_arg(sv_t sv_arg) noexcept {
+    [[nodiscard]] common::Return apply_arg(sv_t sv_arg) noexcept {
         if (sv_arg.find('=') != sv_t::npos)
             return apply_param(sv_arg);
         return apply_flag(sv_arg);
     }
 
-    [[nodiscard]] Return apply_flag(sv_t sv_arg) noexcept {
+    [[nodiscard]] common::Return apply_flag(sv_t sv_arg) noexcept {
+        using namespace common;
         switch (hash_31(sv_arg)) {
             case hash_31("no-tty"):      tty_allowed   = false; break;
             case hash_31("no-ansi"):     ansi_allowed  = false; break;
@@ -247,7 +248,8 @@ private:
         return ok();
     }
 
-    [[nodiscard]] Return apply_param(sv_t arg) noexcept {
+    [[nodiscard]] common::Return apply_param(sv_t arg) noexcept {
+        using namespace common;
         size_t pos = arg.find('=');
         if (pos == sv_t::npos) return error("Expected '=' in parameter", arg);
         sv_t key = trim(safe_substr(arg, 0, pos));

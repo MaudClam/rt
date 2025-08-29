@@ -1,4 +1,3 @@
-#include "../../srcs/config.hpp"
 #include <iostream>
 #include <thread>
 #include "../../srcs/logging/format.hpp"

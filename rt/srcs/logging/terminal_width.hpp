@@ -1,17 +1,26 @@
 #pragma once
+#include <string_view>
 #include <iostream>
+#include <ostream>
 #include <cwchar>
 #include <cstdint>
-#include <iostream>
-#include <string_view>
-#include <ostream>
 #include <iomanip>
+#include <filesystem>
+#include "../common/common.hpp"
+#include "logging_utils.hpp"
 
 
 namespace logging {
 
-using sv_t  = std::string_view;
-using os_t  = std::ostream;
+using sv_t    = std::string_view;
+using os_t    = std::ostream;
+namespace fs  = std::filesystem;
+
+
+//inline constexpr int kHidden = 0;  // means "hidden value"
+//inline constexpr int kUnset  = -1; // means "not specified"
+//inline constexpr int    kUnlimited     = std::numeric_limits<int>::max();
+//inline constexpr size_t Unlimited_size = static_cast<size_t>(kUnlimited);
 
 struct EmojiRange {
     const wchar_t from;
@@ -152,14 +161,15 @@ struct DisplayUnit {
     }
 
     [[nodiscard]]
-    bool parse_debug(sv_t sv, size_t offset_, os_t& os) {
-        return parse<true>(sv, offset_, os);
+    bool parse_debug(sv_t sv, size_t offset_) {
+        return parse<true>(sv, offset_);
     }
 
-    os_t& write(os_t& os, sv_t sv, char pad = '?') const noexcept {
+    os_t& write(os_t& os, sv_t sv,
+                bool normalize = true, char pad = '?') const noexcept {
         if (offset >= sv.size() || offset + length > sv.size())
             return os;
-        if (!valid)
+        if (normalize && !valid)
             return os << pad;
         return os.write(sv.data() + offset, length);
     }
@@ -216,9 +226,8 @@ private:
     }
 
     template <bool Debug = false>
-    [[nodiscard]] bool
-    parse(sv_t sv, size_t offset_, os_t& os = std::cerr) noexcept(Debug == false)
-    {
+    [[nodiscard]] bool parse(sv_t sv, size_t offset_) noexcept(Debug == false) {
+        using namespace common;
         if (offset_ >= sv.size()) return false;
         *this = {.offset = offset_};
         Codepoint cp{};
@@ -226,23 +235,206 @@ private:
             if (!cp.next(sv, offset + length)) break;
             if (!accept_codepoint(cp)) break;
             length += std::max<size_t>(1, cp.length);
-            if constexpr (Debug) cp.write_debug(os);
+            if constexpr (Debug)
+                stream_locker(std::cerr, stderr_mutex,
+                           [this](os_t& os) {this->write_debug(os);});
             if (!valid) { width = 1; break; }
         }
-        if constexpr (Debug) write_debug(os);
+        if constexpr (Debug)
+            stream_locker(std::cerr, stderr_mutex,
+            [](std::ostream& os, const Codepoint& cp) {cp.write_debug(os);}, cp);
         return true;
     }
 };
 
-[[nodiscard]] inline int utf8_terminal_width(sv_t sv) noexcept {
+[[nodiscard]]
+inline int utf8_terminal_width(sv_t sv, bool normalize = true) noexcept {
     int width = 0;
     size_t offset = 0;
     DisplayUnit unit{};
     while (unit.parse(sv, offset)) {
+        if (!normalize && !unit.valid)
+            return kUnset;
         width += unit.width;
         offset += unit.length;
     }
     return width;
 }
+
+struct Trimmer {
+    enum class Mode : uint8_t { Left, Right };
+
+    Mode mode      = Mode::Right;
+    bool use_utf8  = false;
+    bool normalize = false;
+    int  cutlen    = 3;
+    char cutchar   = '.';
+    char normchar  = '?';
+    mutable bool trimmed = false;
+    mutable int  terminal_width = kUnset;
+
+    os_t& apply(os_t& os, sv_t sv, int width = kUnset) const {
+        if (width == kHidden || sv.empty()) return os;
+        if (width < 0) return apply_visible(os, sv, width);
+        if (mode == Mode::Right) {
+            apply_visible(os, sv, width);
+            return apply_cutchars(os, width);
+        }
+        auto& oss = common::tl_buffer<Trimmer>(false);
+        apply_visible(oss, sv, width);
+        apply_cutchars(os, width);
+        return os << oss.view();
+    }
+
+    os_t& apply_visible(os_t& os, sv_t sv, int width = kUnset) const noexcept {
+        if (use_utf8) apply_visible_utf8(os, sv, width);
+        else apply_visible_ascii(os, sv, width);
+        return os;
+    }
+
+    os_t& apply_visible_ascii(os_t& os, sv_t sv,
+                              int width = kUnset) const noexcept {
+        terminal_width   = 0;
+        trimmed          = false;
+        const int limit  = calc_limit(width);
+        const int size   = to_int_clamped(sv.size());
+        bool do_trimming = (!sv.empty() && width > 0 && limit < size);
+        if (limit == 0 || sv.empty()) return os;
+        bool width_known = true;
+        int i = 0;
+        if (mode == Mode::Left && do_trimming) {
+            const int tail = std::max(0, size - limit);
+            sv_t visible   = common::safe_substr(sv, static_cast<size_t>(tail));
+            width_known    = normalize
+                           ? is_ascii_only(visible)
+                           : is_printable_ascii_only(visible);
+            if (width_known) {
+                i = tail;
+                trimmed = true;
+            }
+            do_trimming = false;
+        }
+        for (; i < size; ++i) {
+            if (do_trimming && terminal_width >= limit) {
+                trimmed = true;
+                break;
+            }
+            const char ch = normalize
+                          ? normalize_ascii_char(sv[i], normchar)
+                          : sv[i];
+            os << ch;
+            ++terminal_width;
+            if (!normalize && width_known && !is_printable_ascii(ch)) {
+                width_known = false;
+                do_trimming = false;
+                trimmed     = false;
+            }
+        }
+        if (!width_known) terminal_width = kUnset;
+        return os;
+    }
+
+    os_t& apply_visible_utf8(os_t& os, sv_t sv,
+                             int width = kUnset) const noexcept {
+        terminal_width   = 0;
+        trimmed          = false;
+        const int limit  = calc_limit(width);
+        bool do_trimming = (!sv.empty() && width > 0);
+        if (limit == 0 || sv.empty()) return os;
+        size_t offset = 0;
+        DisplayUnit du{};
+        if (mode == Mode::Left && do_trimming) {
+            int sv_width = utf8_terminal_width(sv, true);
+            int skipped = 0;
+            while (limit < sv_width - skipped && du.parse(sv, offset)) {
+                offset  += du.length;
+                skipped += du.width;
+            }
+            if (skipped) trimmed = true;
+            if (!normalize) {
+                sv_t visible = common::safe_substr(sv, offset);
+                if (utf8_terminal_width(visible, false) == kUnset) {
+                    terminal_width = kUnset;
+                    trimmed = false;
+                    return os << sv;
+                }
+            }
+            do_trimming = false;
+        }
+        bool width_known = true;
+        while (du.parse(sv, offset)) {
+            if (do_trimming && du.width > limit - terminal_width) {
+                trimmed = true;
+                break;
+            }
+            du.write(os, sv, normalize, normchar);
+            terminal_width += du.width;
+            offset += du.length;
+            if (!normalize && width_known && !du.valid) {
+                width_known = false;
+                do_trimming = false;
+                trimmed     = false;
+            }
+        }
+        if (!width_known) terminal_width = kUnset;
+        return os;
+    }
+
+    os_t& apply_cutchars(os_t& os, int width) const noexcept {
+        if (width > 0 && terminal_width >= 0 && terminal_width + cutlen <= width)
+            if (trimmed || width <= cutlen)
+                return write_repeats(os, width - terminal_width, cutchar);
+        return os;
+    }
+
+    [[nodiscard]] int calc_limit(int width) const noexcept {
+        if (width < 0) return kIntMax;
+        return width - std::clamp(cutlen, 0, width);
+    }
+};
+
+template <class Tag = struct tl_default_tag>
+[[nodiscard]] inline
+sv_t tl_copy(sv_t sv, int width, const Trimmer& trim) noexcept {
+    using namespace common;
+    try {
+        auto& oss = common::tl_buffer<Tag>(false);
+        trim.apply(oss, sv, width);
+        return oss.view();
+    } catch (...) {
+        print_error("Error logging::tl_copy():",
+                    error("Unable to create temporary copy", sv));
+        return {};
+    }
+}
+
+template <class Tag = struct tl_default_tag>
+[[nodiscard]] inline
+sv_t tl_copy(sv_t sv, int width = kUnset, bool right = true) noexcept {
+    using enum Trimmer::Mode;
+    return tl_copy<Tag>(sv, width, { .mode = right ? Right : Left});
+}
+
+template <class Tag = struct tl_default_tag>
+[[nodiscard]] inline
+sv_t tl_copy(const fs::path& path, int width = 32, bool right = false) noexcept {
+    using namespace common;
+    try {
+#if defined(_WIN32)
+        auto u8 = path.u8string();
+        return
+            tl_copy(sv_t{reinterpret_cast<const char*>(u8.c_str()), u8.size()},
+                    width, right);
+#else
+        auto s = path.string();
+        return tl_copy<Tag>(sv_t{s.data(), s.size()}, width, right);
+#endif
+    } catch (...) {
+        print_error("Error logging::tl_copy():",
+                    error("Unable to convert path", path.native()));
+        return {};
+    }
+}
+
 
 } // namespace logging
