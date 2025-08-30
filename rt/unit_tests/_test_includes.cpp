@@ -1,4 +1,4 @@
-#include "../srcs/logging/terminal_width.hpp"
+#include "../srcs/logging/format.hpp"
 #include "../srcs/config.hpp"
 
 // g++ -std=c++2a -O2 -Wall -Wextra -Werror ../srcs/globals.cpp _test_includes.cpp -o _test && ./_test

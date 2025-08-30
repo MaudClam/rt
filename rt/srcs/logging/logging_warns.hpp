@@ -14,7 +14,7 @@ using flags_t = uint32_t;
 enum class Warn : flags_t {
     None                   = 0,
     LocaleActivationFailed = 1u << 0,
-    Utf8NotInitialized     = 1u << 1,
+    UnicodeWidthUnreliable = 1u << 1,
     LoggingBufferFailed    = 1u << 2,
     LoggerWriteFailed      = 1u << 3,
     LoggerFileCloseFailed  = 1u << 4,
@@ -32,9 +32,10 @@ constexpr LogWarnDescriptor log_warn_descriptions[] = {
         "Unicode alignment may be incorrect."
     },
     {
-        Warn::Utf8NotInitialized,
-        "UTF-8 locale not initialized or unsupported. "
-        "Unicode alignment may be incorrect."
+        Warn::UnicodeWidthUnreliable,
+        "Unicode alignment may be incorrect. "
+        "Reason: width detection failed (kUnset); "
+        "non-ASCII with UTF-8 disabled; normalization=Forbidden."
     },
     {
         Warn::LoggingBufferFailed,

@@ -65,7 +65,7 @@ protected:
     [[nodiscard]] int term_width(const sv_t& sv) const noexcept {
         if (!can_use_utf8()) {
             if (!is_ascii_only(sv))
-                cfg().log_warns.set(Warn::Utf8NotInitialized);
+                cfg().log_warns.set(Warn::UnicodeWidthUnreliable);
             return to_int_clamped(sv.size());
         }
         return utf8_terminal_width(sv);
@@ -179,22 +179,17 @@ struct Format : FormatBase {
     };
 
     struct Truncate {
-        bool         enabled = true;
-        int          cutlen  = 3;
-        char         cutchar = '.';
+        enum class Mode { Left, Right }
+             mode = Mode::Right;
+        bool enabled = true;
+        int  cutlen  = 3;
+        char cutchar = '.';
         ansi::Format ansi_format{
-                         .foreground = ansi::Color::BrightRed,
-                         .styles{
-                             ansi::Style::Underline,
-                             ansi::Style::Blink,
-                     }
-    };
-
-        [[nodiscard]] std::pair<int,int> limits(int width) const noexcept {
-            width = std::max(0, width);
-            const int tail = std::clamp(cutlen, 0, width);
-            return { width - tail, tail };
-        }
+            .foreground = ansi::Color::BrightRed,
+            .styles{
+                ansi::Style::Underline,
+                ansi::Style::Blink,
+            }};
     };
 
     struct Control {
@@ -264,17 +259,6 @@ struct Format : FormatBase {
                should_normalize(false);
     }
 
-    [[nodiscard]]
-    bool should_sanitize_pad_style() const noexcept {
-        return can_use_ansi(ansi_format.use_ansi) &&
-               ansi_format.has_pad_unsafe_styles();
-    }
-
-    [[nodiscard]] constexpr
-    bool should_use_trunc_ansi_format(bool user_defined = true) const noexcept {
-        return user_defined && can_use_ansi(truncate.ansi_format.use_ansi);
-    }
-
     template<traits::Ostreamable... Args>
     os_t& apply(io::Output mode, os_t& os, const Args&... args) const noexcept {
         common::ScopedOverride scoped(output_mode(), mode);
@@ -321,59 +305,62 @@ struct Format : FormatBase {
 
 private:
     [[nodiscard]] constexpr
-    ansi::Format safe_contrast_ansi_format() const noexcept {
-        return ansi::Format{ansi_format}.apply_safe_contrast(tty_fg(), tty_bg(),
-                                                           preserve_background);
-    }
-
-    [[nodiscard]] constexpr
-    ansi::Format safe_pad_ansi_format(ansi::Format safe) const noexcept {
-        safe.styles.erase_if(ansi::is_pad_unsafe_style);
-        return safe;
+    ansi::Format safe_ansi_format() const noexcept {
+        auto fmt = ansi_format;
+        fmt.use_ansi = can_use_ansi(fmt.use_ansi);
+        if (fmt.use_ansi)
+            fmt.apply_safe_contrast(tty_fg(), tty_bg(), preserve_background);
+        return fmt;
     }
 
     [[nodiscard]] constexpr
     ansi::Format safe_pad_ansi_format() const noexcept {
-        auto safe = safe_contrast_ansi_format();
-        safe.styles.erase_if(ansi::is_pad_unsafe_style);
-        return safe;
+        auto fmt = safe_ansi_format();
+        if (fmt.use_ansi)
+            fmt.styles.erase_if(ansi::is_pad_unsafe_style);
+        return fmt;
     }
 
     [[nodiscard]] constexpr
-    ansi::Format safe_truncate_ansi_format() const noexcept {
-        auto safe = truncate.ansi_format;
-        if (ansi_format.use_ansi) {
-            if (preserve_background) safe.background = ansi_format.background;
-            else safe.background = safe_contrast_ansi_format().background;
+    ansi::Format safe_trunc_ansi_format() const noexcept {
+        auto fmt = truncate.ansi_format;
+        fmt.use_ansi = can_use_ansi(fmt.use_ansi);
+        if (!fmt.use_ansi && !ansi_format.use_ansi) return fmt;
+        auto safe = safe_ansi_format();
+        if (!fmt.use_ansi) {
+            fmt = safe;
+        } else {
+            fmt.background = safe.background;
+            fmt.apply_safe_contrast(tty_fg(), tty_bg(), preserve_background);
         }
-        safe.styles.erase_if(ansi::is_trunc_unsafe_style);
-        safe.apply_safe_contrast(tty_fg(), tty_bg(), preserve_background);
-        return safe;
+        fmt.styles.erase_if(ansi::is_trunc_unsafe_style);
+        return fmt;
     }
 
-    [[nodiscard]]
-    std::pair<int,int> safe_truncate_limits(sv_t sv) const noexcept {
-    const std::pair<int,int> untruncate{std::numeric_limits<int>::max(), 0};
-    if (!is_truncatable())
-        return untruncate;
-    const auto [safe_width, tail] = truncate.limits(width);
-    if (can_use_utf8(use_utf8)) {
-        if (utf8_terminal_width(sv) <= width)
-            return untruncate;
-    } else {
-        if (is_ascii_only(sv) && to_int_clamped(sv.size()) <= width)
-            return untruncate;
-        if (ascii_prefix_length(sv) < safe_width) {
-            cfg().log_warns.set(Warn::Utf8NotInitialized);
-            return untruncate;
-        }
+    [[nodiscard]] constexpr
+    Trimmer make_trimmer() const noexcept {
+        using enum Trimmer::Mode;
+        return {
+            .mode      = (truncate.mode==Truncate::Mode::Right ? Right : Left),
+            .use_utf8  = can_use_utf8(use_utf8),
+            .normalize = should_normalize(true),
+            .cutlen    = truncate.cutlen,
+            .cutchar   = truncate.cutchar,
+            .normchar  = control.normchar
+        };
     }
-    return { safe_width, tail };
-}
 
-    os_t& apply_padding(os_t& os, int pad, char padder = ' ') const noexcept {
+    os_t& apply_padding(os_t& os, int pad, char padder)  const noexcept  {
+        return apply_padding(os, pad, padder, safe_pad_ansi_format());
+    }
+
+    os_t& apply_padding(os_t& os, int pad, char padder,
+                        const ansi::Format& fmt) const noexcept {
+        if (pad < 1) return os;
         terminal_width_ += pad;
-        return ansi::apply_pad(os, pad, padder);
+        ansi::apply_format(os, fmt);
+        ansi::apply_pad(os, pad, padder);
+        return ansi::apply_reset(os, fmt);
     }
 
     os_t& apply_end(os_t& os) const noexcept {
@@ -388,15 +375,25 @@ private:
             case Pad:          pad = is_unlimited_width(); break;
             case PadThenFlush: pad = is_unlimited_width(); flush = true; break;
         }
-        if (pad) {
-            bool use_ansi = can_use_ansi(ansi_format.use_ansi);
-            if (use_ansi) ansi::apply_format(os, safe_pad_ansi_format());
-            apply_padding(os, 1, align.padchar);
-            if (use_ansi) ansi::apply_reset(os, ansi_format);
-        }
+        if (pad) apply_padding(os, 1, control.padchar);
         if (newline) return os << std::endl;
         if (flush) os << std::flush;
         return os;
+    }
+
+    os_t& apply_trimming(os_t& os, sv_t sv, const Trimmer& trm) const noexcept {
+        auto fmt = safe_ansi_format();
+        ansi::apply_format(os, fmt);
+        trm.apply_visible(os, sv, width);
+        return ansi::apply_reset(os, fmt);
+    }
+
+    os_t& apply_cutchars(os_t& os, const Trimmer& trm) const noexcept {
+        if (!trm.should_be_cutchars(width)) return os;
+        auto fmt = safe_trunc_ansi_format();
+        ansi::apply_format(os, fmt);
+        trm.apply_cutchars(os, width);
+        return ansi::apply_reset(os, fmt);
     }
 
     template<typename BufferTag, traits::Ostreamable... Args>
@@ -427,78 +424,38 @@ private:
     os_t& apply_iomanip(os_t& os, const IOManip& manip, const Args&... args)
                               const noexcept(noexcept(manip.apply(os, args...)))
     {
-        const bool use_ansi = can_use_ansi(ansi_format.use_ansi);
-        if (use_ansi) ansi::apply_format(os, safe_contrast_ansi_format());
+        auto fmt = safe_ansi_format();
+        ansi::apply_format(os, fmt);
         manip.apply(os, args...);
-        if (use_ansi) ansi::apply_reset(os, ansi_format);
+        ansi::apply_reset(os, fmt);
         return os;
     }
 
-    os_t& write_truncated_and_normalized(os_t& os, sv_t sv) const noexcept {
-        auto [safe_width, tail] = safe_truncate_limits(sv);
-        if (can_use_utf8(use_utf8)) {
-            DisplayUnit unit{};
-            size_t offset = 0;
-            while (unit.parse(sv, offset) && terminal_width_ < safe_width) {
-                const bool it_goes_in =
-                    (terminal_width_ + unit.width <= safe_width);
-                //“So it does!” said Pooh.   “It goes in!”
-                //“So it does!” said Piglet. “And it comes out!”
-                //“Doesn’t it?” said Eeyore. “It goes in and out like anything.”
-                if (it_goes_in) {
-                    unit.write(os, sv, control.normchar);
-                    terminal_width_ += unit.width;
-                    offset += unit.length;
-                } else {
-                    tail += safe_width - terminal_width_;
-                    break;
-                }
-            }
-        } else {
-            const auto normalize = should_normalize(true);
-            int i = 0, sv_size = to_int_clamped(sv.size());
-            for (; i < sv_size && terminal_width_ < safe_width; ++i) {
-                os << (normalize ? normalize_ascii_char(sv[i]) : sv[i]);
-                ++terminal_width_;
-            }
+    os_t& write_truncated_and_normalized(os_t& os, sv_t sv) const {
+        auto trm = make_trimmer();
+        if (trm.mode == Trimmer::Mode::Right) {
+            apply_trimming(os, sv, trm);
+            apply_cutchars(os, trm);
+            if ((terminal_width_ = trm.metrics().terminal_width) == kUnset )
+                cfg().log_warns.set(Warn::UnicodeWidthUnreliable);
+            return os;
         }
-        const bool use_ansi = should_use_trunc_ansi_format(tail > 0);
-        if (use_ansi) ansi::apply_format(os, safe_truncate_ansi_format());
-        apply_padding(os, tail, truncate.cutchar);
-        if (use_ansi && !ansi_format.use_ansi)
-            ansi::apply_reset(os, truncate.ansi_format);
+        auto& buff = common::tl_buffer<Trimmer>(false);
+        apply_trimming(buff, sv, trm);
+        apply_cutchars(os, trm);
+        os << buff.view();
+        if ((terminal_width_ = trm.metrics().terminal_width) == kUnset )
+            cfg().log_warns.set(Warn::UnicodeWidthUnreliable);
         return os;
     }
 
     os_t& apply_align(os_t& os, sv_t sv) const noexcept {
         const auto [left, right] = align.padding(width, terminal_width_);
-        if (!can_use_ansi(ansi_format.use_ansi)) {
-            apply_padding(os, left, align.padchar);
-            os << sv;
-            return apply_padding(os, right, align.padchar);
-        }
-        if ((!left && !right) || !ansi_format.has_pad_unsafe_styles()) {
-            ansi::apply_format(os, safe_contrast_ansi_format());
-            apply_padding(os, left, align.padchar);
-            os << sv;
-            apply_padding(os, right, align.padchar);
-            return ansi::apply_reset(os, ansi_format);
-        }
-        const auto safe_content = safe_contrast_ansi_format();
-        const auto safe_pad     = safe_pad_ansi_format(safe_content);
-        if (left) {
-            ansi::apply_format(os, safe_pad);
-            apply_padding(os, left, align.padchar);
-            ansi::apply_reset(os, safe_pad);
-        }
-        ansi::apply_format(os, safe_content);
+        if (!left && !right) os << sv;
+        auto fmt = safe_pad_ansi_format();
+        apply_padding(os, left, align.padchar, fmt);
         os << sv;
-        ansi::apply_reset(os, safe_content);
-        if (right) {
-            ansi::apply_format(os, safe_pad);
-            apply_padding(os, right, align.padchar);
-            ansi::apply_reset(os, safe_pad);
-        }
+        apply_padding(os, right, align.padchar, fmt);
         return os;
     }
 };

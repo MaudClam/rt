@@ -262,6 +262,7 @@ inline int utf8_terminal_width(sv_t sv, bool normalize = true) noexcept {
 }
 
 struct Trimmer {
+    struct Metrics { bool trimmed; int terminal_width; };
     enum class Mode : uint8_t { Left, Right };
 
     Mode mode      = Mode::Right;
@@ -272,9 +273,15 @@ struct Trimmer {
     char normchar  = '?';
     mutable bool trimmed = false;
     mutable int  terminal_width = kUnset;
+    
+    [[nodiscard]]
+    Metrics metrics() const noexcept { return {trimmed, terminal_width}; };
 
-    os_t& apply(os_t& os, sv_t sv, int width = kUnset) const {
-        if (width == kHidden || sv.empty()) return os;
+    os_t& apply(os_t& os, sv_t sv, int width) const {
+        if (width == kHidden || sv.empty()) {
+            terminal_width = 0;
+            return os;
+        }
         if (width < 0) return apply_visible(os, sv, width);
         if (mode == Mode::Right) {
             apply_visible(os, sv, width);
@@ -286,14 +293,13 @@ struct Trimmer {
         return os << oss.view();
     }
 
-    os_t& apply_visible(os_t& os, sv_t sv, int width = kUnset) const noexcept {
+    os_t& apply_visible(os_t& os, sv_t sv, int width) const noexcept {
         if (use_utf8) apply_visible_utf8(os, sv, width);
         else apply_visible_ascii(os, sv, width);
         return os;
     }
 
-    os_t& apply_visible_ascii(os_t& os, sv_t sv,
-                              int width = kUnset) const noexcept {
+    os_t& apply_visible_ascii(os_t& os, sv_t sv, int width) const noexcept {
         terminal_width   = 0;
         trimmed          = false;
         const int limit  = calc_limit(width);
@@ -334,8 +340,7 @@ struct Trimmer {
         return os;
     }
 
-    os_t& apply_visible_utf8(os_t& os, sv_t sv,
-                             int width = kUnset) const noexcept {
+    os_t& apply_visible_utf8(os_t& os, sv_t sv, int width) const noexcept {
         terminal_width   = 0;
         trimmed          = false;
         const int limit  = calc_limit(width);
@@ -379,11 +384,23 @@ struct Trimmer {
         if (!width_known) terminal_width = kUnset;
         return os;
     }
+    
+    [[nodiscard]] bool should_be_cutchars(int width) const noexcept {
+        if (
+            width > 0 &&
+            terminal_width >= 0 &&
+            terminal_width + cutlen <= width
+            )
+            return trimmed || width <= cutlen;
+        return false;
+    }
 
     os_t& apply_cutchars(os_t& os, int width) const noexcept {
-        if (width > 0 && terminal_width >= 0 && terminal_width + cutlen <= width)
-            if (trimmed || width <= cutlen)
-                return write_repeats(os, width - terminal_width, cutchar);
+        if (should_be_cutchars(width)) {
+                const int cutchars = width - terminal_width;
+                terminal_width += cutchars;
+                return write_repeats(os, cutchars, cutchar);
+            }
         return os;
     }
 
