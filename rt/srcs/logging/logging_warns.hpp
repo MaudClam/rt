@@ -58,7 +58,7 @@ inline constexpr Warn operator|(Warn a, Warn b) noexcept {
     return static_cast<Warn>(static_cast<flags_t>(a) | static_cast<flags_t>(b));
 }
 
-inline constexpr bool any(Warn  w) noexcept { return w != Warn::None; }
+inline constexpr bool any(Warn w) noexcept { return w != Warn::None; }
 
 class LogWarns {
 public:
@@ -67,6 +67,12 @@ public:
     LogWarns& set(Warn w) noexcept {
         bits_.fetch_or(static_cast<flags_t>(w), std::memory_order_relaxed);
         return *this;
+    }
+
+    template <size_t N>
+    void set_all_descriptive_warns(const LogWarnDescriptor (&table)[N]) {
+        for (const auto& entry : table)
+            set(entry.value);
     }
 
     LogWarns& clear(Warn w) noexcept {
@@ -88,6 +94,12 @@ public:
         return (bits_.load(std::memory_order_relaxed) & static_cast<flags_t>(w)) != 0;
     }
 
+    [[nodiscard]] bool any() const noexcept {
+        return bits_.load(std::memory_order_relaxed) != 0;;
+    }
+
+    [[nodiscard]] bool none() const noexcept { return !any(); }
+
     [[nodiscard]] Warn snapshot() const noexcept {
         return static_cast<Warn>(bits_.load(std::memory_order_relaxed));
     }
@@ -96,7 +108,7 @@ public:
         return static_cast<flags_t>(snapshot());
     }
 
-    os_t& write(os_t& os) const noexcept {
+    os_t& write(os_t& os) const {
         for (const auto& entry : log_warn_descriptions)
             if (test(entry.value))
                 os << "[LOG_WARN] " << entry.message << '\n';
@@ -107,7 +119,7 @@ private:
     std::atomic<flags_t> bits_;
 };
 
-inline os_t& operator<<(os_t& os, const LogWarns& log_warns) noexcept {
+inline os_t& operator<<(os_t& os, const LogWarns& log_warns) {
     return log_warns.write(os);
 }
 

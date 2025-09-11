@@ -72,23 +72,30 @@ inline T find_named_enum(const NamedEnum<T>(&table)[N], sv_t name) noexcept {
 }
 
 template <typename T, size_t N>
-inline os_t& write_named_enum(os_t& os, T value,
-                                        const NamedEnum<T> (&table)[N]) noexcept
-{
+[[nodiscard]]
+inline sv_t as_sv(T value, const NamedEnum<T> (&table)[N]) {
     for (const auto& entry : table)
         if (entry.value == value)
-            return os << entry.name;
-    return os;
+            return entry.name;
+    return {};
 }
+
+template <typename T, size_t N>
+inline os_t&
+write_named_enum(os_t& os, T value, const NamedEnum<T> (&table)[N]) noexcept {
+    return os << as_sv(value, (&table)[N]);
+}
+
+[[nodiscard]] inline sv_t as_sv(Color c) {return as_sv(c, enumColors);};
+[[nodiscard]] inline sv_t as_sv(Background b) {return as_sv(b, enumBackgrounds);};
+[[nodiscard]] inline sv_t as_sv(Style s) {return as_sv(s, enumStyles);};
 
 inline os_t& operator<<(os_t& os, Color c) noexcept {
     return write_named_enum(os, c, enumColors);
 }
-
 inline os_t& operator<<(os_t& os, Background b) noexcept {
     return write_named_enum(os, b, enumBackgrounds);
 }
-
 inline os_t& operator<<(os_t& os, Style s) noexcept {
     return write_named_enum(os, s, enumStyles);
 }

@@ -1,8 +1,9 @@
 #pragma once
-#include <ostream>
+#include <iosfwd>
+#include <string_view>
 #include <type_traits>
 #include <utility>
-#include <functional> // std::invoke
+#include <functional>
 
 namespace traits {
 
@@ -18,13 +19,10 @@ concept OsWriter = requires(F f, std::ostream& os, Args&&... args) {
     std::invoke(std::forward<F>(f), os, std::forward<Args>(args)...);
 };
 
-// noexcept-aware std::ostream sequence
-template<Ostreamable... Args>
-inline std::ostream& write_sequence(std::ostream& os, Args&&... args)
-noexcept(noexcept((os << ... << std::forward<Args>(args)))) {
-    if constexpr (sizeof...(Args) > 0)
-        (os << ... << std::forward<Args>(args));
-    return os;
-}
+// Concept: There is a free function as_sv(x) → std::string_view
+template<class T>
+concept AdlAsSv = requires(const T& x) {
+    { as_sv(x) } -> std::convertible_to<std::string_view>;
+};
 
 } // namespace traits

@@ -4,9 +4,18 @@
 #include <string_view>
 #include <filesystem>
 #include <fstream>
+#include <initializer_list>
 #include "terminal_width.hpp"
+#include "../common/common.hpp"
 
-
+#if defined(_WIN32)
+# include <windows.h>
+#elif defined(__APPLE__)
+# include <mach-o/dyld.h>
+#elif defined(__linux__)
+# include <unistd.h>
+# include <limits.h>
+#endif
 
 namespace logging::io {
 
@@ -80,17 +89,41 @@ inline constexpr Output operator&(Output a, Output b) noexcept {
     return is_stdout(v) || is_stderr(v);
 }
 
-inline os_t& operator<<(os_t& os, Output v) {
-    if (is_file(v)) {                        os << "File";
-        if (has_flag(v, Output::Append))     os << "|Append";
-        if (has_flag(v, Output::Indexing))   os << "|Indexing";
-        if (has_flag(v, Output::TimeIndex))  os << "|TimeIndex";
-        if (has_flag(v, Output::CreateDirs)) os << "|CreateDirs";
-    } else if (is_stderr(v)) {               os << "Stderr";
-    } else if (is_buffer(v)) {               os << "Buffer";
-    } else {                                 os << "Stdout";
+[[nodiscard]] inline sv_t as_sv(Output v) noexcept {
+    thread_local common::RawBuffer<64> buf{};
+    buf.reset();
+    if (is_file(v)) {                        buf.append("File");
+        if (has_flag(v, Output::Append))     buf.append("|Append");
+        if (has_flag(v, Output::Indexing))   buf.append("|Indexing");
+        if (has_flag(v, Output::TimeIndex))  buf.append("|TimeIndex");
+        if (has_flag(v, Output::CreateDirs)) buf.append("|CreateDirs");
+    } else if (is_stderr(v)) {               buf.append("Stderr");
+    } else if (is_buffer(v)) {               buf.append("Buffer");
+    } else {                                 buf.append("Stdout");
     }
-    return os;
+    buf.finalize_ellipsis_newline(false);
+    return buf.view();
+}
+
+inline os_t& operator<<(os_t& os, Output v) { return os << as_sv(v); }
+
+inline fs::path get_exec_path() {
+    char buffer[1024] = {};
+#if defined(_WIN32)
+    DWORD len = GetModuleFileNameA(nullptr, buffer, sizeof(buffer));
+    return std::filesystem::path(std::string(buffer, len));
+# elif defined(__APPLE__)
+    uint32_t size = sizeof(buffer);
+    if (_NSGetExecutablePath(buffer, &size) == 0)
+        return std::filesystem::canonical(buffer);
+# elif defined(__linux__)
+    ssize_t len = readlink("/proc/self/exe", buffer, sizeof(buffer) - 1);
+    if (len > 0) {
+        buffer[len] = '\0';
+        return std::filesystem::canonical(buffer);
+    }
+#endif
+    return {};
 }
 
 [[nodiscard]] inline
@@ -186,16 +219,50 @@ prepare_output_file_path(sv_t raw_path, Output mode = Output::File) noexcept {
     }
 }
 
+[[nodiscard]] inline std::optional<fs::path>
+check_possible_paths(sv_t raw_path,
+                            std::initializer_list<sv_t> raw_prefixes) noexcept {
+    std::error_code ec;
+
+    auto check = [&](const fs::path& p) -> std::optional<fs::path> {
+        ec.clear();
+        if (!fs::exists(p, ec) || ec) return std::nullopt;
+        auto canon = fs::weakly_canonical(p, ec);
+        if (ec) return std::nullopt;
+        return canon;
+    };
+
+    try {
+        fs::path base{raw_path};
+        if (base.is_absolute()) {
+            if (auto hit = check(base)) return hit;
+            return std::nullopt;
+        }
+        if (auto hit = check(base)) return hit;
+        if (auto hit = check(get_exec_path().parent_path() / base)) return hit;
+        ec.clear();
+        const auto cwd = fs::current_path(ec);
+        if (!ec)
+            if (auto hit = check(cwd / base)) return hit;
+        for (sv_t raw : raw_prefixes)
+            if (auto hit = check(fs::path{raw} / base))
+                return hit;
+    } catch (...) {
+        return std::nullopt;
+    }
+    return std::nullopt;
+}
+
 [[nodiscard]] inline
 common::Return open_output_file(ofs_t& out, sv_t raw_path,
                                           Output mode = Output::File) noexcept {
     using namespace logging;
     using namespace common;
     if (!has_flag(mode, Output::File))
-        return error("Output mode does not target a file");
+        return error("Output mode does not target a file", {}, true);
     auto path = prepare_output_file_path(raw_path, mode);
     if (!path)
-        return error("Invalid or inaccessible file path", raw_path);
+        return error("Invalid or inaccessible file path", raw_path, true);
     auto flags = std::ios::out;
     if (has_flag(mode, Output::Append))
         flags |= std::ios::app;
@@ -205,11 +272,11 @@ common::Return open_output_file(ofs_t& out, sv_t raw_path,
     if (!out.is_open()) {
         if (!fs::exists(path->parent_path()))
             return error("Parent directory does not exist",
-                                                  tl_copy(path->parent_path()));
+                                            tl_copy(path->parent_path()), true);
         if (!fs::is_regular_file(*path) && fs::exists(*path))
-            return error("Not a regular file", tl_copy(*path));
+            return error("Not a regular file", tl_copy(*path), true);
         return error("Failed to open file (permission denied or I/O error)",
-                                                                tl_copy(*path));
+                                                          tl_copy(*path), true);
     }
     return ok();
 }
@@ -217,28 +284,29 @@ common::Return open_output_file(ofs_t& out, sv_t raw_path,
 [[nodiscard]] inline
 common::Return open_input_file(ifs_t& in, const fs::path& path) noexcept {
     using namespace common;
-    if (path.empty()) return error("empty file path");
+    if (path.empty()) return error("empty file path", {}, true);
     std::error_code ec;
     if (!fs::exists(path, ec))
-        return error("file does not exist", tl_copy(path));
+        return error("file does not exist", tl_copy(path), true);
     if (!fs::is_regular_file(path, ec))
-        return error("not a regular file", tl_copy(path));
+        return error("not a regular file", tl_copy(path), true);
     in.open(path);
     if (!in.is_open())
         return error("failed to open file (permission denied or I/O error)",
-                                                                 tl_copy(path));
+                                                           tl_copy(path), true);
     return ok();
 }
 
 [[nodiscard]] inline
 common::Return open_input_file(ifs_t& in, sv_t raw_path) noexcept {
     using namespace common;
-    if (raw_path.empty()) return error("empty file path");
-    fs::path path;
+    if (raw_path.empty()) return error("empty file path", {}, true);
+    fs::path path{};
     try {
         path = fs::path{raw_path};
     } catch (...) {
-        return error("invalid path encoding or allocation failure", raw_path);
+        return error("invalid path encoding or allocation failure",
+                                                                raw_path, true);
     }
     return open_input_file(in, path);
 }

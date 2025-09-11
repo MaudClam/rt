@@ -46,6 +46,16 @@
 			);
 			target = 664CCE3D2DF0A86200B12741 /* test */;
 		};
+		6611F7782E72F12200B3EEC1 /* Exceptions for "srcs" folder in "test" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			additionalCompilerFlagsByRelativePath = {
+				globals.cpp = "-std=c++2a -Wall -Wextra -Werror";
+			};
+			membershipExceptions = (
+				globals.cpp,
+			);
+			target = 664CCE3D2DF0A86200B12741 /* test */;
+		};
 		668AAAAA2DB105A5006D2BDA /* Exceptions for "srcs" folder in "rt" target */ = {
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			additionalCompilerFlagsByRelativePath = {
@@ -82,16 +92,6 @@
 			);
 			target = 668AAA982DB1034A006D2BDA /* rt */;
 		};
-		66FCE80F2E570810005F07E6 /* Exceptions for "srcs" folder in "test" target */ = {
-			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
-			additionalCompilerFlagsByRelativePath = {
-				globals.cpp = "-std=c++2a -Wall -Wextra -Werror";
-			};
-			membershipExceptions = (
-				globals.cpp,
-			);
-			target = 664CCE3D2DF0A86200B12741 /* test */;
-		};
 /* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
@@ -99,7 +99,7 @@
 			isa = PBXFileSystemSynchronizedRootGroup;
 			exceptions = (
 				668AAAAA2DB105A5006D2BDA /* Exceptions for "srcs" folder in "rt" target */,
-				66FCE80F2E570810005F07E6 /* Exceptions for "srcs" folder in "test" target */,
+				6611F7782E72F12200B3EEC1 /* Exceptions for "srcs" folder in "test" target */,
 			);
 			path = srcs;
 			sourceTree = "<group>";
@@ -247,6 +247,7 @@
 					};
 					668AAA982DB1034A006D2BDA = {
 						CreatedOnToolsVersion = 16.2;
+						LastSwiftMigration = 1640;
 					};
 					668C5A612DEF4CF000D36459 = {
 						CreatedOnToolsVersion = 16.3;
@@ -448,22 +449,27 @@
 		668AAAA12DB1034A006D2BDA /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				CLANG_ENABLE_MODULES = YES;
 				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
 				DEAD_CODE_STRIPPING = YES;
 				ENABLE_HARDENED_RUNTIME = YES;
 				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+				SWIFT_VERSION = 6.0;
 			};
 			name = Debug;
 		};
 		668AAAA22DB1034A006D2BDA /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				CLANG_ENABLE_MODULES = YES;
 				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
 				DEAD_CODE_STRIPPING = YES;
 				ENABLE_HARDENED_RUNTIME = YES;
 				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_VERSION = 6.0;
 			};
 			name = Release;
 		};

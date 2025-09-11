@@ -365,7 +365,7 @@ int main(int ac, char** av) {
     rt::config.init(ac, av);
     os_t& os = std::cout;
 
-    int delay_ms = 300;
+    int delay_ms = 30;
     int width    = kUnset;
 
     test_ansi_formats(os, "▶️ Foregrounds:", ansi::enumColors, delay_ms, width);
@@ -377,7 +377,7 @@ int main(int ac, char** av) {
     test_ansi_formats(os, "▶️ Styles:     ", ansi::enumStyles, delay_ms, width);
     test_ansi_formats(os, "✅ Styles:     ", ansi::enumStyles, 0, width);
     os << std::endl;
-    width = 15;
+    width = 18;
     test_combinations(os, "✅ Style Combinations:", delay_ms, width);
     
     return 0;

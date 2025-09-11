@@ -2,6 +2,7 @@
 #include "../config.hpp"
 #include <string_view>
 #include <ostream>
+#include <utility>
 #include "ansi_escape_codes.hpp"
 #include "logging_utils.hpp"
 #include "terminal_width.hpp"
@@ -128,9 +129,7 @@ struct IOManip {
     }
 
     template<traits::Ostreamable... Args>
-    os_t& apply(os_t& os, const Args&... args) const
-                         noexcept(noexcept(traits::write_sequence(os, args...)))
-    {
+    os_t& apply(os_t& os, const Args&... args) const {
         std::optional<StreamGuard> guard;
         if (restore_stream_state && modifies_stream()) guard.emplace(os);
         if (boolalpha)  os << std::boolalpha;
@@ -144,7 +143,9 @@ struct IOManip {
         }
         if (uppercase)      os << std::uppercase;
         if (precision >= 0) os << std::setprecision(precision);
-        return traits::write_sequence(os, args...);
+        if constexpr (sizeof...(Args) > 0)
+            (os << ... << std::forward<Args>(args));
+        return os;
     }
 };
 
@@ -160,13 +161,10 @@ struct Format : FormatBase {
         char padchar = ' ';
 
         [[nodiscard]] constexpr
-        std::pair<int,int> padding(int width, int text_width) const noexcept {
-            return padding(std::max(0, width) - std::max(0, text_width));
-        }
-
-        [[nodiscard]] constexpr
-        std::pair<int,int> padding(int pad) const noexcept {
-            if (pad <= 0) return {0,0};
+        std::pair<int,int> padding(int width, int term_width) const noexcept {
+            if (width <= 1 || term_width < 0 || width <= term_width)
+                return {0,0};
+            const int pad = width - term_width;
             int left = 0, right = 0;
             using enum Mode;
             switch (mode) {
@@ -330,7 +328,8 @@ private:
         if (!fmt.use_ansi) {
             fmt = safe;
         } else {
-            fmt.background = safe.background;
+            if (safe.use_ansi) fmt.background = safe.background;
+            else               fmt.background = tty_bg();
             fmt.apply_safe_contrast(tty_fg(), tty_bg(), preserve_background);
         }
         fmt.styles.erase_if(ansi::is_trunc_unsafe_style);
@@ -381,18 +380,20 @@ private:
         return os;
     }
 
-    os_t& apply_trimming(os_t& os, sv_t sv, const Trimmer& trm) const noexcept {
+    os_t& apply_trimming(os_t& os, sv_t sv,
+                         const Trimmer& trm, int width_) const noexcept {
         auto fmt = safe_ansi_format();
         ansi::apply_format(os, fmt);
-        trm.apply_visible(os, sv, width);
+        trm.apply_visible(os, sv, width_);
         return ansi::apply_reset(os, fmt);
     }
 
-    os_t& apply_cutchars(os_t& os, const Trimmer& trm) const noexcept {
-        if (!trm.should_be_cutchars(width)) return os;
+    os_t& apply_cutchars(os_t& os,
+                         const Trimmer& trm, int width_) const noexcept {
+        if (!trm.need_cutchars(width)) return os;
         auto fmt = safe_trunc_ansi_format();
         ansi::apply_format(os, fmt);
-        trm.apply_cutchars(os, width);
+        trm.apply_cutchars(os, width_);
         return ansi::apply_reset(os, fmt);
     }
 
@@ -432,17 +433,18 @@ private:
     }
 
     os_t& write_truncated_and_normalized(os_t& os, sv_t sv) const {
+        int width_ = truncate.enabled ? width : kUnset;
         auto trm = make_trimmer();
-        if (trm.mode == Trimmer::Mode::Right) {
-            apply_trimming(os, sv, trm);
-            apply_cutchars(os, trm);
+        if (trm.mode == Trimmer::Mode::Right || !truncate.enabled) {
+            apply_trimming(os, sv, trm, width_);
+            apply_cutchars(os, trm, width_);
             if ((terminal_width_ = trm.metrics().terminal_width) == kUnset )
                 cfg().log_warns.set(Warn::UnicodeWidthUnreliable);
             return os;
         }
         auto& buff = common::tl_buffer<Trimmer>(false);
-        apply_trimming(buff, sv, trm);
-        apply_cutchars(os, trm);
+        apply_trimming(buff, sv, trm, width_);
+        apply_cutchars(os, trm, width_);
         os << buff.view();
         if ((terminal_width_ = trm.metrics().terminal_width) == kUnset )
             cfg().log_warns.set(Warn::UnicodeWidthUnreliable);
@@ -451,12 +453,11 @@ private:
 
     os_t& apply_align(os_t& os, sv_t sv) const noexcept {
         const auto [left, right] = align.padding(width, terminal_width_);
-        if (!left && !right) os << sv;
+        if (!left && !right) return os << sv;
         auto fmt = safe_pad_ansi_format();
         apply_padding(os, left, align.padchar, fmt);
         os << sv;
-        apply_padding(os, right, align.padchar, fmt);
-        return os;
+        return apply_padding(os, right, align.padchar, fmt);
     }
 };
 

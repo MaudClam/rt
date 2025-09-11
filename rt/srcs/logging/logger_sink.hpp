@@ -43,7 +43,7 @@ struct LoggerSink {
         raw_path_ = raw_path;
         fatal_on_failure_ = fatal_on_failure;
         if (const auto ret = setup_output_stream(); !ret.ok()) {
-            print_error(ret, "LoggerSink init error:");
+            report_error(ret, "LoggerSink init error:");
             if (fatal_on_failure_) {
                 cfg().flush_log_warns();
                 fatal_exit(ExitCode::LoggingFailure);

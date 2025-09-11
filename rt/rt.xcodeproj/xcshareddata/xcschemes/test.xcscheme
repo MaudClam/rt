@@ -58,7 +58,15 @@
             isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
+            argument = "--metrics-dump"
+            isEnabled = "YES">
+         </CommandLineArgument>
+         <CommandLineArgument
             argument = "--config-dump"
+            isEnabled = "YES">
+         </CommandLineArgument>
+         <CommandLineArgument
+            argument = "hh"
             isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
@@ -75,7 +83,7 @@
          </CommandLineArgument>
          <CommandLineArgument
             argument = "--no-tty"
-            isEnabled = "YES">
+            isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "--no-tty --no-ansi --no-utf8 --emoji"
