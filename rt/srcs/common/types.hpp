@@ -2,8 +2,8 @@
 #include <string_view>
 #include <sstream>
 #include <string>
-#include <chrono>
 #include <cstdint>
+#include <chrono>
 
 
 namespace common {
@@ -29,6 +29,19 @@ inline constexpr auto delay_suffix = DelayConfig<delay_t>::suffix;
 
 enum class IoStatus : uint8_t { Ok, Contended, Failed };
 
-
 }// namespace common
 
+namespace ansi {
+
+using sv_t = common::sv_t;
+using os_t = common::os_t;
+
+}// namespace ansi
+
+namespace logging {
+
+using sv_t  = common::sv_t;
+using os_t  = common::os_t;
+using oss_t = common::oss_t;
+
+}// namespace logging

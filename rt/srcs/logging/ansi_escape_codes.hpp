@@ -1,14 +1,9 @@
 #pragma once
-#include <string_view>
-#include <ostream>
-#include <cstdint>
+#include "../common/types.hpp"
 
 namespace ansi {
 
 template<typename T, std::size_t MaxN> struct style_list;
-
-using sv_t = std::string_view;
-using os_t = std::ostream;
 
 inline constexpr char PARAM_SEP        = ';';
 inline constexpr char SGR_SUFFIX       = 'm';
@@ -154,13 +149,9 @@ inline constexpr bool is_pad_unsafe_style(Style s) noexcept {
     using enum Style;
     switch (s) {
         case Reset:
-//        case Bold:
-//        case Faint:
-//        case Italic:
         case Underline:
         case Blink:
         case BlinkRapid:
-//        case Inverse:
         case Hidden:
         case Strikethrough:
             return true;
@@ -173,13 +164,6 @@ inline constexpr bool is_trunc_unsafe_style(Style s) noexcept {
     using enum Style;
     switch (s) {
         case Reset:
-//        case Bold:
-//        case Faint:
-//        case Italic:
-//        case Underline:
-//        case Blink:
-//        case BlinkRapid:
-//        case Inverse:
         case Hidden:
         case Strikethrough:
             return true;
@@ -226,7 +210,7 @@ struct Format {
     }
 };
 
-inline os_t& apply_format(os_t& os, const Format& fmt) noexcept {
+inline os_t& apply_format(os_t& os, const Format& fmt) {
     if (!fmt.use_ansi) return os;
     os << CSI_SEQ << static_cast<int>(fmt.foreground);
     os << PARAM_SEP << static_cast<int>(fmt.background);
@@ -235,43 +219,42 @@ inline os_t& apply_format(os_t& os, const Format& fmt) noexcept {
     return os << SGR_SUFFIX;
 }
 
-inline os_t& apply_reset(os_t& os, const Format& fmt) noexcept {
+inline os_t& apply_reset(os_t& os, const Format& fmt) {
     return os << (fmt.use_ansi ? RESET_SEQ : "");
 }
 
 template<typename... Args>
-inline os_t& apply_sequence(os_t& os, const Args&... args)
-    noexcept((noexcept(os << args) && ...)) {
+inline os_t& apply_sequence(os_t& os, const Args&... args) {
     return (os << ... << args);
 }
 
-inline os_t& apply_pad(os_t& os, int width, char padder = ' ') noexcept {
+inline os_t& apply_pad(os_t& os, int width, char padder = ' ') {
 	for (int i = 0; i < width; ++i)
 		os << padder;
 	return os;
 }
 
-inline os_t& apply_move_left(os_t& os, int n) noexcept  {
+inline os_t& apply_move_left(os_t& os, int n)  {
     if (n < 1) return os;
     return apply_sequence(os, CSI_SEQ, n, 'D');
 }
 
-inline os_t& apply_move_right(os_t& os, int n) noexcept {
+inline os_t& apply_move_right(os_t& os, int n) {
     if (n < 1) return os;
     return apply_sequence(os, CSI_SEQ, n, 'C');
 }
 
-inline os_t& apply_move_up(os_t& os, int n) noexcept {
+inline os_t& apply_move_up(os_t& os, int n) {
     if (n < 1) return os;
     return apply_sequence(os, CSI_SEQ, n, 'A');
 }
 
-inline os_t& apply_move_down(os_t& os, int n) noexcept {
+inline os_t& apply_move_down(os_t& os, int n) {
     if (n < 1) return os;
     return apply_sequence(os, CSI_SEQ, n, 'B');
 }
 
-inline os_t& apply_clear_left(os_t& os, int n) noexcept {
+inline os_t& apply_clear_left(os_t& os, int n) {
     if (n < 1) return os;
     apply_move_left(os, n);
     apply_pad(os, n);

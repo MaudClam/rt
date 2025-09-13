@@ -88,9 +88,9 @@ struct RawBuffer {
     RawBuffer& append(const RawBuffer<M>& buf) noexcept {return append_(buf.data(),buf.size());}
     RawBuffer& append(sv_t sv) noexcept {return append_(sv.data(), sv.size());}
     RawBuffer& append(const char* s) noexcept {return append_(s,safe_strlen(s));}
-    RawBuffer& append(int n) noexcept(noexcept(to_sv(n))) {sv_t sv = to_sv(n); return append_(sv.data(),sv.size());}
+    RawBuffer& append(int n) noexcept {sv_t sv = to_sv(n); return append_(sv.data(),sv.size());}
     RawBuffer& append(char c) noexcept { return append_(&c, 1); }
-    RawBuffer& append(bool b) noexcept(noexcept(as_sv(b))) {sv_t sv = as_sv(b); return append_(sv.data(),sv.size());}
+    RawBuffer& append(bool b) noexcept {sv_t sv = as_sv(b); return append_(sv.data(),sv.size());}
     RawBuffer& append(const Return& status) noexcept {
         if (status.ok()) return *this;
         append(status.status);

@@ -32,29 +32,36 @@ inline std::atomic<uint64_t> stderr_failed{0};
 inline std::atomic<uint64_t> stdout_failed{0};
 inline thread_local int      tl_last_stderr_attempts{0};
 inline thread_local int      tl_last_stdout_attempts{0};
-[[nodiscard]] inline bool is_metrics() {
-    return val(stderr_contended) || val(stdout_contended) ||
-           val(stderr_failed)    || val(stdout_failed);
+[[nodiscard]] inline bool is_metrics() noexcept {
+    const auto sc = val(stderr_contended);
+    const auto so = val(stdout_contended);
+    const auto sf = val(stderr_failed);
+    const auto fo = val(stdout_failed);
+    return (sc | so | sf | fo) != 0;
 }
-inline void reset_metrics() {
+inline void reset_metrics() noexcept {
     stderr_contended.store(0, std::memory_order_relaxed);
     stdout_contended.store(0, std::memory_order_relaxed);
     stderr_failed.store(0, std::memory_order_relaxed);
     stdout_failed.store(0, std::memory_order_relaxed);
 }
-inline void flush_metrics_dump() {
-    if (!is_metrics()) {
+inline void flush_metrics_dump() noexcept {
+    const auto sc = val(stderr_contended);
+    const auto so = val(stdout_contended);
+    const auto sf = val(stderr_failed);
+    const auto fo = val(stdout_failed);
+    if ((sc | so | sf | fo) == 0) [[likely]] {
         sv_t msg{"\nMETRICS DUMP: Metrics have no changes.\n"};
         raw_write_stderr(msg.data(), msg.size());
         return;
     }
-    RawBuffer<256>
+    RawBuffer<512>
     buf(
         "\nMETRICS DUMP ===============\n",
-        "stderr_contended: ", (int)val(stderr_contended),'\n',
-        "stdout_contended: ", (int)val(stdout_contended),'\n',
-        "stderr_failed:    ", (int)val(stderr_failed),   '\n',
-        "stdout_failed:    ", (int)val(stdout_failed),   '\n',
+        "stderr_contended: ", to_sv(sc), '\n',
+        "stdout_contended: ", to_sv(so), '\n',
+        "stderr_failed:    ", to_sv(sf), '\n',
+        "stdout_failed:    ", to_sv(fo), '\n',
         "METRICS DUMP END ===========\n"
         );
     buf.finalize_ellipsis_newline(true);
@@ -121,8 +128,8 @@ template<typename... Args>
         ++attempts;
         io_status = stream_locker(std::cout, stdout_mutex, kIoDelay,
                                   stream_inserter<Args...>(), args...);
-        if (io_status == IoStatus::Ok) break;
-        if (io_status == IoStatus::Failed) break;
+        if (io_status == IoStatus::Ok) [[likely]] break;
+        if (io_status == IoStatus::Failed) [[unlikely]] break;
         std::this_thread::sleep_for(kIoDelay);
     }
 #if !defined(NDEBUG)
@@ -157,13 +164,22 @@ template<typename... Args>
     return io_status;
 }
 
+inline void raw_write_stdout(sv_t sv) noexcept {
+    raw_write_stdout(sv.data(), sv.size());
+}
+
+template<size_t N>
+inline void raw_write_stdout(const RawBuffer<N>& buf) noexcept {
+    raw_write_stdout(buf.view());
+}
+
 inline void raw_write_stderr(sv_t sv) noexcept {
-    return raw_write_stderr(sv.data(), sv.size());
+    raw_write_stderr(sv.data(), sv.size());
 }
 
 template<size_t N>
 inline void raw_write_stderr(const RawBuffer<N>& buf) noexcept {
-    return raw_write_stderr(buf.view());
+    raw_write_stderr(buf.view());
 }
 
 [[nodiscard]] inline

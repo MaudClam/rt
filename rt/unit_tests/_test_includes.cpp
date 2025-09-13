@@ -20,7 +20,7 @@
 int main(int ac, char** av) {
     (void)ac; (void)av;
     rt::config.init(ac, av);
-    rt::config.flush_log_warns(true);
+    rt::config.flush_log_warns();
     
     static_assert(traits::Ostreamable<int>);
     static_assert(traits::Ostreamable<const char*>);
@@ -31,7 +31,7 @@ int main(int ac, char** av) {
     static_assert(traits::OsWriter<
         decltype([](std::ostream& os, int x){ os << x; }), int>);
     
-    (void)common::with_stdout("Hello World!\n_test_includes.cpp OK!\n");
+    common::raw_write_stdout("Hello World!\n_test_includes.cpp OK!\n");
     return 0;
 }
 

@@ -497,7 +497,7 @@ struct ProgressBar : Format, ProgressBarState {
         sv_t unmark = " ";
         sv_t suffix = "] ";
 
-        os_t& write(os_t& os, const ProgressBar& ctx) const noexcept {
+        os_t& write(os_t& os, const ProgressBar& ctx) const {
             const bool start = ctx.count == 0;
             if (start)
                 init(ctx);
@@ -543,7 +543,7 @@ struct ProgressBar : Format, ProgressBarState {
         sv_t mark   = ".";
         sv_t suffix = " ";
 
-        os_t& write(os_t& os, const ProgressBar& ctx) const noexcept {
+        os_t& write(os_t& os, const ProgressBar& ctx) const {
             const bool start = ctx.count == 0;
             if (start)
                 init(ctx);
@@ -585,7 +585,7 @@ struct ProgressBar : Format, ProgressBarState {
         int  width  = 3;
         sv_t suffix = "% ";
 
-        os_t& write(os_t& os, const ProgressBar& ctx) const noexcept {
+        os_t& write(os_t& os, const ProgressBar& ctx) const {
             const bool start = ctx.count == 0;
             if (start)
                 init(ctx);
@@ -631,12 +631,12 @@ struct ProgressBar : Format, ProgressBarState {
     Alternate    alt;
     Percent      percent;
 
-    os_t& write(io::Output mode, os_t& os) const noexcept {
+    os_t& write(io::Output mode, os_t& os) const {
         common::ScopedOverride scoped(output_mode(), mode);
         return write(os);
     }
 
-    os_t& write(os_t& os) const noexcept {
+    os_t& write(os_t& os) const {
         if (cycles <= 0 || width <= 0) return os;
         if (terminal_width_ == kUnset) {
             terminal_width_ = 0;

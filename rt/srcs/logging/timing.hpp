@@ -50,7 +50,7 @@ public:
 		return *this;
 	}
 
-    os_t& write(os_t& os, sv_t suffix = "\n") noexcept {
+    os_t& write(os_t& os, sv_t suffix = "\n") {
 		for (const auto& entry : times_) {
 			os << entry.label;
             write_duration(os, entry.duration);
@@ -65,7 +65,7 @@ private:
     time_point_t           start_time_;
 };
 
-inline os_t& operator<<(os_t& os, Timer& timer) noexcept {
+inline os_t& operator<<(os_t& os, Timer& timer) {
     return timer.write(os);
 }
 

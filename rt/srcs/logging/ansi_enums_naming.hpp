@@ -1,5 +1,6 @@
 #pragma once
 #include "ansi_escape_codes.hpp"
+#include "../common/buffer.hpp"
 
 namespace ansi {
 
@@ -73,44 +74,30 @@ inline T find_named_enum(const NamedEnum<T>(&table)[N], sv_t name) noexcept {
 
 template <typename T, size_t N>
 [[nodiscard]]
-inline sv_t as_sv(T value, const NamedEnum<T> (&table)[N]) {
+inline sv_t as_sv(T value, const NamedEnum<T> (&table)[N]) noexcept {
     for (const auto& entry : table)
         if (entry.value == value)
             return entry.name;
     return {};
 }
 
-template <typename T, size_t N>
-inline os_t&
-write_named_enum(os_t& os, T value, const NamedEnum<T> (&table)[N]) noexcept {
-    return os << as_sv(value, (&table)[N]);
-}
-
-[[nodiscard]] inline sv_t as_sv(Color c) {return as_sv(c, enumColors);};
-[[nodiscard]] inline sv_t as_sv(Background b) {return as_sv(b, enumBackgrounds);};
-[[nodiscard]] inline sv_t as_sv(Style s) {return as_sv(s, enumStyles);};
-
-inline os_t& operator<<(os_t& os, Color c) noexcept {
-    return write_named_enum(os, c, enumColors);
-}
-inline os_t& operator<<(os_t& os, Background b) noexcept {
-    return write_named_enum(os, b, enumBackgrounds);
-}
-inline os_t& operator<<(os_t& os, Style s) noexcept {
-    return write_named_enum(os, s, enumStyles);
-}
-
-inline os_t& write(os_t& os, const ansi::Format& fmt) noexcept {
-    os << "{" << fmt.foreground << ", " << fmt.background << ", {";
+[[nodiscard]] inline sv_t as_sv(Color c) noexcept {return as_sv(c, enumColors);};
+[[nodiscard]] inline sv_t as_sv(Background b) noexcept {return as_sv(b, enumBackgrounds);};
+[[nodiscard]] inline sv_t as_sv(Style s) noexcept {return as_sv(s, enumStyles);};
+[[nodiscard]] inline sv_t as_sv(const Format& fmt) noexcept {
+    thread_local common::RawBuffer<160> buf;
+    buf.append('{', as_sv(fmt.foreground), ", ", as_sv(fmt.background), ", {");
     for (const auto& s : fmt.styles)
-        os << (&s == fmt.styles.begin() ? "" : ", ") << s;
-    os << "}, use_ansi=" << std::boolalpha << fmt.use_ansi << "}";
-    return os;
+        buf.append((&s == fmt.styles.begin() ? "" : ", "), as_sv(s));
+    buf.append("}, use_ansi=", fmt.use_ansi, '}');
+    buf.finalize_ellipsis_newline(false);
+    return buf.view();
 }
 
-inline os_t& operator<<(os_t& os, const ansi::Format& fmt) noexcept {
-    return write(os, fmt);
-}
+inline os_t& write(os_t& os, const Format& fmt) { return os << as_sv(fmt); }
+inline os_t& operator<<(os_t& os, Color c) { return os << as_sv(c); }
+inline os_t& operator<<(os_t& os, Background b) { return os << as_sv(b); }
+inline os_t& operator<<(os_t& os, Style s) { return os << as_sv(s); }
+inline os_t& operator<<(os_t& os, const Format& fmt) { return write(os, fmt); }
 
 } // namespace ansi
-

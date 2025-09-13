@@ -31,6 +31,12 @@ namespace common {
     return (ec == std::errc{}) ? sv_t{buf, static_cast<size_t>(ptr - buf)} : sv_t{};
 }
 
+[[nodiscard]] inline sv_t to_sv(std::uint64_t n) noexcept {
+    static thread_local char buf[20];
+    auto [ptr, ec] = std::to_chars(std::begin(buf), std::end(buf), n);
+    return (ec == std::errc{}) ? sv_t{buf, static_cast<size_t>(ptr - buf)} : sv_t{};
+}
+
 [[nodiscard]] inline sv_t as_sv(bool b) noexcept {
     return b ? "true" : "false";
 }

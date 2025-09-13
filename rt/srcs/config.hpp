@@ -239,7 +239,7 @@ private:
             if (!av[i]) return error("Null argument", "argv[i]", true);
             sv_t sv_arg{av[i]};
             if (sv_arg == "--help" || sv_arg == "-h" || sv_arg == "/h") {
-                (void)with_stdout(cmdline_help);
+                raw_write_stdout(cmdline_help);
                 graceful_exit();
             }
             if (!sv_arg.starts_with("--"))

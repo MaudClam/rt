@@ -6,7 +6,7 @@
 #include <fstream>
 #include <initializer_list>
 #include "terminal_width.hpp"
-#include "../common/common.hpp"
+//#include "../common/common.hpp"
 
 #if defined(_WIN32)
 # include <windows.h>
@@ -181,7 +181,7 @@ on_collision(const fs::path& base_with_ts, const fs::path& ext)  {
 
 [[nodiscard]] inline std::optional<fs::path>
 prepare_output_file_path(const fs::path& path,
-                                          Output mode = Output::File) noexcept {
+                         Output mode = Output::File) noexcept {
     if (!is_file(mode)) return std::nullopt;
     try {
         fs::path dir  = path.parent_path();
